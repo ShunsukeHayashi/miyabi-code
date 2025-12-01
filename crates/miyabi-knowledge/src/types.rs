@@ -60,13 +60,7 @@ pub struct KnowledgeEntry {
 impl KnowledgeEntry {
     /// 新しいエントリを作成
     pub fn new(content: String, metadata: KnowledgeMetadata) -> Self {
-        Self {
-            id: KnowledgeId::new(),
-            content,
-            metadata,
-            timestamp: Utc::now(),
-            embedding: None,
-        }
+        Self { id: KnowledgeId::new(), content, metadata, timestamp: Utc::now(), embedding: None }
     }
 }
 
@@ -166,13 +160,7 @@ pub struct IndexStats {
 
 impl Default for IndexStats {
     fn default() -> Self {
-        Self {
-            total: 0,
-            success: 0,
-            failed: 0,
-            skipped: 0,
-            duration_secs: 0.0,
-        }
+        Self { total: 0, success: 0, failed: 0, skipped: 0, duration_secs: 0.0 }
     }
 }
 

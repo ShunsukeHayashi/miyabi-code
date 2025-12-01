@@ -180,12 +180,7 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
     /// # Returns
     ///
     /// Combined and ranked context pieces from both sources
-    pub async fn search(
-        &mut self,
-        query: &str,
-        files: Option<&[PathBuf]>,
-        limit: usize,
-    ) -> Result<Vec<ContextPiece>> {
+    pub async fn search(&mut self, query: &str, files: Option<&[PathBuf]>, limit: usize) -> Result<Vec<ContextPiece>> {
         // Get RAG results
         let rag_results = self
             .rag_searcher
@@ -374,9 +369,7 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
         // Check cache
         if let Some(entry) = self.ast_cache.get(path) {
             // Check if cache is still valid
-            let cache_age = now
-                .duration_since(entry.cached_at)
-                .unwrap_or(Duration::from_secs(0));
+            let cache_age = now.duration_since(entry.cached_at).unwrap_or(Duration::from_secs(0));
 
             if cache_age < self.cache_ttl && entry.file_mtime == file_mtime {
                 // Cache hit - return cached context
@@ -395,14 +388,8 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
             self.evict_lru_entry();
         }
 
-        self.ast_cache.insert(
-            path.to_path_buf(),
-            CacheEntry {
-                context: context.clone(),
-                cached_at: now,
-                file_mtime,
-            },
-        );
+        self.ast_cache
+            .insert(path.to_path_buf(), CacheEntry { context: context.clone(), cached_at: now, file_mtime });
 
         Ok(Some(context))
     }
@@ -430,21 +417,14 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
     }
 
     /// Extract relevant symbols from file context based on query
-    fn extract_relevant_symbols(
-        &self,
-        context: &FileContext,
-        query: &str,
-    ) -> Vec<(String, (usize, usize))> {
+    fn extract_relevant_symbols(&self, context: &FileContext, query: &str) -> Vec<(String, (usize, usize))> {
         let query_lower = query.to_lowercase();
         let mut relevant = Vec::new();
 
         for symbol in &context.symbols {
             // Match by symbol name
             if symbol.name.to_lowercase().contains(&query_lower) {
-                relevant.push((
-                    format!("{} {}", symbol.kind_str(), symbol.name),
-                    (symbol.start_line, symbol.end_line),
-                ));
+                relevant.push((format!("{} {}", symbol.kind_str(), symbol.name), (symbol.start_line, symbol.end_line)));
                 continue;
             }
 
@@ -537,9 +517,7 @@ mod tests {
             timestamp: Utc::now(),
         }];
 
-        let mock_searcher = MockSearcher {
-            results: mock_results,
-        };
+        let mock_searcher = MockSearcher { results: mock_results };
 
         let mut hybrid = HybridContextSearcher::new(mock_searcher, 0.5).unwrap();
 
@@ -551,9 +529,7 @@ mod tests {
 
     #[test]
     fn test_format_for_prompt() {
-        let mock_searcher = MockSearcher {
-            results: Vec::new(),
-        };
+        let mock_searcher = MockSearcher { results: Vec::new() };
 
         let hybrid = HybridContextSearcher::new(mock_searcher, 0.5).unwrap();
 
@@ -576,9 +552,7 @@ mod tests {
 
     #[test]
     fn test_priority_based_pruning() {
-        let mock_searcher = MockSearcher {
-            results: Vec::new(),
-        };
+        let mock_searcher = MockSearcher { results: Vec::new() };
 
         let hybrid = HybridContextSearcher::new(mock_searcher, 0.5).unwrap();
 
@@ -629,9 +603,7 @@ mod tests {
 
     #[test]
     fn test_cache_functionality() {
-        let mock_searcher = MockSearcher {
-            results: Vec::new(),
-        };
+        let mock_searcher = MockSearcher { results: Vec::new() };
 
         let mut hybrid = HybridContextSearcher::new_with_cache(
             mock_searcher,
@@ -656,9 +628,7 @@ mod tests {
     fn test_cache_eviction() {
         use std::time::SystemTime;
 
-        let mock_searcher = MockSearcher {
-            results: Vec::new(),
-        };
+        let mock_searcher = MockSearcher { results: Vec::new() };
 
         let mut hybrid = HybridContextSearcher::new_with_cache(
             mock_searcher,
@@ -684,23 +654,14 @@ mod tests {
         let now = SystemTime::now();
 
         // Add first entry
-        hybrid.ast_cache.insert(
-            path1.clone(),
-            CacheEntry {
-                context: dummy_context.clone(),
-                cached_at: now,
-                file_mtime: now,
-            },
-        );
+        hybrid
+            .ast_cache
+            .insert(path1.clone(), CacheEntry { context: dummy_context.clone(), cached_at: now, file_mtime: now });
 
         // Add second entry
         hybrid.ast_cache.insert(
             path2.clone(),
-            CacheEntry {
-                context: dummy_context.clone(),
-                cached_at: now + Duration::from_secs(1),
-                file_mtime: now,
-            },
+            CacheEntry { context: dummy_context.clone(), cached_at: now + Duration::from_secs(1), file_mtime: now },
         );
 
         assert_eq!(hybrid.ast_cache.len(), 2);
@@ -708,11 +669,7 @@ mod tests {
         // Add third entry - should trigger eviction of oldest (path1)
         hybrid.ast_cache.insert(
             path3.clone(),
-            CacheEntry {
-                context: dummy_context.clone(),
-                cached_at: now + Duration::from_secs(2),
-                file_mtime: now,
-            },
+            CacheEntry { context: dummy_context.clone(), cached_at: now + Duration::from_secs(2), file_mtime: now },
         );
 
         // Manually evict LRU entry
@@ -725,45 +682,18 @@ mod tests {
     #[test]
     fn test_calculate_priority() {
         // AST with high score
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.9),
-            10
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.85),
-            9
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.75),
-            8
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.65),
-            7
-        );
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.9), 10);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.85), 9);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.75), 8);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.65), 7);
 
         // RAG with varying scores
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.9),
-            9
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.85),
-            8
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.65),
-            6
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.55),
-            5
-        );
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.9), 9);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.85), 8);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.65), 6);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.55), 5);
 
         // Hybrid always gets max priority
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Hybrid, 0.5),
-            10
-        );
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Hybrid, 0.5), 10);
     }
 }

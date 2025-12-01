@@ -40,19 +40,17 @@ async fn main() -> Result<()> {
     info!("🤖 Starting Miyabi Telegram Bot Server");
 
     // Load configuration from environment
-    let bot_token = std::env::var("TELEGRAM_BOT_TOKEN")
-        .context("TELEGRAM_BOT_TOKEN environment variable is required")?;
+    let bot_token =
+        std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN environment variable is required")?;
 
     let chat_id = std::env::var("TELEGRAM_CHAT_ID")
         .ok()
         .and_then(|s| s.parse::<i64>().ok());
 
-    let github_token =
-        std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN environment variable is required")?;
+    let github_token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN environment variable is required")?;
 
-    let webhook_url = std::env::var("WEBHOOK_URL").context(
-        "WEBHOOK_URL environment variable is required (e.g., https://example.com/webhook)",
-    )?;
+    let webhook_url = std::env::var("WEBHOOK_URL")
+        .context("WEBHOOK_URL environment variable is required (e.g., https://example.com/webhook)")?;
 
     let port: u16 = std::env::var("WEBHOOK_PORT")
         .unwrap_or_else(|_| "3000".to_string())
@@ -65,10 +63,7 @@ async fn main() -> Result<()> {
     // Verify bot connection
     match telegram_client.get_me().await {
         Ok(user) => {
-            info!(
-                "✅ Connected to Telegram as: @{}",
-                user.username.unwrap_or_else(|| user.first_name.clone())
-            );
+            info!("✅ Connected to Telegram as: @{}", user.username.unwrap_or_else(|| user.first_name.clone()));
         }
         Err(e) => {
             error!("❌ Failed to connect to Telegram: {}", e);
@@ -86,11 +81,7 @@ async fn main() -> Result<()> {
     info!("✅ Webhook set successfully");
 
     // Create application state
-    let state = AppState {
-        telegram_client: telegram_client.clone(),
-        chat_id,
-        github_token,
-    };
+    let state = AppState { telegram_client: telegram_client.clone(), chat_id, github_token };
 
     // Build router
     let app = Router::new()
@@ -123,10 +114,7 @@ async fn health_check() -> Json<Value> {
 }
 
 /// Webhook handler for Telegram updates
-async fn handle_webhook(
-    State(state): State<AppState>,
-    Json(update): Json<Update>,
-) -> Result<StatusCode, StatusCode> {
+async fn handle_webhook(State(state): State<AppState>, Json(update): Json<Update>) -> Result<StatusCode, StatusCode> {
     debug!("Received update: {:?}", update);
 
     // Spawn background task to process update
@@ -342,12 +330,7 @@ Miyabi v0.1.1
 }
 
 /// Handle natural language input
-async fn handle_natural_language(
-    state: &AppState,
-    chat_id: i64,
-    text: &str,
-    username: &str,
-) -> Result<()> {
+async fn handle_natural_language(state: &AppState, chat_id: i64, text: &str, username: &str) -> Result<()> {
     info!("🧠 Processing natural language input: {}", text);
 
     // Send "analyzing" message with progress indicator
@@ -356,10 +339,7 @@ async fn handle_natural_language(
 ⏳ 今、内容を確認しています
 📝 少しだけ待っててください..."#;
 
-    state
-        .telegram_client
-        .send_message(chat_id, analyzing_msg)
-        .await?;
+    state.telegram_client.send_message(chat_id, analyzing_msg).await?;
 
     // TODO: Use Anthropic Claude API to analyze intent and extract Issue details
     // For now, create a simple task
@@ -385,18 +365,12 @@ async fn handle_natural_language(
         task_title
     );
 
-    state
-        .telegram_client
-        .send_message(chat_id, &analysis_message)
-        .await?;
+    state.telegram_client.send_message(chat_id, &analysis_message).await?;
 
     // Create GitHub Issue (internally - user doesn't need to know)
     match create_github_issue(state, &task_title, text, username).await {
         Ok(task_number) => {
-            let task_url = format!(
-                "https://github.com/ShunsukeHayashi/Miyabi/issues/{}",
-                task_number
-            );
+            let task_url = format!("https://github.com/ShunsukeHayashi/Miyabi/issues/{}", task_number);
 
             let success_message = format!(
                 r#"🎉 *登録できました！*
@@ -425,10 +399,7 @@ async fn handle_natural_language(
 
             // Add interactive buttons
             let keyboard = miyabi_telegram::InlineKeyboard::new(vec![
-                vec![miyabi_telegram::InlineKeyboardButton::url(
-                    "📊 詳しく見る",
-                    &task_url,
-                )],
+                vec![miyabi_telegram::InlineKeyboardButton::url("📊 詳しく見る", &task_url)],
                 vec![
                     miyabi_telegram::InlineKeyboardButton::callback("➕ 別のこと頼む", "new_task"),
                     miyabi_telegram::InlineKeyboardButton::callback("💡 ヘルプ", "show_help"),
@@ -455,10 +426,7 @@ async fn handle_natural_language(
 
 困ったら「助けて」って言ってください！"#;
 
-            state
-                .telegram_client
-                .send_message(chat_id, error_message)
-                .await?;
+            state.telegram_client.send_message(chat_id, error_message).await?;
         }
     }
 
@@ -471,11 +439,7 @@ async fn handle_callback(
     callback_query: &miyabi_telegram::types::CallbackQuery,
     data: &str,
 ) -> Result<()> {
-    let chat_id = callback_query
-        .message
-        .as_ref()
-        .map(|m| m.chat.id)
-        .unwrap_or(0);
+    let chat_id = callback_query.message.as_ref().map(|m| m.chat.id).unwrap_or(0);
 
     match data {
         "show_examples" => {
@@ -555,12 +519,7 @@ async fn handle_callback(
 }
 
 /// Create GitHub Issue using gh CLI
-async fn create_github_issue(
-    state: &AppState,
-    title: &str,
-    body: &str,
-    author: &str,
-) -> Result<u64> {
+async fn create_github_issue(state: &AppState, title: &str, body: &str, author: &str) -> Result<u64> {
     info!("Creating GitHub Issue: {}", title);
 
     // Use gh CLI to create Issue (without labels to avoid error)

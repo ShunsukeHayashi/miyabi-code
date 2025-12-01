@@ -17,15 +17,8 @@ use tracing::{info, warn};
 /// # Returns
 ///
 /// Summary of files written
-pub async fn write_files_to_worktree(
-    worktree_path: &Path,
-    response: &GenerateResponse,
-) -> Result<WriteSummary> {
-    info!(
-        "Writing {} files from Claudable to worktree: {}",
-        response.files.len(),
-        worktree_path.display()
-    );
+pub async fn write_files_to_worktree(worktree_path: &Path, response: &GenerateResponse) -> Result<WriteSummary> {
+    info!("Writing {} files from Claudable to worktree: {}", response.files.len(), worktree_path.display());
 
     let mut files_written = 0;
     let mut total_lines = 0;
@@ -47,15 +40,9 @@ pub async fn write_files_to_worktree(
         info!("  ✅ {}", file.path);
     }
 
-    info!(
-        "Successfully wrote {} files ({} lines total)",
-        files_written, total_lines
-    );
+    info!("Successfully wrote {} files ({} lines total)", files_written, total_lines);
 
-    Ok(WriteSummary {
-        files_written,
-        total_lines,
-    })
+    Ok(WriteSummary { files_written, total_lines })
 }
 
 /// Install npm dependencies in worktree
@@ -195,9 +182,7 @@ mod tests {
         assert!(!result);
 
         // Create required structure
-        tokio::fs::create_dir_all(worktree_path.join("app"))
-            .await
-            .unwrap();
+        tokio::fs::create_dir_all(worktree_path.join("app")).await.unwrap();
         tokio::fs::write(worktree_path.join("package.json"), "{}".as_bytes())
             .await
             .unwrap();

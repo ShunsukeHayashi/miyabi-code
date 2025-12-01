@@ -111,9 +111,7 @@ async fn main() -> anyhow::Result<()> {
     let refactor_task = Task {
         id: "task-refactor".to_string(),
         title: "Refactor error handling".to_string(),
-        description:
-            "Replace panic! with proper Result<T, E> error handling throughout the codebase."
-                .to_string(),
+        description: "Replace panic! with proper Result<T, E> error handling throughout the codebase.".to_string(),
         task_type: TaskType::Refactor,
         priority: 2,
         severity: None,
@@ -127,11 +125,7 @@ async fn main() -> anyhow::Result<()> {
         metadata: None,
     };
 
-    let tasks = vec![
-        ("Feature", task),
-        ("Bug", bug_task),
-        ("Refactor", refactor_task),
-    ];
+    let tasks = vec![("Feature", task), ("Bug", bug_task), ("Refactor", refactor_task)];
 
     for (task_type, task) in tasks {
         println!("\n🔍 Testing {} task...", task_type);
@@ -140,11 +134,7 @@ async fn main() -> anyhow::Result<()> {
         let result = agent.execute(&task).await?;
         let duration = start_time.elapsed();
 
-        println!(
-            "⏱️  {} task completed in {:.2}s",
-            task_type,
-            duration.as_secs_f64()
-        );
+        println!("⏱️  {} task completed in {:.2}s", task_type, duration.as_secs_f64());
 
         if let Some(ref metrics) = result.metrics {
             println!("📈 {} metrics:", task_type);

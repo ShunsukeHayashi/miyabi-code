@@ -116,9 +116,7 @@ async fn test_unauthorized_approver() {
     let approval_id = gate.create_approval("workflow-123").await.unwrap();
 
     // Try to approve as unauthorized user
-    let result = gate
-        .approve(&approval_id, "charlie", Some("LGTM".to_string()))
-        .await;
+    let result = gate.approve(&approval_id, "charlie", Some("LGTM".to_string())).await;
 
     assert!(result.is_err());
 }
@@ -233,31 +231,15 @@ async fn test_approval_store_queries() {
     // Create test approvals
     use miyabi_approval::ApprovalState;
 
-    let state1 = ApprovalState::new(
-        "approval-1",
-        "workflow-1",
-        "gate-1",
-        vec!["alice".to_string()],
-        3600,
-    );
+    let state1 = ApprovalState::new("approval-1", "workflow-1", "gate-1", vec!["alice".to_string()], 3600);
 
-    let mut state2 = ApprovalState::new(
-        "approval-2",
-        "workflow-2",
-        "gate-1",
-        vec!["bob".to_string()],
-        3600,
-    );
+    let mut state2 = ApprovalState::new("approval-2", "workflow-2", "gate-1", vec!["bob".to_string()], 3600);
 
     // Approve state2
     use chrono::Utc;
     use miyabi_approval::ApprovalResponse;
-    let response = ApprovalResponse {
-        approver: "bob".to_string(),
-        approved: true,
-        comment: None,
-        responded_at: Utc::now(),
-    };
+    let response =
+        ApprovalResponse { approver: "bob".to_string(), approved: true, comment: None, responded_at: Utc::now() };
     state2.add_response(response);
 
     store.save(&state1).unwrap();

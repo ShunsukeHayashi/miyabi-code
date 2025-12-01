@@ -37,9 +37,7 @@ impl ModeValidator {
         }
 
         if slug.len() > 50 {
-            return Err(ModeError::ValidationFailed(
-                "Slug must be 50 characters or less".into(),
-            ));
+            return Err(ModeError::ValidationFailed("Slug must be 50 characters or less".into()));
         }
 
         Ok(())
@@ -51,9 +49,7 @@ impl ModeValidator {
         }
 
         if name.len() > 100 {
-            return Err(ModeError::ValidationFailed(
-                "Name must be 100 characters or less".into(),
-            ));
+            return Err(ModeError::ValidationFailed("Name must be 100 characters or less".into()));
         }
 
         Ok(())
@@ -65,9 +61,7 @@ impl ModeValidator {
         }
 
         if character.len() > 50 {
-            return Err(ModeError::ValidationFailed(
-                "Character name must be 50 characters or less".into(),
-            ));
+            return Err(ModeError::ValidationFailed("Character name must be 50 characters or less".into()));
         }
 
         Ok(())
@@ -79,9 +73,7 @@ impl ModeValidator {
         }
 
         if role_def.len() < 10 {
-            return Err(ModeError::ValidationFailed(
-                "Role definition too short (minimum 10 characters)".into(),
-            ));
+            return Err(ModeError::ValidationFailed("Role definition too short (minimum 10 characters)".into()));
         }
 
         Ok(())
@@ -89,9 +81,7 @@ impl ModeValidator {
 
     fn validate_groups(groups: &[crate::mode::ToolGroup]) -> ModeResult<()> {
         if groups.is_empty() {
-            return Err(ModeError::ValidationFailed(
-                "At least one tool group is required".into(),
-            ));
+            return Err(ModeError::ValidationFailed("At least one tool group is required".into()));
         }
 
         Ok(())
@@ -99,9 +89,7 @@ impl ModeValidator {
 
     fn validate_source(source: &str) -> ModeResult<()> {
         if source != "miyabi-core" && source != "user" {
-            return Err(ModeError::ValidationFailed(
-                "Source must be 'miyabi-core' or 'user'".into(),
-            ));
+            return Err(ModeError::ValidationFailed("Source must be 'miyabi-core' or 'user'".into()));
         }
 
         Ok(())

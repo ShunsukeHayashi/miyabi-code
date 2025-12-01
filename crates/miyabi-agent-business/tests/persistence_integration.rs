@@ -54,13 +54,10 @@ async fn create_test_repository(pool: &PgPool) -> Uuid {
 
 /// Helper to clean up test data
 async fn cleanup_test_data(pool: &PgPool, repo_id: Uuid) {
-    sqlx::query!(
-        "DELETE FROM agent_executions WHERE repository_id = $1",
-        repo_id
-    )
-    .execute(pool)
-    .await
-    .ok();
+    sqlx::query!("DELETE FROM agent_executions WHERE repository_id = $1", repo_id)
+        .execute(pool)
+        .await
+        .ok();
 
     sqlx::query!("DELETE FROM repositories WHERE id = $1", repo_id)
         .execute(pool)
@@ -179,10 +176,7 @@ async fn test_analytics_agent_with_metrics() {
         "bounce_rate": 45.2
     });
 
-    agent
-        .save_analysis_metrics(&pool, execution_id, metrics)
-        .await
-        .unwrap();
+    agent.save_analysis_metrics(&pool, execution_id, metrics).await.unwrap();
 
     // Verify metrics were saved
     let history = agent.load_history(&pool, repo_id, 1).await.unwrap();
@@ -203,60 +197,21 @@ async fn test_all_business_agents_have_unique_type_names() {
 
     // Create instances of all agents
     let agents: Vec<(&str, Box<dyn PersistableAgent>)> = vec![
-        (
-            "AIEntrepreneurAgent",
-            Box::new(AIEntrepreneurAgent::new(Default::default())),
-        ),
-        (
-            "AnalyticsAgent",
-            Box::new(AnalyticsAgent::new(Default::default())),
-        ),
-        (
-            "ContentCreationAgent",
-            Box::new(ContentCreationAgent::new(Default::default())),
-        ),
+        ("AIEntrepreneurAgent", Box::new(AIEntrepreneurAgent::new(Default::default()))),
+        ("AnalyticsAgent", Box::new(AnalyticsAgent::new(Default::default()))),
+        ("ContentCreationAgent", Box::new(ContentCreationAgent::new(Default::default()))),
         ("CRMAgent", Box::new(CRMAgent::new(Default::default()))),
-        (
-            "FunnelDesignAgent",
-            Box::new(FunnelDesignAgent::new(Default::default())),
-        ),
-        (
-            "JonathanIveDesignAgent",
-            Box::new(JonathanIveDesignAgent::new(Default::default())),
-        ),
-        (
-            "MarketResearchAgent",
-            Box::new(MarketResearchAgent::new(Default::default())),
-        ),
-        (
-            "MarketingAgent",
-            Box::new(MarketingAgent::new(Default::default())),
-        ),
-        (
-            "PersonaAgent",
-            Box::new(PersonaAgent::new(Default::default())),
-        ),
-        (
-            "ProductConceptAgent",
-            Box::new(ProductConceptAgent::new(Default::default())),
-        ),
-        (
-            "ProductDesignAgent",
-            Box::new(ProductDesignAgent::new(Default::default())),
-        ),
+        ("FunnelDesignAgent", Box::new(FunnelDesignAgent::new(Default::default()))),
+        ("JonathanIveDesignAgent", Box::new(JonathanIveDesignAgent::new(Default::default()))),
+        ("MarketResearchAgent", Box::new(MarketResearchAgent::new(Default::default()))),
+        ("MarketingAgent", Box::new(MarketingAgent::new(Default::default()))),
+        ("PersonaAgent", Box::new(PersonaAgent::new(Default::default()))),
+        ("ProductConceptAgent", Box::new(ProductConceptAgent::new(Default::default()))),
+        ("ProductDesignAgent", Box::new(ProductDesignAgent::new(Default::default()))),
         ("SalesAgent", Box::new(SalesAgent::new(Default::default()))),
-        (
-            "SelfAnalysisAgent",
-            Box::new(SelfAnalysisAgent::new(Default::default())),
-        ),
-        (
-            "SNSStrategyAgent",
-            Box::new(SNSStrategyAgent::new(Default::default())),
-        ),
-        (
-            "YouTubeAgent",
-            Box::new(YouTubeAgent::new(Default::default())),
-        ),
+        ("SelfAnalysisAgent", Box::new(SelfAnalysisAgent::new(Default::default()))),
+        ("SNSStrategyAgent", Box::new(SNSStrategyAgent::new(Default::default()))),
+        ("YouTubeAgent", Box::new(YouTubeAgent::new(Default::default()))),
     ];
 
     // Verify all have unique type names matching expected
@@ -337,10 +292,7 @@ async fn test_error_handling_persistence() {
     let history = agent.load_history(&pool, repo_id, 1).await.unwrap();
     assert_eq!(history.len(), 1);
     assert_eq!(history[0].status, ExecutionStatus::Failed);
-    assert_eq!(
-        history[0].error_message,
-        Some("LLM API rate limit exceeded".to_string())
-    );
+    assert_eq!(history[0].error_message, Some("LLM API rate limit exceeded".to_string()));
 
     cleanup_test_data(&pool, repo_id).await;
 }

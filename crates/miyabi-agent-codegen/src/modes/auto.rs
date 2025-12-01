@@ -18,9 +18,7 @@ pub struct AutoMode {
 impl AutoMode {
     /// Create a new auto mode executor
     pub fn new(llm_provider: impl Into<String>) -> Self {
-        Self {
-            llm_provider: llm_provider.into(),
-        }
+        Self { llm_provider: llm_provider.into() }
     }
 
     /// Execute code generation using LLM
@@ -36,10 +34,7 @@ impl AutoMode {
             .and_then(|v| v.as_u64())
             .unwrap_or(0);
 
-        println!(
-            "\n🤖 Auto Mode: Generating code with LLM provider: {}",
-            self.llm_provider
-        );
+        println!("\n🤖 Auto Mode: Generating code with LLM provider: {}", self.llm_provider);
         println!("📋 Issue: #{}", issue_number);
         println!("⏳ This may take a few minutes...\n");
 

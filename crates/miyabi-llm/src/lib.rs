@@ -37,8 +37,8 @@ pub mod types;
 // Re-export miyabi-llm-core (new unified API)
 pub use miyabi_llm_core::LlmError as LLMError;
 pub use miyabi_llm_core::{
-    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamEvent, StreamResponse,
-    ToolCall, ToolCallResponse, ToolDefinition,
+    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamEvent, StreamResponse, ToolCall,
+    ToolCallResponse, ToolDefinition,
 };
 
 // Re-export provider implementations from dedicated crates

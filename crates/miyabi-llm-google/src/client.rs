@@ -4,8 +4,8 @@ use crate::types::*;
 use async_trait::async_trait;
 use futures::stream::StreamExt;
 use miyabi_llm_core::{
-    LlmClient, LlmError, LlmStreamingClient, Message, Result, StreamResponse, ToolCall,
-    ToolCallResponse, ToolDefinition,
+    LlmClient, LlmError, LlmStreamingClient, Message, Result, StreamResponse, ToolCall, ToolCallResponse,
+    ToolDefinition,
 };
 
 /// Google Gemini API client
@@ -69,15 +69,9 @@ impl GoogleClient {
 
     /// Get API endpoint URL
     fn get_endpoint(&self, stream: bool) -> String {
-        let base = format!(
-            "https://generativelanguage.googleapis.com/v1beta/models/{}",
-            self.model
-        );
+        let base = format!("https://generativelanguage.googleapis.com/v1beta/models/{}", self.model);
         if stream {
-            format!(
-                "{}:streamGenerateContent?key={}&alt=sse",
-                base, self.api_key
-            )
+            format!("{}:streamGenerateContent?key={}&alt=sse", base, self.api_key)
         } else {
             format!("{}:generateContent?key={}", base, self.api_key)
         }
@@ -88,11 +82,7 @@ impl GoogleClient {
         messages
             .into_iter()
             .map(|msg| {
-                let part = GeminiPart {
-                    text: Some(msg.content),
-                    function_call: None,
-                    function_response: None,
-                };
+                let part = GeminiPart { text: Some(msg.content), function_call: None, function_response: None };
                 GeminiContent { parts: vec![part] }
             })
             .collect()
@@ -109,9 +99,7 @@ impl GoogleClient {
             })
             .collect();
 
-        vec![GeminiTool {
-            function_declarations: declarations,
-        }]
+        vec![GeminiTool { function_declarations: declarations }]
     }
 
     /// Parse function calls from response
@@ -189,31 +177,18 @@ impl LlmClient for GoogleClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(LlmError::ApiError(format!(
-                "Gemini API error {}: {}",
-                status, error_text
-            )));
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(LlmError::ApiError(format!("Gemini API error {}: {}", status, error_text)));
         }
 
-        let gemini_response: GeminiResponse = response
-            .json()
-            .await
-            .map_err(|e| LlmError::ParseError(e.to_string()))?;
+        let gemini_response: GeminiResponse = response.json().await.map_err(|e| LlmError::ParseError(e.to_string()))?;
 
         tracing::debug!("Gemini response: {:?}", gemini_response);
 
         self.extract_text(&gemini_response)
     }
 
-    async fn chat_with_tools(
-        &self,
-        messages: Vec<Message>,
-        tools: Vec<ToolDefinition>,
-    ) -> Result<ToolCallResponse> {
+    async fn chat_with_tools(&self, messages: Vec<Message>, tools: Vec<ToolDefinition>) -> Result<ToolCallResponse> {
         let contents = self.convert_messages(messages);
         let gemini_tools = self.convert_tools(tools);
 
@@ -238,20 +213,11 @@ impl LlmClient for GoogleClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(LlmError::ApiError(format!(
-                "Gemini API error {}: {}",
-                status, error_text
-            )));
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(LlmError::ApiError(format!("Gemini API error {}: {}", status, error_text)));
         }
 
-        let gemini_response: GeminiResponse = response
-            .json()
-            .await
-            .map_err(|e| LlmError::ParseError(e.to_string()))?;
+        let gemini_response: GeminiResponse = response.json().await.map_err(|e| LlmError::ParseError(e.to_string()))?;
 
         // Check for function calls
         if let Some(tool_calls) = self.parse_tool_calls(&gemini_response) {
@@ -298,14 +264,8 @@ impl LlmStreamingClient for GoogleClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(LlmError::ApiError(format!(
-                "Gemini API error {}: {}",
-                status, error_text
-            )));
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(LlmError::ApiError(format!("Gemini API error {}: {}", status, error_text)));
         }
 
         // Create stream from response

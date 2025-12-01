@@ -46,12 +46,7 @@ fn default_true() -> bool {
 
 impl Default for GenerateOptions {
     fn default() -> Self {
-        Self {
-            typescript: true,
-            tailwind: true,
-            shadcn: true,
-            supabase: false,
-        }
+        Self { typescript: true, tailwind: true, shadcn: true, supabase: false }
     }
 }
 

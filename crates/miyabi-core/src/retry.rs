@@ -22,44 +22,24 @@ pub struct RetryConfig {
 
 impl Default for RetryConfig {
     fn default() -> Self {
-        Self {
-            max_attempts: 3,
-            initial_delay_ms: 100,
-            max_delay_ms: 30000,
-            backoff_multiplier: 2.0,
-        }
+        Self { max_attempts: 3, initial_delay_ms: 100, max_delay_ms: 30000, backoff_multiplier: 2.0 }
     }
 }
 
 impl RetryConfig {
     /// Create a new retry configuration
     pub fn new(max_attempts: u32, initial_delay_ms: u64, max_delay_ms: u64) -> Self {
-        Self {
-            max_attempts,
-            initial_delay_ms,
-            max_delay_ms,
-            backoff_multiplier: 2.0,
-        }
+        Self { max_attempts, initial_delay_ms, max_delay_ms, backoff_multiplier: 2.0 }
     }
 
     /// Create aggressive retry config (5 attempts, 50ms initial, 10s max)
     pub fn aggressive() -> Self {
-        Self {
-            max_attempts: 5,
-            initial_delay_ms: 50,
-            max_delay_ms: 10000,
-            backoff_multiplier: 2.0,
-        }
+        Self { max_attempts: 5, initial_delay_ms: 50, max_delay_ms: 10000, backoff_multiplier: 2.0 }
     }
 
     /// Create conservative retry config (2 attempts, 500ms initial, 60s max)
     pub fn conservative() -> Self {
-        Self {
-            max_attempts: 2,
-            initial_delay_ms: 500,
-            max_delay_ms: 60000,
-            backoff_multiplier: 2.0,
-        }
+        Self { max_attempts: 2, initial_delay_ms: 500, max_delay_ms: 60000, backoff_multiplier: 2.0 }
     }
 
     /// Calculate delay for a given attempt number (0-indexed)
@@ -95,11 +75,7 @@ where
     let mut last_error = None;
 
     for attempt in 0..=config.max_attempts {
-        tracing::debug!(
-            "Retry attempt {}/{} (including initial attempt)",
-            attempt + 1,
-            config.max_attempts + 1
-        );
+        tracing::debug!("Retry attempt {}/{} (including initial attempt)", attempt + 1, config.max_attempts + 1);
 
         match operation().await {
             Ok(result) => {
@@ -120,11 +96,7 @@ where
                 // Don't sleep after the last attempt
                 if attempt < config.max_attempts {
                     let delay = config.calculate_delay(attempt);
-                    tracing::debug!(
-                        "Retry attempt {} failed, waiting {:?} before retry",
-                        attempt + 1,
-                        delay
-                    );
+                    tracing::debug!("Retry attempt {} failed, waiting {:?} before retry", attempt + 1, delay);
                     tokio::time::sleep(delay).await;
                 }
             }
@@ -133,11 +105,7 @@ where
 
     // All attempts failed
     let error = last_error.unwrap_or_else(|| MiyabiError::Unknown("No error captured".to_string()));
-    tracing::error!(
-        "All {} retry attempts failed: {}",
-        config.max_attempts + 1,
-        error
-    );
+    tracing::error!("All {} retry attempts failed: {}", config.max_attempts + 1, error);
     Err(error)
 }
 
@@ -185,9 +153,7 @@ pub fn is_retryable(error: &MiyabiError) -> bool {
         ),
 
         // Git errors - check message for lock conflicts
-        MiyabiError::Git(msg) => {
-            msg.to_lowercase().contains("lock") || msg.to_lowercase().contains("unable to create")
-        }
+        MiyabiError::Git(msg) => msg.to_lowercase().contains("lock") || msg.to_lowercase().contains("unable to create"),
 
         // Never retryable
         MiyabiError::Agent(_) => false,
@@ -197,7 +163,7 @@ pub fn is_retryable(error: &MiyabiError) -> bool {
         MiyabiError::Config(_) => false,
         MiyabiError::Validation(_) => false,
         MiyabiError::Json(_) => false,
-        MiyabiError::ToolError(_) => false, // Tool errors are permanent
+        MiyabiError::ToolError(_) => false,        // Tool errors are permanent
         MiyabiError::PermissionDenied(_) => false, // Permission errors are permanent
         MiyabiError::Unknown(_) => false,
     }
@@ -345,22 +311,14 @@ mod tests {
 
     #[test]
     fn test_is_retryable_http_timeout() {
-        assert!(is_retryable(&MiyabiError::Http(
-            "Connection timeout".to_string()
-        )));
-        assert!(is_retryable(&MiyabiError::Http(
-            "Temporarily unavailable".to_string()
-        )));
+        assert!(is_retryable(&MiyabiError::Http("Connection timeout".to_string())));
+        assert!(is_retryable(&MiyabiError::Http("Temporarily unavailable".to_string())));
     }
 
     #[test]
     fn test_is_retryable_github_rate_limit() {
-        assert!(is_retryable(&MiyabiError::GitHub(
-            "Rate limit exceeded".to_string()
-        )));
-        assert!(is_retryable(&MiyabiError::GitHub(
-            "API rate limit exceeded, retry after 60s".to_string()
-        )));
+        assert!(is_retryable(&MiyabiError::GitHub("Rate limit exceeded".to_string())));
+        assert!(is_retryable(&MiyabiError::GitHub("API rate limit exceeded, retry after 60s".to_string())));
     }
 
     #[test]
@@ -369,50 +327,30 @@ mod tests {
             std::io::ErrorKind::ConnectionRefused,
             "refused"
         ))));
-        assert!(is_retryable(&MiyabiError::Io(std::io::Error::new(
-            std::io::ErrorKind::TimedOut,
-            "timeout"
-        ))));
-        assert!(is_retryable(&MiyabiError::Io(std::io::Error::new(
-            std::io::ErrorKind::Interrupted,
-            "interrupted"
-        ))));
+        assert!(is_retryable(&MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::TimedOut, "timeout"))));
+        assert!(is_retryable(&MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::Interrupted, "interrupted"))));
     }
 
     #[test]
     fn test_is_retryable_io_not_retryable() {
-        assert!(!is_retryable(&MiyabiError::Io(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "not found"
-        ))));
-        assert!(!is_retryable(&MiyabiError::Io(std::io::Error::new(
-            std::io::ErrorKind::PermissionDenied,
-            "denied"
-        ))));
+        assert!(!is_retryable(&MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::NotFound, "not found"))));
+        assert!(!is_retryable(&MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::PermissionDenied, "denied"))));
     }
 
     #[test]
     fn test_is_retryable_git_lock_conflicts() {
-        assert!(is_retryable(&MiyabiError::Git(
-            "Unable to create lock file".to_string()
-        )));
-        assert!(is_retryable(&MiyabiError::Git(
-            "Lock already exists".to_string()
-        )));
+        assert!(is_retryable(&MiyabiError::Git("Unable to create lock file".to_string())));
+        assert!(is_retryable(&MiyabiError::Git("Lock already exists".to_string())));
     }
 
     #[test]
     fn test_is_not_retryable_validation() {
-        assert!(!is_retryable(&MiyabiError::Validation(
-            "Invalid input".to_string()
-        )));
+        assert!(!is_retryable(&MiyabiError::Validation("Invalid input".to_string())));
     }
 
     #[test]
     fn test_is_not_retryable_config() {
-        assert!(!is_retryable(&MiyabiError::Config(
-            "Missing token".to_string()
-        )));
+        assert!(!is_retryable(&MiyabiError::Config("Missing token".to_string())));
     }
 
     #[test]

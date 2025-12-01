@@ -5,8 +5,8 @@ use crate::error::{KnowledgeError, Result};
 use crate::types::{KnowledgeEntry, KnowledgeId};
 use qdrant_client::qdrant::vectors_config::Config;
 use qdrant_client::qdrant::{
-    CollectionInfo, CreateCollectionBuilder, Distance, PointStruct, RetrievedPoint, ScoredPoint,
-    SearchPointsBuilder, UpsertPointsBuilder, VectorParams, VectorsConfig,
+    CollectionInfo, CreateCollectionBuilder, Distance, PointStruct, RetrievedPoint, ScoredPoint, SearchPointsBuilder,
+    UpsertPointsBuilder, VectorParams, VectorsConfig,
 };
 use serde_json::json;
 use tracing::{debug, info};
@@ -60,9 +60,7 @@ impl QdrantClient {
             ..Default::default()
         };
 
-        let vectors_config = VectorsConfig {
-            config: Some(Config::Params(vector_params)),
-        };
+        let vectors_config = VectorsConfig { config: Some(Config::Params(vector_params)) };
 
         // Collection作成
         self.client
@@ -114,10 +112,7 @@ impl QdrantClient {
     }
 
     /// バッチ挿入
-    pub async fn insert_batch(
-        &self,
-        entries: &[(KnowledgeEntry, Vec<f32>)],
-    ) -> Result<Vec<KnowledgeId>> {
+    pub async fn insert_batch(&self, entries: &[(KnowledgeEntry, Vec<f32>)]) -> Result<Vec<KnowledgeId>> {
         let collection_name = &self.config.vector_db.collection;
         let mut inserted_ids = Vec::new();
 
@@ -225,18 +220,17 @@ impl QdrantClient {
 
         // Scroll through all points
         loop {
-            let mut builder = ScrollPointsBuilder::new(collection_name)
-                .with_payload(true)
-                .limit(100);
+            let mut builder = ScrollPointsBuilder::new(collection_name).with_payload(true).limit(100);
 
             if let Some(offset_id) = offset {
                 builder = builder.offset(offset_id);
             }
 
-            let result =
-                self.client.scroll(builder.build()).await.map_err(|e| {
-                    KnowledgeError::Qdrant(format!("Failed to scroll points: {}", e))
-                })?;
+            let result = self
+                .client
+                .scroll(builder.build())
+                .await
+                .map_err(|e| KnowledgeError::Qdrant(format!("Failed to scroll points: {}", e)))?;
 
             for point in &result.result {
                 let payload = &point.payload;
@@ -253,10 +247,7 @@ impl QdrantClient {
                     .map(|s| s.to_string())
                     .unwrap_or_default();
 
-                let timestamp_str = payload
-                    .get("timestamp")
-                    .and_then(|v| v.as_str())
-                    .map_or("", |v| v);
+                let timestamp_str = payload.get("timestamp").and_then(|v| v.as_str()).map_or("", |v| v);
 
                 let timestamp = DateTime::parse_from_rfc3339(timestamp_str)
                     .map(|dt| dt.with_timezone(&chrono::Utc))
@@ -265,9 +256,7 @@ impl QdrantClient {
                 // Convert point.id to string
                 let id_string = match &point.id {
                     Some(pid) => match &pid.point_id_options {
-                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(n)) => {
-                            n.to_string()
-                        }
+                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(n)) => n.to_string(),
                         Some(qdrant_client::qdrant::point_id::PointIdOptions::Uuid(u)) => u.clone(),
                         None => String::new(),
                     },
@@ -276,26 +265,14 @@ impl QdrantClient {
 
                 let metadata = KnowledgeMetadata {
                     workspace,
-                    worktree: payload
-                        .get("worktree")
-                        .and_then(|v| v.as_str())
-                        .map(String::from),
-                    agent: payload
-                        .get("agent")
-                        .and_then(|v| v.as_str())
-                        .map(String::from),
+                    worktree: payload.get("worktree").and_then(|v| v.as_str()).map(String::from),
+                    agent: payload.get("agent").and_then(|v| v.as_str()).map(String::from),
                     issue_number: payload
                         .get("issue_number")
                         .and_then(|v| v.as_integer())
                         .map(|i| i as u32),
-                    task_type: payload
-                        .get("task_type")
-                        .and_then(|v| v.as_str())
-                        .map(String::from),
-                    outcome: payload
-                        .get("outcome")
-                        .and_then(|v| v.as_str())
-                        .map(String::from),
+                    task_type: payload.get("task_type").and_then(|v| v.as_str()).map(String::from),
+                    outcome: payload.get("outcome").and_then(|v| v.as_str()).map(String::from),
                     tools_used: None,
                     files_changed: None,
                     extra: serde_json::Map::new(),
@@ -360,10 +337,7 @@ mod tests {
         let client = QdrantClient::new(config).await.unwrap();
 
         // テストエントリ作成
-        let metadata = KnowledgeMetadata {
-            workspace: "test-workspace".to_string(),
-            ..Default::default()
-        };
+        let metadata = KnowledgeMetadata { workspace: "test-workspace".to_string(), ..Default::default() };
         let entry = KnowledgeEntry::new("Test content".to_string(), metadata);
 
         // ダミーベクトル（384次元）

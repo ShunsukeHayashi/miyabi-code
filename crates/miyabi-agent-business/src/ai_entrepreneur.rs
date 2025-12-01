@@ -6,8 +6,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -40,8 +39,8 @@ impl AIEntrepreneurAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -66,16 +65,13 @@ Generate a complete business plan as JSON with phases, market analysis, financia
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::AIEntrepreneurAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::AIEntrepreneurAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let business_plan: BusinessPlan = serde_json::from_str(&response).map_err(|e| {
@@ -124,8 +120,7 @@ Generate a complete business plan as JSON with phases, market analysis, financia
             "Business Plan Generated: {} phases, ${} total budget, {}% growth projection",
             plan.phases.len(),
             plan.phases.iter().map(|p| p.budget).sum::<u32>(),
-            ((plan.financial_projections.year_3.revenue as f64
-                / plan.financial_projections.year_1.revenue as f64
+            ((plan.financial_projections.year_3.revenue as f64 / plan.financial_projections.year_1.revenue as f64
                 - 1.0)
                 * 100.0) as u32
         )
@@ -208,10 +203,7 @@ impl BaseAgent for AIEntrepreneurAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "AIEntrepreneurAgent starting business plan generation for task: {}",
-            task.id
-        );
+        tracing::info!("AIEntrepreneurAgent starting business plan generation for task: {}", task.id);
 
         // Generate business plan using LLM
         let business_plan = self.generate_business_plan(task).await?;
@@ -247,10 +239,7 @@ impl BaseAgent for AIEntrepreneurAgent {
             "growth_projection": ((business_plan.financial_projections.year_3.revenue as f64 / business_plan.financial_projections.year_1.revenue as f64 - 1.0) * 100.0) as u32
         });
 
-        tracing::info!(
-            "AIEntrepreneurAgent completed business plan generation: {}",
-            summary
-        );
+        tracing::info!("AIEntrepreneurAgent completed business plan generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -276,10 +265,7 @@ impl A2AEnabled for AIEntrepreneurAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "generate_business_plan" => {
@@ -287,9 +273,7 @@ impl A2AEnabled for AIEntrepreneurAgent {
                     .input
                     .get("idea")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string()))?;
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: idea.to_string(),
@@ -312,16 +296,12 @@ impl A2AEnabled for AIEntrepreneurAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Business plan generation failed: {}",
-                        e
-                    ))),
+                    Err(e) => {
+                        Err(A2AIntegrationError::TaskExecutionFailed(format!("Business plan generation failed: {}", e)))
+                    }
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
     fn execution_mode(&self) -> ExecutionMode {
@@ -338,9 +318,8 @@ mod tests {
         Task {
             id: "test-task-1".to_string(),
             title: "AI-Powered Project Management Tool".to_string(),
-            description:
-                "A comprehensive project management solution with AI-driven insights and automation"
-                    .to_string(),
+            description: "A comprehensive project management solution with AI-driven insights and automation"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -407,21 +386,9 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -463,21 +430,9 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -527,21 +482,9 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -596,16 +539,8 @@ mod tests {
                     expenses: 80000,
                     profit: -80000,
                 },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -666,16 +601,8 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
                 year_3: FinancialYear {
                     revenue: 400000, // 4x growth from year 1
                     expenses: 200000,

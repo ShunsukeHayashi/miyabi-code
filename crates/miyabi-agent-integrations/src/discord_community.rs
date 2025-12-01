@@ -61,11 +61,7 @@ impl DiscordCommunityAgent {
     }
 
     /// Discord MCP Serverにリクエストを送信
-    async fn call_mcp_server(
-        &self,
-        method: &str,
-        params: serde_json::Value,
-    ) -> Result<serde_json::Value> {
+    async fn call_mcp_server(&self, method: &str, params: serde_json::Value) -> Result<serde_json::Value> {
         let request = serde_json::json!({
             "jsonrpc": "2.0",
             "id": 1,
@@ -91,15 +87,13 @@ impl DiscordCommunityAgent {
             })?;
 
         if let Some(mut stdin) = child.stdin.take() {
-            stdin
-                .write_all(request.to_string().as_bytes())
-                .map_err(|e| {
-                    MiyabiError::Agent(AgentError::new(
-                        format!("Failed to write to MCP Server: {}", e),
-                        AgentType::DiscordCommunity,
-                        None,
-                    ))
-                })?;
+            stdin.write_all(request.to_string().as_bytes()).map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("Failed to write to MCP Server: {}", e),
+                    AgentType::DiscordCommunity,
+                    None,
+                ))
+            })?;
         }
 
         let output = child.wait_with_output().map_err(|e| {
@@ -151,8 +145,7 @@ impl DiscordCommunityAgent {
 
         // 1. ヘルスチェック
         info!("Discord MCP Server に接続中...");
-        self.call_mcp_server("discord.health", serde_json::json!({}))
-            .await?;
+        self.call_mcp_server("discord.health", serde_json::json!({})).await?;
         info!("✅ 接続成功！");
 
         // 2. サーバー情報取得
@@ -166,10 +159,7 @@ impl DiscordCommunityAgent {
             )
             .await?;
 
-        let guild_name = guild_info
-            .get("name")
-            .and_then(|v| v.as_str())
-            .unwrap_or("Unknown");
+        let guild_name = guild_info.get("name").and_then(|v| v.as_str()).unwrap_or("Unknown");
 
         info!("📌 サーバー名: {}", guild_name);
 
@@ -301,9 +291,7 @@ impl BaseAgent for DiscordCommunityAgent {
 
         // Bot Token チェック
         if self.config.bot_token.is_none() {
-            return Err(MiyabiError::Config(
-                "DISCORD_BOT_TOKEN not set. Please set it in .env file.".to_string(),
-            ));
+            return Err(MiyabiError::Config("DISCORD_BOT_TOKEN not set. Please set it in .env file.".to_string()));
         }
 
         // Guild ID取得

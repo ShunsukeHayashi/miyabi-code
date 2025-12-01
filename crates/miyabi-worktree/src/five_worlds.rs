@@ -45,11 +45,7 @@ impl FiveWorldsManager {
     /// * `base_path` - Base directory for all worktrees
     /// * `repo_path` - Path to the main Git repository
     pub fn new(base_path: PathBuf, repo_path: PathBuf) -> Self {
-        Self {
-            base_path,
-            repo_path,
-            active_worlds: Arc::new(Mutex::new(HashMap::new())),
-        }
+        Self { base_path, repo_path, active_worlds: Arc::new(Mutex::new(HashMap::new())) }
     }
 
     /// Spawns all 5 worlds for a given issue and task
@@ -87,11 +83,7 @@ impl FiveWorldsManager {
         issue_number: u64,
         task_name: &str,
     ) -> Result<HashMap<WorldId, WorldWorktreeHandle>, GitError> {
-        info!(
-            issue_number = issue_number,
-            task_name = task_name,
-            "Spawning all 5 worlds"
-        );
+        info!(issue_number = issue_number, task_name = task_name, "Spawning all 5 worlds");
 
         let mut handles = HashMap::new();
 
@@ -136,12 +128,7 @@ impl FiveWorldsManager {
         world_id: WorldId,
     ) -> Result<WorldWorktreeHandle, GitError> {
         // Generate branch name: world-alpha-issue-270-implement_feature
-        let branch_name = format!(
-            "world-{}-issue-{}-{}",
-            world_id.to_string().to_lowercase(),
-            issue_number,
-            task_name
-        );
+        let branch_name = format!("world-{}-issue-{}-{}", world_id.to_string().to_lowercase(), issue_number, task_name);
 
         // Generate worktree path: worktrees/world-alpha/issue-270/implement_feature
         let worktree_path = self
@@ -172,28 +159,16 @@ impl FiveWorldsManager {
             status: crate::manager::WorktreeStatus::Active,
         };
 
-        let handle = WorldWorktreeHandle {
-            world_id,
-            path: worktree_path.clone(),
-            branch: branch_name,
-            info,
-        };
+        let handle = WorldWorktreeHandle { world_id, path: worktree_path.clone(), branch: branch_name, info };
 
         // Register in active worlds
-        self.active_worlds
-            .lock()
-            .await
-            .insert(world_id, handle.clone());
+        self.active_worlds.lock().await.insert(world_id, handle.clone());
 
         Ok(handle)
     }
 
     /// Creates a worktree directly using Git command
-    async fn create_worktree_direct(
-        &self,
-        worktree_path: &Path,
-        branch_name: &str,
-    ) -> Result<(), MiyabiError> {
+    async fn create_worktree_direct(&self, worktree_path: &Path, branch_name: &str) -> Result<(), MiyabiError> {
         // Create parent directories if they don't exist
         if let Some(parent) = worktree_path.parent() {
             tokio::fs::create_dir_all(parent)
@@ -216,10 +191,7 @@ impl FiveWorldsManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!(
-                "Failed to create worktree: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Git(format!("Failed to create worktree: {}", stderr)));
         }
 
         Ok(())
@@ -264,16 +236,11 @@ impl FiveWorldsManager {
             .current_dir(&self.repo_path)
             .output()
             .await
-            .map_err(|e| {
-                MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e))
-            })?;
+            .map_err(|e| MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e)))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!(
-                "Failed to remove worktree: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Git(format!("Failed to remove worktree: {}", stderr)));
         }
 
         Ok(())
@@ -341,10 +308,7 @@ impl FiveWorldsManager {
     pub async fn cleanup_all_worlds_for_issue(&self, issue_number: u64) -> Result<(), GitError> {
         use futures::stream::{FuturesUnordered, StreamExt};
 
-        info!(
-            issue_number = issue_number,
-            "Cleaning up all worlds for issue"
-        );
+        info!(issue_number = issue_number, "Cleaning up all worlds for issue");
 
         let worlds_to_cleanup: Vec<(WorldId, Option<WorldWorktreeHandle>)> = {
             let mut active = self.active_worlds.lock().await;
@@ -443,11 +407,7 @@ impl FiveWorldsManager {
     /// # Arguments
     /// * `world_id` - The winning WorldId
     /// * `target_branch` - Target branch to merge into (usually "main")
-    pub async fn merge_winning_world(
-        &self,
-        world_id: WorldId,
-        target_branch: &str,
-    ) -> Result<(), GitError> {
+    pub async fn merge_winning_world(&self, world_id: WorldId, target_branch: &str) -> Result<(), GitError> {
         let handle = self
             .get_world_handle(world_id)
             .await
@@ -478,10 +438,7 @@ impl FiveWorldsManager {
 
         WorldStatistics {
             total_active: active.len(),
-            worlds: active
-                .iter()
-                .map(|(id, handle)| (*id, handle.path.clone()))
-                .collect(),
+            worlds: active.iter().map(|(id, handle)| (*id, handle.path.clone())).collect(),
         }
     }
 }
@@ -522,10 +479,7 @@ mod tests {
         repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[])
             .unwrap();
 
-        let manager = FiveWorldsManager::new(
-            worktree_dir.path().to_path_buf(),
-            repo_dir.path().to_path_buf(),
-        );
+        let manager = FiveWorldsManager::new(worktree_dir.path().to_path_buf(), repo_dir.path().to_path_buf());
 
         (manager, repo_dir, worktree_dir)
     }
@@ -585,10 +539,7 @@ mod tests {
     async fn test_world_handle_retrieval() {
         let (manager, _repo_dir, _worktree_dir) = setup_test_manager().await;
 
-        manager
-            .spawn_world(270, "test_task", WorldId::Alpha)
-            .await
-            .unwrap();
+        manager.spawn_world(270, "test_task", WorldId::Alpha).await.unwrap();
 
         // Get specific world handle
         let handle = manager.get_world_handle(WorldId::Alpha).await;

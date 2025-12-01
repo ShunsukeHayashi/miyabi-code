@@ -44,10 +44,7 @@ impl Task {
         Self {
             id: uuid::Uuid::new_v4().to_string(),
             status: TaskStatus::Submitted,
-            input: TaskInput {
-                prompt,
-                params: serde_json::Value::Object(serde_json::Map::new()),
-            },
+            input: TaskInput { prompt, params: serde_json::Value::Object(serde_json::Map::new()) },
             output: None,
             context_id: None,
             created_at: now,
@@ -61,10 +58,7 @@ impl Task {
     }
 
     pub fn is_terminal(&self) -> bool {
-        matches!(
-            self.status,
-            TaskStatus::Completed | TaskStatus::Failed | TaskStatus::Cancelled
-        )
+        matches!(self.status, TaskStatus::Completed | TaskStatus::Failed | TaskStatus::Cancelled)
     }
 }
 
@@ -115,9 +109,7 @@ pub enum Part {
 
 impl Part {
     pub fn text(content: impl Into<String>) -> Self {
-        Part::Text {
-            content: content.into(),
-        }
+        Part::Text { content: content.into() }
     }
 }
 

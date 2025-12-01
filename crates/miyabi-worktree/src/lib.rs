@@ -35,6 +35,4 @@ pub use telemetry::{TelemetryCollector, TelemetryStats, WorktreeEvent};
 
 // 既存モジュールのエクスポート
 pub use manager::{WorktreeInfo, WorktreeManager, WorktreeStats, WorktreeStatus};
-pub use pool::{
-    PoolConfig, PoolExecutionResult, PoolStats, TaskResult, TaskStatus, WorktreePool, WorktreeTask,
-};
+pub use pool::{PoolConfig, PoolExecutionResult, PoolStats, TaskResult, TaskStatus, WorktreePool, WorktreeTask};

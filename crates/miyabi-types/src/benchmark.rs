@@ -126,10 +126,7 @@ pub struct SWEBenchInstance {
     /// List of test identifiers that were failing before the fix
     /// and should pass after the fix is applied.
     /// Example: `["tests.auth.test_login", "tests.auth.test_logout"]`
-    #[serde(
-        rename = "fail_to_pass",
-        deserialize_with = "deserialize_string_or_vec"
-    )]
+    #[serde(rename = "fail_to_pass", deserialize_with = "deserialize_string_or_vec")]
     pub fail_to_pass: Vec<String>,
 
     /// Tests that should continue to pass
@@ -137,10 +134,7 @@ pub struct SWEBenchInstance {
     /// List of test identifiers that were passing before the fix
     /// and should continue to pass after the fix is applied.
     /// Used to detect regressions.
-    #[serde(
-        rename = "pass_to_pass",
-        deserialize_with = "deserialize_string_or_vec"
-    )]
+    #[serde(rename = "pass_to_pass", deserialize_with = "deserialize_string_or_vec")]
     pub pass_to_pass: Vec<String>,
 
     /// Programming language
@@ -168,10 +162,7 @@ impl SWEBenchInstance {
 
     /// Checks if this instance is for a JavaScript/TypeScript repository
     pub fn is_javascript(&self) -> bool {
-        matches!(
-            self.repo_language.as_deref(),
-            Some("javascript") | Some("typescript")
-        )
+        matches!(self.repo_language.as_deref(), Some("javascript") | Some("typescript"))
     }
 
     /// Returns the short repository name (without owner)
@@ -259,8 +250,7 @@ impl EvaluationResult {
         pass_to_pass_total: usize,
         execution_time: f64,
     ) -> Self {
-        let resolved =
-            fail_to_pass_count == fail_to_pass_total && pass_to_pass_count == pass_to_pass_total;
+        let resolved = fail_to_pass_count == fail_to_pass_total && pass_to_pass_count == pass_to_pass_total;
 
         Self {
             instance_id,
@@ -355,22 +345,15 @@ impl BenchmarkSummary {
         let pass_to_pass_total = results.iter().map(|r| r.pass_to_pass_count).sum();
         let errors = results.iter().filter(|r| r.error.is_some()).count();
 
-        let avg_execution_time =
-            results.iter().map(|r| r.execution_time).sum::<f64>() / total_instances as f64;
+        let avg_execution_time = results.iter().map(|r| r.execution_time).sum::<f64>() / total_instances as f64;
 
         // Group by language
         let mut by_language: HashMap<String, LanguageStats> = HashMap::new();
         for (instance, result) in instances.iter().zip(results.iter()) {
-            let lang = instance
-                .repo_language
-                .as_deref()
-                .unwrap_or("unknown")
-                .to_string();
-            let stats = by_language.entry(lang).or_insert(LanguageStats {
-                total: 0,
-                resolved: 0,
-                resolve_rate: 0.0,
-            });
+            let lang = instance.repo_language.as_deref().unwrap_or("unknown").to_string();
+            let stats = by_language
+                .entry(lang)
+                .or_insert(LanguageStats { total: 0, resolved: 0, resolve_rate: 0.0 });
             stats.total += 1;
             if result.resolved {
                 stats.resolved += 1;
@@ -382,11 +365,10 @@ impl BenchmarkSummary {
         let mut by_repository: HashMap<String, RepositoryStats> = HashMap::new();
         for (instance, result) in instances.iter().zip(results.iter()) {
             let repo = instance.repo.clone();
-            let stats = by_repository.entry(repo).or_insert(RepositoryStats {
-                total: 0,
-                resolved: 0,
-                resolve_rate: 0.0,
-            });
+            let stats =
+                by_repository
+                    .entry(repo)
+                    .or_insert(RepositoryStats { total: 0, resolved: 0, resolve_rate: 0.0 });
             stats.total += 1;
             if result.resolved {
                 stats.resolved += 1;
@@ -502,8 +484,7 @@ mod tests {
 
     #[test]
     fn test_evaluation_result_failure() {
-        let result =
-            EvaluationResult::failure("test-456".to_string(), "Timeout".to_string(), 300.0);
+        let result = EvaluationResult::failure("test-456".to_string(), "Timeout".to_string(), 300.0);
 
         assert!(!result.resolved);
         assert_eq!(result.resolve_rate(), 0.0);
@@ -610,11 +591,7 @@ mod tests {
 
     #[test]
     fn test_language_stats_serialization() {
-        let stats = LanguageStats {
-            total: 100,
-            resolved: 75,
-            resolve_rate: 0.75,
-        };
+        let stats = LanguageStats { total: 100, resolved: 75, resolve_rate: 0.75 };
 
         let json = serde_json::to_string(&stats).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -624,11 +601,7 @@ mod tests {
 
     #[test]
     fn test_repository_stats_serialization() {
-        let stats = RepositoryStats {
-            total: 50,
-            resolved: 40,
-            resolve_rate: 0.8,
-        };
+        let stats = RepositoryStats { total: 50, resolved: 40, resolve_rate: 0.8 };
 
         let json = serde_json::to_string(&stats).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();

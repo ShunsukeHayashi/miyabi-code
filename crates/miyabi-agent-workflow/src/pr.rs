@@ -5,8 +5,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -159,18 +158,15 @@ impl PRAgent {
             .and_then(|v| v.as_str())
             .ok_or_else(|| MiyabiError::Validation("Branch name is missing".to_string()))?;
 
-        let base_branch = metadata
-            .get("baseBranch")
-            .and_then(|v| v.as_str())
-            .unwrap_or("main");
+        let base_branch = metadata.get("baseBranch").and_then(|v| v.as_str()).unwrap_or("main");
 
         // Generate PR title and body
         let title = self.generate_pr_title(task);
         let body = self.generate_pr_body(task, &[]);
 
         // Create GitHub client
-        let github_token = std::env::var("GITHUB_TOKEN")
-            .map_err(|_| MiyabiError::Config("GITHUB_TOKEN not found".to_string()))?;
+        let github_token =
+            std::env::var("GITHUB_TOKEN").map_err(|_| MiyabiError::Config("GITHUB_TOKEN not found".to_string()))?;
 
         let repo_owner = self
             .config
@@ -187,12 +183,7 @@ impl PRAgent {
         let client = GitHubClient::new(&github_token, repo_owner.clone(), repo_name.clone())?;
 
         // Create draft PR
-        tracing::info!(
-            "Creating draft PR: {} from {} to {}",
-            title,
-            branch,
-            base_branch
-        );
+        tracing::info!("Creating draft PR: {} from {} to {}", title, branch, base_branch);
 
         let pr = client
             .create_pull_request(&title, branch, base_branch, Some(&body), true)
@@ -257,9 +248,7 @@ impl BaseAgent for PRAgent {
 
         // Validate task metadata
         if task.metadata.is_none() {
-            return Err(MiyabiError::Validation(
-                "Task metadata is required for PR creation".to_string(),
-            ));
+            return Err(MiyabiError::Validation("Task metadata is required for PR creation".to_string()));
         }
 
         // Create PR
@@ -281,9 +270,8 @@ impl BaseAgent for PRAgent {
         Ok(AgentResult {
             status: ResultStatus::Success,
             data: Some(
-                serde_json::to_value(data).map_err(|e| {
-                    MiyabiError::Unknown(format!("Failed to serialize data: {}", e))
-                })?,
+                serde_json::to_value(data)
+                    .map_err(|e| MiyabiError::Unknown(format!("Failed to serialize data: {}", e)))?,
             ),
             error: None,
             metrics: None,
@@ -336,10 +324,7 @@ impl A2AEnabled for PRAgent {
             .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
@@ -348,29 +333,17 @@ impl A2AEnabled for PRAgent {
                     .input
                     .get("branch")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing branch".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing branch".to_string()))?;
 
                 let title = task
                     .input
                     .get("title")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing title".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?;
 
-                let base_branch = task
-                    .input
-                    .get("base_branch")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("main");
+                let base_branch = task.input.get("base_branch").and_then(|v| v.as_str()).unwrap_or("main");
 
-                let description = task
-                    .input
-                    .get("description")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("");
+                let description = task.input.get("description").and_then(|v| v.as_str()).unwrap_or("");
 
                 // Build task for internal execution
                 let mut metadata = HashMap::new();
@@ -394,9 +367,10 @@ impl A2AEnabled for PRAgent {
                     end_time: None,
                 };
 
-                let result = self.create_pr(&internal_task).await.map_err(|e| {
-                    A2AIntegrationError::TaskExecutionFailed(format!("PR creation failed: {}", e))
-                })?;
+                let result = self
+                    .create_pr(&internal_task)
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("PR creation failed: {}", e)))?;
 
                 Ok(A2ATaskResult::Success {
                     output: json!({
@@ -411,10 +385,7 @@ impl A2AEnabled for PRAgent {
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -481,50 +452,23 @@ mod tests {
 
     #[test]
     fn test_conventional_commits_prefix() {
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Feature),
-            "feat"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Bug),
-            "fix"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Refactor),
-            "refactor"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Docs),
-            "docs"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Test),
-            "test"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Deployment),
-            "ci"
-        );
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Feature), "feat");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Bug), "fix");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Refactor), "refactor");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Docs), "docs");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Test), "test");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Deployment), "ci");
     }
 
     #[test]
     fn test_detect_scope_from_title() {
         // Explicit scope with colon
-        assert_eq!(
-            PRAgent::detect_scope_from_title("Auth: Add Firebase authentication"),
-            Some("auth".to_string())
-        );
+        assert_eq!(PRAgent::detect_scope_from_title("Auth: Add Firebase authentication"), Some("auth".to_string()));
 
         // Keyword detection (returns first keyword found in keywords array)
-        assert_eq!(
-            PRAgent::detect_scope_from_title("Fix API error"),
-            Some("api".to_string())
-        );
+        assert_eq!(PRAgent::detect_scope_from_title("Fix API error"), Some("api".to_string()));
 
-        assert_eq!(
-            PRAgent::detect_scope_from_title("Update DB schema"),
-            Some("db".to_string())
-        );
+        assert_eq!(PRAgent::detect_scope_from_title("Update DB schema"), Some("db".to_string()));
 
         // Multiple keywords - returns first in array order
         assert_eq!(
@@ -537,9 +481,7 @@ mod tests {
 
         // Invalid scope (too long with colon)
         assert_eq!(
-            PRAgent::detect_scope_from_title(
-                "This is a very long scope that should not be detected: title"
-            ),
+            PRAgent::detect_scope_from_title("This is a very long scope that should not be detected: title"),
             None
         );
     }
@@ -614,9 +556,6 @@ mod tests {
 
         let result = agent.execute(&task).await;
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("metadata is required"));
+        assert!(result.unwrap_err().to_string().contains("metadata is required"));
     }
 }

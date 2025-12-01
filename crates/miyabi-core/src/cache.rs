@@ -21,10 +21,7 @@ pub struct CacheEntry<T> {
 impl<T> CacheEntry<T> {
     /// Create a new cache entry with the given TTL
     pub fn new(value: T, ttl: Duration) -> Self {
-        Self {
-            value,
-            expires_at: Instant::now() + ttl,
-        }
+        Self { value, expires_at: Instant::now() + ttl }
     }
 
     /// Check if the cache entry has expired
@@ -47,10 +44,7 @@ where
 {
     /// Create a new TTL cache with default TTL
     pub fn new(default_ttl: Duration) -> Self {
-        Self {
-            inner: Arc::new(RwLock::new(HashMap::new())),
-            default_ttl,
-        }
+        Self { inner: Arc::new(RwLock::new(HashMap::new())), default_ttl }
     }
 
     /// Get a value from the cache
@@ -102,11 +96,7 @@ where
         let total_entries = cache.len();
         let expired_entries = cache.values().filter(|entry| entry.is_expired()).count();
 
-        CacheStats {
-            total_entries,
-            expired_entries,
-            active_entries: total_entries - expired_entries,
-        }
+        CacheStats { total_entries, expired_entries, active_entries: total_entries - expired_entries }
     }
 
     /// Clear all entries

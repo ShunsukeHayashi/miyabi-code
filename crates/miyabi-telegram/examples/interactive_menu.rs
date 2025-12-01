@@ -62,9 +62,7 @@ Click a button below to get started!
 "#;
 
     println!("\n📤 Sending interactive menu to chat_id={}...", chat_id);
-    let message = client
-        .send_message_with_keyboard(chat_id, text, keyboard)
-        .await?;
+    let message = client.send_message_with_keyboard(chat_id, text, keyboard).await?;
 
     println!("✅ Interactive menu sent!");
     println!("   Message ID: {}", message.message_id);

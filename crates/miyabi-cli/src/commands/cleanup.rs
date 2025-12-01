@@ -3,8 +3,7 @@
 use crate::error::Result;
 use colored::Colorize;
 use miyabi_worktree::{
-    WorktreeCleanupManager, WorktreeCleanupPolicy, WorktreeState, WorktreeStateManager,
-    WorktreeStatusDetailed,
+    WorktreeCleanupManager, WorktreeCleanupPolicy, WorktreeState, WorktreeStateManager, WorktreeStatusDetailed,
 };
 use std::{path::PathBuf, time::Duration};
 
@@ -19,22 +18,15 @@ pub struct CleanupCommand {
 
 impl CleanupCommand {
     pub fn new(dry_run: bool, force: bool, all: bool) -> Self {
-        Self {
-            dry_run,
-            force,
-            all,
-        }
+        Self { dry_run, force, all }
     }
 
     pub async fn execute(&self) -> Result<()> {
         println!(
             "{}",
-            format!(
-                "🧹 Worktree Cleanup{}",
-                if self.dry_run { " (DRY RUN)" } else { "" }
-            )
-            .cyan()
-            .bold()
+            format!("🧹 Worktree Cleanup{}", if self.dry_run { " (DRY RUN)" } else { "" })
+                .cyan()
+                .bold()
         );
         println!();
 
@@ -79,27 +71,16 @@ impl CleanupCommand {
 
                 match state_manager.cleanup_all() {
                     Ok(additional) if additional > 0 => {
-                        println!(
-                            "  {} Additional worktrees removed during --all: {}",
-                            "✓".green(),
-                            additional
-                        );
+                        println!("  {} Additional worktrees removed during --all: {}", "✓".green(), additional);
                         println!();
                     }
                     Ok(_) => {
                         // Nothing left to clean; still provide a hint when force/all requested
-                        println!(
-                            "  {} No remaining worktrees after initial cleanup",
-                            "ℹ".blue()
-                        );
+                        println!("  {} No remaining worktrees after initial cleanup", "ℹ".blue());
                         println!();
                     }
                     Err(err) => {
-                        println!(
-                            "  {} Failed to remove some worktrees: {}",
-                            "⚠️".yellow(),
-                            err
-                        );
+                        println!("  {} Failed to remove some worktrees: {}", "⚠️".yellow(), err);
                         println!();
                     }
                 }
@@ -110,8 +91,8 @@ impl CleanupCommand {
     }
 
     async fn dry_run_cleanup(&self, repo_path: PathBuf) -> Result<()> {
-        let state_manager = WorktreeStateManager::new(repo_path)
-            .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+        let state_manager =
+            WorktreeStateManager::new(repo_path).map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
 
         let worktrees = state_manager
             .scan_worktrees()
@@ -125,10 +106,7 @@ impl CleanupCommand {
         println!("  Found {} worktree(s):", worktrees.len());
         println!();
 
-        let would_clean: Vec<_> = worktrees
-            .iter()
-            .filter(|wt| self.should_clean(wt))
-            .collect();
+        let would_clean: Vec<_> = worktrees.iter().filter(|wt| self.should_clean(wt)).collect();
 
         if would_clean.is_empty() {
             println!("  ✅ No worktrees would be cleaned");
@@ -154,11 +132,7 @@ impl CleanupCommand {
             println!();
         }
 
-        println!(
-            "  {} Would free {} MB of disk space",
-            "📊".cyan(),
-            total_disk_usage / 1024 / 1024
-        );
+        println!("  {} Would free {} MB of disk space", "📊".cyan(), total_disk_usage / 1024 / 1024);
         println!();
         println!("  Run without --dry-run to actually clean them");
         println!();
@@ -175,32 +149,12 @@ impl CleanupCommand {
         if report.total_cleaned() == 0 {
             println!("  ✅ No worktrees were cleaned");
         } else {
-            println!(
-                "  {} Orphaned worktrees cleaned: {}",
-                "✓".green(),
-                report.orphaned_cleaned
-            );
-            println!(
-                "  {} Idle worktrees cleaned: {}",
-                "✓".green(),
-                report.idle_cleaned
-            );
-            println!(
-                "  {} Stuck worktrees cleaned: {}",
-                "✓".green(),
-                report.stuck_cleaned
-            );
+            println!("  {} Orphaned worktrees cleaned: {}", "✓".green(), report.orphaned_cleaned);
+            println!("  {} Idle worktrees cleaned: {}", "✓".green(), report.idle_cleaned);
+            println!("  {} Stuck worktrees cleaned: {}", "✓".green(), report.stuck_cleaned);
             println!();
-            println!(
-                "  {} Total cleaned: {}",
-                "📊".cyan(),
-                report.total_cleaned()
-            );
-            println!(
-                "  {} Disk space freed: {} MB",
-                "💾".cyan(),
-                report.freed_disk_space / 1024 / 1024
-            );
+            println!("  {} Total cleaned: {}", "📊".cyan(), report.total_cleaned());
+            println!("  {} Disk space freed: {} MB", "💾".cyan(), report.freed_disk_space / 1024 / 1024);
         }
 
         if !report.errors.is_empty() {
@@ -224,9 +178,9 @@ impl CleanupCommand {
 
     fn should_clean(&self, worktree: &WorktreeState) -> bool {
         match worktree.status {
-            WorktreeStatusDetailed::Orphaned
-            | WorktreeStatusDetailed::Stuck
-            | WorktreeStatusDetailed::Corrupted => true,
+            WorktreeStatusDetailed::Orphaned | WorktreeStatusDetailed::Stuck | WorktreeStatusDetailed::Corrupted => {
+                true
+            }
             WorktreeStatusDetailed::Idle => self.force || self.all,
             WorktreeStatusDetailed::Active => self.all,
         }

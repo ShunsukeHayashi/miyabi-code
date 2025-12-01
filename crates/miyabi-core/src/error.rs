@@ -153,24 +153,16 @@ impl UnifiedError for CoreError {
 
     fn user_message(&self) -> String {
         match self {
-            Self::Io {
-                operation, path, ..
-            } => {
-                format!(
-                    "Failed to {} file: {}. Please check the file path and permissions.",
-                    operation,
-                    path.display()
-                )
+            Self::Io { operation, path, .. } => {
+                format!("Failed to {} file: {}. Please check the file path and permissions.", operation, path.display())
             }
             Self::Parse { location, .. } => {
-                format!(
-                    "Could not parse the file correctly at {}. Please check the file format.",
-                    location
-                )
+                format!("Could not parse the file correctly at {}. Please check the file format.", location)
             }
             Self::Config(msg) => format!("Configuration problem: {}. Please check your settings.", msg),
             Self::Internal(_) => {
-                "An internal error occurred. This is likely a bug - please report it with the error details.".to_string()
+                "An internal error occurred. This is likely a bug - please report it with the error details."
+                    .to_string()
             }
         }
     }
@@ -278,11 +270,8 @@ mod tests {
 
     #[test]
     fn test_core_error_parse() {
-        let error = CoreError::Parse {
-            location: "line 42".to_string(),
-            message: "invalid syntax".to_string(),
-            source: None,
-        };
+        let error =
+            CoreError::Parse { location: "line 42".to_string(), message: "invalid syntax".to_string(), source: None };
 
         assert_eq!(error.code(), ErrorCode::PARSE_ERROR);
         assert!(error.user_message().contains("line 42"));
@@ -318,12 +307,9 @@ mod tests {
 
     #[test]
     fn test_with_context() {
-        let result: std::result::Result<(), io::Error> =
-            Err(io::Error::from(io::ErrorKind::NotFound));
+        let result: std::result::Result<(), io::Error> = Err(io::Error::from(io::ErrorKind::NotFound));
 
-        let error = result
-            .with_context(|| "Failed to load configuration")
-            .unwrap_err();
+        let error = result.with_context(|| "Failed to load configuration").unwrap_err();
 
         assert_eq!(error.code(), ErrorCode::INTERNAL_ERROR);
         assert!(error.to_string().contains("Failed to load configuration"));

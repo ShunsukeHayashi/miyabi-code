@@ -34,10 +34,7 @@ pub struct WikipediaCollector {
 impl WikipediaCollector {
     /// Create a new Wikipedia collector
     pub fn new() -> Self {
-        Self {
-            client: reqwest::Client::new(),
-            base_url: "https://ja.wikipedia.org/w/api.php".to_string(),
-        }
+        Self { client: reqwest::Client::new(), base_url: "https://ja.wikipedia.org/w/api.php".to_string() }
     }
 
     /// Fetch article content for a given historical figure
@@ -65,10 +62,7 @@ impl WikipediaCollector {
             .await
             .context("Failed to fetch Wikipedia article")?;
 
-        let wiki_response: WikipediaResponse = response
-            .json()
-            .await
-            .context("Failed to parse Wikipedia response")?;
+        let wiki_response: WikipediaResponse = response.json().await.context("Failed to parse Wikipedia response")?;
 
         // Extract the first (and should be only) page
         let page = wiki_response
@@ -90,12 +84,7 @@ impl WikipediaCollector {
     ///
     /// # Returns
     /// A vector of text chunks ready for embedding
-    pub async fn fetch_and_chunk(
-        &self,
-        figure_name: &str,
-        chunk_size: usize,
-        overlap: usize,
-    ) -> Result<Vec<String>> {
+    pub async fn fetch_and_chunk(&self, figure_name: &str, chunk_size: usize, overlap: usize) -> Result<Vec<String>> {
         let content = self.fetch_article(figure_name).await?;
         let chunks = Self::split_into_chunks(&content, chunk_size, overlap);
         Ok(chunks)

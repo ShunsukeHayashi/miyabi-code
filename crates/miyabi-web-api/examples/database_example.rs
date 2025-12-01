@@ -14,12 +14,11 @@
 //! cargo run --example database_example
 //! ```
 
-use miyabi_web_api::database::{
-    DatabaseContext, DatabaseConfig, DynamoDBConfig,
-    create_pool, create_dynamodb_client, get_pool_stats,
-    tables, helpers,
-};
 use aws_sdk_dynamodb::types::AttributeValue;
+use miyabi_web_api::database::{
+    create_dynamodb_client, create_pool, get_pool_stats, helpers, tables, DatabaseConfig, DatabaseContext,
+    DynamoDBConfig,
+};
 use std::collections::HashMap;
 
 #[tokio::main]
@@ -50,9 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Query database
     println!("\n   Running sample query...");
-    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users")
-        .fetch_one(&pool)
-        .await?;
+    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users").fetch_one(&pool).await?;
     println!("   User count: {}", row.0);
 
     // Check pool stats
@@ -61,7 +58,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("     - Total connections: {}", stats.size);
     println!("     - Idle connections: {}", stats.idle);
     println!("     - Active connections: {}", stats.active());
-    println!("     - Health: {}", if stats.is_healthy(20) { "✅ Healthy" } else { "❌ Unhealthy" });
+    println!(
+        "     - Health: {}",
+        if stats.is_healthy(20) {
+            "✅ Healthy"
+        } else {
+            "❌ Unhealthy"
+        }
+    );
 
     // =========================================================================
     // Example 2: DynamoDB Client
@@ -96,7 +100,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("\n3. Writing Event to DynamoDB");
 
         let mut item = HashMap::new();
-        item.insert("PK".to_string(), helpers::to_s(format!("EVENT#agent_execution#{}", chrono::Utc::now().to_rfc3339())));
+        item.insert(
+            "PK".to_string(),
+            helpers::to_s(format!("EVENT#agent_execution#{}", chrono::Utc::now().to_rfc3339())),
+        );
         item.insert("SK".to_string(), helpers::to_s("user#test-user#repo#test-repo"));
         item.insert("event_type".to_string(), helpers::to_s("agent_execution"));
         item.insert("user_id".to_string(), helpers::to_s("test-user"));
@@ -140,8 +147,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n   Running health check...");
     let health = ctx.health_check().await?;
     println!("   Status: {}", health.message());
-    println!("   PostgreSQL: {}", if health.postgresql { "✅ Healthy" } else { "❌ Unhealthy" });
-    println!("   DynamoDB: {}", if health.dynamodb { "✅ Healthy" } else { "❌ Unhealthy" });
+    println!(
+        "   PostgreSQL: {}",
+        if health.postgresql {
+            "✅ Healthy"
+        } else {
+            "❌ Unhealthy"
+        }
+    );
+    println!(
+        "   DynamoDB: {}",
+        if health.dynamodb {
+            "✅ Healthy"
+        } else {
+            "❌ Unhealthy"
+        }
+    );
 
     if health.is_healthy() {
         println!("\n   ✅ All databases are operational!");
@@ -165,7 +186,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         GROUP BY u.email
         ORDER BY subscription_count DESC
         LIMIT 5
-        "#
+        "#,
     )
     .fetch_all(ctx.pg())
     .await?;

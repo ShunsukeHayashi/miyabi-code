@@ -31,10 +31,7 @@ impl AutoIndexHook {
     /// Create new AutoIndexHook
     pub fn new(config: KnowledgeConfig) -> Self {
         let log_dir = config.collection.log_dir.clone();
-        Self {
-            config: Arc::new(config),
-            log_dir,
-        }
+        Self { config: Arc::new(config), log_dir }
     }
 
     /// Get the log file path for a specific task
@@ -87,10 +84,7 @@ impl AutoIndexHook {
                         );
                         sleep(Duration::from_secs(2)).await;
                     } else {
-                        warn!(
-                            "Auto-indexing failed after {} attempts: {}",
-                            config.auto_index.retry_count, e
-                        );
+                        warn!("Auto-indexing failed after {} attempts: {}", config.auto_index.retry_count, e);
                     }
                 }
             }
@@ -100,8 +94,7 @@ impl AutoIndexHook {
     /// Try to index a single log file with deduplication
     async fn try_index_file(config: Arc<KnowledgeConfig>, log_file: &PathBuf) -> Result<usize> {
         // Calculate file hash for deduplication
-        let file_hash =
-            hash_file(log_file).map_err(|e| MiyabiError::Io(std::io::Error::other(e)))?;
+        let file_hash = hash_file(log_file).map_err(|e| MiyabiError::Io(std::io::Error::other(e)))?;
 
         // Load cache
         let mut cache = IndexCache::load_or_default(&config.workspace.name)
@@ -109,17 +102,11 @@ impl AutoIndexHook {
 
         // Check if file is already indexed
         if cache.is_indexed(log_file, &file_hash) {
-            debug!(
-                "Skipping already indexed file: {:?} (hash: {})",
-                log_file, file_hash
-            );
+            debug!("Skipping already indexed file: {:?} (hash: {})", log_file, file_hash);
             return Ok(0);
         }
 
-        info!(
-            "Indexing changed file: {:?} (hash: {})",
-            log_file, file_hash
-        );
+        info!("Indexing changed file: {:?} (hash: {})", log_file, file_hash);
 
         // Initialize collector
         let collector = LogCollector::new((*config).clone())
@@ -158,10 +145,7 @@ impl AutoIndexHook {
             .save()
             .map_err(|e| MiyabiError::Config(format!("Failed to save cache: {}", e)))?;
 
-        info!(
-            "Successfully indexed {} entries from {:?}",
-            stats.success, log_file
-        );
+        info!("Successfully indexed {} entries from {:?}", stats.success, log_file);
 
         Ok(stats.success)
     }
@@ -169,18 +153,10 @@ impl AutoIndexHook {
 
 #[async_trait]
 impl AgentHook for AutoIndexHook {
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        _result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, _result: &AgentResult) -> Result<()> {
         let log_file = self.get_log_file_path(task);
 
-        info!(
-            "Scheduling auto-indexing for agent {:?} task {} -> {:?}",
-            agent, task.id, log_file
-        );
+        info!("Scheduling auto-indexing for agent {:?} task {} -> {:?}", agent, task.id, log_file);
 
         // Spawn background task for indexing (non-blocking)
         let config = self.config.clone();

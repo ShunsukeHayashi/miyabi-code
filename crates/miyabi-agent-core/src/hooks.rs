@@ -27,12 +27,7 @@ pub trait AgentHook: Send + Sync {
     }
 
     /// Called after the agent successfully executes the task.
-    async fn on_post_execute(
-        &self,
-        _agent: AgentType,
-        _task: &Task,
-        _result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, _agent: AgentType, _task: &Task, _result: &AgentResult) -> Result<()> {
         Ok(())
     }
 
@@ -53,10 +48,7 @@ pub struct HookedAgent<A: BaseAgent> {
 impl<A: BaseAgent> HookedAgent<A> {
     /// Create a new hooked agent.
     pub fn new(agent: A) -> Self {
-        Self {
-            agent,
-            hooks: Vec::new(),
-        }
+        Self { agent, hooks: Vec::new() }
     }
 
     /// Register a lifecycle hook.
@@ -125,9 +117,7 @@ pub struct EnvironmentCheckHook {
 
 impl EnvironmentCheckHook {
     pub fn new(vars: impl IntoIterator<Item = impl Into<String>>) -> Self {
-        Self {
-            required_vars: vars.into_iter().map(Into::into).collect(),
-        }
+        Self { required_vars: vars.into_iter().map(Into::into).collect() }
     }
 }
 
@@ -136,10 +126,7 @@ impl AgentHook for EnvironmentCheckHook {
     async fn on_pre_execute(&self, agent: AgentType, _task: &Task) -> Result<()> {
         for var in &self.required_vars {
             if std::env::var(var).is_err() {
-                let message = format!(
-                    "Required environment variable {} missing for agent {:?}",
-                    var, agent
-                );
+                let message = format!("Required environment variable {} missing for agent {:?}", var, agent);
                 return Err(MiyabiError::Config(message));
             }
         }
@@ -159,27 +146,12 @@ impl MetricsHook {
 #[async_trait]
 impl AgentHook for MetricsHook {
     async fn on_pre_execute(&self, agent: AgentType, task: &Task) -> Result<()> {
-        tracing::info!(
-            "Agent {:?} starting task {} with priority {:?}",
-            agent,
-            task.id,
-            task.priority
-        );
+        tracing::info!("Agent {:?} starting task {} with priority {:?}", agent, task.id, task.priority);
         Ok(())
     }
 
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        result: &AgentResult,
-    ) -> Result<()> {
-        tracing::info!(
-            "Agent {:?} completed task {} with status {:?}",
-            agent,
-            task.id,
-            result.status
-        );
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, result: &AgentResult) -> Result<()> {
+        tracing::info!("Agent {:?} completed task {} with status {:?}", agent, task.id, result.status);
         Ok(())
     }
 
@@ -197,9 +169,7 @@ pub struct AuditLogHook {
 
 impl AuditLogHook {
     pub fn new<P: Into<PathBuf>>(log_dir: P) -> Self {
-        Self {
-            log_dir: log_dir.into(),
-        }
+        Self { log_dir: log_dir.into() }
     }
 
     /// Append log entry to audit log file.
@@ -232,9 +202,7 @@ impl AuditLogHook {
             .await
             .map_err(MiyabiError::Io)?;
 
-        file.write_all(entry.as_bytes())
-            .await
-            .map_err(MiyabiError::Io)?;
+        file.write_all(entry.as_bytes()).await.map_err(MiyabiError::Io)?;
         Ok(())
     }
 
@@ -252,21 +220,11 @@ impl AuditLogHook {
 impl AgentHook for AuditLogHook {
     async fn on_pre_execute(&self, agent: AgentType, task: &Task) -> Result<()> {
         let worktree_id = AuditLogHook::extract_worktree_id(task);
-        let entry = format!(
-            "\n### [{}] 🔄 Agent {:?} starting task {}\n",
-            Utc::now().to_rfc3339(),
-            agent,
-            task.id
-        );
+        let entry = format!("\n### [{}] 🔄 Agent {:?} starting task {}\n", Utc::now().to_rfc3339(), agent, task.id);
         self.append(&entry, worktree_id.as_deref()).await
     }
 
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, result: &AgentResult) -> Result<()> {
         let worktree_id = AuditLogHook::extract_worktree_id(task);
         let entry = format!(
             "\n### [{}] ✅ Agent {:?} completed task {}\nStatus: {:?}\n",
@@ -345,12 +303,7 @@ mod tests {
             Ok(())
         }
 
-        async fn on_post_execute(
-            &self,
-            _agent: AgentType,
-            _task: &Task,
-            _result: &AgentResult,
-        ) -> Result<()> {
+        async fn on_post_execute(&self, _agent: AgentType, _task: &Task, _result: &AgentResult) -> Result<()> {
             self.events.lock().unwrap().push("post");
             Ok(())
         }
@@ -415,10 +368,7 @@ mod tests {
         use std::collections::HashMap;
 
         let mut metadata = HashMap::new();
-        metadata.insert(
-            "worktree_id".to_string(),
-            serde_json::json!("abc123-worktree-1"),
-        );
+        metadata.insert("worktree_id".to_string(), serde_json::json!("abc123-worktree-1"));
 
         let task = Task {
             id: "test".into(),
@@ -437,10 +387,7 @@ mod tests {
             metadata: Some(metadata),
         };
 
-        assert_eq!(
-            AuditLogHook::extract_worktree_id(&task),
-            Some("abc123-worktree-1".to_string())
-        );
+        assert_eq!(AuditLogHook::extract_worktree_id(&task), Some("abc123-worktree-1".to_string()));
     }
 
     #[test]
@@ -502,9 +449,7 @@ mod tests {
         };
 
         // Execute pre-execute hook
-        hook.on_pre_execute(AgentType::CodeGenAgent, &task)
-            .await
-            .unwrap();
+        hook.on_pre_execute(AgentType::CodeGenAgent, &task).await.unwrap();
 
         // Verify worktree-specific log file was created
         let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
@@ -545,9 +490,7 @@ mod tests {
         };
 
         // Execute pre-execute hook
-        hook.on_pre_execute(AgentType::CodeGenAgent, &task)
-            .await
-            .unwrap();
+        hook.on_pre_execute(AgentType::CodeGenAgent, &task).await.unwrap();
 
         // Verify default log file was created (without worktree_id)
         let date = chrono::Utc::now().format("%Y-%m-%d").to_string();

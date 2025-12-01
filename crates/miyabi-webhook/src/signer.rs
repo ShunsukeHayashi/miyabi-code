@@ -50,10 +50,7 @@ impl WebhookSigner {
     /// let signer = WebhookSigner::new("my-secret-key");
     /// ```
     pub fn new(secret: &str) -> Self {
-        Self {
-            secret_key: secret.as_bytes().to_vec(),
-            timestamp_tolerance: DEFAULT_TIMESTAMP_TOLERANCE_SECS,
-        }
+        Self { secret_key: secret.as_bytes().to_vec(), timestamp_tolerance: DEFAULT_TIMESTAMP_TOLERANCE_SECS }
     }
 
     /// Create a signer with custom timestamp tolerance
@@ -72,10 +69,7 @@ impl WebhookSigner {
     /// let signer = WebhookSigner::with_tolerance("secret", 600);
     /// ```
     pub fn with_tolerance(secret: &str, tolerance_secs: i64) -> Self {
-        Self {
-            secret_key: secret.as_bytes().to_vec(),
-            timestamp_tolerance: tolerance_secs,
-        }
+        Self { secret_key: secret.as_bytes().to_vec(), timestamp_tolerance: tolerance_secs }
     }
 
     /// Generate HMAC-SHA256 signature for payload
@@ -102,8 +96,7 @@ impl WebhookSigner {
     /// assert!(sig.starts_with("sha256="));
     /// ```
     pub fn sign(&self, payload: &[u8], timestamp: i64) -> String {
-        let mut mac =
-            HmacSha256::new_from_slice(&self.secret_key).expect("HMAC can take key of any size");
+        let mut mac = HmacSha256::new_from_slice(&self.secret_key).expect("HMAC can take key of any size");
 
         // Sign: payload + timestamp
         mac.update(payload);
@@ -155,22 +148,18 @@ impl WebhookSigner {
         let now = Utc::now().timestamp();
         let age = (now - timestamp).abs();
         if age > self.timestamp_tolerance {
-            return Err(WebhookError::TimestampOutOfRange(
-                age,
-                self.timestamp_tolerance,
-            ));
+            return Err(WebhookError::TimestampOutOfRange(age, self.timestamp_tolerance));
         }
 
         // 2. Parse signature format
-        let signature = signature.strip_prefix("sha256=").ok_or_else(|| {
-            WebhookError::InvalidFormat(format!("Expected 'sha256=' prefix, got: {}", signature))
-        })?;
+        let signature = signature
+            .strip_prefix("sha256=")
+            .ok_or_else(|| WebhookError::InvalidFormat(format!("Expected 'sha256=' prefix, got: {}", signature)))?;
 
         let expected_bytes = hex::decode(signature)?;
 
         // 3. Compute expected signature
-        let mut mac =
-            HmacSha256::new_from_slice(&self.secret_key).expect("HMAC can take key of any size");
+        let mut mac = HmacSha256::new_from_slice(&self.secret_key).expect("HMAC can take key of any size");
         mac.update(payload);
         mac.update(&timestamp.to_le_bytes());
 
@@ -227,10 +216,7 @@ mod tests {
         );
 
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            WebhookError::VerificationFailed
-        ));
+        assert!(matches!(result.unwrap_err(), WebhookError::VerificationFailed));
     }
 
     #[test]
@@ -243,10 +229,7 @@ mod tests {
         let result = signer.verify(payload, old_timestamp, &signature);
 
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            WebhookError::TimestampOutOfRange(_, _)
-        ));
+        assert!(matches!(result.unwrap_err(), WebhookError::TimestampOutOfRange(_, _)));
     }
 
     #[test]
@@ -258,10 +241,7 @@ mod tests {
         let result = signer.verify(payload, timestamp, "invalid-format");
 
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            WebhookError::InvalidFormat(_)
-        ));
+        assert!(matches!(result.unwrap_err(), WebhookError::InvalidFormat(_)));
     }
 
     #[test]

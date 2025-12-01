@@ -30,12 +30,10 @@ mod client;
 mod types;
 
 pub use client::AnthropicClient;
-pub use types::{
-    AnthropicContent, AnthropicMessage, AnthropicResponse, AnthropicTool, AnthropicUsage,
-};
+pub use types::{AnthropicContent, AnthropicMessage, AnthropicResponse, AnthropicTool, AnthropicUsage};
 
 // Re-export core types for convenience
 pub use miyabi_llm_core::{
-    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamEvent, StreamResponse,
-    ToolCall, ToolCallResponse, ToolDefinition,
+    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamEvent, StreamResponse, ToolCall,
+    ToolCallResponse, ToolDefinition,
 };

@@ -81,12 +81,10 @@ fn verify_signature(secret: &str, signature_header: &str, payload: &[u8]) -> Res
     }
 
     let signature_hex = &signature_header[7..];
-    let expected_signature =
-        hex::decode(signature_hex).map_err(|e| format!("Failed to decode signature: {}", e))?;
+    let expected_signature = hex::decode(signature_hex).map_err(|e| format!("Failed to decode signature: {}", e))?;
 
     // Compute HMAC
-    let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
-        .map_err(|e| format!("Failed to create HMAC: {}", e))?;
+    let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).map_err(|e| format!("Failed to create HMAC: {}", e))?;
     mac.update(payload);
 
     // Verify
@@ -97,11 +95,7 @@ fn verify_signature(secret: &str, signature_header: &str, payload: &[u8]) -> Res
 }
 
 /// Handle GitHub webhook events
-async fn handle_github_webhook(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-    body: String,
-) -> impl IntoResponse {
+async fn handle_github_webhook(State(state): State<AppState>, headers: HeaderMap, body: String) -> impl IntoResponse {
     info!("Received GitHub webhook");
 
     // Get event type
@@ -113,10 +107,7 @@ async fn handle_github_webhook(
     info!("Event type: {}", event_type);
 
     // Verify signature
-    if let Some(signature) = headers
-        .get("x-hub-signature-256")
-        .and_then(|v| v.to_str().ok())
-    {
+    if let Some(signature) = headers.get("x-hub-signature-256").and_then(|v| v.to_str().ok()) {
         if let Err(e) = verify_signature(&state.webhook_secret, signature, body.as_bytes()) {
             error!("Signature verification failed: {}", e);
             return (StatusCode::UNAUTHORIZED, "Invalid signature").into_response();
@@ -129,10 +120,7 @@ async fn handle_github_webhook(
     match event_type {
         "issues" => {
             if let Ok(payload) = serde_json::from_str::<IssuePayload>(&body) {
-                info!(
-                    "Issue event: {} #{} - {}",
-                    payload.action, payload.issue.number, payload.issue.title
-                );
+                info!("Issue event: {} #{} - {}", payload.action, payload.issue.number, payload.issue.title);
 
                 // Notify Discord
                 if let Err(e) = state
@@ -162,10 +150,7 @@ async fn handle_github_webhook(
                     &payload.action
                 };
 
-                info!(
-                    "PR event: {} #{} - {}",
-                    action, payload.pull_request.number, payload.pull_request.title
-                );
+                info!("PR event: {} #{} - {}", action, payload.pull_request.number, payload.pull_request.title);
 
                 // Notify Discord
                 if let Err(e) = state
@@ -210,10 +195,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize logging
     tracing_subscriber::fmt()
-        .with_env_filter(
-            env::var("RUST_LOG")
-                .unwrap_or_else(|_| "webhook_server=info,tower_http=info".to_string()),
-        )
+        .with_env_filter(env::var("RUST_LOG").unwrap_or_else(|_| "webhook_server=info,tower_http=info".to_string()))
         .init();
 
     // Get configuration
@@ -239,10 +221,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let progress_reporter = Arc::new(ProgressReporter::new(http, progress_channel_id));
 
     // Create app state
-    let state = AppState {
-        progress_reporter,
-        webhook_secret,
-    };
+    let state = AppState { progress_reporter, webhook_secret };
 
     // Build router
     let app = Router::new()
@@ -254,11 +233,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start server
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     info!("🚀 GitHub Webhook Server starting on {}", addr);
-    info!(
-        "📡 Webhook endpoint: http://{}:{}/webhook/github",
-        addr.ip(),
-        port
-    );
+    info!("📡 Webhook endpoint: http://{}:{}/webhook/github", addr.ip(), port);
     info!("❤️  Health check: http://{}:{}/health", addr.ip(), port);
 
     // Axum 0.7 API: use tokio::net::TcpListener instead of axum::Server

@@ -80,11 +80,7 @@ pub struct InfiniteLoopOrchestrator {
 impl InfiniteLoopOrchestrator {
     /// Create a new orchestrator
     pub fn new(config: LoopConfig) -> Self {
-        Self {
-            config,
-            goal_manager: GoalManager::new(),
-            active_loops: HashMap::new(),
-        }
+        Self { config, goal_manager: GoalManager::new(), active_loops: HashMap::new() }
     }
 
     /// Start a feedback loop for a goal
@@ -94,15 +90,12 @@ impl InfiniteLoopOrchestrator {
 
         // Create goal if it doesn't exist
         if self.goal_manager.get_goal(goal_id).is_err() {
-            self.goal_manager
-                .create_goal(goal_id, format!("Goal {}", goal_id));
+            self.goal_manager.create_goal(goal_id, format!("Goal {}", goal_id));
         }
 
         // Set goal to active
-        self.goal_manager
-            .update_status(goal_id, GoalStatus::Active)?;
-        self.active_loops
-            .insert(goal_id.to_string(), LoopStatus::Running);
+        self.goal_manager.update_status(goal_id, GoalStatus::Active)?;
+        self.active_loops.insert(goal_id.to_string(), LoopStatus::Running);
 
         let start_time = std::time::Instant::now();
         let mut iteration = 0;
@@ -168,10 +161,7 @@ impl InfiniteLoopOrchestrator {
                         params.insert("ITERATION".to_string(), iteration.to_string());
                         params.insert("SCORE".to_string(), iter_result.score.to_string());
                         params.insert("FEEDBACK".to_string(), iter_result.feedback.clone());
-                        params.insert(
-                            "DURATION_MS".to_string(),
-                            iter_result.duration_ms.to_string(),
-                        );
+                        params.insert("DURATION_MS".to_string(), iter_result.duration_ms.to_string());
                         crate::hooks::notify_loop_event("iteration_success", params);
                     }
 
@@ -181,15 +171,9 @@ impl InfiniteLoopOrchestrator {
                     if iteration >= self.config.min_iterations_before_convergence
                         && self.check_convergence(&convergence_metrics)
                     {
-                        tracing::info!(
-                            "Convergence detected at iteration {} for goal: {}",
-                            iteration,
-                            goal_id
-                        );
-                        self.goal_manager
-                            .update_status(goal_id, GoalStatus::Completed)?;
-                        self.active_loops
-                            .insert(goal_id.to_string(), LoopStatus::Completed);
+                        tracing::info!("Convergence detected at iteration {} for goal: {}", iteration, goal_id);
+                        self.goal_manager.update_status(goal_id, GoalStatus::Completed)?;
+                        self.active_loops.insert(goal_id.to_string(), LoopStatus::Completed);
 
                         // Hook: Convergence detected
                         {
@@ -198,10 +182,7 @@ impl InfiniteLoopOrchestrator {
                             params.insert("GOAL_ID".to_string(), goal_id.to_string());
                             params.insert("ITERATION".to_string(), iteration.to_string());
                             params.insert("VARIANCE".to_string(), variance.to_string());
-                            params.insert(
-                                "THRESHOLD".to_string(),
-                                self.config.convergence_threshold.to_string(),
-                            );
+                            params.insert("THRESHOLD".to_string(), self.config.convergence_threshold.to_string());
                             crate::hooks::notify_loop_event("convergence_detected", params);
                         }
 
@@ -223,30 +204,22 @@ impl InfiniteLoopOrchestrator {
                         let mut params = std::collections::HashMap::new();
                         params.insert("GOAL_ID".to_string(), goal_id.to_string());
                         params.insert("ITERATION".to_string(), iteration.to_string());
-                        params.insert(
-                            "CONSECUTIVE_FAILURES".to_string(),
-                            consecutive_failures.to_string(),
-                        );
+                        params.insert("CONSECUTIVE_FAILURES".to_string(), consecutive_failures.to_string());
                         params.insert("FEEDBACK".to_string(), e.to_string());
                         crate::hooks::notify_loop_event("iteration_failure", params);
                     }
 
                     if consecutive_failures >= self.config.max_retries {
                         tracing::error!("Max consecutive failures reached for goal: {}", goal_id);
-                        self.goal_manager
-                            .update_status(goal_id, GoalStatus::Failed)?;
-                        self.active_loops
-                            .insert(goal_id.to_string(), LoopStatus::Failed);
+                        self.goal_manager.update_status(goal_id, GoalStatus::Failed)?;
+                        self.active_loops.insert(goal_id.to_string(), LoopStatus::Failed);
 
                         // Hook: Max retries exceeded
                         {
                             let mut params = std::collections::HashMap::new();
                             params.insert("GOAL_ID".to_string(), goal_id.to_string());
                             params.insert("ITERATION".to_string(), iteration.to_string());
-                            params.insert(
-                                "MAX_RETRIES".to_string(),
-                                self.config.max_retries.to_string(),
-                            );
+                            params.insert("MAX_RETRIES".to_string(), self.config.max_retries.to_string());
                             params.insert("FEEDBACK".to_string(), e.to_string());
                             crate::hooks::notify_loop_event("max_retries_exceeded", params);
                         }
@@ -261,10 +234,7 @@ impl InfiniteLoopOrchestrator {
                 // Hook: Iteration delay
                 {
                     let mut params = std::collections::HashMap::new();
-                    params.insert(
-                        "ITERATION_DELAY_MS".to_string(),
-                        self.config.iteration_delay_ms.to_string(),
-                    );
+                    params.insert("ITERATION_DELAY_MS".to_string(), self.config.iteration_delay_ms.to_string());
                     crate::hooks::notify_loop_event("iteration_delay", params);
                 }
 
@@ -273,10 +243,7 @@ impl InfiniteLoopOrchestrator {
         }
 
         let total_duration_ms = start_time.elapsed().as_millis() as u64;
-        let loop_status = *self
-            .active_loops
-            .get(goal_id)
-            .unwrap_or(&LoopStatus::Completed);
+        let loop_status = *self.active_loops.get(goal_id).unwrap_or(&LoopStatus::Completed);
 
         // Hook: Loop complete
         {
@@ -285,10 +252,7 @@ impl InfiniteLoopOrchestrator {
             params.insert("GOAL_DESCRIPTION".to_string(), goal_id.to_string());
             params.insert("ITERATION".to_string(), iteration.to_string());
             params.insert("LOOP_STATUS".to_string(), format!("{:?}", loop_status));
-            params.insert(
-                "TOTAL_DURATION_MS".to_string(),
-                total_duration_ms.to_string(),
-            );
+            params.insert("TOTAL_DURATION_MS".to_string(), total_duration_ms.to_string());
             if let Some(last_result) = results.last() {
                 params.insert("SCORE".to_string(), last_result.score.to_string());
             }
@@ -306,11 +270,7 @@ impl InfiniteLoopOrchestrator {
     }
 
     /// Execute an iteration with retry logic
-    async fn execute_iteration_with_retry(
-        &mut self,
-        goal_id: &str,
-        iteration: usize,
-    ) -> LoopResult<IterationResult> {
+    async fn execute_iteration_with_retry(&mut self, goal_id: &str, iteration: usize) -> LoopResult<IterationResult> {
         let mut attempts = 0;
 
         loop {
@@ -319,31 +279,19 @@ impl InfiniteLoopOrchestrator {
             match self.execute_iteration(goal_id, iteration).await {
                 Ok(result) => return Ok(result),
                 Err(e) if e.is_retryable() && attempts < self.config.max_retries => {
-                    tracing::warn!(
-                        "Iteration {} attempt {} failed (retryable): {}",
-                        iteration,
-                        attempts,
-                        e
-                    );
+                    tracing::warn!("Iteration {} attempt {} failed (retryable): {}", iteration, attempts, e);
                     tokio::time::sleep(Duration::from_millis(1000)).await;
                     continue;
                 }
                 Err(_e) => {
-                    return Err(LoopError::MaxRetriesExceeded {
-                        iteration,
-                        max_retries: self.config.max_retries,
-                    })
+                    return Err(LoopError::MaxRetriesExceeded { iteration, max_retries: self.config.max_retries })
                 }
             }
         }
     }
 
     /// Execute a single iteration
-    async fn execute_iteration(
-        &mut self,
-        goal_id: &str,
-        iteration: usize,
-    ) -> LoopResult<IterationResult> {
+    async fn execute_iteration(&mut self, goal_id: &str, iteration: usize) -> LoopResult<IterationResult> {
         let start_time = std::time::Instant::now();
 
         tracing::info!("Executing iteration {} for goal: {}", iteration, goal_id);
@@ -377,13 +325,7 @@ impl InfiniteLoopOrchestrator {
 
         let duration_ms = start_time.elapsed().as_millis() as u64;
 
-        Ok(IterationResult {
-            iteration,
-            score,
-            feedback,
-            duration_ms,
-            success: true,
-        })
+        Ok(IterationResult { iteration, score, feedback, duration_ms, success: true })
     }
 
     /// Check if convergence has been achieved
@@ -394,11 +336,7 @@ impl InfiniteLoopOrchestrator {
 
         let variance = self.calculate_variance(metrics);
 
-        tracing::debug!(
-            "Convergence check: variance={}, threshold={}",
-            variance,
-            self.config.convergence_threshold
-        );
+        tracing::debug!("Convergence check: variance={}, threshold={}", variance, self.config.convergence_threshold);
 
         variance < self.config.convergence_threshold
     }
@@ -409,10 +347,7 @@ impl InfiniteLoopOrchestrator {
             return 0.0;
         }
 
-        let n = self
-            .config
-            .min_iterations_before_convergence
-            .min(metrics.len());
+        let n = self.config.min_iterations_before_convergence.min(metrics.len());
         let last_n = &metrics[metrics.len() - n..];
 
         let mean = last_n.iter().sum::<f64>() / last_n.len() as f64;
@@ -426,10 +361,8 @@ impl InfiniteLoopOrchestrator {
 
     /// Cancel a running loop
     pub fn cancel_loop(&mut self, goal_id: &str) -> LoopResult<()> {
-        self.goal_manager
-            .update_status(goal_id, GoalStatus::Cancelled)?;
-        self.active_loops
-            .insert(goal_id.to_string(), LoopStatus::Cancelled);
+        self.goal_manager.update_status(goal_id, GoalStatus::Cancelled)?;
+        self.active_loops.insert(goal_id.to_string(), LoopStatus::Cancelled);
         Ok(())
     }
 }
@@ -440,11 +373,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_start_loop_max_iterations() {
-        let config = LoopConfig {
-            max_iterations: Some(3),
-            convergence_threshold: 1.0,
-            ..Default::default()
-        };
+        let config = LoopConfig { max_iterations: Some(3), convergence_threshold: 1.0, ..Default::default() };
 
         let mut orchestrator = InfiniteLoopOrchestrator::new(config);
         let result = orchestrator.start_loop("test-goal").await.unwrap();
@@ -473,11 +402,8 @@ mod tests {
 
     #[test]
     fn test_check_convergence() {
-        let config = LoopConfig {
-            convergence_threshold: 5.0,
-            min_iterations_before_convergence: 3,
-            ..Default::default()
-        };
+        let config =
+            LoopConfig { convergence_threshold: 5.0, min_iterations_before_convergence: 3, ..Default::default() };
 
         let orchestrator = InfiniteLoopOrchestrator::new(config);
 

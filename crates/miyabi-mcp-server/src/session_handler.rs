@@ -22,18 +22,12 @@ impl SessionHandler {
             .await
             .map_err(|e| ServerError::Internal(e.to_string()))?;
 
-        Ok(Self {
-            session_manager: Arc::new(session_manager),
-        })
+        Ok(Self { session_manager: Arc::new(session_manager) })
     }
 
     /// Spawn a new agent session
     pub async fn spawn_session(&self, params: SessionSpawnParams) -> Result<SessionSpawnResult> {
-        tracing::info!(
-            "Spawning session: agent={}, purpose={}",
-            params.agent_name,
-            params.purpose
-        );
+        tracing::info!("Spawning session: agent={}, purpose={}", params.agent_name, params.purpose);
 
         let context = params.context.into();
 
@@ -57,18 +51,11 @@ impl SessionHandler {
     }
 
     /// Handoff session to another agent
-    pub async fn handoff_session(
-        &self,
-        params: SessionHandoffParams,
-    ) -> Result<SessionHandoffResult> {
+    pub async fn handoff_session(&self, params: SessionHandoffParams) -> Result<SessionHandoffResult> {
         let from_id = Uuid::parse_str(&params.from_session_id)
             .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
-        tracing::info!(
-            "Handing off session {} to agent {}",
-            from_id,
-            params.to_agent
-        );
+        tracing::info!("Handing off session {} to agent {}", from_id, params.to_agent);
 
         let context = params.updated_context.into();
 
@@ -93,10 +80,7 @@ impl SessionHandler {
     }
 
     /// Monitor session status
-    pub async fn monitor_session(
-        &self,
-        params: SessionMonitorParams,
-    ) -> Result<SessionMonitorResult> {
+    pub async fn monitor_session(&self, params: SessionMonitorParams) -> Result<SessionMonitorResult> {
         let session_id = Uuid::parse_str(&params.session_id)
             .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
@@ -120,10 +104,7 @@ impl SessionHandler {
     }
 
     /// Terminate a running session
-    pub async fn terminate_session(
-        &self,
-        params: SessionTerminateParams,
-    ) -> Result<SessionTerminateResult> {
+    pub async fn terminate_session(&self, params: SessionTerminateParams) -> Result<SessionTerminateResult> {
         let session_id = Uuid::parse_str(&params.session_id)
             .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
@@ -145,10 +126,7 @@ impl SessionHandler {
                 .map_err(|e| ServerError::Internal(e.to_string()))?;
         }
 
-        Ok(SessionTerminateResult {
-            session_id: params.session_id,
-            terminated: was_active,
-        })
+        Ok(SessionTerminateResult { session_id: params.session_id, terminated: was_active })
     }
 
     /// List all sessions
@@ -213,11 +191,7 @@ impl SessionHandler {
             status: format!("{:?}", session.status),
             created_at: session.created_at.to_rfc3339(),
             parent_session: session.parent_session.map(|id| id.to_string()),
-            child_sessions: session
-                .child_sessions
-                .iter()
-                .map(|id| id.to_string())
-                .collect(),
+            child_sessions: session.child_sessions.iter().map(|id| id.to_string()).collect(),
             handoff_to: session.handoff_to,
             error_message: session.error_message,
         })
@@ -246,10 +220,7 @@ impl SessionHandler {
         let lineage = self.session_manager.get_session_lineage(session_id);
 
         if lineage.is_empty() {
-            return Err(ServerError::Internal(format!(
-                "Session {} not found",
-                session_id
-            )));
+            return Err(ServerError::Internal(format!("Session {} not found", session_id)));
         }
 
         // First session is root (parent)
@@ -278,11 +249,7 @@ impl SessionHandler {
 
         let total = lineage.len();
 
-        Ok(SessionLineageResult {
-            root,
-            descendants,
-            total,
-        })
+        Ok(SessionLineageResult { root, descendants, total })
     }
 }
 

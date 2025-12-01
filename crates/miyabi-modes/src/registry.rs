@@ -14,9 +14,7 @@ pub struct ModeRegistry {
 impl ModeRegistry {
     /// Create a new empty registry
     pub fn new() -> Self {
-        Self {
-            modes: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self { modes: Arc::new(RwLock::new(HashMap::new())) }
     }
 
     /// Register a mode
@@ -62,31 +60,19 @@ impl ModeRegistry {
     /// List system modes only
     pub fn list_system_modes(&self) -> Vec<MiyabiMode> {
         let modes = self.modes.read().unwrap();
-        modes
-            .values()
-            .filter(|m| m.is_system_mode())
-            .cloned()
-            .collect()
+        modes.values().filter(|m| m.is_system_mode()).cloned().collect()
     }
 
     /// List custom modes only
     pub fn list_custom_modes(&self) -> Vec<MiyabiMode> {
         let modes = self.modes.read().unwrap();
-        modes
-            .values()
-            .filter(|m| m.is_custom_mode())
-            .cloned()
-            .collect()
+        modes.values().filter(|m| m.is_custom_mode()).cloned().collect()
     }
 
     /// Find modes that allow a specific tool group
     pub fn find_by_tool(&self, tool: &ToolGroup) -> Vec<MiyabiMode> {
         let modes = self.modes.read().unwrap();
-        modes
-            .values()
-            .filter(|m| m.allows_tool(tool))
-            .cloned()
-            .collect()
+        modes.values().filter(|m| m.allows_tool(tool)).cloned().collect()
     }
 
     /// Find modes that match a file path
@@ -201,9 +187,7 @@ mod tests {
         registry
             .register(create_test_mode("sys2", "s2", "miyabi-core"))
             .unwrap();
-        registry
-            .register(create_test_mode("cust1", "c1", "user"))
-            .unwrap();
+        registry.register(create_test_mode("cust1", "c1", "user")).unwrap();
 
         let system_modes = registry.list_system_modes();
         let custom_modes = registry.list_custom_modes();
@@ -235,12 +219,8 @@ mod tests {
     #[test]
     fn test_count_and_clear() {
         let registry = ModeRegistry::new();
-        registry
-            .register(create_test_mode("m1", "c1", "user"))
-            .unwrap();
-        registry
-            .register(create_test_mode("m2", "c2", "user"))
-            .unwrap();
+        registry.register(create_test_mode("m1", "c1", "user")).unwrap();
+        registry.register(create_test_mode("m2", "c2", "user")).unwrap();
 
         assert_eq!(registry.count(), 2);
 

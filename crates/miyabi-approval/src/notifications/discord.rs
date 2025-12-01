@@ -1,8 +1,6 @@
 //! Discord webhook integration
 
-use super::{
-    ApprovalRequest, MessageFormatter, Notifier, PlainTextFormatter, WorkflowStatusUpdate,
-};
+use super::{ApprovalRequest, MessageFormatter, Notifier, PlainTextFormatter, WorkflowStatusUpdate};
 use crate::error::{ApprovalError, Result};
 use serde::{Deserialize, Serialize};
 
@@ -69,11 +67,7 @@ impl DiscordNotifier {
         webhook_url: impl Into<String>,
         formatter: impl MessageFormatter + Send + Sync + 'static,
     ) -> Self {
-        Self {
-            webhook_url: webhook_url.into(),
-            client: reqwest::Client::new(),
-            formatter: Box::new(formatter),
-        }
+        Self { webhook_url: webhook_url.into(), client: reqwest::Client::new(), formatter: Box::new(formatter) }
     }
 
     /// Send a Discord embed
@@ -82,25 +76,15 @@ impl DiscordNotifier {
     }
 
     /// Send a Discord embed with optional plain text content
-    pub async fn send_embed_with_content(
-        &self,
-        embed: DiscordEmbed,
-        content: Option<String>,
-    ) -> Result<()> {
-        let payload = DiscordPayload {
-            content,
-            embeds: Some(vec![embed]),
-        };
+    pub async fn send_embed_with_content(&self, embed: DiscordEmbed, content: Option<String>) -> Result<()> {
+        let payload = DiscordPayload { content, embeds: Some(vec![embed]) };
 
         self.send_payload(&payload).await
     }
 
     /// Send a plain text message
     pub async fn send_text(&self, content: impl Into<String>) -> Result<()> {
-        let payload = DiscordPayload {
-            content: Some(content.into()),
-            embeds: None,
-        };
+        let payload = DiscordPayload { content: Some(content.into()), embeds: None };
 
         self.send_payload(&payload).await
     }
@@ -117,14 +101,8 @@ impl DiscordNotifier {
 
         if !response.status().is_success() {
             let status = response.status();
-            let body = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(ApprovalError::Other(format!(
-                "Discord webhook failed with status {}: {}",
-                status, body
-            )));
+            let body = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(ApprovalError::Other(format!("Discord webhook failed with status {}: {}", status, body)));
         }
 
         Ok(())
@@ -133,16 +111,8 @@ impl DiscordNotifier {
     /// Build approval request embed
     fn build_approval_embed(&self, req: &ApprovalRequest) -> DiscordEmbed {
         let mut fields = vec![
-            DiscordField {
-                name: "Workflow ID".to_string(),
-                value: req.workflow_id.clone(),
-                inline: Some(true),
-            },
-            DiscordField {
-                name: "Requester".to_string(),
-                value: req.requester.clone(),
-                inline: Some(true),
-            },
+            DiscordField { name: "Workflow ID".to_string(), value: req.workflow_id.clone(), inline: Some(true) },
+            DiscordField { name: "Requester".to_string(), value: req.requester.clone(), inline: Some(true) },
             DiscordField {
                 name: "Required Approvers".to_string(),
                 value: req.required_approvers.join(", "),
@@ -176,9 +146,7 @@ impl DiscordNotifier {
             description: Some(req.details.clone()),
             color: Some(0x3498db), // Blue
             fields: Some(fields),
-            footer: Some(DiscordFooter {
-                text: "Miyabi Approval System".to_string(),
-            }),
+            footer: Some(DiscordFooter { text: "Miyabi Approval System".to_string() }),
             timestamp: Some(chrono::Utc::now().to_rfc3339()),
         }
     }
@@ -186,37 +154,21 @@ impl DiscordNotifier {
     /// Build status update embed
     fn build_status_embed(&self, status: &WorkflowStatusUpdate) -> DiscordEmbed {
         let mut fields = vec![
-            DiscordField {
-                name: "Workflow ID".to_string(),
-                value: status.workflow_id.clone(),
-                inline: Some(true),
-            },
+            DiscordField { name: "Workflow ID".to_string(), value: status.workflow_id.clone(), inline: Some(true) },
             DiscordField {
                 name: "Status".to_string(),
                 value: format!("{} {}", status.status_emoji(), status.status),
                 inline: Some(true),
             },
-            DiscordField {
-                name: "Duration".to_string(),
-                value: status.format_duration(),
-                inline: Some(true),
-            },
+            DiscordField { name: "Duration".to_string(), value: status.format_duration(), inline: Some(true) },
         ];
 
         if let Some(results) = &status.results {
-            fields.push(DiscordField {
-                name: "Results".to_string(),
-                value: results.clone(),
-                inline: Some(false),
-            });
+            fields.push(DiscordField { name: "Results".to_string(), value: results.clone(), inline: Some(false) });
         }
 
         if let Some(error) = &status.error {
-            fields.push(DiscordField {
-                name: "Error".to_string(),
-                value: error.clone(),
-                inline: Some(false),
-            });
+            fields.push(DiscordField { name: "Error".to_string(), value: error.clone(), inline: Some(false) });
         }
 
         DiscordEmbed {
@@ -224,9 +176,7 @@ impl DiscordNotifier {
             description: None,
             color: Some(status.status_color()),
             fields: Some(fields),
-            footer: Some(DiscordFooter {
-                text: "Miyabi Approval System".to_string(),
-            }),
+            footer: Some(DiscordFooter { text: "Miyabi Approval System".to_string() }),
             timestamp: Some(chrono::Utc::now().to_rfc3339()),
         }
     }
@@ -252,9 +202,7 @@ impl Notifier for DiscordNotifier {
             description: Some(error.to_string()),
             color: Some(0xe74c3c), // Red
             fields: None,
-            footer: Some(DiscordFooter {
-                text: "Miyabi Approval System".to_string(),
-            }),
+            footer: Some(DiscordFooter { text: "Miyabi Approval System".to_string() }),
             timestamp: Some(chrono::Utc::now().to_rfc3339()),
         };
 

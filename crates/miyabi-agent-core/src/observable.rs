@@ -25,20 +25,11 @@ pub struct ProgressUpdate {
 impl ProgressUpdate {
     /// Create a new progress update
     pub fn new(percentage: u8, message: impl Into<String>) -> Self {
-        Self {
-            percentage: percentage.min(100),
-            message: message.into(),
-            timestamp: Utc::now(),
-            metadata: None,
-        }
+        Self { percentage: percentage.min(100), message: message.into(), timestamp: Utc::now(), metadata: None }
     }
 
     /// Create a progress update with metadata
-    pub fn with_metadata(
-        percentage: u8,
-        message: impl Into<String>,
-        metadata: serde_json::Value,
-    ) -> Self {
+    pub fn with_metadata(percentage: u8, message: impl Into<String>, metadata: serde_json::Value) -> Self {
         Self {
             percentage: percentage.min(100),
             message: message.into(),
@@ -77,42 +68,22 @@ pub enum LogLevel {
 impl LogEntry {
     /// Create an info log entry
     pub fn info(message: impl Into<String>) -> Self {
-        Self {
-            level: LogLevel::Info,
-            message: message.into(),
-            timestamp: Utc::now(),
-            context: None,
-        }
+        Self { level: LogLevel::Info, message: message.into(), timestamp: Utc::now(), context: None }
     }
 
     /// Create a warning log entry
     pub fn warn(message: impl Into<String>) -> Self {
-        Self {
-            level: LogLevel::Warn,
-            message: message.into(),
-            timestamp: Utc::now(),
-            context: None,
-        }
+        Self { level: LogLevel::Warn, message: message.into(), timestamp: Utc::now(), context: None }
     }
 
     /// Create an error log entry
     pub fn error(message: impl Into<String>) -> Self {
-        Self {
-            level: LogLevel::Error,
-            message: message.into(),
-            timestamp: Utc::now(),
-            context: None,
-        }
+        Self { level: LogLevel::Error, message: message.into(), timestamp: Utc::now(), context: None }
     }
 
     /// Create a debug log entry
     pub fn debug(message: impl Into<String>) -> Self {
-        Self {
-            level: LogLevel::Debug,
-            message: message.into(),
-            timestamp: Utc::now(),
-            context: None,
-        }
+        Self { level: LogLevel::Debug, message: message.into(), timestamp: Utc::now(), context: None }
     }
 
     /// Add context data to log entry
@@ -155,10 +126,7 @@ pub struct ObservableAgent<A> {
 impl<A> ObservableAgent<A> {
     /// Create a new observable agent
     pub fn new(agent: A) -> Self {
-        Self {
-            agent,
-            observers: Arc::new(RwLock::new(Vec::new())),
-        }
+        Self { agent, observers: Arc::new(RwLock::new(Vec::new())) }
     }
 
     /// Add an observer
@@ -225,13 +193,9 @@ impl<A: crate::BaseAgent> crate::BaseAgent for ObservableAgent<A> {
     async fn execute(&self, task: &Task) -> Result<AgentResult, miyabi_types::error::MiyabiError> {
         // Notify start
         self.notify_start(task).await;
-        self.notify_log(LogEntry::info(format!(
-            "Starting execution of task: {}",
-            task.title
-        )))
-        .await;
-        self.notify_progress(ProgressUpdate::new(0, "Starting..."))
+        self.notify_log(LogEntry::info(format!("Starting execution of task: {}", task.title)))
             .await;
+        self.notify_progress(ProgressUpdate::new(0, "Starting...")).await;
 
         // Execute the wrapped agent
         let result = self.agent.execute(task).await;
@@ -239,10 +203,8 @@ impl<A: crate::BaseAgent> crate::BaseAgent for ObservableAgent<A> {
         // Notify completion
         match &result {
             Ok(agent_result) => {
-                self.notify_progress(ProgressUpdate::new(100, "Completed"))
-                    .await;
-                self.notify_log(LogEntry::info("Task completed successfully"))
-                    .await;
+                self.notify_progress(ProgressUpdate::new(100, "Completed")).await;
+                self.notify_log(LogEntry::info("Task completed successfully")).await;
                 self.notify_complete(agent_result).await;
             }
             Err(error) => {
@@ -272,10 +234,7 @@ mod tests {
             AgentType::CodeGenAgent
         }
 
-        async fn execute(
-            &self,
-            _task: &Task,
-        ) -> Result<AgentResult, miyabi_types::error::MiyabiError> {
+        async fn execute(&self, _task: &Task) -> Result<AgentResult, miyabi_types::error::MiyabiError> {
             Ok(AgentResult {
                 status: ResultStatus::Success,
                 data: Some(serde_json::json!({"test": "data"})),

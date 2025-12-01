@@ -50,12 +50,7 @@ struct SessionQueue {
 
 impl SessionQueue {
     fn new(session_id: Uuid) -> Self {
-        Self {
-            session_id,
-            messages: BinaryHeap::new(),
-            total_enqueued: 0,
-            total_dequeued: 0,
-        }
+        Self { session_id, messages: BinaryHeap::new(), total_enqueued: 0, total_dequeued: 0 }
     }
 
     fn enqueue(&mut self, message: Message) {
@@ -132,10 +127,7 @@ impl MessageQueue {
             Arc::new(DashMap::new())
         };
 
-        Ok(Self {
-            queues,
-            storage_path,
-        })
+        Ok(Self { queues, storage_path })
     }
 
     /// Enqueue a message for a session
@@ -152,10 +144,7 @@ impl MessageQueue {
         let mut queue_guard = queue.write().await;
         queue_guard.enqueue(message.clone());
 
-        info!(
-            "Enqueued message {} for session {} (priority: {:?})",
-            message.id, session_id, message.priority
-        );
+        info!("Enqueued message {} for session {} (priority: {:?})", message.id, session_id, message.priority);
 
         drop(queue_guard);
         self.persist().await?;
@@ -180,10 +169,7 @@ impl MessageQueue {
             // Remove expired messages first
             let expired = queue_guard.remove_expired();
             if expired > 0 {
-                info!(
-                    "Removed {} expired messages from session {}",
-                    expired, session_id
-                );
+                info!("Removed {} expired messages from session {}", expired, session_id);
             }
 
             if let Some(mut message) = queue_guard.dequeue() {
@@ -283,11 +269,7 @@ impl MessageQueue {
     }
 
     /// Filter messages by minimum priority
-    pub async fn filter_by_priority(
-        &self,
-        session_id: Uuid,
-        min_priority: Priority,
-    ) -> Vec<Message> {
+    pub async fn filter_by_priority(&self, session_id: Uuid, min_priority: Priority) -> Vec<Message> {
         if let Some(queue_ref) = self.queues.get(&session_id) {
             let queue = queue_ref.clone();
             let queue_guard = queue.read().await;
@@ -410,8 +392,7 @@ impl MessageQueue {
             });
         }
 
-        serde_json::to_string_pretty(&all_queues)
-            .map_err(|e| SessionError::StorageError(e.to_string()))
+        serde_json::to_string_pretty(&all_queues).map_err(|e| SessionError::StorageError(e.to_string()))
     }
 
     /// Load queues from file
@@ -425,8 +406,8 @@ impl MessageQueue {
         }
 
         let content = tokio::fs::read_to_string(path).await?;
-        let queue_data: Vec<QueueData> = serde_json::from_str(&content)
-            .map_err(|e| SessionError::StorageError(e.to_string()))?;
+        let queue_data: Vec<QueueData> =
+            serde_json::from_str(&content).map_err(|e| SessionError::StorageError(e.to_string()))?;
 
         let queues = Arc::new(DashMap::new());
 
@@ -595,12 +576,7 @@ mod tests {
 
         let session_id = Uuid::new_v4();
 
-        for priority in [
-            Priority::Low,
-            Priority::Normal,
-            Priority::High,
-            Priority::Urgent,
-        ] {
+        for priority in [Priority::Low, Priority::Normal, Priority::High, Priority::Urgent] {
             let msg = MessageBuilder::new(session_id)
                 .priority(priority)
                 .message_type(MessageType::Log(LogMessage {
@@ -655,11 +631,7 @@ mod tests {
         let expired = Message::with_expiration(
             session_id,
             Priority::Normal,
-            MessageType::Log(LogMessage {
-                level: "info".to_string(),
-                content: "expired".to_string(),
-                source: None,
-            }),
+            MessageType::Log(LogMessage { level: "info".to_string(), content: "expired".to_string(), source: None }),
             -1, // expired 1 second ago
         );
 

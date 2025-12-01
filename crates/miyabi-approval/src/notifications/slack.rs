@@ -1,8 +1,6 @@
 //! Slack webhook integration
 
-use super::{
-    ApprovalRequest, MessageFormatter, Notifier, PlainTextFormatter, WorkflowStatusUpdate,
-};
+use super::{ApprovalRequest, MessageFormatter, Notifier, PlainTextFormatter, WorkflowStatusUpdate};
 use crate::error::{ApprovalError, Result};
 use serde::{Deserialize, Serialize};
 
@@ -72,11 +70,7 @@ impl SlackNotifier {
         webhook_url: impl Into<String>,
         formatter: impl MessageFormatter + Send + Sync + 'static,
     ) -> Self {
-        Self {
-            webhook_url: webhook_url.into(),
-            client: reqwest::Client::new(),
-            formatter: Box::new(formatter),
-        }
+        Self { webhook_url: webhook_url.into(), client: reqwest::Client::new(), formatter: Box::new(formatter) }
     }
 
     /// Send Slack blocks
@@ -85,25 +79,15 @@ impl SlackNotifier {
     }
 
     /// Send Slack blocks with optional plain text content
-    pub async fn send_blocks_with_text(
-        &self,
-        blocks: Vec<SlackBlock>,
-        text: Option<String>,
-    ) -> Result<()> {
-        let payload = SlackPayload {
-            text,
-            blocks: Some(blocks),
-        };
+    pub async fn send_blocks_with_text(&self, blocks: Vec<SlackBlock>, text: Option<String>) -> Result<()> {
+        let payload = SlackPayload { text, blocks: Some(blocks) };
 
         self.send_payload(&payload).await
     }
 
     /// Send a plain text message
     pub async fn send_text(&self, content: impl Into<String>) -> Result<()> {
-        let payload = SlackPayload {
-            text: Some(content.into()),
-            blocks: None,
-        };
+        let payload = SlackPayload { text: Some(content.into()), blocks: None };
 
         self.send_payload(&payload).await
     }
@@ -120,14 +104,8 @@ impl SlackNotifier {
 
         if !response.status().is_success() {
             let status = response.status();
-            let body = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(ApprovalError::Other(format!(
-                "Slack webhook failed with status {}: {}",
-                status, body
-            )));
+            let body = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(ApprovalError::Other(format!("Slack webhook failed with status {}: {}", status, body)));
         }
 
         Ok(())
@@ -150,11 +128,7 @@ impl SlackNotifier {
             // Description
             SlackBlock {
                 block_type: "section".to_string(),
-                text: Some(SlackText {
-                    text_type: "mrkdwn".to_string(),
-                    text: req.details.clone(),
-                    emoji: None,
-                }),
+                text: Some(SlackText { text_type: "mrkdwn".to_string(), text: req.details.clone(), emoji: None }),
                 fields: None,
                 accessory: None,
             },
@@ -175,10 +149,7 @@ impl SlackNotifier {
                     },
                     SlackText {
                         text_type: "mrkdwn".to_string(),
-                        text: format!(
-                            "*Required Approvers:*\n{}",
-                            req.required_approvers.join(", ")
-                        ),
+                        text: format!("*Required Approvers:*\n{}", req.required_approvers.join(", ")),
                         emoji: None,
                     },
                     SlackText {
@@ -190,12 +161,7 @@ impl SlackNotifier {
                 accessory: None,
             },
             // Divider
-            SlackBlock {
-                block_type: "divider".to_string(),
-                text: None,
-                fields: None,
-                accessory: None,
-            },
+            SlackBlock { block_type: "divider".to_string(), text: None, fields: None, accessory: None },
         ];
 
         // Add approve button if URL provided
@@ -346,11 +312,7 @@ impl Notifier for SlackNotifier {
             },
             SlackBlock {
                 block_type: "section".to_string(),
-                text: Some(SlackText {
-                    text_type: "mrkdwn".to_string(),
-                    text: error.to_string(),
-                    emoji: None,
-                }),
+                text: Some(SlackText { text_type: "mrkdwn".to_string(), text: error.to_string(), emoji: None }),
                 fields: None,
                 accessory: None,
             },

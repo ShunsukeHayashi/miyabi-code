@@ -25,32 +25,17 @@ pub struct SlaThreshold {
 impl SlaThreshold {
     /// Create a new SLA threshold
     pub fn new(metric_name: String, min_value: f64, max_value: f64) -> Self {
-        Self {
-            metric_name,
-            max_value,
-            min_value,
-            enabled: true,
-        }
+        Self { metric_name, max_value, min_value, enabled: true }
     }
 
     /// Create a max-only threshold
     pub fn max_only(metric_name: String, max_value: f64) -> Self {
-        Self {
-            metric_name,
-            max_value,
-            min_value: f64::MIN,
-            enabled: true,
-        }
+        Self { metric_name, max_value, min_value: f64::MIN, enabled: true }
     }
 
     /// Create a min-only threshold
     pub fn min_only(metric_name: String, min_value: f64) -> Self {
-        Self {
-            metric_name,
-            max_value: f64::MAX,
-            min_value,
-            enabled: true,
-        }
+        Self { metric_name, max_value: f64::MAX, min_value, enabled: true }
     }
 
     /// Check if a value violates this threshold
@@ -109,10 +94,7 @@ impl Default for SlaMonitor {
 impl SlaMonitor {
     /// Create a new SLA monitor
     pub fn new() -> Self {
-        Self {
-            thresholds: Arc::new(RwLock::new(HashMap::new())),
-            violations: Arc::new(RwLock::new(Vec::new())),
-        }
+        Self { thresholds: Arc::new(RwLock::new(HashMap::new())), violations: Arc::new(RwLock::new(Vec::new())) }
     }
 
     /// Register an SLA threshold
@@ -137,8 +119,7 @@ impl SlaMonitor {
                     metric_name, value, threshold.min_value, threshold.max_value
                 );
 
-                let violation =
-                    SlaViolation::new(metric_name.to_string(), value, threshold.clone());
+                let violation = SlaViolation::new(metric_name.to_string(), value, threshold.clone());
 
                 let mut violations = self.violations.write().await;
                 violations.push(violation);
@@ -183,8 +164,7 @@ impl SlaMonitor {
     /// Export violations to JSON
     pub async fn export_violations_json(&self) -> Result<String> {
         let violations = self.violations.read().await;
-        serde_json::to_string_pretty(&*violations)
-            .map_err(|e| LogMonitorError::ExportFailed(e.to_string()))
+        serde_json::to_string_pretty(&*violations).map_err(|e| LogMonitorError::ExportFailed(e.to_string()))
     }
 }
 

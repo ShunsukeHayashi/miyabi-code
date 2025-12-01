@@ -7,8 +7,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -41,8 +40,8 @@ impl MarketingAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -65,26 +64,22 @@ Generate detailed marketing strategy as JSON with brand strategy, campaign plann
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::MarketingAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::MarketingAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
-        let marketing_strategy: MarketingStrategy =
-            serde_json::from_str(&response).map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("Failed to parse marketing strategy JSON: {}", e),
-                    AgentType::MarketingAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let marketing_strategy: MarketingStrategy = serde_json::from_str(&response).map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("Failed to parse marketing strategy JSON: {}", e),
+                AgentType::MarketingAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         Ok(marketing_strategy)
     }
@@ -234,10 +229,7 @@ impl BaseAgent for MarketingAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "MarketingAgent starting marketing strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("MarketingAgent starting marketing strategy generation for task: {}", task.id);
 
         // Generate marketing strategy using LLM
         let marketing_strategy = self.generate_marketing_strategy(task).await?;
@@ -280,10 +272,7 @@ impl BaseAgent for MarketingAgent {
             "total_tactics_count": total_tactics
         });
 
-        tracing::info!(
-            "MarketingAgent completed marketing strategy generation: {}",
-            summary
-        );
+        tracing::info!("MarketingAgent completed marketing strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -309,10 +298,7 @@ impl A2AEnabled for MarketingAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "plan_marketing" => {
@@ -320,9 +306,7 @@ impl A2AEnabled for MarketingAgent {
                     .input
                     .get("product")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing product".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing product".to_string()))?;
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: product.to_string(),
@@ -345,16 +329,12 @@ impl A2AEnabled for MarketingAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Marketing strategy failed: {}",
-                        e
-                    ))),
+                    Err(e) => {
+                        Err(A2AIntegrationError::TaskExecutionFailed(format!("Marketing strategy failed: {}", e)))
+                    }
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
     fn execution_mode(&self) -> ExecutionMode {
@@ -371,7 +351,9 @@ mod tests {
         Task {
             id: "test-task-8".to_string(),
             title: "AI-Powered Email Marketing Platform".to_string(),
-            description: "An intelligent email marketing platform with AI-driven personalization and automation features".to_string(),
+            description:
+                "An intelligent email marketing platform with AI-driven personalization and automation features"
+                    .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -541,9 +523,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -601,9 +581,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -662,9 +640,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]

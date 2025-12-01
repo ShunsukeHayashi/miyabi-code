@@ -74,11 +74,7 @@ impl ModeCommand {
             ModeSubcommand::List { system, custom } => self.list_modes(*system, *custom).await,
             ModeSubcommand::Info { mode } => self.show_mode_info(mode).await,
             ModeSubcommand::Run { mode, issue, args } => self.run_mode(mode, *issue, args).await,
-            ModeSubcommand::Render {
-                mode,
-                role,
-                instructions,
-            } => self.render_mode(mode, *role, *instructions).await,
+            ModeSubcommand::Render { mode, role, instructions } => self.render_mode(mode, *role, *instructions).await,
             ModeSubcommand::Create { slug } => self.create_mode(slug).await,
             ModeSubcommand::Validate => self.validate_modes().await,
         }
@@ -95,11 +91,7 @@ impl ModeCommand {
             }
             Err(e) => {
                 eprintln!("{} {}", "Error loading modes:".red(), e);
-                eprintln!(
-                    "\n{}",
-                    "Make sure .miyabi/modes/system/ directory exists with mode definitions."
-                        .yellow()
-                );
+                eprintln!("\n{}", "Make sure .miyabi/modes/system/ directory exists with mode definitions.".yellow());
                 return Ok(());
             }
         }
@@ -153,10 +145,7 @@ impl ModeCommand {
         }
 
         println!("\n{} miyabi mode info <slug>", "Use".dimmed());
-        println!(
-            "{} miyabi mode run <slug> --issue <number>\n",
-            "Or".dimmed()
-        );
+        println!("{} miyabi mode run <slug> --issue <number>\n", "Or".dimmed());
 
         Ok(())
     }
@@ -173,17 +162,9 @@ impl ModeCommand {
         let mode = registry
             .get(mode_identifier)
             .or_else(|| registry.get_by_character(mode_identifier))
-            .ok_or_else(|| {
-                crate::error::CliError::InvalidInput(format!(
-                    "Mode '{}' not found",
-                    mode_identifier
-                ))
-            })?;
+            .ok_or_else(|| crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_identifier)))?;
 
-        println!(
-            "\n{}\n",
-            format!("{} Mode Information", mode.name).bold().cyan()
-        );
+        println!("\n{}\n", format!("{} Mode Information", mode.name).bold().cyan());
         println!("{} {}", "Slug:".bold(), mode.slug);
         println!("{} {}", "Character:".bold(), mode.character);
         println!("{} {}\n", "Source:".bold(), mode.source);
@@ -218,24 +199,16 @@ impl ModeCommand {
         let modes = loader.load_all()?;
         registry.register_all(modes)?;
 
-        let mode = registry.get(mode_slug).ok_or_else(|| {
-            crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_slug))
-        })?;
+        let mode = registry
+            .get(mode_slug)
+            .ok_or_else(|| crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_slug)))?;
 
-        println!(
-            "{} {} for Issue #{}",
-            "🚀 Running".green().bold(),
-            mode.name,
-            issue
-        );
+        println!("{} {} for Issue #{}", "🚀 Running".green().bold(), mode.name, issue);
         println!("{} {}\n", "Character:".bold(), mode.character.cyan());
 
         // TODO: Integrate with actual agent execution
         println!("{}", "⚠️  Agent execution integration pending".yellow());
-        println!(
-            "{}",
-            "This will be implemented in Phase 1 completion.".dimmed()
-        );
+        println!("{}", "This will be implemented in Phase 1 completion.".dimmed());
 
         Ok(())
     }
@@ -250,12 +223,7 @@ impl ModeCommand {
         let file_path = custom_dir.join(format!("{}.yaml", slug));
 
         if file_path.exists() {
-            eprintln!(
-                "{} Mode '{}' already exists at {:?}",
-                "Error:".red(),
-                slug,
-                file_path
-            );
+            eprintln!("{} Mode '{}' already exists at {:?}", "Error:".red(), slug, file_path);
             return Ok(());
         }
 
@@ -333,13 +301,7 @@ source: "user"
                     println!("{} {} ({})", "✅".green(), mode.name, mode.slug.dimmed());
                 }
                 Err(e) => {
-                    println!(
-                        "{} {} ({}): {}",
-                        "❌".red(),
-                        mode.name,
-                        mode.slug.dimmed(),
-                        e
-                    );
+                    println!("{} {} ({}): {}", "❌".red(), mode.name, mode.slug.dimmed(), e);
                     errors += 1;
                 }
             }
@@ -375,12 +337,7 @@ source: "user"
         Ok(())
     }
 
-    async fn render_mode(
-        &self,
-        mode_slug: &str,
-        show_role: bool,
-        show_instructions: bool,
-    ) -> Result<()> {
+    async fn render_mode(&self, mode_slug: &str, show_role: bool, show_instructions: bool) -> Result<()> {
         use miyabi_modes::TemplateRenderer;
 
         let current_dir = env::current_dir()?;
@@ -390,22 +347,17 @@ source: "user"
         let modes = loader.load_all()?;
         registry.register_all(modes)?;
 
-        let mode = registry.get(mode_slug).ok_or_else(|| {
-            crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_slug))
-        })?;
+        let mode = registry
+            .get(mode_slug)
+            .ok_or_else(|| crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_slug)))?;
 
         // Create template renderer
         let renderer = TemplateRenderer::new(current_dir);
-        let rendered_mode = mode.render_templates(&renderer).map_err(|e| {
-            crate::error::CliError::InvalidInput(format!("Template rendering failed: {}", e))
-        })?;
+        let rendered_mode = mode
+            .render_templates(&renderer)
+            .map_err(|e| crate::error::CliError::InvalidInput(format!("Template rendering failed: {}", e)))?;
 
-        println!(
-            "\n{}\n",
-            format!("📝 Rendered Mode: {}", rendered_mode.name)
-                .bold()
-                .cyan()
-        );
+        println!("\n{}\n", format!("📝 Rendered Mode: {}", rendered_mode.name).bold().cyan());
 
         if show_role {
             println!("{}\n", "Role Definition:".bold());

@@ -38,10 +38,7 @@ pub fn find_git_root(start_path: Option<&Path>) -> Result<PathBuf> {
     let search_path = match start_path {
         Some(p) => p.to_path_buf(),
         None => std::env::current_dir().map_err(|e| {
-            MiyabiError::Io(std::io::Error::new(
-                e.kind(),
-                format!("Failed to get current directory: {}", e),
-            ))
+            MiyabiError::Io(std::io::Error::new(e.kind(), format!("Failed to get current directory: {}", e)))
         })?,
     };
 
@@ -50,13 +47,11 @@ pub fn find_git_root(start_path: Option<&Path>) -> Result<PathBuf> {
     match git2::Repository::discover(&search_path) {
         Ok(repo) => {
             // Get the working directory (not the .git directory)
-            repo.workdir()
-                .map(|p| p.to_path_buf())
-                .ok_or_else(|| {
-                    MiyabiError::Git(
-                        "Repository is bare (no working directory). Miyabi requires a non-bare repository.".to_string()
-                    )
-                })
+            repo.workdir().map(|p| p.to_path_buf()).ok_or_else(|| {
+                MiyabiError::Git(
+                    "Repository is bare (no working directory). Miyabi requires a non-bare repository.".to_string(),
+                )
+            })
         }
         Err(e) => {
             // Provide helpful error message
@@ -117,9 +112,7 @@ pub fn get_current_branch(repo_path: impl AsRef<Path>) -> Result<String> {
         .map_err(|e| MiyabiError::Git(format!("Failed to get HEAD: {}", e)))?;
 
     if !head.is_branch() {
-        return Err(MiyabiError::Git(
-            "Repository is in detached HEAD state. Please checkout a branch.".to_string(),
-        ));
+        return Err(MiyabiError::Git("Repository is in detached HEAD state. Please checkout a branch.".to_string()));
     }
 
     head.shorthand()
@@ -225,10 +218,7 @@ mod tests {
         // Should fail - not in a git repository
         let result = find_git_root(Some(&non_repo_path));
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Not in a Git repository"));
+        assert!(result.unwrap_err().to_string().contains("Not in a Git repository"));
     }
 
     #[test]

@@ -35,11 +35,7 @@ async fn test_phase1_end_to_end_dry_run() {
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Create a simple issue (should be auto-approved)
-    let issue = create_test_issue(
-        123,
-        "Add login button",
-        "Simple UI change to add a login button to the homepage",
-    );
+    let issue = create_test_issue(123, "Add login button", "Simple UI change to add a login button to the homepage");
 
     // Execute Phase 1
     let result = orchestrator.handle_issue_created(&issue).await;
@@ -65,11 +61,7 @@ async fn test_phase1_low_complexity_auto_approve() {
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Create a simple issue
-    let issue = create_test_issue(
-        200,
-        "Fix typo in documentation",
-        "There is a typo in the README file",
-    );
+    let issue = create_test_issue(200, "Fix typo in documentation", "There is a typo in the README file");
 
     let result = orchestrator.handle_issue_created(&issue).await.unwrap();
 
@@ -165,11 +157,8 @@ async fn test_phase1_feature_label_detection() {
 
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
-    let issue = create_test_issue(
-        600,
-        "Add dark mode feature",
-        "Feature request to add dark mode support to the application",
-    );
+    let issue =
+        create_test_issue(600, "Add dark mode feature", "Feature request to add dark mode support to the application");
 
     let result = orchestrator.handle_issue_created(&issue).await.unwrap();
 
@@ -213,22 +202,14 @@ async fn test_phase1_performance_under_2_minutes() {
 
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
-    let issue = create_test_issue(
-        800,
-        "Performance test issue",
-        "Testing that Phase 1 completes within 2 minutes",
-    );
+    let issue = create_test_issue(800, "Performance test issue", "Testing that Phase 1 completes within 2 minutes");
 
     let start = std::time::Instant::now();
     let result = orchestrator.handle_issue_created(&issue).await;
     let duration = start.elapsed();
 
     assert!(result.is_ok());
-    assert!(
-        duration.as_secs() < 120,
-        "Phase 1 should complete within 2 minutes, took {:?}",
-        duration
-    );
+    assert!(duration.as_secs() < 120, "Phase 1 should complete within 2 minutes, took {:?}", duration);
 }
 
 /// Test Phase 1 with multiple sequential executions (concurrent not supported due to git2 limitations)
@@ -269,11 +250,7 @@ async fn test_phase1_dry_run_no_side_effects() {
 
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
-    let issue = create_test_issue(
-        1000,
-        "Dry-run test",
-        "Testing that dry-run mode doesn't produce side effects",
-    );
+    let issue = create_test_issue(1000, "Dry-run test", "Testing that dry-run mode doesn't produce side effects");
 
     // Execute multiple times
     for _ in 0..3 {

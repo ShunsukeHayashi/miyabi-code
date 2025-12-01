@@ -10,8 +10,7 @@ use tracing::{info, warn};
 /// Create default AgentConfig from environment variables
 fn create_default_config() -> AgentConfig {
     AgentConfig {
-        device_identifier: std::env::var("MIYABI_DEVICE_ID")
-            .unwrap_or_else(|_| "mcp-server".to_string()),
+        device_identifier: std::env::var("MIYABI_DEVICE_ID").unwrap_or_else(|_| "mcp-server".to_string()),
         github_token: std::env::var("GITHUB_TOKEN")
             .or_else(|_| std::env::var("GH_TOKEN"))
             .unwrap_or_else(|_| "test-token".to_string()),
@@ -23,12 +22,9 @@ fn create_default_config() -> AgentConfig {
         use_worktree: std::env::var("MIYABI_USE_WORKTREE")
             .map(|v| v == "true" || v == "1")
             .unwrap_or(false),
-        worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE")
-            .ok()
-            .map(std::path::PathBuf::from),
+        worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE").ok().map(std::path::PathBuf::from),
         log_directory: std::env::var("MIYABI_LOG_DIR").unwrap_or_else(|_| ".ai/logs".to_string()),
-        report_directory: std::env::var("MIYABI_REPORT_DIR")
-            .unwrap_or_else(|_| ".ai/reports".to_string()),
+        report_directory: std::env::var("MIYABI_REPORT_DIR").unwrap_or_else(|_| ".ai/reports".to_string()),
         tech_lead_github_username: std::env::var("MIYABI_TECH_LEAD").ok(),
         ciso_github_username: std::env::var("MIYABI_CISO").ok(),
         po_github_username: std::env::var("MIYABI_PO").ok(),
@@ -44,9 +40,7 @@ fn create_default_config() -> AgentConfig {
 /// Registers all 21 A2AEnabled agents:
 /// - 7 Core Agents (Coordinator, CodeGen, Review, Issue, PR, Deployment, Refresher)
 /// - 14 Business Agents
-pub async fn initialize_all_agents(
-    bridge: &A2ABridge,
-) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+pub async fn initialize_all_agents(bridge: &A2ABridge) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
     let mut registered = 0;
 
     // Register Core Agents
@@ -60,12 +54,8 @@ pub async fn initialize_all_agents(
 }
 
 /// Register core workflow agents
-async fn register_core_agents(
-    bridge: &A2ABridge,
-) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-    use miyabi_agents::{
-        CodeGenAgent, CoordinatorAgent, DeploymentAgent, PRAgent, RefresherAgent, ReviewAgent,
-    };
+async fn register_core_agents(bridge: &A2ABridge) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    use miyabi_agents::{CodeGenAgent, CoordinatorAgent, DeploymentAgent, PRAgent, RefresherAgent, ReviewAgent};
 
     let config = create_default_config();
     let mut count = 0;
@@ -145,13 +135,11 @@ async fn register_core_agents(
 }
 
 /// Register business strategy agents
-async fn register_business_agents(
-    bridge: &A2ABridge,
-) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+async fn register_business_agents(bridge: &A2ABridge) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
     use miyabi_agents::{
-        AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
-        MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
-        SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
+        AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent, MarketResearchAgent,
+        MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent, SNSStrategyAgent, SalesAgent,
+        SelfAnalysisAgent, YouTubeAgent,
     };
 
     let mut count = 0;
@@ -279,12 +267,7 @@ mod tests {
 
         // Verify agents are listed
         let agents = bridge.list_agents().await;
-        assert_eq!(
-            agents.len(),
-            21,
-            "Expected 21 agents listed, got {}",
-            agents.len()
-        );
+        assert_eq!(agents.len(), 21, "Expected 21 agents listed, got {}", agents.len());
 
         // Verify tools are available
         let tools = bridge.get_tool_definitions().await;
@@ -292,11 +275,7 @@ mod tests {
 
         // Verify tool naming convention
         for tool in &tools {
-            assert!(
-                tool.name.starts_with("a2a."),
-                "Tool name should start with 'a2a.': {}",
-                tool.name
-            );
+            assert!(tool.name.starts_with("a2a."), "Tool name should start with 'a2a.': {}", tool.name);
         }
     }
 

@@ -19,9 +19,7 @@ struct LoggerPlugin {
 
 impl LoggerPlugin {
     fn new() -> Self {
-        Self {
-            log_count: std::sync::atomic::AtomicUsize::new(0),
-        }
+        Self { log_count: std::sync::atomic::AtomicUsize::new(0) }
     }
 }
 
@@ -41,9 +39,7 @@ impl Plugin for LoggerPlugin {
     }
 
     fn execute(&self, context: &PluginContext) -> Result<PluginResult> {
-        let count = self
-            .log_count
-            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        let count = self.log_count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
 
         let message = context
             .params
@@ -89,17 +85,9 @@ impl Plugin for CalculatorPlugin {
     }
 
     fn execute(&self, context: &PluginContext) -> Result<PluginResult> {
-        let a = context
-            .params
-            .get("a")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
+        let a = context.params.get("a").and_then(|v| v.as_f64()).unwrap_or(0.0);
 
-        let b = context
-            .params
-            .get("b")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
+        let b = context.params.get("b").and_then(|v| v.as_f64()).unwrap_or(0.0);
 
         let operation = context
             .params
@@ -159,12 +147,7 @@ fn main() -> Result<()> {
     // List registered plugins
     println!("\n📋 Registered plugins:");
     for metadata in manager.list_plugins() {
-        println!(
-            "  - {} v{} - {}",
-            metadata.name,
-            metadata.version,
-            metadata.description.unwrap_or_default()
-        );
+        println!("  - {} v{} - {}", metadata.name, metadata.version, metadata.description.unwrap_or_default());
     }
 
     // Execute logger plugin
@@ -173,10 +156,7 @@ fn main() -> Result<()> {
         let mut params = HashMap::new();
         params.insert("message".to_string(), json!(format!("Test message {}", i)));
 
-        let context = PluginContext {
-            params,
-            ..Default::default()
-        };
+        let context = PluginContext { params, ..Default::default() };
 
         let result = manager.execute("logger", &context)?;
         println!("  Result: {}", result.message.unwrap_or_default());
@@ -197,10 +177,7 @@ fn main() -> Result<()> {
         params.insert("a".to_string(), json!(a));
         params.insert("b".to_string(), json!(b));
 
-        let context = PluginContext {
-            params,
-            ..Default::default()
-        };
+        let context = PluginContext { params, ..Default::default() };
 
         let result = manager.execute("calculator", &context)?;
         println!("  Result: {}", result.message.unwrap_or_default());
@@ -213,10 +190,7 @@ fn main() -> Result<()> {
     params.insert("a".to_string(), json!(10.0));
     params.insert("b".to_string(), json!(0.0));
 
-    let context = PluginContext {
-        params,
-        ..Default::default()
-    };
+    let context = PluginContext { params, ..Default::default() };
 
     let result = manager.execute("calculator", &context)?;
     if result.success {

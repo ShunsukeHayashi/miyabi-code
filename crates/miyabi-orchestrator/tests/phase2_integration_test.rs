@@ -35,20 +35,13 @@ async fn test_phase2_task_decomposition_dry_run() {
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Create a simple issue that will auto-approve and proceed to Phase 2
-    let issue = create_test_issue(
-        200,
-        "Add user profile page",
-        "Create a new user profile page with avatar and bio",
-    );
+    let issue = create_test_issue(200, "Add user profile page", "Create a new user profile page with avatar and bio");
 
     // Execute Phase 1 + Phase 2
     let result = orchestrator.handle_issue_created(&issue).await;
 
     // Should succeed and complete Phase 2
-    assert!(
-        result.is_ok(),
-        "Phase 1 + Phase 2 should succeed in dry-run"
-    );
+    assert!(result.is_ok(), "Phase 1 + Phase 2 should succeed in dry-run");
 
     let result = result.unwrap();
     assert!(result.success, "Execution should be successful");
@@ -142,10 +135,7 @@ async fn test_phase1_to_phase2_transition() {
 
     // This should pass through both Phase 1 and Phase 2
     let result = orchestrator.handle_issue_created(&issue).await;
-    assert!(
-        result.is_ok(),
-        "Phase 1 → Phase 2 transition should succeed"
-    );
+    assert!(result.is_ok(), "Phase 1 → Phase 2 transition should succeed");
 
     let result = result.unwrap();
     assert!(result.success);
@@ -163,22 +153,14 @@ async fn test_phase2_performance_under_5_minutes() {
 
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
-    let issue = create_test_issue(
-        700,
-        "Performance test issue",
-        "Testing that Phase 2 completes within 5 minutes",
-    );
+    let issue = create_test_issue(700, "Performance test issue", "Testing that Phase 2 completes within 5 minutes");
 
     let start = std::time::Instant::now();
     let result = orchestrator.handle_issue_created(&issue).await;
     let duration = start.elapsed();
 
     assert!(result.is_ok());
-    assert!(
-        duration.as_secs() < 300,
-        "Phase 1 + Phase 2 should complete within 5 minutes, took {:?}",
-        duration
-    );
+    assert!(duration.as_secs() < 300, "Phase 1 + Phase 2 should complete within 5 minutes, took {:?}", duration);
 }
 
 /// Test Phase 2 with sequential executions (concurrent not supported due to git2 limitations)
@@ -203,10 +185,7 @@ async fn test_phase2_concurrent_executions() {
     // Execute sequentially (git2::Repository is !Send, can't use tokio::spawn)
     for issue in issues {
         let result = orchestrator.handle_issue_created(&issue).await;
-        assert!(
-            result.is_ok(),
-            "Sequential Phase 2 execution should succeed"
-        );
+        assert!(result.is_ok(), "Sequential Phase 2 execution should succeed");
     }
 }
 
@@ -222,11 +201,7 @@ async fn test_phase2_dry_run_no_side_effects() {
 
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
-    let issue = create_test_issue(
-        900,
-        "Dry-run test",
-        "Testing that Phase 2 dry-run doesn't produce side effects",
-    );
+    let issue = create_test_issue(900, "Dry-run test", "Testing that Phase 2 dry-run doesn't produce side effects");
 
     // Execute multiple times
     for _ in 0..3 {
@@ -248,11 +223,7 @@ async fn test_phase2_low_complexity_auto_approve() {
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Very simple issue that should auto-approve
-    let issue = create_test_issue(
-        1000,
-        "Fix typo in README",
-        "There is a small typo in the documentation",
-    );
+    let issue = create_test_issue(1000, "Fix typo in README", "There is a small typo in the documentation");
 
     let result = orchestrator.handle_issue_created(&issue).await.unwrap();
 

@@ -47,11 +47,9 @@ impl LogCollector {
                 Event::Start(Tag::Heading { .. }) => {
                     // Save previous section if it exists
                     if !current_section.is_empty() {
-                        if let Some(entry) = self.create_entry_from_section(
-                            &current_heading,
-                            &current_section,
-                            file_path,
-                        ) {
+                        if let Some(entry) =
+                            self.create_entry_from_section(&current_heading, &current_section, file_path)
+                        {
                             entries.push(entry);
                         }
                     }
@@ -79,9 +77,7 @@ impl LogCollector {
 
         // Save last section
         if !current_section.is_empty() {
-            if let Some(entry) =
-                self.create_entry_from_section(&current_heading, &current_section, file_path)
-            {
+            if let Some(entry) = self.create_entry_from_section(&current_heading, &current_section, file_path) {
                 entries.push(entry);
             }
         }
@@ -90,12 +86,7 @@ impl LogCollector {
     }
 
     /// セクションからエントリを作成
-    fn create_entry_from_section(
-        &self,
-        heading: &str,
-        content: &str,
-        file_path: &Path,
-    ) -> Option<KnowledgeEntry> {
+    fn create_entry_from_section(&self, heading: &str, content: &str, file_path: &Path) -> Option<KnowledgeEntry> {
         // 最小コンテンツ長チェック（スパム防止）
         if content.len() < 50 {
             return None;
@@ -106,16 +97,8 @@ impl LogCollector {
     }
 
     /// コンテンツからメタデータを抽出
-    fn extract_metadata_from_content(
-        &self,
-        heading: &str,
-        content: &str,
-        file_path: &Path,
-    ) -> KnowledgeMetadata {
-        let mut metadata = KnowledgeMetadata {
-            workspace: self.config.workspace.name.clone(),
-            ..Default::default()
-        };
+    fn extract_metadata_from_content(&self, heading: &str, content: &str, file_path: &Path) -> KnowledgeMetadata {
+        let mut metadata = KnowledgeMetadata { workspace: self.config.workspace.name.clone(), ..Default::default() };
 
         // Worktree検出
         if let Some(worktree) = self.detect_worktree(file_path) {
@@ -241,11 +224,7 @@ impl KnowledgeCollector for LogCollector {
         info!("Collecting logs from: {:?}", path);
         let mut all_entries = Vec::new();
 
-        for entry in WalkDir::new(path)
-            .follow_links(true)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in WalkDir::new(path).follow_links(true).into_iter().filter_map(|e| e.ok()) {
             let path = entry.path();
             if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
                 debug!("Processing file: {:?}", path);
@@ -279,14 +258,7 @@ impl KnowledgeCollector for LogCollector {
         let all_entries = self.collect(&self.config.collection.log_dir).await?;
         Ok(all_entries
             .into_iter()
-            .filter(|entry| {
-                entry
-                    .metadata
-                    .agent
-                    .as_ref()
-                    .map(|a| a == agent)
-                    .unwrap_or(false)
-            })
+            .filter(|entry| entry.metadata.agent.as_ref().map(|a| a == agent).unwrap_or(false))
             .collect())
     }
 }

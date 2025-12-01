@@ -135,8 +135,7 @@ async fn test_pool_fail_fast_mode() {
         auto_cleanup: true,
     };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![1, 2, 3, 4, 5];
 
@@ -144,9 +143,7 @@ async fn test_pool_fail_fast_mode() {
         .execute_simple(issue_numbers, |_path, issue| async move {
             // Fail on issue #2
             if issue == 2 {
-                return Err(miyabi_types::error::MiyabiError::Unknown(
-                    "Simulated failure".to_string(),
-                ));
+                return Err(miyabi_types::error::MiyabiError::Unknown("Simulated failure".to_string()));
             }
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             Ok(())
@@ -167,15 +164,9 @@ async fn test_pool_execution_with_mixed_results() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let config = PoolConfig {
-        max_concurrency: 3,
-        timeout_seconds: 2,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 3, timeout_seconds: 2, fail_fast: false, auto_cleanup: true };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![10, 11, 12, 13, 14];
 
@@ -188,11 +179,9 @@ async fn test_pool_execution_with_mixed_results() {
                     tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
                     Ok(())
                 }
-                12 => Ok(()), // Success
-                13 => Err(miyabi_types::error::MiyabiError::Unknown(
-                    "Test error".to_string(),
-                )), // Failure
-                14 => Ok(()), // Success
+                12 => Ok(()),                                                                   // Success
+                13 => Err(miyabi_types::error::MiyabiError::Unknown("Test error".to_string())), // Failure
+                14 => Ok(()),                                                                   // Success
                 _ => Ok(()),
             }
         })
@@ -211,15 +200,9 @@ async fn test_pool_all_successful_execution() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let config = PoolConfig {
-        max_concurrency: 4,
-        timeout_seconds: 30,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 4, timeout_seconds: 30, fail_fast: false, auto_cleanup: true };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![20, 21, 22, 23];
 
@@ -255,8 +238,7 @@ async fn test_pool_with_high_concurrency() {
         auto_cleanup: true,
     };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![30, 31, 32, 33, 34];
 
@@ -273,11 +255,7 @@ async fn test_pool_with_high_concurrency() {
     // With high concurrency, effective concurrency should be high
     // (all tasks run nearly in parallel)
     let effective = result.effective_concurrency();
-    assert!(
-        effective >= 3.0,
-        "Expected high effective concurrency, got {}",
-        effective
-    );
+    assert!(effective >= 3.0, "Expected high effective concurrency, got {}", effective);
 }
 
 #[tokio::test]
@@ -293,8 +271,7 @@ async fn test_pool_with_sequential_execution() {
         auto_cleanup: true,
     };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![40, 41, 42];
 
@@ -350,8 +327,7 @@ async fn test_pool_result_serialization() {
     };
 
     let json = serde_json::to_string(&result).expect("Failed to serialize");
-    let deserialized: PoolExecutionResult =
-        serde_json::from_str(&json).expect("Failed to deserialize");
+    let deserialized: PoolExecutionResult = serde_json::from_str(&json).expect("Failed to deserialize");
 
     assert_eq!(result.total_tasks, deserialized.total_tasks);
     assert_eq!(result.success_count, deserialized.success_count);
@@ -367,8 +343,7 @@ async fn test_pool_empty_task_list() {
 
     let config = PoolConfig::default();
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers: Vec<u64> = vec![];
 
@@ -395,8 +370,7 @@ async fn test_pool_stats_tracking() {
         auto_cleanup: false, // Don't auto-cleanup to check stats
     };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     // Initial stats
     let stats = pool.stats().await;
@@ -412,24 +386,9 @@ async fn test_pool_stats_tracking() {
 #[serial]
 async fn test_pool_config_variations() {
     let configs = vec![
-        PoolConfig {
-            max_concurrency: 1,
-            timeout_seconds: 10,
-            fail_fast: true,
-            auto_cleanup: true,
-        },
-        PoolConfig {
-            max_concurrency: 5,
-            timeout_seconds: 60,
-            fail_fast: false,
-            auto_cleanup: false,
-        },
-        PoolConfig {
-            max_concurrency: 10,
-            timeout_seconds: 300,
-            fail_fast: true,
-            auto_cleanup: true,
-        },
+        PoolConfig { max_concurrency: 1, timeout_seconds: 10, fail_fast: true, auto_cleanup: true },
+        PoolConfig { max_concurrency: 5, timeout_seconds: 60, fail_fast: false, auto_cleanup: false },
+        PoolConfig { max_concurrency: 10, timeout_seconds: 300, fail_fast: true, auto_cleanup: true },
     ];
 
     let (_temp_dir, repo_path) = init_test_repo();

@@ -6,9 +6,7 @@
 
 use async_trait::async_trait;
 use indicatif::{ProgressBar, ProgressStyle};
-use miyabi_agent_core::{
-    BaseAgent, LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate,
-};
+use miyabi_agent_core::{BaseAgent, LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate};
 use miyabi_types::{agent::ResultStatus, task::TaskType, AgentResult, AgentType, Task};
 use std::sync::Arc;
 
@@ -44,13 +42,11 @@ impl ProgressObserver for CLIProgressObserver {
             LogLevel::Warn => "⚠️",
             LogLevel::Error => "❌",
         };
-        self.progress_bar
-            .println(format!("{} {}", level_icon, entry.message));
+        self.progress_bar.println(format!("{} {}", level_icon, entry.message));
     }
 
     async fn on_start(&self, task: &Task) {
-        self.progress_bar
-            .println(format!("🚀 Starting: {}", task.title));
+        self.progress_bar.println(format!("🚀 Starting: {}", task.title));
         self.progress_bar.reset();
     }
 

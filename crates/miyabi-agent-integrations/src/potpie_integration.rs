@@ -24,10 +24,7 @@ impl PotpieIntegration {
                     (Some(client), true)
                 }
                 Err(e) => {
-                    warn!(
-                        "Failed to create Potpie client: {}. Fallback mode activated.",
-                        e
-                    );
+                    warn!("Failed to create Potpie client: {}. Fallback mode activated.", e);
                     (None, false)
                 }
             },
@@ -57,11 +54,7 @@ impl PotpieIntegration {
     ///
     /// Returns relevant code snippets that match the query.
     /// Falls back gracefully if Potpie is unavailable.
-    pub async fn semantic_search(
-        &self,
-        query: &str,
-        top_k: Option<usize>,
-    ) -> Result<Vec<SemanticSearchResult>> {
+    pub async fn semantic_search(&self, query: &str, top_k: Option<usize>) -> Result<Vec<SemanticSearchResult>> {
         if !self.enabled {
             debug!("Potpie disabled, skipping semantic search");
             return Ok(vec![]);
@@ -106,12 +99,7 @@ impl PotpieIntegration {
         context.push_str("The following existing code may be relevant:\n\n");
 
         for (idx, result) in results.iter().enumerate() {
-            context.push_str(&format!(
-                "### {}. {} (Score: {:.2})\n\n",
-                idx + 1,
-                result.node_name,
-                result.score
-            ));
+            context.push_str(&format!("### {}. {} (Score: {:.2})\n\n", idx + 1, result.node_name, result.score));
             context.push_str(&format!("**File**: `{}`\n\n", result.file_path));
 
             if let Some(ref snippet) = result.snippet {
@@ -211,20 +199,14 @@ mod tests {
     #[tokio::test]
     async fn test_semantic_search_with_default_top_k() {
         let integration = PotpieIntegration::new(None);
-        let results = integration
-            .semantic_search("test query", None)
-            .await
-            .unwrap();
+        let results = integration.semantic_search("test query", None).await.unwrap();
         assert!(results.is_empty());
     }
 
     #[tokio::test]
     async fn test_find_existing_implementations_empty() {
         let integration = PotpieIntegration::new(None);
-        let context = integration
-            .find_existing_implementations("test")
-            .await
-            .unwrap();
+        let context = integration.find_existing_implementations("test").await.unwrap();
         assert_eq!(context, "");
     }
 
@@ -256,10 +238,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_dependencies_with_path() {
         let integration = PotpieIntegration::new(None);
-        let deps = integration
-            .get_dependencies("crates/miyabi-core")
-            .await
-            .unwrap();
+        let deps = integration.get_dependencies("crates/miyabi-core").await.unwrap();
         assert!(deps.is_empty());
     }
 
@@ -331,14 +310,8 @@ mod tests {
         let integration = PotpieIntegration::new(None);
 
         // Multiple searches should all return empty for disabled integration
-        let results1 = integration
-            .semantic_search("query1", Some(5))
-            .await
-            .unwrap();
-        let results2 = integration
-            .semantic_search("query2", Some(3))
-            .await
-            .unwrap();
+        let results1 = integration.semantic_search("query1", Some(5)).await.unwrap();
+        let results2 = integration.semantic_search("query2", Some(3)).await.unwrap();
         let results3 = integration.semantic_search("query3", None).await.unwrap();
 
         assert!(results1.is_empty());

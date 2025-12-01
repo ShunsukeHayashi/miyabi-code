@@ -255,15 +255,10 @@ impl AgentConfigManager {
         }
 
         // Sort by agent type (coding first, then business), then by name
-        agents.sort_by(|a, b| {
-            match (
-                a.agent_type.is_coding_agent(),
-                b.agent_type.is_coding_agent(),
-            ) {
-                (true, false) => std::cmp::Ordering::Less,
-                (false, true) => std::cmp::Ordering::Greater,
-                _ => a.name.cmp(&b.name),
-            }
+        agents.sort_by(|a, b| match (a.agent_type.is_coding_agent(), b.agent_type.is_coding_agent()) {
+            (true, false) => std::cmp::Ordering::Less,
+            (false, true) => std::cmp::Ordering::Greater,
+            _ => a.name.cmp(&b.name),
         });
 
         Ok(agents)
@@ -280,11 +275,10 @@ impl AgentConfigManager {
 
     /// Load configuration from a specific file
     fn load_config_from_file(&self, path: &PathBuf) -> Result<AgentConfig> {
-        let content = fs::read_to_string(path)
-            .with_context(|| format!("Failed to read config file: {}", path.display()))?;
+        let content =
+            fs::read_to_string(path).with_context(|| format!("Failed to read config file: {}", path.display()))?;
 
-        toml::from_str(&content)
-            .with_context(|| format!("Failed to parse TOML config: {}", path.display()))
+        toml::from_str(&content).with_context(|| format!("Failed to parse TOML config: {}", path.display()))
     }
 
     /// Save configuration for a specific agent
@@ -306,13 +300,11 @@ impl AgentConfigManager {
             }
         });
 
-        let content =
-            toml::to_string_pretty(config).context("Failed to serialize config to TOML")?;
+        let content = toml::to_string_pretty(config).context("Failed to serialize config to TOML")?;
 
         // Ensure directory exists
         if let Some(parent) = config_file.parent() {
-            fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create directory: {}", parent.display()))?;
+            fs::create_dir_all(parent).with_context(|| format!("Failed to create directory: {}", parent.display()))?;
         }
 
         fs::write(&config_file, content)
@@ -439,13 +431,9 @@ mod tests {
         let manager = AgentConfigManager::new().unwrap();
 
         // Create multiple test agents
-        for (i, agent_type) in [
-            AgentType::Coordinator,
-            AgentType::Review,
-            AgentType::Marketing,
-        ]
-        .iter()
-        .enumerate()
+        for (i, agent_type) in [AgentType::Coordinator, AgentType::Review, AgentType::Marketing]
+            .iter()
+            .enumerate()
         {
             let config = AgentConfig {
                 agent: AgentMetadata {
@@ -459,9 +447,7 @@ mod tests {
                 skills: HashMap::new(),
                 dependencies: AgentDependencies::default(),
             };
-            manager
-                .save_config(&format!("TestAgent{}", i), &config)
-                .unwrap();
+            manager.save_config(&format!("TestAgent{}", i), &config).unwrap();
         }
 
         let agents = manager.list_agents().unwrap();

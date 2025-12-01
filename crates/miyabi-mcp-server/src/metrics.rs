@@ -445,31 +445,19 @@ impl ToolMetrics {
         // Global metrics
         output.push_str("# HELP tool_executions_total Total number of tool executions\n");
         output.push_str("# TYPE tool_executions_total counter\n");
-        output.push_str(&format!(
-            "tool_executions_total {}\n\n",
-            self.total_executions.load(Ordering::Relaxed)
-        ));
+        output.push_str(&format!("tool_executions_total {}\n\n", self.total_executions.load(Ordering::Relaxed)));
 
         output.push_str("# HELP tool_errors_total Total number of tool execution errors\n");
         output.push_str("# TYPE tool_errors_total counter\n");
-        output.push_str(&format!(
-            "tool_errors_total {}\n\n",
-            self.total_errors.load(Ordering::Relaxed)
-        ));
+        output.push_str(&format!("tool_errors_total {}\n\n", self.total_errors.load(Ordering::Relaxed)));
 
         output.push_str("# HELP tool_cache_hits_total Total number of cache hits\n");
         output.push_str("# TYPE tool_cache_hits_total counter\n");
-        output.push_str(&format!(
-            "tool_cache_hits_total {}\n\n",
-            self.total_cache_hits.load(Ordering::Relaxed)
-        ));
+        output.push_str(&format!("tool_cache_hits_total {}\n\n", self.total_cache_hits.load(Ordering::Relaxed)));
 
         output.push_str("# HELP tool_cache_misses_total Total number of cache misses\n");
         output.push_str("# TYPE tool_cache_misses_total counter\n");
-        output.push_str(&format!(
-            "tool_cache_misses_total {}\n\n",
-            self.total_cache_misses.load(Ordering::Relaxed)
-        ));
+        output.push_str(&format!("tool_cache_misses_total {}\n\n", self.total_cache_misses.load(Ordering::Relaxed)));
 
         // Per-tool metrics
         output.push_str("# HELP tool_execution_count Number of executions per tool\n");
@@ -477,10 +465,8 @@ impl ToolMetrics {
 
         for tool_name in self.tool_names() {
             if let Some(metrics) = self.get_tool_metrics(&tool_name) {
-                output.push_str(&format!(
-                    "tool_execution_count{{tool=\"{}\"}} {}\n",
-                    tool_name, metrics.execution_count
-                ));
+                output
+                    .push_str(&format!("tool_execution_count{{tool=\"{}\"}} {}\n", tool_name, metrics.execution_count));
             }
         }
         output.push('\n');
@@ -490,10 +476,7 @@ impl ToolMetrics {
 
         for tool_name in self.tool_names() {
             if let Some(metrics) = self.get_tool_metrics(&tool_name) {
-                output.push_str(&format!(
-                    "tool_error_count{{tool=\"{}\"}} {}\n",
-                    tool_name, metrics.error_count
-                ));
+                output.push_str(&format!("tool_error_count{{tool=\"{}\"}} {}\n", tool_name, metrics.error_count));
             }
         }
         output.push('\n');

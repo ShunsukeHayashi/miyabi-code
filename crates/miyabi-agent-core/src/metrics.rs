@@ -295,12 +295,7 @@ impl AgentHook for CloudWatchMetricsHook {
         Ok(())
     }
 
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        _result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, _result: &AgentResult) -> Result<()> {
         let _active = self.counters.increment_completed();
 
         // Calculate duration
@@ -398,10 +393,7 @@ pub struct MetricsRegistry {
 
 impl MetricsRegistry {
     pub fn new() -> Self {
-        Self {
-            counters: Arc::new(AgentCounters::new()),
-            agent_type_counters: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self { counters: Arc::new(AgentCounters::new()), agent_type_counters: Arc::new(RwLock::new(HashMap::new())) }
     }
 
     /// Get global counters.

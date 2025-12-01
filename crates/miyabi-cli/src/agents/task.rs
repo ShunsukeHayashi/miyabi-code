@@ -24,14 +24,7 @@ impl IssueTaskTemplate {
         priority: u8,
         estimated_duration: Option<u32>,
     ) -> Self {
-        Self {
-            id_prefix,
-            title_template,
-            description_template,
-            task_type,
-            priority,
-            estimated_duration,
-        }
+        Self { id_prefix, title_template, description_template, task_type, priority, estimated_duration }
     }
 }
 
@@ -46,9 +39,7 @@ impl TaskFactory {
         metadata: Option<HashMap<String, serde_json::Value>>,
         include_default_issue_metadata: bool,
     ) -> Task {
-        let title = template
-            .title_template
-            .replace("{issue}", &issue_number.to_string());
+        let title = template.title_template.replace("{issue}", &issue_number.to_string());
         let description = template
             .description_template
             .replace("{issue}", &issue_number.to_string());
@@ -74,11 +65,7 @@ impl TaskFactory {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: if metadata.is_empty() {
-                None
-            } else {
-                Some(metadata)
-            },
+            metadata: if metadata.is_empty() { None } else { Some(metadata) },
         }
     }
 }

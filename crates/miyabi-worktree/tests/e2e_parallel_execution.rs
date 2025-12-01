@@ -28,21 +28,14 @@ async fn is_git_repo() -> bool {
 }
 
 /// Helper to create a test file in worktree
-async fn create_test_file(
-    path: &std::path::Path,
-    filename: &str,
-    content: &str,
-) -> Result<(), std::io::Error> {
+async fn create_test_file(path: &std::path::Path, filename: &str, content: &str) -> Result<(), std::io::Error> {
     let file_path = path.join(filename);
     tokio::fs::write(&file_path, content).await?;
     Ok(())
 }
 
 /// Helper to commit changes in worktree
-async fn commit_changes(
-    path: &std::path::Path,
-    message: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn commit_changes(path: &std::path::Path, message: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Stage all changes
     let output = tokio::process::Command::new("git")
         .arg("add")
@@ -88,12 +81,7 @@ async fn test_e2e_parallel_worktree_creation() {
 
     println!("🚀 Starting E2E test: Parallel worktree creation");
 
-    let config = PoolConfig {
-        max_concurrency: 3,
-        timeout_seconds: 120,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 3, timeout_seconds: 120, fail_fast: false, auto_cleanup: true };
 
     let pool = match WorktreePool::new(config, Some(PathBuf::from(".worktrees-e2e"))) {
         Ok(p) => p,
@@ -160,12 +148,7 @@ async fn test_e2e_parallel_worktree_creation() {
                     let current = concurrent_count.fetch_add(1, Ordering::SeqCst) + 1;
                     let mut max = max_concurrent.load(Ordering::SeqCst);
                     while current > max {
-                        match max_concurrent.compare_exchange_weak(
-                            max,
-                            current,
-                            Ordering::SeqCst,
-                            Ordering::SeqCst,
-                        ) {
+                        match max_concurrent.compare_exchange_weak(max, current, Ordering::SeqCst, Ordering::SeqCst) {
                             Ok(_) => break,
                             Err(x) => max = x,
                         }
@@ -199,27 +182,16 @@ async fn test_e2e_parallel_worktree_creation() {
                     create_test_file(&worktree_info.path, filename, &content)
                         .await
                         .map_err(|e| {
-                            miyabi_types::error::MiyabiError::Unknown(format!(
-                                "Failed to create file: {}",
-                                e
-                            ))
+                            miyabi_types::error::MiyabiError::Unknown(format!("Failed to create file: {}", e))
                         })?;
 
                     // Commit changes
                     commit_changes(
                         &worktree_info.path,
-                        &format!(
-                            "feat(e2e): add {} for issue #{}",
-                            filename, task.issue_number
-                        ),
+                        &format!("feat(e2e): add {} for issue #{}", filename, task.issue_number),
                     )
                     .await
-                    .map_err(|e| {
-                        miyabi_types::error::MiyabiError::Unknown(format!(
-                            "Failed to commit: {}",
-                            e
-                        ))
-                    })?;
+                    .map_err(|e| miyabi_types::error::MiyabiError::Unknown(format!("Failed to commit: {}", e)))?;
 
                     // Simulate work duration
                     tokio::time::sleep(Duration::from_millis(500)).await;
@@ -247,10 +219,7 @@ async fn test_e2e_parallel_worktree_creation() {
     println!("   Timeout: {}", result.timeout_count);
     println!("   Duration: {}ms", result.total_duration_ms);
     println!("   Success rate: {:.1}%", result.success_rate());
-    println!(
-        "   Max concurrent: {}",
-        max_concurrent.load(Ordering::SeqCst)
-    );
+    println!("   Max concurrent: {}", max_concurrent.load(Ordering::SeqCst));
 
     // Assertions
     assert_eq!(result.total_tasks, 5, "Should have 5 tasks");
@@ -260,19 +229,11 @@ async fn test_e2e_parallel_worktree_creation() {
 
     // Verify concurrency was limited
     let max_concurrent_value = max_concurrent.load(Ordering::SeqCst);
-    assert!(
-        max_concurrent_value <= 3,
-        "Max concurrent ({}) should not exceed limit (3)",
-        max_concurrent_value
-    );
+    assert!(max_concurrent_value <= 3, "Max concurrent ({}) should not exceed limit (3)", max_concurrent_value);
 
     // Verify unique worktree paths
     let paths = worktree_paths.lock().unwrap();
-    assert_eq!(
-        paths.len(),
-        5,
-        "Should have created 5 unique worktree paths"
-    );
+    assert_eq!(paths.len(), 5, "Should have created 5 unique worktree paths");
 
     println!("\n✅ E2E test passed: Parallel worktree creation");
 }
@@ -289,12 +250,7 @@ async fn test_e2e_worktree_isolation() {
 
     println!("🚀 Starting E2E test: Worktree isolation");
 
-    let config = PoolConfig {
-        max_concurrency: 3,
-        timeout_seconds: 120,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 3, timeout_seconds: 120, fail_fast: false, auto_cleanup: true };
 
     let pool = match WorktreePool::new(config, Some(PathBuf::from(".worktrees-e2e"))) {
         Ok(p) => p,
@@ -345,35 +301,23 @@ async fn test_e2e_worktree_isolation() {
                         .and_then(|v| v.as_str())
                         .unwrap_or("unknown");
 
-                    println!(
-                        "   🔨 Task #{}: Creating SHARED.md with version {}",
-                        task.issue_number, version
-                    );
+                    println!("   🔨 Task #{}: Creating SHARED.md with version {}", task.issue_number, version);
 
                     // All tasks modify a file with the same name
-                    let content = format!(
-                        "# Shared File - Version {}\n\nModified by issue #{}\n",
-                        version, task.issue_number
-                    );
+                    let content =
+                        format!("# Shared File - Version {}\n\nModified by issue #{}\n", version, task.issue_number);
 
                     create_test_file(&worktree_info.path, "SHARED.md", &content)
                         .await
                         .map_err(|e| {
-                            miyabi_types::error::MiyabiError::Unknown(format!(
-                                "Failed to create file: {}",
-                                e
-                            ))
+                            miyabi_types::error::MiyabiError::Unknown(format!("Failed to create file: {}", e))
                         })?;
 
                     // Verify file content
                     let file_path = worktree_info.path.join("SHARED.md");
-                    let read_content =
-                        tokio::fs::read_to_string(&file_path).await.map_err(|e| {
-                            miyabi_types::error::MiyabiError::Unknown(format!(
-                                "Failed to read file: {}",
-                                e
-                            ))
-                        })?;
+                    let read_content = tokio::fs::read_to_string(&file_path).await.map_err(|e| {
+                        miyabi_types::error::MiyabiError::Unknown(format!("Failed to read file: {}", e))
+                    })?;
 
                     // Store for later verification
                     {
@@ -383,25 +327,14 @@ async fn test_e2e_worktree_isolation() {
 
                     commit_changes(
                         &worktree_info.path,
-                        &format!(
-                            "feat: add SHARED.md version {} for issue #{}",
-                            version, task.issue_number
-                        ),
+                        &format!("feat: add SHARED.md version {} for issue #{}", version, task.issue_number),
                     )
                     .await
-                    .map_err(|e| {
-                        miyabi_types::error::MiyabiError::Unknown(format!(
-                            "Failed to commit: {}",
-                            e
-                        ))
-                    })?;
+                    .map_err(|e| miyabi_types::error::MiyabiError::Unknown(format!("Failed to commit: {}", e)))?;
 
                     tokio::time::sleep(Duration::from_millis(300)).await;
 
-                    println!(
-                        "   ✅ Task #{}: Version {} committed",
-                        task.issue_number, version
-                    );
+                    println!("   ✅ Task #{}: Version {} committed", task.issue_number, version);
 
                     Ok(serde_json::json!({
                         "issue": task.issue_number,
@@ -426,11 +359,7 @@ async fn test_e2e_worktree_isolation() {
     println!("\n🔍 Verifying isolation:");
     for (issue_num, content) in contents.iter() {
         let expected_issue = format!("#{}", issue_num);
-        assert!(
-            content.contains(&expected_issue),
-            "File should contain issue number {}",
-            issue_num
-        );
+        assert!(content.contains(&expected_issue), "File should contain issue number {}", issue_num);
         println!("   ✅ Issue #{} has correct isolated content", issue_num);
     }
 
@@ -449,12 +378,7 @@ async fn test_e2e_failure_handling() {
 
     println!("🚀 Starting E2E test: Failure handling");
 
-    let config = PoolConfig {
-        max_concurrency: 2,
-        timeout_seconds: 120,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 2, timeout_seconds: 120, fail_fast: false, auto_cleanup: true };
 
     let pool = match WorktreePool::new(config, Some(PathBuf::from(".worktrees-e2e"))) {
         Ok(p) => p,
@@ -486,10 +410,7 @@ async fn test_e2e_failure_handling() {
         },
     ];
 
-    println!(
-        "📋 Created {} tasks (1 will fail intentionally)",
-        tasks.len()
-    );
+    println!("📋 Created {} tasks (1 will fail intentionally)", tasks.len());
 
     let result = pool
         .execute_parallel(tasks, move |worktree_info, task| async move {
@@ -502,31 +423,18 @@ async fn test_e2e_failure_handling() {
 
             if should_fail {
                 println!("   ❌ Task #{}: Simulating failure", task.issue_number);
-                return Err(miyabi_types::error::MiyabiError::Unknown(
-                    "Simulated failure for testing".to_string(),
-                ));
+                return Err(miyabi_types::error::MiyabiError::Unknown("Simulated failure for testing".to_string()));
             }
 
             println!("   🔨 Task #{}: Executing successfully", task.issue_number);
 
-            create_test_file(
-                &worktree_info.path,
-                "success.txt",
-                &format!("Success from issue #{}", task.issue_number),
-            )
-            .await
-            .map_err(|e| {
-                miyabi_types::error::MiyabiError::Unknown(format!("Failed to create file: {}", e))
-            })?;
+            create_test_file(&worktree_info.path, "success.txt", &format!("Success from issue #{}", task.issue_number))
+                .await
+                .map_err(|e| miyabi_types::error::MiyabiError::Unknown(format!("Failed to create file: {}", e)))?;
 
-            commit_changes(
-                &worktree_info.path,
-                &format!("feat: add success.txt for issue #{}", task.issue_number),
-            )
-            .await
-            .map_err(|e| {
-                miyabi_types::error::MiyabiError::Unknown(format!("Failed to commit: {}", e))
-            })?;
+            commit_changes(&worktree_info.path, &format!("feat: add success.txt for issue #{}", task.issue_number))
+                .await
+                .map_err(|e| miyabi_types::error::MiyabiError::Unknown(format!("Failed to commit: {}", e)))?;
 
             tokio::time::sleep(Duration::from_millis(200)).await;
 
@@ -625,10 +533,7 @@ async fn test_e2e_completion_tracking() {
                         times.push((task.issue_number, std::time::Instant::now()));
                     }
 
-                    println!(
-                        "   ✅ Task #{}: Completed ({}ms)",
-                        task.issue_number, duration_ms
-                    );
+                    println!("   ✅ Task #{}: Completed ({}ms)", task.issue_number, duration_ms);
 
                     Ok(serde_json::json!({
                         "issue": task.issue_number,
@@ -643,17 +548,11 @@ async fn test_e2e_completion_tracking() {
     println!("   Total tasks: {}", result.total_tasks);
     println!("   Successful: {}", result.success_count);
     println!("   Total duration: {}ms", result.total_duration_ms);
-    println!(
-        "   Avg task duration: {:.1}ms",
-        result.average_duration_ms()
-    );
+    println!("   Avg task duration: {:.1}ms", result.average_duration_ms());
     println!("   Min duration: {}ms", result.min_duration_ms());
     println!("   Max duration: {}ms", result.max_duration_ms());
     println!("   Throughput: {:.2} tasks/sec", result.throughput());
-    println!(
-        "   Effective concurrency: {:.2}x",
-        result.effective_concurrency()
-    );
+    println!("   Effective concurrency: {:.2}x", result.effective_concurrency());
 
     assert_eq!(result.success_count, 5);
 
@@ -665,10 +564,7 @@ async fn test_e2e_completion_tracking() {
 
     // Manual cleanup
     println!("\n🧹 Cleaning up worktrees");
-    pool.manager()
-        .cleanup_all()
-        .await
-        .expect("Cleanup should succeed");
+    pool.manager().cleanup_all().await.expect("Cleanup should succeed");
 
     let final_stats = pool.stats().await;
     println!("📊 Final Stats:");
@@ -767,13 +663,8 @@ async fn test_e2e_fail_fast_mode() {
                     tokio::time::sleep(Duration::from_millis(delay_ms)).await;
 
                     if should_fail {
-                        println!(
-                            "   ❌ Task #{}: Failing (triggering fail-fast)",
-                            task.issue_number
-                        );
-                        return Err(miyabi_types::error::MiyabiError::Unknown(
-                            "Fail-fast test failure".to_string(),
-                        ));
+                        println!("   ❌ Task #{}: Failing (triggering fail-fast)", task.issue_number);
+                        return Err(miyabi_types::error::MiyabiError::Unknown("Fail-fast test failure".to_string()));
                     }
 
                     println!("   ✅ Task #{}: Completed", task.issue_number);
@@ -797,10 +688,7 @@ async fn test_e2e_fail_fast_mode() {
     // - At least 1 failure
     // - Possibly some cancelled tasks
     assert!(result.failed_count > 0, "Should have at least 1 failure");
-    assert!(
-        result.has_failures() || result.has_cancellations(),
-        "Should have failures or cancellations"
-    );
+    assert!(result.has_failures() || result.has_cancellations(), "Should have failures or cancellations");
 
     let started = execution_started.lock().unwrap();
     println!("\n🔍 Execution Analysis:");

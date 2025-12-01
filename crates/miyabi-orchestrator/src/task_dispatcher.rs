@@ -55,11 +55,7 @@ pub struct TaskDispatcher {
 impl TaskDispatcher {
     /// Create new task dispatcher
     pub fn new(config: DispatcherConfig) -> Self {
-        Self {
-            config,
-            dispatch_count: 0,
-            dispatch_history: HashMap::new(),
-        }
+        Self { config, dispatch_count: 0, dispatch_history: HashMap::new() }
     }
 
     /// Dispatch next task from queue
@@ -82,8 +78,7 @@ impl TaskDispatcher {
         self.dispatch_count += 1;
 
         // Store in history
-        self.dispatch_history
-            .insert(task.issue.number, result.clone());
+        self.dispatch_history.insert(task.issue.number, result.clone());
 
         Ok(Some(result))
     }
@@ -155,10 +150,7 @@ impl TaskDispatcher {
         let response = client
             .post(&url)
             .header("Accept", "application/vnd.github+json")
-            .header(
-                "Authorization",
-                format!("Bearer {}", self.config.github_token),
-            )
+            .header("Authorization", format!("Bearer {}", self.config.github_token))
             .header("User-Agent", "Miyabi-Water-Spider-Orchestrator")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .json(&payload)
@@ -187,11 +179,7 @@ impl TaskDispatcher {
     /// Get dispatch statistics
     pub fn stats(&self) -> DispatcherStats {
         let successful = self.dispatch_history.values().filter(|r| r.success).count();
-        let failed = self
-            .dispatch_history
-            .values()
-            .filter(|r| !r.success)
-            .count();
+        let failed = self.dispatch_history.values().filter(|r| !r.success).count();
 
         DispatcherStats {
             total_dispatched: self.dispatch_count,
@@ -256,10 +244,7 @@ mod tests {
 
     #[test]
     fn test_rate_limit() {
-        let config = DispatcherConfig {
-            rate_limit: 2,
-            ..Default::default()
-        };
+        let config = DispatcherConfig { rate_limit: 2, ..Default::default() };
         let dispatcher = TaskDispatcher::new(config);
 
         assert_eq!(dispatcher.config.rate_limit, 2);

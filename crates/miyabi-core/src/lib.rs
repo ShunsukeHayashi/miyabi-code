@@ -33,13 +33,11 @@ pub mod task_metadata;
 pub mod tools;
 pub mod utils;
 
-pub use approval::{
-    ApprovalDecision, ApprovalSystem, CommandApproval, FileChangeApproval, FileOperation,
-};
+pub use approval::{ApprovalDecision, ApprovalSystem, CommandApproval, FileChangeApproval, FileOperation};
 pub use config::Config;
 pub use documentation::{
-    generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, DocumentationResult,
-    ReadmeTemplate, ValidationResult,
+    generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, DocumentationResult, ReadmeTemplate,
+    ValidationResult,
 };
 pub use error::{CoreError, ErrorCode, ErrorContextExt, Result, UnifiedError};
 pub use error_policy::{CircuitBreaker, CircuitState, FallbackStrategy};
@@ -47,21 +45,17 @@ pub use error_policy::{CircuitBreaker, CircuitState, FallbackStrategy};
 pub use executor::TaskExecutor;
 pub use feature_flags::{FeatureFlag, FeatureFlagManager};
 pub use git::{
-    find_git_root, get_current_branch, get_main_branch, has_uncommitted_changes, is_in_git_repo,
-    is_valid_repository,
+    find_git_root, get_current_branch, get_main_branch, has_uncommitted_changes, is_in_git_repo, is_valid_repository,
 };
 pub use logger::{init_logger, init_logger_with_config, LogFormat, LogLevel, LoggerConfig};
 pub use output::{ExecutionEvent, JsonlWriter};
 pub use plugin::{Plugin, PluginContext, PluginManager, PluginMetadata, PluginResult, PluginState};
 pub use resource_limits::{HardwareLimits, PerWorktreeLimits, ResourceType};
 pub use retry::{is_retryable, retry_with_backoff, RetryConfig};
-pub use rules::{
-    AgentPreferences, MiyabiRules, Result as RulesResult, Rule, RulesError, RulesLoader,
-};
+pub use rules::{AgentPreferences, MiyabiRules, Result as RulesResult, Rule, RulesError, RulesLoader};
 pub use security::{run_cargo_audit, SecurityAuditResult, Vulnerability, VulnerabilitySeverity};
 pub use session::{
-    Action, ExecutionMode, ReasoningStep, Session, SessionContext, SessionStatus, SessionSummary,
-    Turn, TurnStatus,
+    Action, ExecutionMode, ReasoningStep, Session, SessionContext, SessionStatus, SessionSummary, Turn, TurnStatus,
 };
 pub use task_metadata::{TaskMetadata, TaskMetadataManager, TaskStatistics, TaskStatus};
 pub use tools::{ToolRegistry, ToolResult};

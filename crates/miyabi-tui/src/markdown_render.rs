@@ -56,9 +56,7 @@ pub struct MarkdownRenderer {
 
 impl MarkdownRenderer {
     pub fn new() -> Self {
-        Self {
-            styles: MarkdownStyles::default(),
-        }
+        Self { styles: MarkdownStyles::default() }
     }
 
     pub fn with_styles(styles: MarkdownStyles) -> Self {
@@ -140,10 +138,7 @@ impl MarkdownRenderer {
         if let Some(rest) = trimmed.strip_prefix("> ") {
             return Line::from(vec![
                 Span::styled("  > ", self.styles.blockquote),
-                Span::styled(
-                    rest.to_string(),
-                    Style::default().fg(Color::Rgb(192, 202, 245)),
-                ),
+                Span::styled(rest.to_string(), Style::default().fg(Color::Rgb(192, 202, 245))),
             ]);
         }
 

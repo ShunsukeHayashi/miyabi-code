@@ -16,9 +16,7 @@ struct MockTaskStorage {
 
 impl MockTaskStorage {
     fn new() -> Self {
-        Self {
-            tasks: Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new())),
-        }
+        Self { tasks: Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new())) }
     }
 
     async fn insert_task(&self, task: A2ATask) {
@@ -45,17 +43,9 @@ impl TaskStorage for MockTaskStorage {
         Ok(tasks.values().cloned().collect())
     }
 
-    async fn list_tasks_paginated(
-        &self,
-        _filter: TaskFilter,
-    ) -> Result<PaginatedResult<A2ATask>, StorageError> {
+    async fn list_tasks_paginated(&self, _filter: TaskFilter) -> Result<PaginatedResult<A2ATask>, StorageError> {
         let tasks = self.list_tasks(_filter).await?;
-        Ok(PaginatedResult {
-            items: tasks,
-            next_cursor: None,
-            previous_cursor: None,
-            has_more: false,
-        })
+        Ok(PaginatedResult { items: tasks, next_cursor: None, previous_cursor: None, has_more: false })
     }
 
     async fn update_task(&self, id: u64, update: TaskUpdate) -> Result<(), StorageError> {
@@ -147,10 +137,7 @@ async fn test_retry_task_success() {
     // Create a failed task with 0 retries
     create_failed_task(&storage, 1, 0).await;
 
-    let state = AppState {
-        ws_state: state.ws_state,
-        storage: Arc::new(storage),
-    };
+    let state = AppState { ws_state: state.ws_state, storage: Arc::new(storage) };
 
     let payload = json!({
         "reason": "Retrying after fixing dependencies"
@@ -203,10 +190,7 @@ async fn test_retry_task_invalid_state() {
     // Create a task in Submitted state (not Failed)
     create_submitted_task(&storage, 1).await;
 
-    let state = AppState {
-        ws_state: state.ws_state,
-        storage: Arc::new(storage),
-    };
+    let state = AppState { ws_state: state.ws_state, storage: Arc::new(storage) };
 
     let payload = json!({
         "reason": "Test"
@@ -233,10 +217,7 @@ async fn test_retry_task_max_retries_exceeded() {
     // Create a failed task that already has 3 retries (max)
     create_failed_task(&storage, 1, 3).await;
 
-    let state = AppState {
-        ws_state: state.ws_state,
-        storage: Arc::new(storage),
-    };
+    let state = AppState { ws_state: state.ws_state, storage: Arc::new(storage) };
 
     let payload = json!({
         "reason": "Test"
@@ -286,16 +267,9 @@ async fn test_cancel_task_success() {
     // Create a submitted task
     create_submitted_task(&storage, 1).await;
 
-    let state = AppState {
-        ws_state: state.ws_state,
-        storage: Arc::new(storage),
-    };
+    let state = AppState { ws_state: state.ws_state, storage: Arc::new(storage) };
 
-    let response = cancel_task(
-        axum::extract::State(state.clone()),
-        axum::extract::Path("1".to_string()),
-    )
-    .await;
+    let response = cancel_task(axum::extract::State(state.clone()), axum::extract::Path("1".to_string())).await;
 
     assert!(response.is_ok());
     let response = response.unwrap();
@@ -310,11 +284,7 @@ async fn test_cancel_task_success() {
 async fn test_cancel_task_not_found() {
     let state = create_test_state();
 
-    let response = cancel_task(
-        axum::extract::State(state),
-        axum::extract::Path("999".to_string()),
-    )
-    .await;
+    let response = cancel_task(axum::extract::State(state), axum::extract::Path("999".to_string())).await;
 
     assert!(response.is_err());
     let error = response.unwrap_err();
@@ -330,16 +300,9 @@ async fn test_cancel_task_invalid_state() {
     // Create a failed task (not Submitted or Working)
     create_failed_task(&storage, 1, 0).await;
 
-    let state = AppState {
-        ws_state: state.ws_state,
-        storage: Arc::new(storage),
-    };
+    let state = AppState { ws_state: state.ws_state, storage: Arc::new(storage) };
 
-    let response = cancel_task(
-        axum::extract::State(state),
-        axum::extract::Path("1".to_string()),
-    )
-    .await;
+    let response = cancel_task(axum::extract::State(state), axum::extract::Path("1".to_string())).await;
 
     assert!(response.is_err());
     let error = response.unwrap_err();
@@ -351,11 +314,7 @@ async fn test_cancel_task_invalid_state() {
 async fn test_cancel_task_invalid_task_id() {
     let state = create_test_state();
 
-    let response = cancel_task(
-        axum::extract::State(state),
-        axum::extract::Path("invalid".to_string()),
-    )
-    .await;
+    let response = cancel_task(axum::extract::State(state), axum::extract::Path("invalid".to_string())).await;
 
     assert!(response.is_err());
     let error = response.unwrap_err();

@@ -21,26 +21,17 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("🚀 Starting Miyabi Dashboard API Server...");
 
     // Get GitHub configuration from environment
-    let github_token =
-        std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN environment variable is required");
-    let github_owner =
-        std::env::var("GITHUB_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let github_token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN environment variable is required");
+    let github_owner = std::env::var("GITHUB_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
     let github_repo = std::env::var("GITHUB_REPO").unwrap_or_else(|_| "Miyabi".to_string());
 
     // Initialize task storage
-    let storage = Arc::new(GitHubTaskStorage::new(
-        github_token,
-        github_owner,
-        github_repo,
-    )?);
+    let storage = Arc::new(GitHubTaskStorage::new(github_token, github_owner, github_repo)?);
 
     // Server configuration
     let config = HttpServerConfig {
         host: std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
-        port: std::env::var("PORT")
-            .ok()
-            .and_then(|p| p.parse().ok())
-            .unwrap_or(3001),
+        port: std::env::var("PORT").ok().and_then(|p| p.parse().ok()).unwrap_or(3001),
     };
 
     // Start server

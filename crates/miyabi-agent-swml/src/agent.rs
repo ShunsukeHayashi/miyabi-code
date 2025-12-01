@@ -15,9 +15,7 @@ pub struct SWMLAgent {
 impl SWMLAgent {
     /// Create a new SWML agent
     pub async fn new() -> Result<Self> {
-        Ok(Self {
-            omega: OmegaFunction::new().await?,
-        })
+        Ok(Self { omega: OmegaFunction::new().await? })
     }
 
     /// Execute an intent

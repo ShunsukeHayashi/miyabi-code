@@ -28,9 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ログ初期化
     tracing_subscriber::fmt()
-        .with_env_filter(
-            env::var("RUST_LOG").unwrap_or_else(|_| "miyabi_discord_mcp_server=info".to_string()),
-        )
+        .with_env_filter(env::var("RUST_LOG").unwrap_or_else(|_| "miyabi_discord_mcp_server=info".to_string()))
         .init();
 
     // 引数パース
@@ -40,11 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let token = args
         .token
         .or_else(|| env::var("DISCORD_BOT_TOKEN").ok())
-        .ok_or_else(|| {
-            DiscordMcpError::Internal(
-                "DISCORD_BOT_TOKEN not found in environment or args".to_string(),
-            )
-        })?;
+        .ok_or_else(|| DiscordMcpError::Internal("DISCORD_BOT_TOKEN not found in environment or args".to_string()))?;
 
     tracing::info!("Starting Miyabi Discord MCP Server...");
     tracing::info!("Mode: {}", args.mode);
@@ -85,9 +79,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         _ => {
             tracing::error!("Invalid mode: {}", args.mode);
-            return Err(Box::new(DiscordMcpError::InvalidParams(
-                "Invalid mode. Use 'stdio' or 'http'".to_string(),
-            )));
+            return Err(Box::new(DiscordMcpError::InvalidParams("Invalid mode. Use 'stdio' or 'http'".to_string())));
         }
     }
 

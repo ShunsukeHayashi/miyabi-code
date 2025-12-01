@@ -18,8 +18,7 @@ async fn main() -> Result<(), Error> {
     tracing::info!("Starting Miyabi API Lambda function");
 
     // Load configuration from environment variables
-    let config = AppConfig::from_env()
-        .map_err(|e| Error::from(format!("Failed to load configuration: {}", e)))?;
+    let config = AppConfig::from_env().map_err(|e| Error::from(format!("Failed to load configuration: {}", e)))?;
 
     // Create Axum application
     let app = create_app(config)

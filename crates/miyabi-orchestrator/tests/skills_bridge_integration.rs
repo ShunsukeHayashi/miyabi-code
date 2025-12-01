@@ -2,9 +2,7 @@
 //!
 //! Tests the bidirectional communication between Skills and Orchestrator
 
-use miyabi_orchestrator::skills_bridge::{
-    ErrorSeverity, OrchestratorEvent, SkillRequest, SkillsBridge,
-};
+use miyabi_orchestrator::skills_bridge::{ErrorSeverity, OrchestratorEvent, SkillRequest, SkillsBridge};
 use std::collections::HashMap;
 
 #[tokio::test]
@@ -31,9 +29,7 @@ async fn test_trigger_skill_completed_event() {
     // Verify event was received
     let received = rx.recv().await.unwrap();
     match received {
-        OrchestratorEvent::SkillCompleted {
-            skill_name, phase, ..
-        } => {
+        OrchestratorEvent::SkillCompleted { skill_name, phase, .. } => {
             assert_eq!(skill_name, "rust-development");
             assert_eq!(phase, Some("Phase 4".to_string()));
         }
@@ -59,11 +55,7 @@ async fn test_trigger_stop_token_detected() {
     // Verify event was received
     let received = rx.recv().await.unwrap();
     match received {
-        OrchestratorEvent::StopTokenDetected {
-            workflow_id,
-            step_id,
-            ..
-        } => {
+        OrchestratorEvent::StopTokenDetected { workflow_id, step_id, .. } => {
             assert_eq!(workflow_id, "wf_123");
             assert_eq!(step_id, "ai_output_complete");
         }
@@ -86,11 +78,7 @@ async fn test_trigger_error_detected() {
     // Verify event was received
     let received = rx.recv().await.unwrap();
     match received {
-        OrchestratorEvent::ErrorDetected {
-            skill_name,
-            error_message,
-            severity,
-        } => {
+        OrchestratorEvent::ErrorDetected { skill_name, error_message, severity } => {
             assert_eq!(skill_name, "debugging-troubleshooting");
             assert_eq!(error_message, "Test compilation failed");
             assert!(matches!(severity, ErrorSeverity::Error));
@@ -114,11 +102,7 @@ async fn test_trigger_quality_check_result() {
     // Verify event was received
     let received = rx.recv().await.unwrap();
     match received {
-        OrchestratorEvent::QualityCheckResult {
-            score,
-            passed,
-            recommendations,
-        } => {
+        OrchestratorEvent::QualityCheckResult { score, passed, recommendations } => {
             assert_eq!(score, 85.0);
             assert!(passed);
             assert_eq!(recommendations.len(), 1);
@@ -133,11 +117,7 @@ async fn test_skill_request_serialization() {
     context.insert("ISSUE_NUMBER".to_string(), "809".to_string());
     context.insert("TASK".to_string(), "Run tests".to_string());
 
-    let request = SkillRequest {
-        skill_name: "rust-development".to_string(),
-        context,
-        timeout_secs: 300,
-    };
+    let request = SkillRequest { skill_name: "rust-development".to_string(), context, timeout_secs: 300 };
 
     // Serialize to JSON
     let json = serde_json::to_string(&request).unwrap();
@@ -149,10 +129,7 @@ async fn test_skill_request_serialization() {
     let deserialized: SkillRequest = serde_json::from_str(&json).unwrap();
     assert_eq!(deserialized.skill_name, "rust-development");
     assert_eq!(deserialized.timeout_secs, 300);
-    assert_eq!(
-        deserialized.context.get("ISSUE_NUMBER"),
-        Some(&"809".to_string())
-    );
+    assert_eq!(deserialized.context.get("ISSUE_NUMBER"), Some(&"809".to_string()));
 }
 
 #[tokio::test]
@@ -215,10 +192,7 @@ async fn test_multiple_events_in_sequence() {
     assert!(matches!(event2, OrchestratorEvent::ErrorDetected { .. }));
 
     let event3 = rx.recv().await.unwrap();
-    assert!(matches!(
-        event3,
-        OrchestratorEvent::QualityCheckResult { .. }
-    ));
+    assert!(matches!(event3, OrchestratorEvent::QualityCheckResult { .. }));
 }
 
 /// Integration test: Execute a skill (will fail if script doesn't exist, which is expected in test environment)
@@ -229,11 +203,7 @@ async fn test_execute_skill_not_found() {
     let mut context = HashMap::new();
     context.insert("ISSUE_NUMBER".to_string(), "809".to_string());
 
-    let request = SkillRequest {
-        skill_name: "nonexistent-skill".to_string(),
-        context,
-        timeout_secs: 10,
-    };
+    let request = SkillRequest { skill_name: "nonexistent-skill".to_string(), context, timeout_secs: 10 };
 
     let result = bridge.execute_skill(request).await;
 

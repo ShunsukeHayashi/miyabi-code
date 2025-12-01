@@ -51,22 +51,12 @@ pub enum PotpieError {
 impl PotpieError {
     /// Check if error is retryable
     pub fn is_retryable(&self) -> bool {
-        matches!(
-            self,
-            PotpieError::ServiceUnavailable(_)
-                | PotpieError::Timeout(_)
-                | PotpieError::HttpError(_)
-        )
+        matches!(self, PotpieError::ServiceUnavailable(_) | PotpieError::Timeout(_) | PotpieError::HttpError(_))
     }
 
     /// Check if fallback to Git should be used
     pub fn should_fallback_to_git(&self) -> bool {
-        matches!(
-            self,
-            PotpieError::ServiceUnavailable(_)
-                | PotpieError::Timeout(_)
-                | PotpieError::ConfigError(_)
-        )
+        matches!(self, PotpieError::ServiceUnavailable(_) | PotpieError::Timeout(_) | PotpieError::ConfigError(_))
     }
 }
 
@@ -153,10 +143,7 @@ mod tests {
 
     #[test]
     fn test_potpie_error_codes() {
-        let error = PotpieError::ApiError {
-            status: 404,
-            message: "Not Found".to_string(),
-        };
+        let error = PotpieError::ApiError { status: 404, message: "Not Found".to_string() };
         assert_eq!(error.code(), ErrorCode::HTTP_ERROR);
 
         let error = PotpieError::Timeout(30);
@@ -171,10 +158,7 @@ mod tests {
 
     #[test]
     fn test_user_messages() {
-        let error = PotpieError::ApiError {
-            status: 500,
-            message: "Internal Server Error".to_string(),
-        };
+        let error = PotpieError::ApiError { status: 500, message: "Internal Server Error".to_string() };
         let msg = error.user_message();
         assert!(msg.contains("500"));
         assert!(msg.contains("Internal Server Error"));
@@ -192,10 +176,7 @@ mod tests {
 
     #[test]
     fn test_context_extraction() {
-        let error = PotpieError::ApiError {
-            status: 404,
-            message: "Not Found".to_string(),
-        };
+        let error = PotpieError::ApiError { status: 404, message: "Not Found".to_string() };
         assert!(error.context().is_some());
 
         let error = PotpieError::Timeout(30);

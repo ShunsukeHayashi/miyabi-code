@@ -59,11 +59,7 @@ pub fn call_hook(hook_name: &str, event_type: &str, params: &HashMap<String, Str
 
     // Check if hook exists
     if !std::path::Path::new(&hook_path).exists() {
-        debug!(
-            hook = hook_name,
-            event = event_type,
-            "Hook script not found, skipping"
-        );
+        debug!(hook = hook_name, event = event_type, "Hook script not found, skipping");
         return;
     }
 
@@ -98,11 +94,7 @@ pub fn call_hook(hook_name: &str, event_type: &str, params: &HashMap<String, Str
     // Execute hook in background (non-blocking)
     match cmd.spawn() {
         Ok(_) => {
-            debug!(
-                hook = hook_name,
-                event = event_type,
-                "Hook called successfully"
-            );
+            debug!(hook = hook_name, event = event_type, "Hook called successfully");
         }
         Err(e) => {
             warn!(

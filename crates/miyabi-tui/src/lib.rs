@@ -30,12 +30,8 @@ pub mod wrapping;
 
 pub use app::{App, Tab};
 pub use event::{Event, EventHandler};
-pub use history_cell::{
-    AssistantMessageCell, HistoryCell, SystemMessageCell, ToolResultCell, UserMessageCell,
-};
+pub use history_cell::{AssistantMessageCell, HistoryCell, SystemMessageCell, ToolResultCell, UserMessageCell};
 pub use markdown_render::{MarkdownRenderer, MarkdownStyles};
 pub use shimmer::{dots_frame, shimmer_style, shimmer_text, spinner_frame, ShimmerConfig};
 pub use views::{A2ABridgeView, AgentDashboard, ChatView, MonitorView};
-pub use wrapping::{
-    display_width, truncate_with_ellipsis, word_wrap_line, word_wrap_lines, wrap_text, WrapOptions,
-};
+pub use wrapping::{display_width, truncate_with_ellipsis, word_wrap_line, word_wrap_lines, wrap_text, WrapOptions};

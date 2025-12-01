@@ -102,9 +102,7 @@ pub async fn run_cargo_audit(project_path: &Path) -> Result<SecurityAuditResult>
     // Check if Cargo.lock exists
     let cargo_lock = project_path.join("Cargo.lock");
     if !cargo_lock.exists() {
-        return Err(MiyabiError::Validation(
-            "Cargo.lock not found. Run 'cargo build' first.".to_string(),
-        ));
+        return Err(MiyabiError::Validation("Cargo.lock not found. Run 'cargo build' first.".to_string()));
     }
 
     // Run cargo audit with JSON output
@@ -118,10 +116,7 @@ pub async fn run_cargo_audit(project_path: &Path) -> Result<SecurityAuditResult>
         .output()
         .await
         .map_err(|e| {
-            MiyabiError::Unknown(format!(
-                "Failed to run cargo-audit. Is cargo-audit installed? Error: {}",
-                e
-            ))
+            MiyabiError::Unknown(format!("Failed to run cargo-audit. Is cargo-audit installed? Error: {}", e))
         })?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -172,15 +167,7 @@ pub async fn run_cargo_audit(project_path: &Path) -> Result<SecurityAuditResult>
         score
     );
 
-    Ok(SecurityAuditResult {
-        score,
-        vulnerabilities,
-        critical_count,
-        high_count,
-        medium_count,
-        low_count,
-        passed,
-    })
+    Ok(SecurityAuditResult { score, vulnerabilities, critical_count, high_count, medium_count, low_count, passed })
 }
 
 /// Parse cargo-audit JSON output
@@ -221,10 +208,7 @@ fn parse_vulnerability(json: &serde_json::Value) -> Option<Vulnerability> {
     let id = advisory.get("id")?.as_str()?.to_string();
     let package = json.get("package")?.as_str()?.to_string();
     let title = advisory.get("title")?.as_str()?.to_string();
-    let description = advisory
-        .get("description")
-        .and_then(|d| d.as_str())
-        .map(String::from);
+    let description = advisory.get("description").and_then(|d| d.as_str()).map(String::from);
 
     let severity_str = advisory
         .get("cvss")
@@ -251,24 +235,10 @@ fn parse_vulnerability(json: &serde_json::Value) -> Option<Vulnerability> {
         .get("versions")
         .and_then(|v| v.get("patched"))
         .and_then(|p| p.as_array())
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|v| v.as_str())
-                .map(String::from)
-                .collect()
-        })
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(String::from).collect())
         .unwrap_or_default();
 
-    Some(Vulnerability {
-        id,
-        package,
-        title,
-        description,
-        severity,
-        cve,
-        affected_version,
-        patched_versions,
-    })
+    Some(Vulnerability { id, package, title, description, severity, cve, affected_version, patched_versions })
 }
 
 /// Parse a warning from JSON
@@ -296,10 +266,7 @@ fn parse_warning(json: &serde_json::Value) -> Option<Vulnerability> {
 /// - Subtract impact for each vulnerability based on severity
 /// - Minimum score is 0
 fn calculate_security_score(vulnerabilities: &[Vulnerability]) -> u8 {
-    let total_impact: u32 = vulnerabilities
-        .iter()
-        .map(|v| v.severity.score_impact() as u32)
-        .sum();
+    let total_impact: u32 = vulnerabilities.iter().map(|v| v.severity.score_impact() as u32).sum();
 
     100u8.saturating_sub(total_impact as u8)
 }
@@ -319,30 +286,12 @@ mod tests {
 
     #[test]
     fn test_vulnerability_severity_from_audit_severity() {
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("critical"),
-            VulnerabilitySeverity::Critical
-        );
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("high"),
-            VulnerabilitySeverity::High
-        );
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("medium"),
-            VulnerabilitySeverity::Medium
-        );
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("moderate"),
-            VulnerabilitySeverity::Medium
-        );
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("low"),
-            VulnerabilitySeverity::Low
-        );
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("unknown"),
-            VulnerabilitySeverity::None
-        );
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("critical"), VulnerabilitySeverity::Critical);
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("high"), VulnerabilitySeverity::High);
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("medium"), VulnerabilitySeverity::Medium);
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("moderate"), VulnerabilitySeverity::Medium);
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("low"), VulnerabilitySeverity::Low);
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("unknown"), VulnerabilitySeverity::None);
     }
 
     #[test]

@@ -56,12 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(token);
 
     // Initial progress post
-    post_progress(
-        &client,
-        progress_channel,
-        "🎉 Miyabiちゃん: Miyabi Community サーバーセットアップを開始するよ！",
-    )
-    .await?;
+    post_progress(&client, progress_channel, "🎉 Miyabiちゃん: Miyabi Community サーバーセットアップを開始するよ！")
+        .await?;
 
     post_progress(
         &client,
@@ -74,12 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
     // Step 1: Create categories
-    post_progress(
-        &client,
-        progress_channel,
-        "\n📂 **フェーズ 1/3**: カテゴリ作成中...",
-    )
-    .await?;
+    post_progress(&client, progress_channel, "\n📂 **フェーズ 1/3**: カテゴリ作成中...").await?;
 
     let categories = [
         "📢 WELCOME & RULES",
@@ -102,10 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         {
             Ok(response) => {
                 let channel = response.model().await?;
-                println!(
-                    "✅ Created category: {} (ID: {})",
-                    category_name, channel.id
-                );
+                println!("✅ Created category: {} (ID: {})", category_name, channel.id);
 
                 if (i + 1) % 3 == 0 {
                     post_progress(
@@ -118,12 +106,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(e) => {
                 println!("⚠️ Failed to create category {}: {}", category_name, e);
-                post_progress(
-                    &client,
-                    progress_channel,
-                    &format!("⚠️ カテゴリ作成エラー: {} - {}", category_name, e),
-                )
-                .await?;
+                post_progress(&client, progress_channel, &format!("⚠️ カテゴリ作成エラー: {} - {}", category_name, e))
+                    .await?;
             }
         }
 
@@ -134,11 +118,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     post_progress(
         &client,
         progress_channel,
-        &format!(
-            "✅ カテゴリ作成完了！ ({}/{}個)",
-            categories.len(),
-            categories.len()
-        ),
+        &format!("✅ カテゴリ作成完了！ ({}/{}個)", categories.len(), categories.len()),
     )
     .await?;
 

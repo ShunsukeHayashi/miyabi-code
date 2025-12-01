@@ -80,42 +80,26 @@ impl UnifiedError for A2AError {
 
     fn user_message(&self) -> String {
         match self {
-            Self::TaskNotFound(task_id) => format!(
-                "Task '{}' not found. The task may have been deleted or never existed.",
-                task_id
-            ),
-            Self::InvalidRequest(msg) => {
-                format!(
-                    "Invalid A2A request: {}. Please check your request parameters.",
-                    msg
-                )
+            Self::TaskNotFound(task_id) => {
+                format!("Task '{}' not found. The task may have been deleted or never existed.", task_id)
             }
-            Self::InternalError(msg) => format!(
-                "Internal A2A protocol error: {}. Please try again or contact support.",
-                msg
-            ),
+            Self::InvalidRequest(msg) => {
+                format!("Invalid A2A request: {}. Please check your request parameters.", msg)
+            }
+            Self::InternalError(msg) => {
+                format!("Internal A2A protocol error: {}. Please try again or contact support.", msg)
+            }
             Self::HttpError(msg) => {
-                format!(
-                    "HTTP communication error: {}. Please check network connectivity.",
-                    msg
-                )
+                format!("HTTP communication error: {}. Please check network connectivity.", msg)
             }
             Self::AuthenticationFailed(msg) => {
-                format!(
-                    "A2A authentication failed: {}. Please verify your credentials.",
-                    msg
-                )
+                format!("A2A authentication failed: {}. Please verify your credentials.", msg)
             }
-            Self::Unauthorized => {
-                "Unauthorized access to A2A task. Please check your permissions.".to_string()
+            Self::Unauthorized => "Unauthorized access to A2A task. Please check your permissions.".to_string(),
+            Self::TaskAlreadyTerminal => "Task is already in a terminal state and cannot be modified.".to_string(),
+            Self::WebhookDeliveryFailed(msg) => {
+                format!("Failed to deliver webhook notification: {}. The remote server may be unavailable.", msg)
             }
-            Self::TaskAlreadyTerminal => {
-                "Task is already in a terminal state and cannot be modified.".to_string()
-            }
-            Self::WebhookDeliveryFailed(msg) => format!(
-                "Failed to deliver webhook notification: {}. The remote server may be unavailable.",
-                msg
-            ),
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }

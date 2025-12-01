@@ -55,36 +55,24 @@ pub async fn mount_successful_token_exchange(server: &MockServer, access_token: 
     Mock::given(method("POST"))
         .and(path("/login/oauth/access_token"))
         .respond_with(
-            ResponseTemplate::new(200).set_body_json(mock_github_token_response(
-                access_token,
-                "read:user user:email repo",
-            )),
+            ResponseTemplate::new(200)
+                .set_body_json(mock_github_token_response(access_token, "read:user user:email repo")),
         )
         .mount(server)
         .await;
 }
 
 /// Mount successful user fetch
-pub async fn mount_successful_user_fetch(
-    server: &MockServer,
-    user_id: i64,
-    login: &str,
-    email: &str,
-) {
+pub async fn mount_successful_user_fetch(server: &MockServer, user_id: i64, login: &str, email: &str) {
     Mock::given(method("GET"))
         .and(path("/user"))
-        .respond_with(
-            ResponseTemplate::new(200).set_body_json(mock_github_user_response(
-                user_id,
-                login,
-                Some(email),
-                Some(login),
-                Some(&format!(
-                    "https://avatars.githubusercontent.com/u/{}",
-                    user_id
-                )),
-            )),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(mock_github_user_response(
+            user_id,
+            login,
+            Some(email),
+            Some(login),
+            Some(&format!("https://avatars.githubusercontent.com/u/{}", user_id)),
+        )))
         .mount(server)
         .await;
 }

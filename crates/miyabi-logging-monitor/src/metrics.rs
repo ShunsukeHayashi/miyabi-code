@@ -105,9 +105,7 @@ impl Default for MetricsCollector {
 impl MetricsCollector {
     /// Create a new metrics collector
     pub fn new() -> Self {
-        Self {
-            metrics: Arc::new(RwLock::new(Vec::new())),
-        }
+        Self { metrics: Arc::new(RwLock::new(Vec::new())) }
     }
 
     /// Record a metric
@@ -168,8 +166,7 @@ impl MetricsCollector {
     /// Export metrics to JSON
     pub async fn export_json(&self) -> Result<String> {
         let metrics = self.metrics.read().await;
-        serde_json::to_string_pretty(&*metrics)
-            .map_err(|e| LogMonitorError::ExportFailed(e.to_string()))
+        serde_json::to_string_pretty(&*metrics).map_err(|e| LogMonitorError::ExportFailed(e.to_string()))
     }
 }
 
@@ -212,8 +209,7 @@ mod tests {
 
     #[test]
     fn test_metric_with_tag() {
-        let metric = Metric::counter("requests".to_string(), 1)
-            .with_tag("endpoint".to_string(), "/api/v1".to_string());
+        let metric = Metric::counter("requests".to_string(), 1).with_tag("endpoint".to_string(), "/api/v1".to_string());
         assert_eq!(metric.tags.len(), 1);
         assert_eq!(metric.tags.get("endpoint"), Some(&"/api/v1".to_string()));
     }
@@ -247,10 +243,7 @@ mod tests {
     async fn test_metrics_collector_increment_counter() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("requests".to_string(), 5)
-            .await
-            .unwrap();
+        collector.increment_counter("requests".to_string(), 5).await.unwrap();
         assert_eq!(collector.count().await, 1);
 
         let metrics = collector.get_by_name("requests").await;
@@ -261,10 +254,7 @@ mod tests {
     async fn test_metrics_collector_record_gauge() {
         let collector = MetricsCollector::new();
 
-        collector
-            .record_gauge("cpu_usage".to_string(), 45.0)
-            .await
-            .unwrap();
+        collector.record_gauge("cpu_usage".to_string(), 45.0).await.unwrap();
         assert_eq!(collector.count().await, 1);
     }
 
@@ -272,10 +262,7 @@ mod tests {
     async fn test_metrics_collector_record_timer() {
         let collector = MetricsCollector::new();
 
-        collector
-            .record_timer("latency".to_string(), 123.45)
-            .await
-            .unwrap();
+        collector.record_timer("latency".to_string(), 123.45).await.unwrap();
         assert_eq!(collector.count().await, 1);
     }
 
@@ -283,18 +270,9 @@ mod tests {
     async fn test_metrics_collector_get_by_name() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("requests".to_string(), 1)
-            .await
-            .unwrap();
-        collector
-            .increment_counter("errors".to_string(), 2)
-            .await
-            .unwrap();
-        collector
-            .increment_counter("requests".to_string(), 3)
-            .await
-            .unwrap();
+        collector.increment_counter("requests".to_string(), 1).await.unwrap();
+        collector.increment_counter("errors".to_string(), 2).await.unwrap();
+        collector.increment_counter("requests".to_string(), 3).await.unwrap();
 
         let requests = collector.get_by_name("requests").await;
         assert_eq!(requests.len(), 2);
@@ -304,10 +282,7 @@ mod tests {
     async fn test_metrics_collector_clear() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("test".to_string(), 1)
-            .await
-            .unwrap();
+        collector.increment_counter("test".to_string(), 1).await.unwrap();
         assert_eq!(collector.count().await, 1);
 
         collector.clear().await;
@@ -318,10 +293,7 @@ mod tests {
     async fn test_metrics_collector_export_json() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("test".to_string(), 42)
-            .await
-            .unwrap();
+        collector.increment_counter("test".to_string(), 42).await.unwrap();
 
         let json = collector.export_json().await.unwrap();
         println!("JSON output: {}", json);

@@ -111,10 +111,8 @@ pub struct ClaudeCodeExecutor {
 impl ClaudeCodeExecutor {
     /// Create a new executor
     pub fn new(config: ExecutorConfig) -> Self {
-        let session_config = SessionConfig {
-            timeout_secs: config.timeout_secs,
-            log_dir: config.log_dir.join("sessions"),
-        };
+        let session_config =
+            SessionConfig { timeout_secs: config.timeout_secs, log_dir: config.log_dir.join("sessions") };
 
         let five_worlds_config = FiveWorldsExecutorConfig {
             worktrees_base: config.log_dir.join("worktrees"),
@@ -164,8 +162,7 @@ impl ClaudeCodeExecutor {
 
         // Phase 1: Spawn all worlds in parallel
         for world_id in 0..self.config.num_worlds {
-            let worktree_path =
-                PathBuf::from(format!("{}-w{}", base_worktree_path.display(), world_id));
+            let worktree_path = PathBuf::from(format!("{}-w{}", base_worktree_path.display(), world_id));
 
             debug!("Spawning World {} at {}", world_id, worktree_path.display());
 
@@ -186,10 +183,7 @@ impl ClaudeCodeExecutor {
             session_ids.push((world_id, session_id));
         }
 
-        info!(
-            "All {} worlds spawned, waiting for completion...",
-            self.config.num_worlds
-        );
+        info!("All {} worlds spawned, waiting for completion...", self.config.num_worlds);
 
         // Phase 2: Wait for all worlds to complete
         for (world_id, session_id) in &session_ids {
@@ -208,16 +202,10 @@ impl ClaudeCodeExecutor {
                         }
                     }
                 }
-                Ok(SessionStatus::Failed) => {
-                    (false, format!("World {} execution failed", world_id))
+                Ok(SessionStatus::Failed) => (false, format!("World {} execution failed", world_id)),
+                Ok(SessionStatus::TimedOut) => {
+                    (false, format!("World {} timed out after {} seconds", world_id, self.config.timeout_secs))
                 }
-                Ok(SessionStatus::TimedOut) => (
-                    false,
-                    format!(
-                        "World {} timed out after {} seconds",
-                        world_id, self.config.timeout_secs
-                    ),
-                ),
                 Err(e) => {
                     warn!("Error waiting for World {}: {}", world_id, e);
                     (false, format!("Error: {}", e))
@@ -228,12 +216,7 @@ impl ClaudeCodeExecutor {
                 }
             };
 
-            world_results.push(WorldResult {
-                world_id: *world_id,
-                success,
-                message,
-                session_id: session_id.clone(),
-            });
+            world_results.push(WorldResult { world_id: *world_id, success, message, session_id: session_id.clone() });
         }
 
         // Phase 3: Aggregate results

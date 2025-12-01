@@ -7,8 +7,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -41,8 +40,8 @@ impl CRMAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -65,16 +64,13 @@ Generate detailed CRM strategy as JSON with customer segmentation, journey mappi
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::CRMAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::CRMAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let crm_strategy: CRMStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -119,8 +115,7 @@ Generate detailed CRM strategy as JSON with customer segmentation, journey mappi
 
     /// Generate CRM strategy summary for reporting
     fn generate_summary(&self, strategy: &CRMStrategy) -> String {
-        let total_tactics = strategy.retention_strategies.tactics.len()
-            + strategy.upselling_strategies.tactics.len();
+        let total_tactics = strategy.retention_strategies.tactics.len() + strategy.upselling_strategies.tactics.len();
 
         format!(
             "CRM Strategy Generated: {} customer segments, {} journey stages, {} total tactics",
@@ -230,10 +225,7 @@ impl BaseAgent for CRMAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "CRMAgent starting CRM strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("CRMAgent starting CRM strategy generation for task: {}", task.id);
 
         // Generate CRM strategy using LLM
         let crm_strategy = self.generate_crm_strategy(task).await?;
@@ -261,8 +253,8 @@ impl BaseAgent for CRMAgent {
         };
 
         // Create result data
-        let total_tactics = crm_strategy.retention_strategies.tactics.len()
-            + crm_strategy.upselling_strategies.tactics.len();
+        let total_tactics =
+            crm_strategy.retention_strategies.tactics.len() + crm_strategy.upselling_strategies.tactics.len();
 
         let result_data = serde_json::json!({
             "crm_strategy": crm_strategy,
@@ -298,10 +290,7 @@ impl A2AEnabled for CRMAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "plan_crm" => {
@@ -309,9 +298,7 @@ impl A2AEnabled for CRMAgent {
                     .input
                     .get("business")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing business".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing business".to_string()))?;
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: business.to_string(),
@@ -334,16 +321,10 @@ impl A2AEnabled for CRMAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "CRM strategy failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("CRM strategy failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
     fn execution_mode(&self) -> ExecutionMode {
@@ -360,7 +341,8 @@ mod tests {
         Task {
             id: "test-task-13".to_string(),
             title: "AI-Powered Customer Relationship Platform".to_string(),
-            description: "A comprehensive CRM platform with AI-driven customer insights and automated engagement".to_string(),
+            description: "A comprehensive CRM platform with AI-driven customer insights and automated engagement"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,

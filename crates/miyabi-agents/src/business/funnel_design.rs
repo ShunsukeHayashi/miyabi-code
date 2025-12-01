@@ -30,9 +30,8 @@ impl FunnelDesignAgent {
     /// Generate comprehensive funnel design using LLM
     async fn generate_funnel_design(&self, task: &Task) -> Result<FunnelDesign> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -52,16 +51,13 @@ Create a detailed funnel design as JSON with AARRR metrics, customer journey sta
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::FunnelDesignAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::FunnelDesignAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let funnel_design: FunnelDesign = serde_json::from_str(&response).map_err(|e| {
@@ -207,10 +203,7 @@ impl BaseAgent for FunnelDesignAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "FunnelDesignAgent starting funnel design generation for task: {}",
-            task.id
-        );
+        tracing::info!("FunnelDesignAgent starting funnel design generation for task: {}", task.id);
 
         // Generate funnel design using LLM
         let funnel_design = self.generate_funnel_design(task).await?;
@@ -246,10 +239,7 @@ impl BaseAgent for FunnelDesignAgent {
             "total_channels_count": funnel_design.aarrr_metrics.acquisition.channels.len() + funnel_design.aarrr_metrics.activation.channels.len() + funnel_design.aarrr_metrics.retention.channels.len() + funnel_design.aarrr_metrics.referral.channels.len() + funnel_design.aarrr_metrics.revenue.channels.len()
         });
 
-        tracing::info!(
-            "FunnelDesignAgent completed funnel design generation: {}",
-            summary
-        );
+        tracing::info!("FunnelDesignAgent completed funnel design generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -270,7 +260,8 @@ mod tests {
         Task {
             id: "test-task-4".to_string(),
             title: "AI-Powered Customer Analytics Platform".to_string(),
-            description: "A comprehensive customer analytics platform with AI-driven insights for SaaS businesses".to_string(),
+            description: "A comprehensive customer analytics platform with AI-driven insights for SaaS businesses"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,

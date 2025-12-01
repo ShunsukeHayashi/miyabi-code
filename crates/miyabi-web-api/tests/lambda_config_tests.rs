@@ -58,10 +58,7 @@ fn test_config_from_env_missing_database_url() {
     let config = miyabi_web_api::AppConfig::from_env();
 
     assert!(config.is_err(), "Config should fail without DATABASE_URL");
-    assert!(
-        config.unwrap_err().contains("DATABASE_URL"),
-        "Error message should mention DATABASE_URL"
-    );
+    assert!(config.unwrap_err().contains("DATABASE_URL"), "Error message should mention DATABASE_URL");
 
     cleanup_test_env();
 }
@@ -75,10 +72,7 @@ fn test_config_from_env_missing_jwt_secret() {
     let config = miyabi_web_api::AppConfig::from_env();
 
     assert!(config.is_err(), "Config should fail without JWT_SECRET");
-    assert!(
-        config.unwrap_err().contains("JWT_SECRET"),
-        "Error message should mention JWT_SECRET"
-    );
+    assert!(config.unwrap_err().contains("JWT_SECRET"), "Error message should mention JWT_SECRET");
 
     cleanup_test_env();
 }
@@ -92,10 +86,7 @@ fn test_config_from_env_missing_github_client_id() {
     let config = miyabi_web_api::AppConfig::from_env();
 
     assert!(config.is_err(), "Config should fail without GITHUB_CLIENT_ID");
-    assert!(
-        config.unwrap_err().contains("GITHUB_CLIENT_ID"),
-        "Error message should mention GITHUB_CLIENT_ID"
-    );
+    assert!(config.unwrap_err().contains("GITHUB_CLIENT_ID"), "Error message should mention GITHUB_CLIENT_ID");
 
     cleanup_test_env();
 }
@@ -132,8 +123,7 @@ fn test_config_default_values() {
 
     assert_eq!(config.server_address, "0.0.0.0:8080", "Should use default server address");
     assert_eq!(
-        config.github_callback_url,
-        "http://localhost:8080/api/v1/auth/github/callback",
+        config.github_callback_url, "http://localhost:8080/api/v1/auth/github/callback",
         "Should use default callback URL"
     );
     assert_eq!(config.frontend_url, "http://localhost:3000", "Should use default frontend URL");
@@ -204,15 +194,12 @@ fn test_config_rds_database_url_format() {
     // Simulate AWS RDS URL
     env::set_var(
         "DATABASE_URL",
-        "postgresql://miyabi:password@miyabi-prod.abc123.us-west-2.rds.amazonaws.com:5432/miyabi"
+        "postgresql://miyabi:password@miyabi-prod.abc123.us-west-2.rds.amazonaws.com:5432/miyabi",
     );
 
     let config = miyabi_web_api::AppConfig::from_env().unwrap();
 
-    assert!(
-        config.database_url.contains("rds.amazonaws.com"),
-        "Should accept RDS database URL"
-    );
+    assert!(config.database_url.contains("rds.amazonaws.com"), "Should accept RDS database URL");
 
     cleanup_test_env();
 }
@@ -234,15 +221,12 @@ fn test_config_api_gateway_callback_url() {
     setup_test_env();
     env::set_var(
         "GITHUB_CALLBACK_URL",
-        "https://abcdef1234.execute-api.us-west-2.amazonaws.com/api/v1/auth/github/callback"
+        "https://abcdef1234.execute-api.us-west-2.amazonaws.com/api/v1/auth/github/callback",
     );
 
     let config = miyabi_web_api::AppConfig::from_env().unwrap();
 
-    assert!(
-        config.github_callback_url.contains("execute-api"),
-        "Should accept API Gateway callback URL"
-    );
+    assert!(config.github_callback_url.contains("execute-api"), "Should accept API Gateway callback URL");
 
     cleanup_test_env();
 }

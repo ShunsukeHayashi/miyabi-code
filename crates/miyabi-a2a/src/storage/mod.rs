@@ -69,10 +69,7 @@ pub trait TaskStorage: Send + Sync {
     /// # Ok(())
     /// # }
     /// ```
-    async fn list_tasks_paginated(
-        &self,
-        filter: TaskFilter,
-    ) -> Result<PaginatedResult<A2ATask>, StorageError>;
+    async fn list_tasks_paginated(&self, filter: TaskFilter) -> Result<PaginatedResult<A2ATask>, StorageError>;
 
     /// Update an existing task
     ///

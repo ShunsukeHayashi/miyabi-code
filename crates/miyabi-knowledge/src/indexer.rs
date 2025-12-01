@@ -53,12 +53,7 @@ impl QdrantIndexer {
         // チャンカー初期化
         let chunker = TextChunker::new(ChunkConfig::default());
 
-        Ok(Self {
-            config,
-            qdrant_client,
-            embedding_generator,
-            chunker,
-        })
+        Ok(Self { config, qdrant_client, embedding_generator, chunker })
     }
 
     /// エントリをベクトル化
@@ -84,10 +79,9 @@ impl QdrantIndexer {
             chunk_metadata
                 .extra
                 .insert("total_chunks".to_string(), serde_json::json!(chunks.len()));
-            chunk_metadata.extra.insert(
-                "parent_id".to_string(),
-                serde_json::json!(entry.id.as_str()),
-            );
+            chunk_metadata
+                .extra
+                .insert("parent_id".to_string(), serde_json::json!(entry.id.as_str()));
 
             let chunk_entry = KnowledgeEntry::new(chunk.clone(), chunk_metadata);
 
@@ -126,10 +120,7 @@ impl KnowledgeIndexer for QdrantIndexer {
         info!("Indexing batch of {} entries", entries.len());
         let start = std::time::Instant::now();
 
-        let mut stats = IndexStats {
-            total: entries.len(),
-            ..Default::default()
-        };
+        let mut stats = IndexStats { total: entries.len(), ..Default::default() };
 
         // バッチサイズごとに処理
         let batch_size = self.config.collection.batch_size;
@@ -143,8 +134,7 @@ impl KnowledgeIndexer for QdrantIndexer {
                 let embedding_generator = &self.embedding_generator;
 
                 // 非同期タスクとして埋め込み生成
-                vectorization_tasks
-                    .push(async move { embedding_generator.generate(&content).await });
+                vectorization_tasks.push(async move { embedding_generator.generate(&content).await });
             }
 
             // 全てのベクトル化を並列実行

@@ -22,10 +22,7 @@ pub enum SchedulerError {
 
     /// Failed to parse result
     #[error("Failed to parse result from {path}: {source}")]
-    ParseFailed {
-        path: PathBuf,
-        source: serde_json::Error,
-    },
+    ParseFailed { path: PathBuf, source: serde_json::Error },
 
     /// Session timeout
     #[error("Session timed out after {0} seconds")]
@@ -133,16 +130,10 @@ mod unified_error_tests {
         let error = SchedulerError::Timeout(30);
         assert_eq!(error.code(), ErrorCode::TIMEOUT_ERROR);
 
-        let error = SchedulerError::ProcessFailed {
-            code: 1,
-            stderr: "error".to_string(),
-        };
+        let error = SchedulerError::ProcessFailed { code: 1, stderr: "error".to_string() };
         assert_eq!(error.code(), ErrorCode::PROCESS_ERROR);
 
-        let error = SchedulerError::CommandFailed {
-            command: "test".to_string(),
-            stderr: "error".to_string(),
-        };
+        let error = SchedulerError::CommandFailed { command: "test".to_string(), stderr: "error".to_string() };
         assert_eq!(error.code(), ErrorCode::COMMAND_ERROR);
     }
 
@@ -158,10 +149,7 @@ mod unified_error_tests {
         assert!(msg.contains("60 seconds"));
         assert!(msg.contains("timed out"));
 
-        let error = SchedulerError::ProcessFailed {
-            code: 127,
-            stderr: "command not found".to_string(),
-        };
+        let error = SchedulerError::ProcessFailed { code: 127, stderr: "command not found".to_string() };
         let msg = error.user_message();
         assert!(msg.contains("127"));
         assert!(msg.contains("command not found"));
@@ -178,16 +166,10 @@ mod unified_error_tests {
         let error = SchedulerError::SpawnFailed(io::Error::other("test"));
         assert!(error.context().is_none());
 
-        let error = SchedulerError::ProcessFailed {
-            code: 1,
-            stderr: "error".to_string(),
-        };
+        let error = SchedulerError::ProcessFailed { code: 1, stderr: "error".to_string() };
         assert!(error.context().is_some());
 
-        let error = SchedulerError::CommandFailed {
-            command: "test".to_string(),
-            stderr: "error".to_string(),
-        };
+        let error = SchedulerError::CommandFailed { command: "test".to_string(), stderr: "error".to_string() };
         assert!(error.context().is_some());
     }
 }

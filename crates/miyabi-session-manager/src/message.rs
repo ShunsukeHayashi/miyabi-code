@@ -217,13 +217,7 @@ pub struct MessageBuilder {
 impl MessageBuilder {
     /// Create a new message builder
     pub fn new(session_id: Uuid) -> Self {
-        Self {
-            session_id,
-            priority: Priority::Normal,
-            message_type: None,
-            expires_at: None,
-            max_attempts: 3,
-        }
+        Self { session_id, priority: Priority::Normal, message_type: None, expires_at: None, max_attempts: 3 }
     }
 
     /// Set message priority
@@ -240,29 +234,17 @@ impl MessageBuilder {
 
     /// Set command message
     pub fn command(self, command: String, args: Vec<String>) -> Self {
-        self.message_type(MessageType::Command(CommandMessage {
-            command,
-            args,
-            metadata: None,
-        }))
+        self.message_type(MessageType::Command(CommandMessage { command, args, metadata: None }))
     }
 
     /// Set result message
     pub fn result(self, success: bool, data: String, duration_ms: u64) -> Self {
-        self.message_type(MessageType::Result(ResultMessage {
-            success,
-            data,
-            duration_ms,
-        }))
+        self.message_type(MessageType::Result(ResultMessage { success, data, duration_ms }))
     }
 
     /// Set error message
     pub fn error(self, code: String, message: String) -> Self {
-        self.message_type(MessageType::Error(ErrorMessage {
-            code,
-            message,
-            stacktrace: None,
-        }))
+        self.message_type(MessageType::Error(ErrorMessage { code, message, stacktrace: None }))
     }
 
     /// Set expiration time in seconds
@@ -311,11 +293,7 @@ mod tests {
         let msg = Message::new(
             session_id,
             Priority::High,
-            MessageType::Command(CommandMessage {
-                command: "test".to_string(),
-                args: vec![],
-                metadata: None,
-            }),
+            MessageType::Command(CommandMessage { command: "test".to_string(), args: vec![], metadata: None }),
         );
 
         assert_eq!(msg.session_id, session_id);
@@ -330,11 +308,7 @@ mod tests {
         let msg = Message::with_expiration(
             session_id,
             Priority::Normal,
-            MessageType::Log(LogMessage {
-                level: "info".to_string(),
-                content: "test".to_string(),
-                source: None,
-            }),
+            MessageType::Log(LogMessage { level: "info".to_string(), content: "test".to_string(), source: None }),
             -1, // expired 1 second ago
         );
 
@@ -347,11 +321,7 @@ mod tests {
         let mut msg = Message::new(
             session_id,
             Priority::Normal,
-            MessageType::Log(LogMessage {
-                level: "info".to_string(),
-                content: "test".to_string(),
-                source: None,
-            }),
+            MessageType::Log(LogMessage { level: "info".to_string(), content: "test".to_string(), source: None }),
         );
 
         msg.max_attempts = 2;

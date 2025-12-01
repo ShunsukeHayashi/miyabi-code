@@ -50,10 +50,7 @@ pub enum StreamEvent {
     TextChunk(String),
 
     /// Metadata about the stream
-    Metadata {
-        tokens_used: Option<usize>,
-        finish_reason: Option<String>,
-    },
+    Metadata { tokens_used: Option<usize>, finish_reason: Option<String> },
 
     /// Stream completed
     Done,

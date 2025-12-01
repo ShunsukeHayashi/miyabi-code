@@ -91,20 +91,12 @@ impl<S: KnowledgeSearcher> StandardPromptAugmenter<S> {
     /// * `searcher` - Knowledge searcher implementation
     /// * `strategy` - Default augmentation strategy (default: Prepend)
     pub fn new(searcher: S) -> Self {
-        Self {
-            searcher,
-            strategy: AugmentationStrategy::Prepend,
-            template_placeholder: "{{CONTEXT}}".to_string(),
-        }
+        Self { searcher, strategy: AugmentationStrategy::Prepend, template_placeholder: "{{CONTEXT}}".to_string() }
     }
 
     /// Create with custom strategy
     pub fn with_strategy(searcher: S, strategy: AugmentationStrategy) -> Self {
-        Self {
-            searcher,
-            strategy,
-            template_placeholder: "{{CONTEXT}}".to_string(),
-        }
+        Self { searcher, strategy, template_placeholder: "{{CONTEXT}}".to_string() }
     }
 
     /// Set custom template placeholder
@@ -122,11 +114,7 @@ impl<S: KnowledgeSearcher> StandardPromptAugmenter<S> {
         let mut lines = vec!["## Relevant Context from Knowledge Base".to_string()];
 
         for (i, result) in pieces.iter().enumerate() {
-            lines.push(format!(
-                "\n### Context {} (Score: {:.2})",
-                i + 1,
-                result.score
-            ));
+            lines.push(format!("\n### Context {} (Score: {:.2})", i + 1, result.score));
 
             // Add metadata if available
             if let Some(agent) = &result.metadata.agent {
@@ -147,15 +135,8 @@ impl<S: KnowledgeSearcher> StandardPromptAugmenter<S> {
     }
 
     /// Filter results by relevance threshold
-    fn filter_by_relevance(
-        &self,
-        results: Vec<KnowledgeResult>,
-        threshold: f32,
-    ) -> Vec<KnowledgeResult> {
-        results
-            .into_iter()
-            .filter(|r| r.score >= threshold)
-            .collect()
+    fn filter_by_relevance(&self, results: Vec<KnowledgeResult>, threshold: f32) -> Vec<KnowledgeResult> {
+        results.into_iter().filter(|r| r.score >= threshold).collect()
     }
 }
 
@@ -168,14 +149,8 @@ impl<S: KnowledgeSearcher> PromptAugmenter for StandardPromptAugmenter<S> {
         max_pieces: Option<usize>,
         relevance_threshold: Option<f32>,
     ) -> Result<String> {
-        self.augment_with_strategy(
-            base_prompt,
-            query,
-            self.strategy.clone(),
-            max_pieces,
-            relevance_threshold,
-        )
-        .await
+        self.augment_with_strategy(base_prompt, query, self.strategy.clone(), max_pieces, relevance_threshold)
+            .await
     }
 
     async fn augment_with_strategy(
@@ -218,9 +193,7 @@ impl<S: KnowledgeSearcher> PromptAugmenter for StandardPromptAugmenter<S> {
             AugmentationStrategy::Append => {
                 format!("{}\n{}", base_prompt, context)
             }
-            AugmentationStrategy::Template => {
-                base_prompt.replace(&self.template_placeholder, &context)
-            }
+            AugmentationStrategy::Template => base_prompt.replace(&self.template_placeholder, &context),
         };
 
         Ok(augmented)
@@ -315,16 +288,11 @@ mod tests {
             timestamp: Utc::now(),
         }];
 
-        let searcher = MockSearcher {
-            results: mock_results,
-        };
+        let searcher = MockSearcher { results: mock_results };
         let augmenter = StandardPromptAugmenter::new(searcher);
 
         let base_prompt = "Generate error handling code";
-        let augmented = augmenter
-            .augment(base_prompt, None, None, None)
-            .await
-            .unwrap();
+        let augmented = augmenter.augment(base_prompt, None, None, None).await.unwrap();
 
         assert!(augmented.contains("Relevant Context"));
         assert!(augmented.contains("thiserror"));
@@ -353,16 +321,11 @@ mod tests {
             timestamp: Utc::now(),
         }];
 
-        let searcher = MockSearcher {
-            results: mock_results,
-        };
+        let searcher = MockSearcher { results: mock_results };
         let augmenter = StandardPromptAugmenter::new(searcher);
 
         let base_prompt = "Generate code";
-        let augmented = augmenter
-            .augment(base_prompt, None, None, None)
-            .await
-            .unwrap();
+        let augmented = augmenter.augment(base_prompt, None, None, None).await.unwrap();
 
         // Should return original prompt (no relevant context)
         assert_eq!(augmented, base_prompt);
@@ -388,9 +351,7 @@ mod tests {
             timestamp: Utc::now(),
         }];
 
-        let searcher = MockSearcher {
-            results: mock_results,
-        };
+        let searcher = MockSearcher { results: mock_results };
 
         let base_prompt = "Base prompt";
         let augmenter = StandardPromptAugmenter::new(searcher);
@@ -412,13 +373,7 @@ mod tests {
         // Test Template
         let template_prompt = "Start {{CONTEXT}} End";
         let result = augmenter
-            .augment_with_strategy(
-                template_prompt,
-                None,
-                AugmentationStrategy::Template,
-                None,
-                None,
-            )
+            .augment_with_strategy(template_prompt, None, AugmentationStrategy::Template, None, None)
             .await
             .unwrap();
         assert!(result.contains("Start"));
@@ -483,9 +438,7 @@ mod tests {
             },
         ];
 
-        let searcher = MockSearcher {
-            results: mock_results,
-        };
+        let searcher = MockSearcher { results: mock_results };
         let augmenter = StandardPromptAugmenter::new(searcher);
 
         let base_prompt = "Test";

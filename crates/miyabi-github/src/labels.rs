@@ -26,20 +26,13 @@ impl GitHubClient {
             .send()
             .await
             .map_err(|e| {
-                MiyabiError::GitHub(format!(
-                    "Failed to list labels for {}/{}: {}",
-                    self.owner, self.repo, e
-                ))
+                MiyabiError::GitHub(format!("Failed to list labels for {}/{}: {}", self.owner, self.repo, e))
             })?;
 
         Ok(page
             .items
             .into_iter()
-            .map(|l| Label {
-                name: l.name,
-                color: l.color,
-                description: l.description,
-            })
+            .map(|l| Label { name: l.name, color: l.color, description: l.description })
             .collect())
     }
 
@@ -51,17 +44,10 @@ impl GitHubClient {
             .get_label(name)
             .await
             .map_err(|e| {
-                MiyabiError::GitHub(format!(
-                    "Failed to get label '{}' from {}/{}: {}",
-                    name, self.owner, self.repo, e
-                ))
+                MiyabiError::GitHub(format!("Failed to get label '{}' from {}/{}: {}", name, self.owner, self.repo, e))
             })?;
 
-        Ok(Label {
-            name: label.name,
-            color: label.color,
-            description: label.description,
-        })
+        Ok(Label { name: label.name, color: label.color, description: label.description })
     }
 
     /// Create a new label
@@ -70,29 +56,17 @@ impl GitHubClient {
     /// * `name` - Label name
     /// * `color` - Label color (hex without #, e.g., "ff0000")
     /// * `description` - Label description (optional)
-    pub async fn create_label(
-        &self,
-        name: &str,
-        color: &str,
-        description: Option<&str>,
-    ) -> Result<Label> {
+    pub async fn create_label(&self, name: &str, color: &str, description: Option<&str>) -> Result<Label> {
         let label = self
             .client
             .issues(&self.owner, &self.repo)
             .create_label(name, color, description.unwrap_or(""))
             .await
             .map_err(|e| {
-                MiyabiError::GitHub(format!(
-                    "Failed to create label '{}' in {}/{}: {}",
-                    name, self.owner, self.repo, e
-                ))
+                MiyabiError::GitHub(format!("Failed to create label '{}' in {}/{}: {}", name, self.owner, self.repo, e))
             })?;
 
-        Ok(Label {
-            name: label.name,
-            color: label.color,
-            description: label.description,
-        })
+        Ok(Label { name: label.name, color: label.color, description: label.description })
     }
 
     /// Update an existing label
@@ -190,13 +164,8 @@ impl GitHubClient {
             match self.label_exists(&label.name).await? {
                 true => {
                     // Update existing label
-                    self.update_label(
-                        &label.name,
-                        None,
-                        Some(&label.color),
-                        label.description.as_deref(),
-                    )
-                    .await?;
+                    self.update_label(&label.name, None, Some(&label.color), label.description.as_deref())
+                        .await?;
                     synced += 1;
                 }
                 false => {

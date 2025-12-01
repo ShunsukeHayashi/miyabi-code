@@ -171,17 +171,8 @@ mod tests {
 
     #[test]
     fn test_historical_agent_assignment() {
-        assert_eq!(
-            HistoricalAgent::for_resource_type(&AwsResourceType::Ec2Instance),
-            HistoricalAgent::BillGates
-        );
-        assert_eq!(
-            HistoricalAgent::for_resource_type(&AwsResourceType::S3Bucket),
-            HistoricalAgent::SteveJobs
-        );
-        assert_eq!(
-            HistoricalAgent::for_resource_type(&AwsResourceType::LoadBalancer),
-            HistoricalAgent::Napoleon
-        );
+        assert_eq!(HistoricalAgent::for_resource_type(&AwsResourceType::Ec2Instance), HistoricalAgent::BillGates);
+        assert_eq!(HistoricalAgent::for_resource_type(&AwsResourceType::S3Bucket), HistoricalAgent::SteveJobs);
+        assert_eq!(HistoricalAgent::for_resource_type(&AwsResourceType::LoadBalancer), HistoricalAgent::Napoleon);
     }
 }

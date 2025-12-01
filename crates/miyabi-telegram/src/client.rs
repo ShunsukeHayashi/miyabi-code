@@ -17,11 +17,7 @@ pub struct TelegramClient {
 impl TelegramClient {
     /// Create a new Telegram client with bot token
     pub fn new(bot_token: String) -> Self {
-        Self {
-            bot_token,
-            api_base: TELEGRAM_API_BASE.to_string(),
-            http_client: Client::new(),
-        }
+        Self { bot_token, api_base: TELEGRAM_API_BASE.to_string(), http_client: Client::new() }
     }
 
     /// Create client from environment variable TELEGRAM_BOT_TOKEN
@@ -66,10 +62,7 @@ impl TelegramClient {
 
     /// Send a message with full options
     pub async fn send_message_full(&self, request: SendMessageRequest) -> Result<Message> {
-        debug!(
-            "Sending message to chat_id={}: {}",
-            request.chat_id, request.text
-        );
+        debug!("Sending message to chat_id={}: {}", request.chat_id, request.text);
 
         let response: ApiResponse<Message> = self
             .http_client
@@ -86,9 +79,7 @@ impl TelegramClient {
                 .result
                 .ok_or_else(|| TelegramError::ApiError("No result in response".to_string()))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             warn!("Failed to send message: {}", error_msg);
             Err(TelegramError::ApiError(error_msg))
         }
@@ -163,19 +154,14 @@ impl TelegramClient {
             .into_iter()
             .map(|row| {
                 row.into_iter()
-                    .map(|(text, callback_data)| {
-                        InlineKeyboardButton::callback(text, callback_data)
-                    })
+                    .map(|(text, callback_data)| InlineKeyboardButton::callback(text, callback_data))
                     .collect()
             })
             .collect();
 
-        let keyboard = InlineKeyboard {
-            inline_keyboard: keyboard_buttons,
-        };
+        let keyboard = InlineKeyboard { inline_keyboard: keyboard_buttons };
 
-        self.send_message_with_keyboard(chat_id, text, keyboard)
-            .await
+        self.send_message_with_keyboard(chat_id, text, keyboard).await
     }
 
     /// Answer a callback query
@@ -185,11 +171,7 @@ impl TelegramClient {
     /// # Arguments
     /// * `callback_query_id` - Unique identifier for the query
     /// * `text` - Optional text to show to the user
-    pub async fn answer_callback_query(
-        &self,
-        callback_query_id: &str,
-        text: Option<&str>,
-    ) -> Result<bool> {
+    pub async fn answer_callback_query(&self, callback_query_id: &str, text: Option<&str>) -> Result<bool> {
         debug!("Answering callback query: {}", callback_query_id);
 
         let mut payload = serde_json::json!({
@@ -213,9 +195,7 @@ impl TelegramClient {
             info!("Callback query answered successfully");
             Ok(response.result.unwrap_or(true))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             warn!("Failed to answer callback query: {}", error_msg);
             Err(TelegramError::ApiError(error_msg))
         }
@@ -225,13 +205,7 @@ impl TelegramClient {
     pub async fn get_me(&self) -> Result<User> {
         debug!("Getting bot information");
 
-        let response: ApiResponse<User> = self
-            .http_client
-            .get(self.api_url("getMe"))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: ApiResponse<User> = self.http_client.get(self.api_url("getMe")).send().await?.json().await?;
 
         if response.ok {
             info!("Bot information retrieved");
@@ -239,9 +213,7 @@ impl TelegramClient {
                 .result
                 .ok_or_else(|| TelegramError::ApiError("No result in response".to_string()))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             Err(TelegramError::ApiError(error_msg))
         }
     }
@@ -270,9 +242,7 @@ impl TelegramClient {
             info!("Webhook set successfully");
             Ok(response.result.unwrap_or(true))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             warn!("Failed to set webhook: {}", error_msg);
             Err(TelegramError::ApiError(error_msg))
         }
@@ -294,9 +264,7 @@ impl TelegramClient {
             info!("Webhook deleted successfully");
             Ok(response.result.unwrap_or(true))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             Err(TelegramError::ApiError(error_msg))
         }
     }
@@ -309,10 +277,7 @@ mod tests {
     #[test]
     fn test_api_url() {
         let client = TelegramClient::new("test_token".to_string());
-        assert_eq!(
-            client.api_url("sendMessage"),
-            "https://api.telegram.org/bottest_token/sendMessage"
-        );
+        assert_eq!(client.api_url("sendMessage"), "https://api.telegram.org/bottest_token/sendMessage");
     }
 
     #[test]
@@ -325,9 +290,6 @@ mod tests {
         assert_eq!(keyboard.inline_keyboard.len(), 1);
         assert_eq!(keyboard.inline_keyboard[0].len(), 2);
         assert_eq!(keyboard.inline_keyboard[0][0].text, "Yes");
-        assert_eq!(
-            keyboard.inline_keyboard[0][0].callback_data,
-            Some("yes".to_string())
-        );
+        assert_eq!(keyboard.inline_keyboard[0][0].callback_data, Some("yes".to_string()));
     }
 }

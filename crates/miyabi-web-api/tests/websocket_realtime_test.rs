@@ -35,12 +35,7 @@ async fn test_websocket_agent_lifecycle() {
     let agent_type = "CodeGenAgent".to_string();
 
     // 1. Agent started
-    event_broadcaster.execution_started(
-        execution_id,
-        repository_id,
-        issue_number,
-        agent_type.clone(),
-    );
+    event_broadcaster.execution_started(execution_id, repository_id, issue_number, agent_type.clone());
 
     // Receive and validate agent_started event
     let event = timeout(Duration::from_secs(1), rx.recv())
@@ -71,12 +66,7 @@ async fn test_websocket_agent_lifecycle() {
         .expect("Failed to receive");
 
     match event {
-        WsEvent::AgentProgress {
-            progress,
-            message,
-            execution_id: recv_exec_id,
-            ..
-        } => {
+        WsEvent::AgentProgress { progress, message, execution_id: recv_exec_id, .. } => {
             assert_eq!(progress, 25);
             assert_eq!(message, "Analyzing code...");
             assert_eq!(recv_exec_id, execution_id.to_string());
@@ -123,11 +113,7 @@ async fn test_websocket_agent_lifecycle() {
         .expect("Failed to receive");
 
     match event {
-        WsEvent::AgentCompleted {
-            execution_id: recv_exec_id,
-            result,
-            ..
-        } => {
+        WsEvent::AgentCompleted { execution_id: recv_exec_id, result, .. } => {
             assert_eq!(recv_exec_id, execution_id.to_string());
             assert!(result.success);
             assert_eq!(result.quality_score, Some(95));
@@ -156,11 +142,7 @@ async fn test_websocket_agent_failure() {
         .expect("Failed to receive");
 
     match event {
-        WsEvent::AgentCompleted {
-            execution_id: recv_exec_id,
-            result,
-            ..
-        } => {
+        WsEvent::AgentCompleted { execution_id: recv_exec_id, result, .. } => {
             assert_eq!(recv_exec_id, execution_id.to_string());
             assert!(!result.success);
             assert_eq!(result.error, Some(error_msg));
@@ -185,11 +167,7 @@ async fn test_websocket_task_updated() {
         .expect("Failed to receive");
 
     match event {
-        WsEvent::TaskUpdated {
-            task_id: recv_task_id,
-            status,
-            ..
-        } => {
+        WsEvent::TaskUpdated { task_id: recv_task_id, status, .. } => {
             assert_eq!(recv_task_id, task_id.to_string());
             assert_eq!(status, "completed");
         }
@@ -254,12 +232,7 @@ async fn test_websocket_progress_clamping() {
 
 #[test]
 fn test_agent_result_success() {
-    let result = AgentResult {
-        success: true,
-        quality_score: Some(95),
-        pr_number: Some(456),
-        error: None,
-    };
+    let result = AgentResult { success: true, quality_score: Some(95), pr_number: Some(456), error: None };
 
     assert!(result.success);
     assert_eq!(result.quality_score, Some(95));

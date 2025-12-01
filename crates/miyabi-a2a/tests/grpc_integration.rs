@@ -9,9 +9,9 @@ use miyabi_a2a::{
     error::A2AError,
     grpc::{
         proto::{
-            a2a_service_client::A2aServiceClient, a2a_service_server::A2aServiceServer,
-            part::PartType, GetAuthenticatedExtendedCardRequest, MessageSendRequest, Part,
-            Role as ProtoRole, TasksCancelRequest, TasksGetRequest, TasksListRequest, TextPart,
+            a2a_service_client::A2aServiceClient, a2a_service_server::A2aServiceServer, part::PartType,
+            GetAuthenticatedExtendedCardRequest, MessageSendRequest, Part, Role as ProtoRole, TasksCancelRequest,
+            TasksGetRequest, TasksListRequest, TextPart,
         },
         A2AServiceImpl,
     },
@@ -30,9 +30,7 @@ struct MemoryTaskStorage {
 
 impl MemoryTaskStorage {
     fn new() -> Self {
-        Self {
-            tasks: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self { tasks: Arc::new(RwLock::new(HashMap::new())) }
     }
 }
 
@@ -153,11 +151,7 @@ async fn test_message_send_success() {
 
     let request = MessageSendRequest {
         role: ProtoRole::User as i32,
-        parts: vec![Part {
-            part_type: Some(PartType::Text(TextPart {
-                content: "Hello, test!".to_string(),
-            })),
-        }],
+        parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: "Hello, test!".to_string() })) }],
         context_id: Some("test-context-1".to_string()),
     };
 
@@ -173,11 +167,7 @@ async fn test_message_send_empty_parts() {
     let (addr, _server) = start_test_server().await;
     let mut client = create_test_client(addr).await;
 
-    let request = MessageSendRequest {
-        role: ProtoRole::User as i32,
-        parts: vec![],
-        context_id: None,
-    };
+    let request = MessageSendRequest { role: ProtoRole::User as i32, parts: vec![], context_id: None };
 
     let response = client.message_send(request).await;
     assert!(response.is_ok()); // Should allow empty parts
@@ -195,11 +185,7 @@ async fn test_tasks_get_success() {
     // First create a task
     let send_request = MessageSendRequest {
         role: ProtoRole::User as i32,
-        parts: vec![Part {
-            part_type: Some(PartType::Text(TextPart {
-                content: "Test task".to_string(),
-            })),
-        }],
+        parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: "Test task".to_string() })) }],
         context_id: None,
     };
 
@@ -207,9 +193,7 @@ async fn test_tasks_get_success() {
     let task_id = send_response.into_inner().task_id;
 
     // Now get the task
-    let get_request = TasksGetRequest {
-        task_id: task_id.clone(),
-    };
+    let get_request = TasksGetRequest { task_id: task_id.clone() };
 
     let get_response = client.tasks_get(get_request).await.unwrap();
     let task = get_response.into_inner().task.unwrap();
@@ -223,9 +207,7 @@ async fn test_tasks_get_not_found() {
     let (addr, _server) = start_test_server().await;
     let mut client = create_test_client(addr).await;
 
-    let request = TasksGetRequest {
-        task_id: "nonexistent-task-id".to_string(),
-    };
+    let request = TasksGetRequest { task_id: "nonexistent-task-id".to_string() };
 
     let response = client.tasks_get(request).await;
     assert!(response.is_err());
@@ -246,11 +228,7 @@ async fn test_tasks_cancel_success() {
     // Create a task
     let send_request = MessageSendRequest {
         role: ProtoRole::User as i32,
-        parts: vec![Part {
-            part_type: Some(PartType::Text(TextPart {
-                content: "Task to cancel".to_string(),
-            })),
-        }],
+        parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: "Task to cancel".to_string() })) }],
         context_id: None,
     };
 
@@ -258,9 +236,7 @@ async fn test_tasks_cancel_success() {
     let task_id = send_response.into_inner().task_id;
 
     // Cancel the task
-    let cancel_request = TasksCancelRequest {
-        task_id: task_id.clone(),
-    };
+    let cancel_request = TasksCancelRequest { task_id: task_id.clone() };
 
     let cancel_response = client.tasks_cancel(cancel_request).await.unwrap();
     let result = cancel_response.into_inner();
@@ -274,9 +250,7 @@ async fn test_tasks_cancel_not_found() {
     let (addr, _server) = start_test_server().await;
     let mut client = create_test_client(addr).await;
 
-    let request = TasksCancelRequest {
-        task_id: "nonexistent-task-id".to_string(),
-    };
+    let request = TasksCancelRequest { task_id: "nonexistent-task-id".to_string() };
 
     let response = client.tasks_cancel(request).await;
     assert!(response.is_err());
@@ -296,23 +270,15 @@ async fn test_tasks_list_success() {
     for i in 0..3 {
         let request = MessageSendRequest {
             role: ProtoRole::User as i32,
-            parts: vec![Part {
-                part_type: Some(PartType::Text(TextPart {
-                    content: format!("Task {}", i),
-                })),
-            }],
+            parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: format!("Task {}", i) })) }],
             context_id: Some("list-test".to_string()),
         };
         client.message_send(request).await.unwrap();
     }
 
     // List tasks
-    let list_request = TasksListRequest {
-        status: None,
-        limit: 10,
-        offset: 0,
-        context_id: Some("list-test".to_string()),
-    };
+    let list_request =
+        TasksListRequest { status: None, limit: 10, offset: 0, context_id: Some("list-test".to_string()) };
 
     let list_response = client.tasks_list(list_request).await.unwrap();
     let result = list_response.into_inner();
@@ -330,23 +296,14 @@ async fn test_tasks_list_with_pagination() {
     for i in 0..5 {
         let request = MessageSendRequest {
             role: ProtoRole::User as i32,
-            parts: vec![Part {
-                part_type: Some(PartType::Text(TextPart {
-                    content: format!("Task {}", i),
-                })),
-            }],
+            parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: format!("Task {}", i) })) }],
             context_id: None,
         };
         client.message_send(request).await.unwrap();
     }
 
     // List first page (2 items)
-    let list_request = TasksListRequest {
-        status: None,
-        limit: 2,
-        offset: 0,
-        context_id: None,
-    };
+    let list_request = TasksListRequest { status: None, limit: 2, offset: 0, context_id: None };
 
     let list_response = client.tasks_list(list_request).await.unwrap();
     let result = list_response.into_inner();
@@ -379,19 +336,12 @@ async fn test_agent_get_authenticated_extended_card_success() {
         exp: (chrono::Utc::now() + chrono::Duration::hours(1)).timestamp() as usize,
     };
 
-    let token = encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret("test-secret-key-12345".as_ref()),
-    )
-    .unwrap();
+    let token =
+        encode(&Header::default(), &claims, &EncodingKey::from_secret("test-secret-key-12345".as_ref())).unwrap();
 
     let request = GetAuthenticatedExtendedCardRequest { token };
 
-    let response = client
-        .agent_get_authenticated_extended_card(request)
-        .await
-        .unwrap();
+    let response = client.agent_get_authenticated_extended_card(request).await.unwrap();
     let result = response.into_inner();
 
     assert!(result.card.is_some());
@@ -405,9 +355,7 @@ async fn test_agent_get_authenticated_extended_card_invalid_token() {
     let (addr, _server) = start_test_server().await;
     let mut client = create_test_client(addr).await;
 
-    let request = GetAuthenticatedExtendedCardRequest {
-        token: "invalid.token.here".to_string(),
-    };
+    let request = GetAuthenticatedExtendedCardRequest { token: "invalid.token.here".to_string() };
 
     let response = client.agent_get_authenticated_extended_card(request).await;
     assert!(response.is_err());
@@ -425,11 +373,7 @@ async fn test_invalid_role() {
 
     let request = MessageSendRequest {
         role: 999, // Invalid role
-        parts: vec![Part {
-            part_type: Some(PartType::Text(TextPart {
-                content: "Test".to_string(),
-            })),
-        }],
+        parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: "Test".to_string() })) }],
         context_id: None,
     };
 
@@ -457,9 +401,7 @@ async fn test_concurrent_message_send() {
             let request = MessageSendRequest {
                 role: ProtoRole::User as i32,
                 parts: vec![Part {
-                    part_type: Some(PartType::Text(TextPart {
-                        content: format!("Concurrent test {}", i),
-                    })),
+                    part_type: Some(PartType::Text(TextPart { content: format!("Concurrent test {}", i) })),
                 }],
                 context_id: Some(format!("concurrent-{}", i)),
             };
@@ -488,9 +430,7 @@ async fn test_streaming_placeholder() {
 
     use miyabi_a2a::grpc::proto::TasksStreamRequest;
 
-    let request = TasksStreamRequest {
-        task_id: "test-task".to_string(),
-    };
+    let request = TasksStreamRequest { task_id: "test-task".to_string() };
 
     let response = client.tasks_stream(request).await;
     assert!(response.is_err());
@@ -519,9 +459,7 @@ async fn test_load_1000_concurrent_requests() {
             let request = MessageSendRequest {
                 role: ProtoRole::User as i32,
                 parts: vec![Part {
-                    part_type: Some(PartType::Text(TextPart {
-                        content: format!("Load test request {}", i),
-                    })),
+                    part_type: Some(PartType::Text(TextPart { content: format!("Load test request {}", i) })),
                 }],
                 context_id: Some(format!("load-test-{}", i % 10)),
             };
@@ -560,11 +498,7 @@ async fn test_load_1000_concurrent_requests() {
     println!("========================================\n");
 
     // Assert at least 95% success rate
-    assert!(
-        success_count >= 950,
-        "Success rate too low: {}/1000",
-        success_count
-    );
+    assert!(success_count >= 950, "Success rate too low: {}/1000", success_count);
 }
 
 // ==============================================================================
@@ -576,9 +510,7 @@ async fn test_error_handling_empty_task_id() {
     let (addr, _server) = start_test_server().await;
     let mut client = create_test_client(addr).await;
 
-    let request = TasksGetRequest {
-        task_id: "".to_string(),
-    };
+    let request = TasksGetRequest { task_id: "".to_string() };
 
     let response = client.tasks_get(request).await;
     assert!(response.is_err());
@@ -594,11 +526,7 @@ async fn test_error_handling_invalid_context_id() {
 
     let request = MessageSendRequest {
         role: ProtoRole::User as i32,
-        parts: vec![Part {
-            part_type: Some(PartType::Text(TextPart {
-                content: "Test".to_string(),
-            })),
-        }],
+        parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: "Test".to_string() })) }],
         context_id: Some(long_context),
     };
 
@@ -616,9 +544,7 @@ async fn test_error_handling_cancel_already_cancelled() {
     let send_request = MessageSendRequest {
         role: ProtoRole::User as i32,
         parts: vec![Part {
-            part_type: Some(PartType::Text(TextPart {
-                content: "Task to double-cancel".to_string(),
-            })),
+            part_type: Some(PartType::Text(TextPart { content: "Task to double-cancel".to_string() })),
         }],
         context_id: None,
     };
@@ -627,9 +553,7 @@ async fn test_error_handling_cancel_already_cancelled() {
     let task_id = send_response.into_inner().task_id;
 
     // Cancel once
-    let cancel_request = TasksCancelRequest {
-        task_id: task_id.clone(),
-    };
+    let cancel_request = TasksCancelRequest { task_id: task_id.clone() };
     let _ = client.tasks_cancel(cancel_request.clone()).await.unwrap();
 
     // Try to cancel again
@@ -654,11 +578,7 @@ async fn test_benchmark_grpc_throughput() {
     for i in 0..request_count {
         let request = MessageSendRequest {
             role: ProtoRole::User as i32,
-            parts: vec![Part {
-                part_type: Some(PartType::Text(TextPart {
-                    content: format!("Benchmark {}", i),
-                })),
-            }],
+            parts: vec![Part { part_type: Some(PartType::Text(TextPart { content: format!("Benchmark {}", i) })) }],
             context_id: None,
         };
 
@@ -672,19 +592,12 @@ async fn test_benchmark_grpc_throughput() {
     println!("========================================");
     println!("Requests: {}", request_count);
     println!("Total Duration: {:?}", duration);
-    println!(
-        "Requests/sec: {:.2}",
-        request_count as f64 / duration.as_secs_f64()
-    );
+    println!("Requests/sec: {:.2}", request_count as f64 / duration.as_secs_f64());
     println!("Avg latency: {:?}", duration / request_count);
     println!("========================================\n");
 
     // Ensure reasonable performance (at least 10 req/sec)
-    assert!(
-        duration.as_secs_f64() < 10.0,
-        "Performance too slow: {:?}",
-        duration
-    );
+    assert!(duration.as_secs_f64() < 10.0, "Performance too slow: {:?}", duration);
 }
 
 #[tokio::test]
@@ -730,19 +643,12 @@ async fn test_benchmark_grpc_parallel_throughput() {
     println!("Total Requests: {}", request_count);
     println!("Concurrency: {}", concurrency);
     println!("Total Duration: {:?}", duration);
-    println!(
-        "Requests/sec: {:.2}",
-        request_count as f64 / duration.as_secs_f64()
-    );
+    println!("Requests/sec: {:.2}", request_count as f64 / duration.as_secs_f64());
     println!("Avg latency: {:?}", duration / request_count);
     println!("========================================\n");
 
     // Parallel should be faster than 10 req/sec
-    assert!(
-        duration.as_secs_f64() < 10.0,
-        "Parallel performance too slow: {:?}",
-        duration
-    );
+    assert!(duration.as_secs_f64() < 10.0, "Parallel performance too slow: {:?}", duration);
 }
 
 // ==============================================================================
@@ -753,8 +659,7 @@ async fn test_benchmark_grpc_parallel_throughput() {
 async fn test_connection_timeout() {
     // Test connection to a non-existent server
     let endpoint = "http://127.0.0.1:9999";
-    let result =
-        tokio::time::timeout(Duration::from_secs(2), A2aServiceClient::connect(endpoint)).await;
+    let result = tokio::time::timeout(Duration::from_secs(2), A2aServiceClient::connect(endpoint)).await;
 
     // Should timeout or fail quickly
     assert!(result.is_err() || result.unwrap().is_err());
@@ -775,9 +680,7 @@ async fn test_multiple_clients_same_server() {
         let request = MessageSendRequest {
             role: ProtoRole::User as i32,
             parts: vec![Part {
-                part_type: Some(PartType::Text(TextPart {
-                    content: "Multi-client test".to_string(),
-                })),
+                part_type: Some(PartType::Text(TextPart { content: "Multi-client test".to_string() })),
             }],
             context_id: None,
         };

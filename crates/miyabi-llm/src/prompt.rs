@@ -176,9 +176,7 @@ Generate complete Rust code that:
 4. Has Rustdoc comments
 
 Return ONLY the code, wrapped in ```rust ... ``` markdown."#,
-            ResponseFormat::Code {
-                language: "rust".to_string(),
-            },
+            ResponseFormat::Code { language: "rust".to_string() },
         )
     }
 
@@ -780,17 +778,11 @@ mod tests {
 
     #[test]
     fn test_template_creation() {
-        let template = LLMPromptTemplate::new(
-            "System message",
-            "User message with {variable}",
-            ResponseFormat::PlainText,
-        );
+        let template =
+            LLMPromptTemplate::new("System message", "User message with {variable}", ResponseFormat::PlainText);
 
         assert_eq!(template.system_message, "System message");
-        assert_eq!(
-            template.user_message_template,
-            "User message with {variable}"
-        );
+        assert_eq!(template.user_message_template, "User message with {variable}");
         assert_eq!(template.response_format, ResponseFormat::PlainText);
     }
 
@@ -807,11 +799,8 @@ mod tests {
 
     #[test]
     fn test_render_multiple_variables() {
-        let template = LLMPromptTemplate::new(
-            "System",
-            "Task: {title}\nDescription: {description}",
-            ResponseFormat::PlainText,
-        );
+        let template =
+            LLMPromptTemplate::new("System", "Task: {title}\nDescription: {description}", ResponseFormat::PlainText);
 
         let mut vars = HashMap::new();
         vars.insert("title".to_string(), "Test Task".to_string());
@@ -854,11 +843,7 @@ mod tests {
 
     #[test]
     fn test_extract_variables_duplicates() {
-        let template = LLMPromptTemplate::new(
-            "System",
-            "{name} says hello to {name}",
-            ResponseFormat::PlainText,
-        );
+        let template = LLMPromptTemplate::new("System", "{name} says hello to {name}", ResponseFormat::PlainText);
 
         let vars = template.extract_variables();
         // Should include duplicates
@@ -870,30 +855,19 @@ mod tests {
     #[test]
     fn test_response_format_plain_text() {
         let format = ResponseFormat::PlainText;
-        assert_eq!(
-            serde_json::to_string(&format).unwrap(),
-            r#"{"type":"plaintext"}"#
-        );
+        assert_eq!(serde_json::to_string(&format).unwrap(), r#"{"type":"plaintext"}"#);
     }
 
     #[test]
     fn test_response_format_json() {
         let format = ResponseFormat::Json { schema: None };
-        assert_eq!(
-            serde_json::to_string(&format).unwrap(),
-            r#"{"type":"json"}"#
-        );
+        assert_eq!(serde_json::to_string(&format).unwrap(), r#"{"type":"json"}"#);
     }
 
     #[test]
     fn test_response_format_code() {
-        let format = ResponseFormat::Code {
-            language: "rust".to_string(),
-        };
-        assert_eq!(
-            serde_json::to_string(&format).unwrap(),
-            r#"{"type":"code","language":"rust"}"#
-        );
+        let format = ResponseFormat::Code { language: "rust".to_string() };
+        assert_eq!(serde_json::to_string(&format).unwrap(), r#"{"type":"code","language":"rust"}"#);
     }
 
     #[test]
@@ -902,19 +876,13 @@ mod tests {
 
         let mut vars = HashMap::new();
         vars.insert("task_title".to_string(), "Calculate factorial".to_string());
-        vars.insert(
-            "task_description".to_string(),
-            "Write a function to calculate factorial".to_string(),
-        );
+        vars.insert("task_description".to_string(), "Write a function to calculate factorial".to_string());
 
         let rendered = template.render(&vars).unwrap();
         assert!(rendered.contains("Calculate factorial"));
         assert!(rendered.contains("Write a function to calculate factorial"));
 
-        assert!(matches!(
-            template.response_format,
-            ResponseFormat::Code { .. }
-        ));
+        assert!(matches!(template.response_format, ResponseFormat::Code { .. }));
     }
 
     #[test]
@@ -928,10 +896,7 @@ mod tests {
 
         let rendered = template.render(&vars).unwrap();
         assert!(rendered.contains("fn main() {}"));
-        assert!(matches!(
-            template.response_format,
-            ResponseFormat::Json { .. }
-        ));
+        assert!(matches!(template.response_format, ResponseFormat::Json { .. }));
     }
 
     #[test]
@@ -953,10 +918,7 @@ mod tests {
 
         let mut vars = HashMap::new();
         vars.insert("issue_title".to_string(), "Build API".to_string());
-        vars.insert(
-            "issue_description".to_string(),
-            "Create REST API".to_string(),
-        );
+        vars.insert("issue_description".to_string(), "Create REST API".to_string());
         vars.insert("issue_labels".to_string(), "feature, P0".to_string());
 
         let rendered = template.render(&vars).unwrap();

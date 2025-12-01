@@ -35,10 +35,7 @@ fn test_c1_system_analysis() {
     assert!(output.status.success(), "C1 command should succeed");
 
     // Verify output contains expected sections
-    assert!(
-        stdout.contains("C1: System Analysis"),
-        "Should show C1 title"
-    );
+    assert!(stdout.contains("C1: System Analysis"), "Should show C1 title");
     assert!(
         stdout.contains("システム要件を分析し、Lark Baseの構造に落とし込む"),
         "Should show Japanese description"
@@ -46,37 +43,20 @@ fn test_c1_system_analysis() {
     assert!(stdout.contains("Tasks:"), "Should show Tasks section");
     assert!(stdout.contains("T1: 要件定義"), "Should show T1 task");
     assert!(stdout.contains("T2: データ構造設計"), "Should show T2 task");
-    assert!(
-        stdout.contains("Deliverables:"),
-        "Should show Deliverables section"
-    );
+    assert!(stdout.contains("Deliverables:"), "Should show Deliverables section");
     assert!(stdout.contains("要件定義書"), "Should show deliverable 1");
     assert!(stdout.contains("ER図"), "Should show deliverable 2");
-    assert!(
-        stdout.contains("Checklist:"),
-        "Should show Checklist section"
-    );
-    assert!(
-        stdout.contains("Industry: SaaS"),
-        "Should show industry context"
-    );
-    assert!(
-        stdout.contains("Domain: 営業管理"),
-        "Should show domain context"
-    );
-    assert!(
-        stdout.contains("✅ C1 completed"),
-        "Should show completion message"
-    );
+    assert!(stdout.contains("Checklist:"), "Should show Checklist section");
+    assert!(stdout.contains("Industry: SaaS"), "Should show industry context");
+    assert!(stdout.contains("Domain: 営業管理"), "Should show domain context");
+    assert!(stdout.contains("✅ C1 completed"), "Should show completion message");
 }
 
 /// Test C7 command execution (Dashboard Construction)
 #[test]
 fn test_c7_dashboard_construction() {
     let output = Command::new("cargo")
-        .args([
-            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C7",
-        ])
+        .args(["run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C7"])
         .env("MIYABI_VOICE_GUIDE", "false")
         .output()
         .expect("Failed to execute C7 command");
@@ -84,30 +64,15 @@ fn test_c7_dashboard_construction() {
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     assert!(output.status.success(), "C7 command should succeed");
-    assert!(
-        stdout.contains("C7: Dashboard Construction"),
-        "Should show C7 title"
-    );
-    assert!(
-        stdout.contains("分析ダッシュボードを構築"),
-        "Should show Japanese description"
-    );
-    assert!(
-        stdout.contains("3-Layer Structure:"),
-        "Should show 3-layer structure"
-    );
+    assert!(stdout.contains("C7: Dashboard Construction"), "Should show C7 title");
+    assert!(stdout.contains("分析ダッシュボードを構築"), "Should show Japanese description");
+    assert!(stdout.contains("3-Layer Structure:"), "Should show 3-layer structure");
     assert!(stdout.contains("KPIカード層"), "Should mention KPI layer");
     assert!(stdout.contains("グラフ層"), "Should mention graph layer");
-    assert!(
-        stdout.contains("詳細テーブル層"),
-        "Should mention table layer"
-    );
+    assert!(stdout.contains("詳細テーブル層"), "Should mention table layer");
     assert!(stdout.contains("T1: KPIカード作成"), "Should show T1 task");
     assert!(stdout.contains("T2: グラフ作成"), "Should show T2 task");
-    assert!(
-        stdout.contains("✅ C7 completed"),
-        "Should show completion message"
-    );
+    assert!(stdout.contains("✅ C7 completed"), "Should show completion message");
 }
 
 /// Test ALL command execution (C1-C10)
@@ -147,10 +112,7 @@ fn test_all_commands() {
     assert!(stdout.contains("C10: Deployment"));
 
     // Verify completion
-    assert!(
-        stdout.contains("✅ All commands completed successfully!"),
-        "Should show all completed message"
-    );
+    assert!(stdout.contains("✅ All commands completed successfully!"), "Should show all completed message");
 }
 
 /// Test invalid command handling
@@ -158,8 +120,7 @@ fn test_all_commands() {
 fn test_invalid_command() {
     let output = Command::new("cargo")
         .args([
-            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base",
-            "C99", // Invalid command
+            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C99", // Invalid command
         ])
         .env("MIYABI_VOICE_GUIDE", "false")
         .output()
@@ -178,9 +139,7 @@ fn test_invalid_command() {
 #[test]
 fn test_c2_critical_warning() {
     let output = Command::new("cargo")
-        .args([
-            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C2",
-        ])
+        .args(["run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C2"])
         .env("MIYABI_VOICE_GUIDE", "false")
         .output()
         .expect("Failed to execute C2 command");
@@ -189,23 +148,15 @@ fn test_c2_critical_warning() {
 
     assert!(output.status.success());
     assert!(stdout.contains("C2: Field Implementation"));
-    assert!(
-        stdout.contains("Critical: 主キーフィールドは最左端に配置"),
-        "Should show critical warning"
-    );
-    assert!(
-        stdout.contains("T0: 主キーフィールド設定（最優先）"),
-        "Should show T0 task"
-    );
+    assert!(stdout.contains("Critical: 主キーフィールドは最左端に配置"), "Should show critical warning");
+    assert!(stdout.contains("T0: 主キーフィールド設定（最優先）"), "Should show T0 task");
 }
 
 /// Test C3 relation setup with critical warning
 #[test]
 fn test_c3_critical_warning() {
     let output = Command::new("cargo")
-        .args([
-            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C3",
-        ])
+        .args(["run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C3"])
         .env("MIYABI_VOICE_GUIDE", "false")
         .output()
         .expect("Failed to execute C3 command");
@@ -224,9 +175,7 @@ fn test_c3_critical_warning() {
 #[test]
 fn test_c8_roles() {
     let output = Command::new("cargo")
-        .args([
-            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C8",
-        ])
+        .args(["run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C8"])
         .env("MIYABI_VOICE_GUIDE", "false")
         .output()
         .expect("Failed to execute C8 command");
@@ -236,18 +185,9 @@ fn test_c8_roles() {
     assert!(output.status.success());
     assert!(stdout.contains("C8: Permission Setup"));
     assert!(stdout.contains("Roles:"), "Should show roles section");
-    assert!(
-        stdout.contains("👑 管理者（Admin）: 全権限"),
-        "Should show Admin role"
-    );
-    assert!(
-        stdout.contains("📊 管理職（Manager）"),
-        "Should show Manager role"
-    );
-    assert!(
-        stdout.contains("✍️  編集者（Editor）"),
-        "Should show Editor role"
-    );
+    assert!(stdout.contains("👑 管理者（Admin）: 全権限"), "Should show Admin role");
+    assert!(stdout.contains("📊 管理職（Manager）"), "Should show Manager role");
+    assert!(stdout.contains("✍️  編集者（Editor）"), "Should show Editor role");
 }
 
 /// Test Wiki create command structure
@@ -270,10 +210,7 @@ fn test_wiki_create_help() {
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     assert!(output.status.success());
-    assert!(
-        stdout.contains("space-id") || stdout.contains("space_id"),
-        "Should show space-id option"
-    );
+    assert!(stdout.contains("space-id") || stdout.contains("space_id"), "Should show space-id option");
     assert!(
         stdout.contains("parent-node-token") || stdout.contains("parent_node_token"),
         "Should show parent-node-token option"
@@ -284,9 +221,7 @@ fn test_wiki_create_help() {
 #[test]
 fn test_lark_agent_help() {
     let output = Command::new("cargo")
-        .args([
-            "run", "--quiet", "--bin", "miyabi", "--", "lark", "agent", "--help",
-        ])
+        .args(["run", "--quiet", "--bin", "miyabi", "--", "lark", "agent", "--help"])
         .output()
         .expect("Failed to get agent help");
 
@@ -294,9 +229,7 @@ fn test_lark_agent_help() {
 
     assert!(output.status.success());
     assert!(
-        stdout.contains("Interactive Lark Agent REPL")
-            || stdout.contains("Lark Agent")
-            || stdout.contains("agent"),
+        stdout.contains("Interactive Lark Agent REPL") || stdout.contains("Lark Agent") || stdout.contains("agent"),
         "Should show agent help"
     );
 }

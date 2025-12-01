@@ -45,29 +45,14 @@ impl TmuxSession {
 
         // Create new session (detached)
         let output = Command::new("tmux")
-            .args([
-                "new-session",
-                "-d",
-                "-s",
-                &session_name,
-                "-P",
-                "-F",
-                "#{pane_id}",
-            ])
+            .args(["new-session", "-d", "-s", &session_name, "-P", "-F", "#{pane_id}"])
             .output()?;
 
         if !output.status.success() {
-            return Err(TmuxError::SessionCreationFailed(
-                String::from_utf8_lossy(&output.stderr).to_string(),
-            ));
+            return Err(TmuxError::SessionCreationFailed(String::from_utf8_lossy(&output.stderr).to_string()));
         }
 
-        Ok(Self {
-            id: Uuid::new_v4(),
-            session_name,
-            panes: HashMap::new(),
-            agent_config,
-        })
+        Ok(Self { id: Uuid::new_v4(), session_name, panes: HashMap::new(), agent_config })
     }
 
     /// Create panes for all segments
@@ -90,12 +75,7 @@ impl TmuxSession {
             };
 
             let working_dir = self.agent_config.get_working_dir(segment_id);
-            let pane = Pane::new(
-                pane_id.clone(),
-                segment_id,
-                working_dir,
-                self.agent_config.agent_type.clone(),
-            );
+            let pane = Pane::new(pane_id.clone(), segment_id, working_dir, self.agent_config.agent_type.clone());
 
             self.panes.insert(pane_id, pane);
 
@@ -115,9 +95,7 @@ impl TmuxSession {
             .output()?;
 
         if !output.status.success() {
-            return Err(TmuxError::PaneCreationFailed(
-                "Failed to get initial pane ID".to_string(),
-            ));
+            return Err(TmuxError::PaneCreationFailed("Failed to get initial pane ID".to_string()));
         }
 
         let pane_id = String::from_utf8_lossy(&output.stdout)
@@ -133,20 +111,11 @@ impl TmuxSession {
     /// Create a new pane by splitting
     fn create_pane(&self) -> Result<String> {
         let output = Command::new("tmux")
-            .args([
-                "split-window",
-                "-t",
-                &self.session_name,
-                "-P",
-                "-F",
-                "#{pane_id}",
-            ])
+            .args(["split-window", "-t", &self.session_name, "-P", "-F", "#{pane_id}"])
             .output()?;
 
         if !output.status.success() {
-            return Err(TmuxError::PaneCreationFailed(
-                String::from_utf8_lossy(&output.stderr).to_string(),
-            ));
+            return Err(TmuxError::PaneCreationFailed(String::from_utf8_lossy(&output.stderr).to_string()));
         }
 
         let pane_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -168,10 +137,7 @@ impl TmuxSession {
             .ok_or_else(|| TmuxError::PaneNotFound(pane_id.to_string()))?
             .segment_id;
 
-        info!(
-            "Starting agent in pane {} for segment {}",
-            pane_id, segment_id
-        );
+        info!("Starting agent in pane {} for segment {}", pane_id, segment_id);
 
         // Update status to Starting
         if let Some(pane) = self.panes.get_mut(pane_id) {
@@ -206,15 +172,10 @@ impl TmuxSession {
     pub async fn send_keys(&self, pane_id: &str, keys: &str) -> Result<()> {
         debug!("Sending keys to pane {}: {}", pane_id, keys);
 
-        let status = Command::new("tmux")
-            .args(["send-keys", "-t", pane_id, keys])
-            .status()?;
+        let status = Command::new("tmux").args(["send-keys", "-t", pane_id, keys]).status()?;
 
         if !status.success() {
-            return Err(TmuxError::CommandExecutionFailed(format!(
-                "Failed to send keys to pane {}",
-                pane_id
-            )));
+            return Err(TmuxError::CommandExecutionFailed(format!("Failed to send keys to pane {}", pane_id)));
         }
 
         // Send Enter key
@@ -225,10 +186,7 @@ impl TmuxSession {
             .status()?;
 
         if !status.success() {
-            return Err(TmuxError::CommandExecutionFailed(format!(
-                "Failed to send Enter to pane {}",
-                pane_id
-            )));
+            return Err(TmuxError::CommandExecutionFailed(format!("Failed to send Enter to pane {}", pane_id)));
         }
 
         Ok(())

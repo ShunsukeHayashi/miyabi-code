@@ -52,34 +52,22 @@ impl QualityBreakdown {
     pub fn validate(&self) -> Result<(), String> {
         // Validate clippy_score
         if self.clippy_score > 100 {
-            return Err(format!(
-                "clippy_score out of range: {}. Must be 0-100",
-                self.clippy_score
-            ));
+            return Err(format!("clippy_score out of range: {}. Must be 0-100", self.clippy_score));
         }
 
         // Validate rustc_score
         if self.rustc_score > 100 {
-            return Err(format!(
-                "rustc_score out of range: {}. Must be 0-100",
-                self.rustc_score
-            ));
+            return Err(format!("rustc_score out of range: {}. Must be 0-100", self.rustc_score));
         }
 
         // Validate security_score
         if self.security_score > 100 {
-            return Err(format!(
-                "security_score out of range: {}. Must be 0-100",
-                self.security_score
-            ));
+            return Err(format!("security_score out of range: {}. Must be 0-100", self.security_score));
         }
 
         // Validate test_coverage_score
         if self.test_coverage_score > 100 {
-            return Err(format!(
-                "test_coverage_score out of range: {}. Must be 0-100",
-                self.test_coverage_score
-            ));
+            return Err(format!("test_coverage_score out of range: {}. Must be 0-100", self.test_coverage_score));
         }
 
         Ok(())
@@ -318,12 +306,8 @@ mod tests {
 
     #[test]
     fn test_quality_breakdown_serialization() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 90,
-            rustc_score: 85,
-            security_score: 95,
-            test_coverage_score: 80,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 90, rustc_score: 85, security_score: 95, test_coverage_score: 80 };
 
         let json = serde_json::to_string(&breakdown).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -334,12 +318,8 @@ mod tests {
 
     #[test]
     fn test_quality_breakdown_roundtrip() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 100,
-            rustc_score: 95,
-            security_score: 90,
-            test_coverage_score: 85,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 100, rustc_score: 95, security_score: 90, test_coverage_score: 85 };
 
         let json = serde_json::to_string(&breakdown).unwrap();
         let deserialized: QualityBreakdown = serde_json::from_str(&json).unwrap();
@@ -350,12 +330,8 @@ mod tests {
 
     #[test]
     fn test_quality_breakdown_average_score() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 100,
-            rustc_score: 90,
-            security_score: 80,
-            test_coverage_score: 70,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 100, rustc_score: 90, security_score: 80, test_coverage_score: 70 };
         assert_eq!(breakdown.average_score(), 85); // (100+90+80+70)/4 = 85
     }
 
@@ -480,10 +456,7 @@ mod tests {
                 test_coverage_score: 70,
             },
         };
-        assert_eq!(
-            report_needs_improvement.to_label(),
-            "⚠️ quality:needs-improvement"
-        );
+        assert_eq!(report_needs_improvement.to_label(), "⚠️ quality:needs-improvement");
 
         let report_poor = QualityReport {
             score: 50,
@@ -752,23 +725,15 @@ mod tests {
 
     #[test]
     fn test_quality_breakdown_validate_success() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 90,
-            rustc_score: 85,
-            security_score: 95,
-            test_coverage_score: 80,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 90, rustc_score: 85, security_score: 95, test_coverage_score: 80 };
         assert!(breakdown.validate().is_ok());
     }
 
     #[test]
     fn test_quality_breakdown_validate_clippy_too_high() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 101,
-            rustc_score: 85,
-            security_score: 95,
-            test_coverage_score: 80,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 101, rustc_score: 85, security_score: 95, test_coverage_score: 80 };
         let result = breakdown.validate();
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("clippy_score"));
@@ -776,12 +741,8 @@ mod tests {
 
     #[test]
     fn test_quality_breakdown_validate_rustc_too_high() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 90,
-            rustc_score: 105,
-            security_score: 95,
-            test_coverage_score: 80,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 90, rustc_score: 105, security_score: 95, test_coverage_score: 80 };
         let result = breakdown.validate();
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("rustc_score"));
@@ -789,12 +750,8 @@ mod tests {
 
     #[test]
     fn test_quality_breakdown_validate_security_too_high() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 90,
-            rustc_score: 85,
-            security_score: 110,
-            test_coverage_score: 80,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 90, rustc_score: 85, security_score: 110, test_coverage_score: 80 };
         let result = breakdown.validate();
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("security_score"));
@@ -802,12 +759,8 @@ mod tests {
 
     #[test]
     fn test_quality_breakdown_validate_coverage_too_high() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 90,
-            rustc_score: 85,
-            security_score: 95,
-            test_coverage_score: 150,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 90, rustc_score: 85, security_score: 95, test_coverage_score: 150 };
         let result = breakdown.validate();
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("test_coverage_score"));
@@ -816,42 +769,25 @@ mod tests {
     #[test]
     fn test_quality_breakdown_validate_boundary_values() {
         // Test boundary values (0 and 100)
-        let breakdown = QualityBreakdown {
-            clippy_score: 0,
-            rustc_score: 100,
-            security_score: 50,
-            test_coverage_score: 100,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 0, rustc_score: 100, security_score: 50, test_coverage_score: 100 };
         assert!(breakdown.validate().is_ok());
     }
 
     #[test]
     fn test_quality_breakdown_average_score_edge_cases() {
         // All zeros
-        let breakdown = QualityBreakdown {
-            clippy_score: 0,
-            rustc_score: 0,
-            security_score: 0,
-            test_coverage_score: 0,
-        };
+        let breakdown = QualityBreakdown { clippy_score: 0, rustc_score: 0, security_score: 0, test_coverage_score: 0 };
         assert_eq!(breakdown.average_score(), 0);
 
         // All 100s
-        let breakdown = QualityBreakdown {
-            clippy_score: 100,
-            rustc_score: 100,
-            security_score: 100,
-            test_coverage_score: 100,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 100, rustc_score: 100, security_score: 100, test_coverage_score: 100 };
         assert_eq!(breakdown.average_score(), 100);
 
         // Rounding test
-        let breakdown = QualityBreakdown {
-            clippy_score: 91,
-            rustc_score: 92,
-            security_score: 93,
-            test_coverage_score: 94,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 91, rustc_score: 92, security_score: 93, test_coverage_score: 94 };
         assert_eq!(breakdown.average_score(), 92); // (91+92+93+94)/4 = 92.5 -> 92
     }
 

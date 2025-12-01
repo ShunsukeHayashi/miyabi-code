@@ -37,11 +37,7 @@ impl KnowledgeServer {
     pub async fn new(config: KnowledgeConfig) -> Result<Self> {
         let searcher = Arc::new(QdrantSearcher::new(config.clone()).await?);
 
-        let state = Arc::new(ServerState {
-            config,
-            searcher,
-            stats_cache: RwLock::new(None),
-        });
+        let state = Arc::new(ServerState { config, searcher, stats_cache: RwLock::new(None) });
 
         Ok(Self { state })
     }
@@ -126,10 +122,7 @@ async fn search_handler(
     State(state): State<Arc<ServerState>>,
     Query(params): Query<SearchParams>,
 ) -> std::result::Result<Json<SearchResponse>, ServerError> {
-    info!(
-        "Search request: query='{}', agent={:?}",
-        params.q, params.agent
-    );
+    info!("Search request: query='{}', agent={:?}", params.q, params.agent);
 
     let mut filter = SearchFilter::new();
 
@@ -161,11 +154,7 @@ async fn search_handler(
 
     let total = results.len();
 
-    Ok(Json(SearchResponse {
-        results,
-        total,
-        query: params.q,
-    }))
+    Ok(Json(SearchResponse { results, total, query: params.q }))
 }
 
 /// Dashboard Statistics
@@ -262,24 +251,10 @@ async fn stats_handler(
                 success_rate: 88.5,
             },
         ],
-        by_outcome: OutcomeStats {
-            success: 2502,
-            failed: 191,
-            unknown: 0,
-        },
+        by_outcome: OutcomeStats { success: 2502, failed: 191, unknown: 0 },
         timeline: vec![
-            TimelineEntry {
-                date: "2025-10-24".to_string(),
-                count: 156,
-                success: 145,
-                failed: 11,
-            },
-            TimelineEntry {
-                date: "2025-10-23".to_string(),
-                count: 189,
-                success: 175,
-                failed: 14,
-            },
+            TimelineEntry { date: "2025-10-24".to_string(), count: 156, success: 145, failed: 11 },
+            TimelineEntry { date: "2025-10-23".to_string(), count: 189, success: 175, failed: 14 },
         ],
         last_indexed_at: Some(Utc::now()),
     };
@@ -349,18 +324,8 @@ async fn timeline_handler(
     // Return mock data for now
     // TODO: Implement actual timeline aggregation
     let timeline = vec![
-        TimelineEntry {
-            date: "2025-10-24".to_string(),
-            count: 156,
-            success: 145,
-            failed: 11,
-        },
-        TimelineEntry {
-            date: "2025-10-23".to_string(),
-            count: 189,
-            success: 175,
-            failed: 14,
-        },
+        TimelineEntry { date: "2025-10-24".to_string(), count: 156, success: 145, failed: 11 },
+        TimelineEntry { date: "2025-10-23".to_string(), count: 189, success: 175, failed: 14 },
     ];
 
     Ok(Json(timeline))
@@ -380,10 +345,7 @@ async fn health_handler() -> Json<serde_json::Value> {
 }
 
 /// WebSocket Handler
-async fn websocket_handler(
-    ws: WebSocketUpgrade,
-    State(state): State<Arc<ServerState>>,
-) -> Response {
+async fn websocket_handler(ws: WebSocketUpgrade, State(state): State<Arc<ServerState>>) -> Response {
     ws.on_upgrade(|socket| handle_websocket(socket, state))
 }
 
@@ -467,9 +429,7 @@ pub struct ServerError {
 
 impl From<KnowledgeError> for ServerError {
     fn from(err: KnowledgeError) -> Self {
-        ServerError {
-            message: err.to_string(),
-        }
+        ServerError { message: err.to_string() }
     }
 }
 

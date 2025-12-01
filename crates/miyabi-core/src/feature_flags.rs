@@ -50,9 +50,7 @@ impl Default for FeatureFlagManager {
 impl FeatureFlagManager {
     /// Create a new feature flag manager
     pub fn new() -> Self {
-        Self {
-            flags: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self { flags: Arc::new(RwLock::new(HashMap::new())) }
     }
 
     /// Check if a feature flag is enabled
@@ -66,10 +64,7 @@ impl FeatureFlagManager {
     /// `true` if the flag exists and is enabled, `false` otherwise
     pub fn is_enabled(&self, flag_name: &str) -> bool {
         let flags = self.flags.read().unwrap();
-        flags
-            .get(flag_name)
-            .map(|flag| flag.enabled)
-            .unwrap_or(false)
+        flags.get(flag_name).map(|flag| flag.enabled).unwrap_or(false)
     }
 
     /// Set a feature flag
@@ -81,15 +76,7 @@ impl FeatureFlagManager {
     pub fn set_flag(&self, flag_name: impl Into<String>, enabled: bool) {
         let mut flags = self.flags.write().unwrap();
         let name = flag_name.into();
-        flags.insert(
-            name.clone(),
-            FeatureFlag {
-                name,
-                enabled,
-                description: None,
-                rollout_percentage: None,
-            },
-        );
+        flags.insert(name.clone(), FeatureFlag { name, enabled, description: None, rollout_percentage: None });
     }
 
     /// Set a feature flag with description and rollout percentage
@@ -109,15 +96,7 @@ impl FeatureFlagManager {
     ) {
         let mut flags = self.flags.write().unwrap();
         let name = flag_name.into();
-        flags.insert(
-            name.clone(),
-            FeatureFlag {
-                name,
-                enabled,
-                description,
-                rollout_percentage,
-            },
-        );
+        flags.insert(name.clone(), FeatureFlag { name, enabled, description, rollout_percentage });
     }
 
     /// Remove a feature flag
@@ -162,15 +141,7 @@ impl FeatureFlagManager {
     pub fn load_from_map(&self, config: HashMap<String, bool>) {
         let mut flags = self.flags.write().unwrap();
         for (name, enabled) in config {
-            flags.insert(
-                name.clone(),
-                FeatureFlag {
-                    name,
-                    enabled,
-                    description: None,
-                    rollout_percentage: None,
-                },
-            );
+            flags.insert(name.clone(), FeatureFlag { name, enabled, description: None, rollout_percentage: None });
         }
     }
 
@@ -193,10 +164,7 @@ impl FeatureFlagManager {
     /// HashMap of flag names to enabled status
     pub fn export_to_map(&self) -> HashMap<String, bool> {
         let flags = self.flags.read().unwrap();
-        flags
-            .iter()
-            .map(|(name, flag)| (name.clone(), flag.enabled))
-            .collect()
+        flags.iter().map(|(name, flag)| (name.clone(), flag.enabled)).collect()
     }
 
     /// Clear all feature flags
@@ -240,12 +208,7 @@ mod tests {
     fn test_flag_with_options() {
         let manager = FeatureFlagManager::new();
 
-        manager.set_flag_with_options(
-            "beta_feature",
-            true,
-            Some("Beta testing feature".to_string()),
-            Some(0.5),
-        );
+        manager.set_flag_with_options("beta_feature", true, Some("Beta testing feature".to_string()), Some(0.5));
 
         assert!(manager.is_enabled("beta_feature"));
 

@@ -74,11 +74,9 @@ impl IssueWebhookEvent {
 
         let assignee = self.issue.assignee.as_ref().map(|u| u.login.clone());
 
-        let created_at =
-            DateTime::parse_from_rfc3339(&self.issue.created_at)?.with_timezone(&chrono::Utc);
+        let created_at = DateTime::parse_from_rfc3339(&self.issue.created_at)?.with_timezone(&chrono::Utc);
 
-        let updated_at =
-            DateTime::parse_from_rfc3339(&self.issue.updated_at)?.with_timezone(&chrono::Utc);
+        let updated_at = DateTime::parse_from_rfc3339(&self.issue.updated_at)?.with_timezone(&chrono::Utc);
 
         Ok(Issue {
             number: self.issue.number,
@@ -111,10 +109,7 @@ pub async fn handle_issue_opened(
     event: IssueWebhookEvent,
     config: HeadlessOrchestratorConfig,
 ) -> Result<ExecutionResult> {
-    info!(
-        "📥 Received Issue webhook: action={}, issue=#{}",
-        event.action, event.issue.number
-    );
+    info!("📥 Received Issue webhook: action={}, issue=#{}", event.action, event.issue.number);
 
     // Filter: Only handle "opened" action
     if event.action != "opened" {
@@ -125,10 +120,7 @@ pub async fn handle_issue_opened(
     // Convert to Miyabi Issue type
     let issue = event.to_miyabi_issue()?;
 
-    info!(
-        "🚀 Starting Phase 1 for Issue #{}: {}",
-        issue.number, issue.title
-    );
+    info!("🚀 Starting Phase 1 for Issue #{}: {}", issue.number, issue.title);
 
     // Create Headless Orchestrator
     let mut orchestrator = HeadlessOrchestrator::new(config);
@@ -142,10 +134,7 @@ pub async fn handle_issue_opened(
             result.issue_number, result.execution_id
         );
     } else {
-        error!(
-            "❌ Phase 1 failed for Issue #{}: {:?}",
-            result.issue_number, result.error
-        );
+        error!("❌ Phase 1 failed for Issue #{}: {:?}", result.issue_number, result.error);
     }
 
     Ok(result)
@@ -173,9 +162,7 @@ mod tests {
                 full_name: "test/repo".to_string(),
                 html_url: "https://github.com/test/repo".to_string(),
             },
-            sender: User {
-                login: "testuser".to_string(),
-            },
+            sender: User { login: "testuser".to_string() },
         }
     }
 

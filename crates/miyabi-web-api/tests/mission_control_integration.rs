@@ -125,12 +125,7 @@ async fn test_agents_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/api/v1/agents")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/api/v1/agents").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -150,12 +145,7 @@ async fn test_preflight_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/api/v1/preflight")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/api/v1/preflight").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -175,12 +165,7 @@ async fn test_timeline_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/api/v1/timeline")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/api/v1/timeline").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -200,12 +185,7 @@ async fn test_worktrees_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/api/v1/worktrees")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/api/v1/worktrees").body(Body::empty()).unwrap())
         .await
         .unwrap();
 

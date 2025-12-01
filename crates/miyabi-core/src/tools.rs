@@ -51,15 +51,13 @@ impl ToolRegistry {
     ///
     /// Reads GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO from environment.
     pub fn with_github_from_env(mut self) -> Result<Self> {
-        let token = std::env::var("GITHUB_TOKEN")
-            .map_err(|_| MiyabiError::Config("GITHUB_TOKEN not set".to_string()))?;
-        let owner = std::env::var("GITHUB_OWNER")
-            .map_err(|_| MiyabiError::Config("GITHUB_OWNER not set".to_string()))?;
-        let repo = std::env::var("GITHUB_REPO")
-            .map_err(|_| MiyabiError::Config("GITHUB_REPO not set".to_string()))?;
+        let token =
+            std::env::var("GITHUB_TOKEN").map_err(|_| MiyabiError::Config("GITHUB_TOKEN not set".to_string()))?;
+        let owner =
+            std::env::var("GITHUB_OWNER").map_err(|_| MiyabiError::Config("GITHUB_OWNER not set".to_string()))?;
+        let repo = std::env::var("GITHUB_REPO").map_err(|_| MiyabiError::Config("GITHUB_REPO not set".to_string()))?;
 
-        let client = GitHubClient::new(&token, &owner, &repo)
-            .map_err(|e| MiyabiError::GitHub(e.to_string()))?;
+        let client = GitHubClient::new(&token, &owner, &repo).map_err(|e| MiyabiError::GitHub(e.to_string()))?;
 
         self.github_client = Some(Arc::new(client));
         Ok(self)
@@ -104,10 +102,7 @@ impl ToolRegistry {
             "run_command" => self.execute_run_command(&call.arguments).await,
             "create_issue" => self.execute_create_issue(&call.arguments).await,
             "create_pr" => self.execute_create_pr(&call.arguments).await,
-            _ => Err(MiyabiError::ToolError(format!(
-                "Unknown tool: {}",
-                call.name
-            ))),
+            _ => Err(MiyabiError::ToolError(format!("Unknown tool: {}", call.name))),
         }
     }
 
@@ -116,20 +111,17 @@ impl ToolRegistry {
     // ========================================
 
     fn define_read_file(&self) -> miyabi_llm::ToolDefinition {
-        miyabi_llm::ToolDefinition::new(
-            "read_file",
-            "Read the contents of a file. Returns the file contents as text.",
-        )
-        .with_parameters(json!({
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Path to the file to read (relative to working directory)"
-                }
-            },
-            "required": ["path"]
-        }))
+        miyabi_llm::ToolDefinition::new("read_file", "Read the contents of a file. Returns the file contents as text.")
+            .with_parameters(json!({
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Path to the file to read (relative to working directory)"
+                    }
+                },
+                "required": ["path"]
+            }))
     }
 
     fn define_write_file(&self) -> miyabi_llm::ToolDefinition {
@@ -179,23 +171,20 @@ impl ToolRegistry {
     }
 
     fn define_list_files(&self) -> miyabi_llm::ToolDefinition {
-        miyabi_llm::ToolDefinition::new(
-            "list_files",
-            "List files in a directory. Returns file names and basic info.",
-        )
-        .with_parameters(json!({
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Directory path to list (defaults to current directory)"
-                },
-                "pattern": {
-                    "type": "string",
-                    "description": "Optional glob pattern to filter files (e.g., '*.rs')"
+        miyabi_llm::ToolDefinition::new("list_files", "List files in a directory. Returns file names and basic info.")
+            .with_parameters(json!({
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Directory path to list (defaults to current directory)"
+                    },
+                    "pattern": {
+                        "type": "string",
+                        "description": "Optional glob pattern to filter files (e.g., '*.rs')"
+                    }
                 }
-            }
-        }))
+            }))
     }
 
     fn define_search_code(&self) -> miyabi_llm::ToolDefinition {
@@ -246,54 +235,48 @@ impl ToolRegistry {
     }
 
     fn define_create_issue(&self) -> miyabi_llm::ToolDefinition {
-        miyabi_llm::ToolDefinition::new(
-            "create_issue",
-            "Create a GitHub issue. Requires FullAccess mode.",
-        )
-        .with_parameters(json!({
-            "type": "object",
-            "properties": {
-                "title": {
-                    "type": "string",
-                    "description": "Issue title"
+        miyabi_llm::ToolDefinition::new("create_issue", "Create a GitHub issue. Requires FullAccess mode.")
+            .with_parameters(json!({
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Issue title"
+                    },
+                    "body": {
+                        "type": "string",
+                        "description": "Issue description"
+                    },
+                    "labels": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Labels to apply"
+                    }
                 },
-                "body": {
-                    "type": "string",
-                    "description": "Issue description"
-                },
-                "labels": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Labels to apply"
-                }
-            },
-            "required": ["title", "body"]
-        }))
+                "required": ["title", "body"]
+            }))
     }
 
     fn define_create_pr(&self) -> miyabi_llm::ToolDefinition {
-        miyabi_llm::ToolDefinition::new(
-            "create_pr",
-            "Create a GitHub Pull Request. Requires FullAccess mode.",
-        )
-        .with_parameters(json!({
-            "type": "object",
-            "properties": {
-                "title": {
-                    "type": "string",
-                    "description": "PR title"
+        miyabi_llm::ToolDefinition::new("create_pr", "Create a GitHub Pull Request. Requires FullAccess mode.")
+            .with_parameters(json!({
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "PR title"
+                    },
+                    "body": {
+                        "type": "string",
+                        "description": "PR description"
+                    },
+                    "branch": {
+                        "type": "string",
+                        "description": "Source branch name"
+                    }
                 },
-                "body": {
-                    "type": "string",
-                    "description": "PR description"
-                },
-                "branch": {
-                    "type": "string",
-                    "description": "Source branch name"
-                }
-            },
-            "required": ["title", "body", "branch"]
-        }))
+                "required": ["title", "body", "branch"]
+            }))
     }
 
     // ========================================
@@ -319,9 +302,7 @@ impl ToolRegistry {
 
     async fn execute_write_file(&self, args: &Value) -> Result<ToolResult> {
         if !self.mode.allows_file_edits() {
-            return Err(MiyabiError::PermissionDenied(
-                "File writes require FileEdits or FullAccess mode".to_string(),
-            ));
+            return Err(MiyabiError::PermissionDenied("File writes require FileEdits or FullAccess mode".to_string()));
         }
 
         let path = args["path"]
@@ -353,29 +334,23 @@ impl ToolRegistry {
                     // Continue with execution
                 }
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown(
-                        "User rejected file change".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("User rejected file change".to_string()));
                 }
                 ApprovalDecision::Details => {
                     // Show details and prompt again
-                    return Err(MiyabiError::Unknown(
-                        "Details view not yet implemented".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("Details view not yet implemented".to_string()));
                 }
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown(
-                        "Edit mode not yet implemented".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
                 }
             }
         }
 
         // Create parent directory if needed
         if let Some(parent) = full_path.parent() {
-            fs::create_dir_all(parent).await.map_err(|e| {
-                MiyabiError::ToolError(format!("Failed to create directory: {}", e))
-            })?;
+            fs::create_dir_all(parent)
+                .await
+                .map_err(|e| MiyabiError::ToolError(format!("Failed to create directory: {}", e)))?;
         }
 
         fs::write(&full_path, content)
@@ -390,9 +365,7 @@ impl ToolRegistry {
 
     async fn execute_edit_file(&self, args: &Value) -> Result<ToolResult> {
         if !self.mode.allows_file_edits() {
-            return Err(MiyabiError::PermissionDenied(
-                "File edits require FileEdits or FullAccess mode".to_string(),
-            ));
+            return Err(MiyabiError::PermissionDenied("File edits require FileEdits or FullAccess mode".to_string()));
         }
 
         let path = args["path"]
@@ -411,37 +384,27 @@ impl ToolRegistry {
             .map_err(|e| MiyabiError::ToolError(format!("Failed to read file {}: {}", path, e)))?;
 
         if !content.contains(old_text) {
-            return Err(MiyabiError::ToolError(format!(
-                "old_text not found in file: {}",
-                path
-            )));
+            return Err(MiyabiError::ToolError(format!("old_text not found in file: {}", path)));
         }
 
         let new_content = content.replace(old_text, new_text);
 
         // Request approval if in Interactive mode
         if matches!(self.mode, ExecutionMode::Interactive) {
-            let approval =
-                FileChangeApproval::modify(path.to_string(), content.clone(), new_content.clone());
+            let approval = FileChangeApproval::modify(path.to_string(), content.clone(), new_content.clone());
 
             match self.approval_system.request_file_change(&approval)? {
                 ApprovalDecision::Approve => {
                     // Continue with execution
                 }
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown(
-                        "User rejected file change".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("User rejected file change".to_string()));
                 }
                 ApprovalDecision::Details => {
-                    return Err(MiyabiError::Unknown(
-                        "Details view not yet implemented".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("Details view not yet implemented".to_string()));
                 }
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown(
-                        "Edit mode not yet implemented".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
                 }
             }
         }
@@ -461,9 +424,9 @@ impl ToolRegistry {
         let path = args["path"].as_str().unwrap_or(".");
         let full_path = self.resolve_path(path)?;
 
-        let mut entries = fs::read_dir(&full_path).await.map_err(|e| {
-            MiyabiError::ToolError(format!("Failed to read directory {}: {}", path, e))
-        })?;
+        let mut entries = fs::read_dir(&full_path)
+            .await
+            .map_err(|e| MiyabiError::ToolError(format!("Failed to read directory {}: {}", path, e)))?;
 
         let mut files = Vec::new();
         while let Some(entry) = entries
@@ -529,9 +492,7 @@ impl ToolRegistry {
 
     async fn execute_run_command(&self, args: &Value) -> Result<ToolResult> {
         if !self.mode.allows_commands() {
-            return Err(MiyabiError::PermissionDenied(
-                "Command execution requires FullAccess mode".to_string(),
-            ));
+            return Err(MiyabiError::PermissionDenied("Command execution requires FullAccess mode".to_string()));
         }
 
         let command = args["command"]
@@ -540,11 +501,7 @@ impl ToolRegistry {
 
         let args_array = args["args"].as_array();
         let args_vec: Vec<String> = args_array
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect())
             .unwrap_or_default();
 
         // Request approval if in Interactive mode
@@ -560,19 +517,13 @@ impl ToolRegistry {
                     // Continue with execution
                 }
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown(
-                        "User rejected command execution".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("User rejected command execution".to_string()));
                 }
                 ApprovalDecision::Details => {
-                    return Err(MiyabiError::Unknown(
-                        "Details view not yet implemented".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("Details view not yet implemented".to_string()));
                 }
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown(
-                        "Edit mode not yet implemented".to_string(),
-                    ));
+                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
                 }
             }
         }
@@ -596,15 +547,12 @@ impl ToolRegistry {
 
     async fn execute_create_issue(&self, args: &Value) -> Result<ToolResult> {
         if !self.mode.allows_full_access() {
-            return Err(MiyabiError::PermissionDenied(
-                "Creating issues requires FullAccess mode".to_string(),
-            ));
+            return Err(MiyabiError::PermissionDenied("Creating issues requires FullAccess mode".to_string()));
         }
 
         let github_client = self.github_client.as_ref().ok_or_else(|| {
             MiyabiError::Config(
-                "GitHub client not configured. Use with_github_from_env() or with_github_client()"
-                    .to_string(),
+                "GitHub client not configured. Use with_github_from_env() or with_github_client()".to_string(),
             )
         })?;
 
@@ -644,15 +592,12 @@ impl ToolRegistry {
 
     async fn execute_create_pr(&self, args: &Value) -> Result<ToolResult> {
         if !self.mode.allows_full_access() {
-            return Err(MiyabiError::PermissionDenied(
-                "Creating PRs requires FullAccess mode".to_string(),
-            ));
+            return Err(MiyabiError::PermissionDenied("Creating PRs requires FullAccess mode".to_string()));
         }
 
         let github_client = self.github_client.as_ref().ok_or_else(|| {
             MiyabiError::Config(
-                "GitHub client not configured. Use with_github_from_env() or with_github_client()"
-                    .to_string(),
+                "GitHub client not configured. Use with_github_from_env() or with_github_client()".to_string(),
             )
         })?;
 
@@ -692,9 +637,7 @@ impl ToolRegistry {
 
         // Prevent directory traversal attacks
         if path.to_string_lossy().contains("..") {
-            return Err(MiyabiError::ToolError(
-                "Path contains '..' (directory traversal not allowed)".to_string(),
-            ));
+            return Err(MiyabiError::ToolError("Path contains '..' (directory traversal not allowed)".to_string()));
         }
 
         let full_path = if path.is_absolute() {
@@ -717,19 +660,11 @@ pub struct ToolResult {
 
 impl ToolResult {
     pub fn success(data: Value) -> Self {
-        Self {
-            success: true,
-            data,
-            error: None,
-        }
+        Self { success: true, data, error: None }
     }
 
     pub fn error(message: String) -> Self {
-        Self {
-            success: false,
-            data: json!({}),
-            error: Some(message),
-        }
+        Self { success: false, data: json!({}), error: Some(message) }
     }
 }
 
@@ -803,9 +738,6 @@ mod tests {
             .await;
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("directory traversal"));
+        assert!(result.unwrap_err().to_string().contains("directory traversal"));
     }
 }

@@ -25,9 +25,7 @@ async fn test_websocket_event_flow() {
     };
 
     // Create application
-    let app = create_app(config)
-        .await
-        .expect("Failed to create application");
+    let app = create_app(config).await.expect("Failed to create application");
 
     // Start server in background
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
@@ -104,9 +102,7 @@ async fn test_websocket_authentication() {
     };
 
     // Create application
-    let app = create_app(config.clone())
-        .await
-        .expect("Failed to create application");
+    let app = create_app(config.clone()).await.expect("Failed to create application");
 
     // Start server
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
@@ -122,19 +118,11 @@ async fn test_websocket_authentication() {
 
     // Create valid JWT token
     let now = chrono::Utc::now().timestamp();
-    let claims = Claims {
-        sub: "123e4567-e89b-12d3-a456-426614174000".to_string(),
-        exp: now + 3600,
-        iat: now,
-        github_id: 12345,
-    };
+    let claims =
+        Claims { sub: "123e4567-e89b-12d3-a456-426614174000".to_string(), exp: now + 3600, iat: now, github_id: 12345 };
 
-    let token = encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(config.jwt_secret.as_bytes()),
-    )
-    .expect("Failed to create token");
+    let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(config.jwt_secret.as_bytes()))
+        .expect("Failed to create token");
 
     // Test with valid token
     let ws_url = format!("ws://{}/api/v1/ws?events=true&token={}", addr, token);
@@ -205,8 +193,7 @@ fn test_agent_event_serialization() {
         "timestamp": Utc::now().to_rfc3339(),
     });
 
-    let completed_serialized =
-        serde_json::to_string(&completed_event).expect("Failed to serialize");
+    let completed_serialized = serde_json::to_string(&completed_event).expect("Failed to serialize");
     println!("✅ Completed event serialized: {}", completed_serialized);
 
     // Test execution_failed event

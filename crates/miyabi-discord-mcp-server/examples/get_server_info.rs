@@ -51,12 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n📺 チャンネル一覧 ({}個):", channels.len());
     for (i, channel) in channels.iter().enumerate() {
         if i < 20 {
-            println!(
-                "  {}. {} ({:?})",
-                i + 1,
-                channel.name.as_ref().unwrap_or(&"N/A".to_string()),
-                channel.kind
-            );
+            println!("  {}. {} ({:?})", i + 1, channel.name.as_ref().unwrap_or(&"N/A".to_string()), channel.kind);
         }
     }
     if channels.len() > 20 {
@@ -67,12 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n👥 ロール一覧 ({}個):", guild.roles.len());
     for (i, role) in guild.roles.iter().enumerate() {
         if i < 15 {
-            println!(
-                "  {}. {} (権限: {})",
-                i + 1,
-                role.name,
-                role.permissions.bits()
-            );
+            println!("  {}. {} (権限: {})", i + 1, role.name, role.permissions.bits());
         }
     }
     if guild.roles.len() > 15 {

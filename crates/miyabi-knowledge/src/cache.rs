@@ -27,11 +27,7 @@ pub struct IndexCache {
 impl IndexCache {
     /// 新しいキャッシュを作成
     pub fn new(workspace: String) -> Self {
-        Self {
-            indexed_files: HashMap::new(),
-            last_indexed_at: Utc::now(),
-            workspace,
-        }
+        Self { indexed_files: HashMap::new(), last_indexed_at: Utc::now(), workspace }
     }
 
     /// キャッシュファイルをロード、存在しない場合はデフォルト作成
@@ -132,8 +128,8 @@ impl IndexCache {
     /// パス: `~/.cache/miyabi/knowledge/{workspace}.json` (Unix)
     ///       `%LOCALAPPDATA%\miyabi\knowledge\{workspace}.json` (Windows)
     fn cache_path(workspace: &str) -> Result<PathBuf> {
-        let cache_dir = dirs::cache_dir()
-            .ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
+        let cache_dir =
+            dirs::cache_dir().ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
 
         let path = cache_dir
             .join("miyabi")
@@ -149,8 +145,8 @@ impl IndexCache {
     ///
     /// * `workspace` - ワークスペース名（Noneの場合は全ワークスペース）
     pub fn delete_cache(workspace: Option<&str>) -> Result<usize> {
-        let base_cache_dir = dirs::cache_dir()
-            .ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
+        let base_cache_dir =
+            dirs::cache_dir().ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
 
         let cache_dir = base_cache_dir.join("miyabi").join("knowledge");
 

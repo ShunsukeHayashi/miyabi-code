@@ -13,10 +13,7 @@ fn create_mock_server() -> McpServerConnection {
         "test-server",
         "Test MCP Server",
         "npx",
-        vec![
-            "-y".to_string(),
-            "@modelcontextprotocol/server-github".to_string(),
-        ],
+        vec!["-y".to_string(), "@modelcontextprotocol/server-github".to_string()],
     )
 }
 
@@ -94,10 +91,7 @@ async fn test_cache_disabled_flow() {
 
     // Execute twice with same args
     let args = json!({"param": "value1"});
-    service
-        .execute_tool("test.nocache", args.clone())
-        .await
-        .unwrap();
+    service.execute_tool("test.nocache", args.clone()).await.unwrap();
     service.execute_tool("test.nocache", args).await.unwrap();
 
     // Cache should be empty (disabled)
@@ -120,10 +114,7 @@ async fn test_multiple_tools() {
     // Execute each tool
     for i in 1..=5 {
         let result = service
-            .execute_tool(
-                &format!("test.tool{}", i),
-                json!({"param": format!("value{}", i)}),
-            )
+            .execute_tool(&format!("test.tool{}", i), json!({"param": format!("value{}", i)}))
             .await;
         assert!(result.is_ok());
     }
@@ -161,12 +152,8 @@ async fn test_cache_key_differentiation() {
     service.register_tool(tool);
 
     // Execute with different parameters
-    let result1 = service
-        .execute_tool("test.params", json!({"param": "value1"}))
-        .await;
-    let result2 = service
-        .execute_tool("test.params", json!({"param": "value2"}))
-        .await;
+    let result1 = service.execute_tool("test.params", json!({"param": "value1"})).await;
+    let result2 = service.execute_tool("test.params", json!({"param": "value2"})).await;
 
     assert!(result1.is_ok());
     assert!(result2.is_ok());

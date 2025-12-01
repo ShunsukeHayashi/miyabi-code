@@ -52,9 +52,7 @@ impl BaseAgent for MockCoordinatorAgent {
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
         if !self.should_succeed {
-            return Err(MiyabiError::Unknown(
-                "Coordinator execution failed".to_string(),
-            ));
+            return Err(MiyabiError::Unknown("Coordinator execution failed".to_string()));
         }
 
         // Return mock task decomposition
@@ -119,11 +117,7 @@ struct MockSpecialistAgent {
 
 impl MockSpecialistAgent {
     fn new(agent_type: AgentType, should_fail: bool, execution_delay_ms: u64) -> Self {
-        Self {
-            agent_type,
-            should_fail,
-            execution_delay_ms,
-        }
+        Self { agent_type, should_fail, execution_delay_ms }
     }
 }
 
@@ -137,10 +131,7 @@ impl BaseAgent for MockSpecialistAgent {
         tokio::time::sleep(tokio::time::Duration::from_millis(self.execution_delay_ms)).await;
 
         if self.should_fail {
-            return Err(MiyabiError::Unknown(format!(
-                "{:?} execution failed for task {}",
-                self.agent_type, task.id
-            )));
+            return Err(MiyabiError::Unknown(format!("{:?} execution failed for task {}", self.agent_type, task.id)));
         }
 
         Ok(AgentResult {
@@ -188,9 +179,7 @@ struct HookEvent {
 
 impl RecordingHook {
     fn new() -> Self {
-        Self {
-            events: Arc::new(Mutex::new(Vec::new())),
-        }
+        Self { events: Arc::new(Mutex::new(Vec::new())) }
     }
 
     fn events(&self) -> Vec<HookEvent> {
@@ -238,12 +227,7 @@ impl AgentHook for RecordingHook {
         Ok(())
     }
 
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        _result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, _result: &AgentResult) -> Result<()> {
         let mut events = self.events.lock().unwrap();
         events.push(HookEvent {
             event_type: "post_execute".to_string(),
@@ -349,10 +333,7 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     assert_eq!(coordinator_result.status, ResultStatus::Success);
 
     // Verify coordinator hooks were called
-    assert_eq!(
-        recording_hook.count_by_agent(AgentType::CoordinatorAgent),
-        2
-    ); // pre + post
+    assert_eq!(recording_hook.count_by_agent(AgentType::CoordinatorAgent), 2); // pre + post
 
     // ========================================================================
     // Step 3: Execute WorktreePool with Specialist Agents
@@ -421,10 +402,7 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
 
                     // Create task with worktree_id
                     let mut metadata = HashMap::new();
-                    metadata.insert(
-                        "worktree_id".to_string(),
-                        serde_json::json!(worktree_info.id.clone()),
-                    );
+                    metadata.insert("worktree_id".to_string(), serde_json::json!(worktree_info.id.clone()));
 
                     let task = Task {
                         id: format!("task-{}", worktree_info.issue_number),
@@ -463,33 +441,21 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     }
 
     // Should have logs from coordinator + worktrees
-    assert!(
-        !log_files.is_empty(),
-        "Expected at least 1 log file, got {}",
-        log_files.len()
-    );
+    assert!(!log_files.is_empty(), "Expected at least 1 log file, got {}", log_files.len());
 
     // Read and verify coordinator log content
     let coordinator_log_found = log_files.iter().any(|entry| {
         let file_name = entry.file_name();
-        file_name.to_str().unwrap().starts_with(&date)
-            && !file_name.to_str().unwrap().contains("-worktree-")
+        file_name.to_str().unwrap().starts_with(&date) && !file_name.to_str().unwrap().contains("-worktree-")
     });
-    assert!(
-        coordinator_log_found,
-        "Coordinator log file should exist without worktree ID"
-    );
+    assert!(coordinator_log_found, "Coordinator log file should exist without worktree ID");
 
     // Verify worktree-specific logs
     let worktree_logs = log_files
         .iter()
         .filter(|e| e.file_name().to_str().unwrap().contains("-worktree-"))
         .count();
-    assert!(
-        worktree_logs >= 1,
-        "Expected at least 1 worktree log, got {}",
-        worktree_logs
-    );
+    assert!(worktree_logs >= 1, "Expected at least 1 worktree log, got {}", worktree_logs);
 
     // ========================================================================
     // Step 5: Verify Statistics
@@ -498,11 +464,7 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     // Verify pool execution results
     assert_eq!(result.total_tasks, 3);
     assert!(result.has_failures(), "Expected failures due to fail-fast");
-    assert!(
-        result.failed_count >= 1,
-        "Expected at least 1 failure, got {}",
-        result.failed_count
-    );
+    assert!(result.failed_count >= 1, "Expected at least 1 failure, got {}", result.failed_count);
 
     // Verify hook metrics consistency
     let events = recording_hook.events();
@@ -521,18 +483,10 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
 
     // Specialist agents should have events (success + failures + cancellations)
     let specialist_events = pre_count - 1; // Subtract coordinator's pre
-    assert!(
-        specialist_events >= 2,
-        "Expected at least 2 specialist agent events, got {}",
-        specialist_events
-    );
+    assert!(specialist_events >= 2, "Expected at least 2 specialist agent events, got {}", specialist_events);
 
     // Should have at least one error event
-    assert!(
-        error_count >= 1,
-        "Expected at least 1 error event, got {}",
-        error_count
-    );
+    assert!(error_count >= 1, "Expected at least 1 error event, got {}", error_count);
 
     // Verify statistics methods
     assert!(result.success_rate() < 100.0);
@@ -561,10 +515,7 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     println!("  Total events: {}", events.len());
     println!("\nLog Files:");
     println!("  Total: {}", log_files.len());
-    println!(
-        "  Coordinator logs: {}",
-        if coordinator_log_found { 1 } else { 0 }
-    );
+    println!("  Coordinator logs: {}", if coordinator_log_found { 1 } else { 0 });
     println!("  Worktree logs: {}", worktree_logs);
     println!("========================\n");
 }

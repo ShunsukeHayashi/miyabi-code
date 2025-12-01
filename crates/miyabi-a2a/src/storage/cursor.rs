@@ -74,11 +74,7 @@ impl PaginationCursor {
     /// let cursor = PaginationCursor::forward(123, Utc::now());
     /// ```
     pub fn forward(last_id: u64, last_updated: DateTime<Utc>) -> Self {
-        Self {
-            last_id,
-            last_updated,
-            direction: Direction::Forward,
-        }
+        Self { last_id, last_updated, direction: Direction::Forward }
     }
 
     /// Create a new backward cursor
@@ -92,11 +88,7 @@ impl PaginationCursor {
     /// let cursor = PaginationCursor::backward(123, Utc::now());
     /// ```
     pub fn backward(last_id: u64, last_updated: DateTime<Utc>) -> Self {
-        Self {
-            last_id,
-            last_updated,
-            direction: Direction::Backward,
-        }
+        Self { last_id, last_updated, direction: Direction::Backward }
     }
 
     /// Encode cursor to Base64 string
@@ -186,18 +178,8 @@ impl<T> PaginatedResult<T> {
     ///     true,
     /// );
     /// ```
-    pub fn new(
-        items: Vec<T>,
-        next_cursor: Option<String>,
-        previous_cursor: Option<String>,
-        has_more: bool,
-    ) -> Self {
-        Self {
-            items,
-            next_cursor,
-            previous_cursor,
-            has_more,
-        }
+    pub fn new(items: Vec<T>, next_cursor: Option<String>, previous_cursor: Option<String>, has_more: bool) -> Self {
+        Self { items, next_cursor, previous_cursor, has_more }
     }
 }
 

@@ -29,9 +29,8 @@ impl MarketingAgent {
     /// Generate comprehensive marketing strategy using LLM
     async fn generate_marketing_strategy(&self, task: &Task) -> Result<MarketingStrategy> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -51,26 +50,22 @@ Generate detailed marketing strategy as JSON with brand strategy, campaign plann
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::MarketingAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::MarketingAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
-        let marketing_strategy: MarketingStrategy =
-            serde_json::from_str(&response).map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("Failed to parse marketing strategy JSON: {}", e),
-                    AgentType::MarketingAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let marketing_strategy: MarketingStrategy = serde_json::from_str(&response).map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("Failed to parse marketing strategy JSON: {}", e),
+                AgentType::MarketingAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         Ok(marketing_strategy)
     }
@@ -220,10 +215,7 @@ impl BaseAgent for MarketingAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "MarketingAgent starting marketing strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("MarketingAgent starting marketing strategy generation for task: {}", task.id);
 
         // Generate marketing strategy using LLM
         let marketing_strategy = self.generate_marketing_strategy(task).await?;
@@ -266,10 +258,7 @@ impl BaseAgent for MarketingAgent {
             "total_tactics_count": total_tactics
         });
 
-        tracing::info!(
-            "MarketingAgent completed marketing strategy generation: {}",
-            summary
-        );
+        tracing::info!("MarketingAgent completed marketing strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -290,7 +279,9 @@ mod tests {
         Task {
             id: "test-task-8".to_string(),
             title: "AI-Powered Email Marketing Platform".to_string(),
-            description: "An intelligent email marketing platform with AI-driven personalization and automation features".to_string(),
+            description:
+                "An intelligent email marketing platform with AI-driven personalization and automation features"
+                    .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -460,9 +451,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -520,9 +509,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -581,9 +568,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]

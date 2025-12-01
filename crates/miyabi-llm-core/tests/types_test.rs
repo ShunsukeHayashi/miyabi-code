@@ -52,11 +52,7 @@ fn test_tool_definition_with_parameters() {
 
 #[test]
 fn test_tool_call() {
-    let call = ToolCall::new(
-        "call-123",
-        "test_tool",
-        serde_json::json!({"arg1": "value1"}),
-    );
+    let call = ToolCall::new("call-123", "test_tool", serde_json::json!({"arg1": "value1"}));
 
     assert_eq!(call.id, "call-123");
     assert_eq!(call.name, "test_tool");
@@ -64,9 +60,7 @@ fn test_tool_call() {
 
 #[test]
 fn test_tool_call_response() {
-    let response = ToolCallResponse::Conclusion {
-        text: "Done".to_string(),
-    };
+    let response = ToolCallResponse::Conclusion { text: "Done".to_string() };
     assert!(response.is_conclusion());
     assert!(!response.is_tool_calls());
     assert!(!response.needs_approval());
@@ -77,10 +71,7 @@ fn test_tool_call_response() {
     assert!(response.is_tool_calls());
     assert!(!response.needs_approval());
 
-    let response = ToolCallResponse::NeedApproval {
-        action: "deploy".to_string(),
-        reason: "production".to_string(),
-    };
+    let response = ToolCallResponse::NeedApproval { action: "deploy".to_string(), reason: "production".to_string() };
     assert!(!response.is_conclusion());
     assert!(!response.is_tool_calls());
     assert!(response.needs_approval());
@@ -88,9 +79,7 @@ fn test_tool_call_response() {
 
 #[test]
 fn test_tool_call_response_serialization() {
-    let response = ToolCallResponse::Conclusion {
-        text: "Done".to_string(),
-    };
+    let response = ToolCallResponse::Conclusion { text: "Done".to_string() };
     let json = serde_json::to_string(&response).unwrap();
     let deserialized: ToolCallResponse = serde_json::from_str(&json).unwrap();
 

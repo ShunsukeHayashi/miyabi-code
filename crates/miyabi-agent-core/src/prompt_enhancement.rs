@@ -4,8 +4,8 @@
 //! Agents can opt-in to prompt enhancement without modifying the BaseAgent trait.
 
 use miyabi_knowledge::{
-    AugmentationStrategy, KnowledgeConfig, PromptAugmenter, QdrantSearcher, SearchFilter,
-    StandardPromptAugmenter, DEFAULT_MAX_CONTEXT_PIECES, DEFAULT_RELEVANCE_THRESHOLD,
+    AugmentationStrategy, KnowledgeConfig, PromptAugmenter, QdrantSearcher, SearchFilter, StandardPromptAugmenter,
+    DEFAULT_MAX_CONTEXT_PIECES, DEFAULT_RELEVANCE_THRESHOLD,
 };
 use miyabi_types::error::{MiyabiError, Result};
 use std::sync::Arc;
@@ -49,19 +49,12 @@ impl Default for PromptEnhancementConfig {
 impl PromptEnhancementConfig {
     /// Create config with custom settings
     pub fn new(max_context_pieces: usize, relevance_threshold: f32) -> Self {
-        Self {
-            max_context_pieces,
-            relevance_threshold,
-            ..Default::default()
-        }
+        Self { max_context_pieces, relevance_threshold, ..Default::default() }
     }
 
     /// Disable prompt enhancement
     pub fn disabled() -> Self {
-        Self {
-            enabled: false,
-            ..Default::default()
-        }
+        Self { enabled: false, ..Default::default() }
     }
 
     /// Set augmentation strategy
@@ -99,21 +92,14 @@ impl AgentPromptEnhancer {
     ///
     /// * `knowledge_config` - Knowledge base configuration
     /// * `enhancement_config` - Prompt enhancement configuration
-    pub async fn new(
-        knowledge_config: KnowledgeConfig,
-        enhancement_config: PromptEnhancementConfig,
-    ) -> Result<Self> {
+    pub async fn new(knowledge_config: KnowledgeConfig, enhancement_config: PromptEnhancementConfig) -> Result<Self> {
         let searcher = QdrantSearcher::new(knowledge_config)
             .await
             .map_err(|e| MiyabiError::Config(format!("Failed to create Qdrant searcher: {}", e)))?;
 
-        let augmenter =
-            StandardPromptAugmenter::with_strategy(searcher, enhancement_config.strategy.clone());
+        let augmenter = StandardPromptAugmenter::with_strategy(searcher, enhancement_config.strategy.clone());
 
-        Ok(Self {
-            augmenter: Arc::new(RwLock::new(augmenter)),
-            config: enhancement_config,
-        })
+        Ok(Self { augmenter: Arc::new(RwLock::new(augmenter)), config: enhancement_config })
     }
 
     /// Enhance a prompt with relevant context
@@ -134,37 +120,36 @@ impl AgentPromptEnhancer {
         let augmenter = self.augmenter.read().await;
 
         // Build search filter if specified
-        let result =
-            if self.config.filter_by_agent.is_some() || self.config.filter_by_outcome.is_some() {
-                let mut filter = SearchFilter::default();
+        let result = if self.config.filter_by_agent.is_some() || self.config.filter_by_outcome.is_some() {
+            let mut filter = SearchFilter::default();
 
-                if let Some(ref agent) = self.config.filter_by_agent {
-                    filter.agent = Some(agent.clone());
-                }
+            if let Some(ref agent) = self.config.filter_by_agent {
+                filter.agent = Some(agent.clone());
+            }
 
-                if let Some(ref outcome) = self.config.filter_by_outcome {
-                    filter.outcome = Some(outcome.clone());
-                }
+            if let Some(ref outcome) = self.config.filter_by_outcome {
+                filter.outcome = Some(outcome.clone());
+            }
 
-                augmenter
-                    .augment_filtered(
-                        base_prompt,
-                        query,
-                        filter,
-                        Some(self.config.max_context_pieces),
-                        Some(self.config.relevance_threshold),
-                    )
-                    .await
-            } else {
-                augmenter
-                    .augment(
-                        base_prompt,
-                        query,
-                        Some(self.config.max_context_pieces),
-                        Some(self.config.relevance_threshold),
-                    )
-                    .await
-            };
+            augmenter
+                .augment_filtered(
+                    base_prompt,
+                    query,
+                    filter,
+                    Some(self.config.max_context_pieces),
+                    Some(self.config.relevance_threshold),
+                )
+                .await
+        } else {
+            augmenter
+                .augment(
+                    base_prompt,
+                    query,
+                    Some(self.config.max_context_pieces),
+                    Some(self.config.relevance_threshold),
+                )
+                .await
+        };
 
         result.map_err(|e| MiyabiError::Config(format!("Prompt enhancement failed: {}", e)))
     }
@@ -219,9 +204,7 @@ pub struct PromptTemplate {
 impl PromptTemplate {
     /// Create a new prompt template
     pub fn new(template: impl Into<String>) -> Self {
-        Self {
-            template: template.into(),
-        }
+        Self { template: template.into() }
     }
 
     /// Replace variables in the template
@@ -254,9 +237,7 @@ mod tests {
 
     #[test]
     fn test_prompt_template() {
-        let template = PromptTemplate::new(
-            "Agent: {{AGENT_TYPE}}\nTask ID: {{TASK_ID}}\nTask: {{TASK_DESCRIPTION}}",
-        );
+        let template = PromptTemplate::new("Agent: {{AGENT_TYPE}}\nTask ID: {{TASK_ID}}\nTask: {{TASK_DESCRIPTION}}");
 
         let rendered = template.render("Generate code", "task-123", "CodeGenAgent");
 

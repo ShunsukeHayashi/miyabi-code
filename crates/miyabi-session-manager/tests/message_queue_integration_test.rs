@@ -1,8 +1,6 @@
 //! Integration tests for message queue system
 
-use miyabi_session_manager::{
-    LogMessage, Message, MessageBuilder, MessageType, Priority, SessionManager,
-};
+use miyabi_session_manager::{LogMessage, Message, MessageBuilder, MessageType, Priority, SessionManager};
 use tempfile::tempdir;
 use uuid::Uuid;
 
@@ -192,12 +190,7 @@ async fn test_filter_by_priority() {
     let session_id = Uuid::new_v4();
 
     // Send messages with different priorities
-    for priority in [
-        Priority::Low,
-        Priority::Normal,
-        Priority::High,
-        Priority::Urgent,
-    ] {
+    for priority in [Priority::Low, Priority::Normal, Priority::High, Priority::Urgent] {
         let msg = MessageBuilder::new(session_id)
             .priority(priority)
             .message_type(MessageType::Log(LogMessage {
@@ -212,15 +205,11 @@ async fn test_filter_by_priority() {
     }
 
     // Filter high priority and above
-    let high_priority = manager
-        .filter_messages_by_priority(session_id, Priority::High)
-        .await;
+    let high_priority = manager.filter_messages_by_priority(session_id, Priority::High).await;
     assert_eq!(high_priority.len(), 2); // High + Urgent
 
     // Filter normal priority and above
-    let normal_and_above = manager
-        .filter_messages_by_priority(session_id, Priority::Normal)
-        .await;
+    let normal_and_above = manager.filter_messages_by_priority(session_id, Priority::Normal).await;
     assert_eq!(normal_and_above.len(), 3); // Normal + High + Urgent
 }
 
@@ -346,11 +335,7 @@ async fn test_message_expiration() {
     let expired = Message::with_expiration(
         session_id,
         Priority::Normal,
-        MessageType::Log(LogMessage {
-            level: "info".to_string(),
-            content: "expired".to_string(),
-            source: None,
-        }),
+        MessageType::Log(LogMessage { level: "info".to_string(), content: "expired".to_string(), source: None }),
         -1, // expired 1 second ago
     );
 

@@ -85,11 +85,9 @@ impl DAG {
 
         // Cycle detection
         if self.has_cycles() {
-            return Err(crate::error::MiyabiError::CircularDependency(
-                crate::error::CircularDependencyError::new(vec![
-                    "Cycle detected in task dependencies".to_string(),
-                ]),
-            ));
+            return Err(crate::error::MiyabiError::CircularDependency(crate::error::CircularDependencyError::new(
+                vec!["Cycle detected in task dependencies".to_string()],
+            )));
         }
 
         // Build node ID set for validation
@@ -299,14 +297,7 @@ impl ProgressStatus {
     pub fn from_counts(completed: u32, running: u32, waiting: u32, failed: u32) -> Self {
         let total = completed + running + waiting + failed;
         let percentage = Self::calculate_percentage(completed, total);
-        Self {
-            total,
-            completed,
-            running,
-            waiting,
-            failed,
-            percentage,
-        }
+        Self { total, completed, running, waiting, failed, percentage }
     }
 }
 
@@ -334,14 +325,7 @@ pub struct ExecutionOptions {
 
 impl Default for ExecutionOptions {
     fn default() -> Self {
-        Self {
-            issues: None,
-            todos: None,
-            concurrency: 3,
-            dry_run: false,
-            ignore_dependencies: false,
-            timeout: None,
-        }
+        Self { issues: None, todos: None, concurrency: 3, dry_run: false, ignore_dependencies: false, timeout: None }
     }
 }
 
@@ -355,10 +339,7 @@ mod tests {
 
     #[test]
     fn test_edge_serialization() {
-        let edge = Edge {
-            from: "task-1".to_string(),
-            to: "task-2".to_string(),
-        };
+        let edge = Edge { from: "task-1".to_string(), to: "task-2".to_string() };
 
         let json = serde_json::to_string(&edge).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -368,10 +349,7 @@ mod tests {
 
     #[test]
     fn test_edge_roundtrip() {
-        let edge = Edge {
-            from: "task-a".to_string(),
-            to: "task-b".to_string(),
-        };
+        let edge = Edge { from: "task-a".to_string(), to: "task-b".to_string() };
 
         let json = serde_json::to_string(&edge).unwrap();
         let deserialized: Edge = serde_json::from_str(&json).unwrap();
@@ -423,10 +401,7 @@ mod tests {
 
         let dag = DAG {
             nodes: vec![task1, task2],
-            edges: vec![Edge {
-                from: "task-1".to_string(),
-                to: "task-2".to_string(),
-            }],
+            edges: vec![Edge { from: "task-1".to_string(), to: "task-2".to_string() }],
             levels: vec![vec!["task-1".to_string()], vec!["task-2".to_string()]],
         };
 
@@ -484,11 +459,8 @@ mod tests {
             metadata: None,
         };
 
-        let dag = DAG {
-            nodes: vec![task1],
-            edges: vec![],
-            levels: vec![vec!["task-1".to_string(), "task-2".to_string()]],
-        };
+        let dag =
+            DAG { nodes: vec![task1], edges: vec![], levels: vec![vec!["task-1".to_string(), "task-2".to_string()]] };
 
         let critical_path = dag.critical_path();
         assert_eq!(critical_path.len(), 2);
@@ -519,11 +491,7 @@ mod tests {
             metadata: None,
         };
 
-        let dag = DAG {
-            nodes: vec![task.clone()],
-            edges: vec![],
-            levels: vec![vec!["task-1".to_string()]],
-        };
+        let dag = DAG { nodes: vec![task.clone()], edges: vec![], levels: vec![vec!["task-1".to_string()]] };
 
         let plan = ExecutionPlan {
             session_id: "session-123".to_string(),
@@ -548,13 +516,7 @@ mod tests {
 
     #[test]
     fn test_execution_summary_serialization() {
-        let summary = ExecutionSummary {
-            total: 10,
-            completed: 8,
-            failed: 1,
-            escalated: 1,
-            success_rate: 80.0,
-        };
+        let summary = ExecutionSummary { total: 10, completed: 8, failed: 1, escalated: 1, success_rate: 80.0 };
 
         let json = serde_json::to_string(&summary).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -571,13 +533,7 @@ mod tests {
     fn test_execution_report_serialization() {
         use crate::task::TaskResult;
 
-        let summary = ExecutionSummary {
-            total: 5,
-            completed: 5,
-            failed: 0,
-            escalated: 0,
-            success_rate: 100.0,
-        };
+        let summary = ExecutionSummary { total: 5, completed: 5, failed: 0, escalated: 0, success_rate: 100.0 };
 
         let task_result = TaskResult {
             task_id: "task-1".to_string(),
@@ -668,14 +624,7 @@ mod tests {
 
     #[test]
     fn test_progress_status_serialization() {
-        let progress = ProgressStatus {
-            total: 20,
-            completed: 15,
-            running: 3,
-            waiting: 2,
-            failed: 0,
-            percentage: 75.0,
-        };
+        let progress = ProgressStatus { total: 20, completed: 15, running: 3, waiting: 2, failed: 0, percentage: 75.0 };
 
         let json = serde_json::to_string(&progress).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -779,20 +728,9 @@ mod tests {
 
     #[test]
     fn test_execution_plan_new_with_valid_concurrency() {
-        let dag = DAG {
-            nodes: vec![],
-            edges: vec![],
-            levels: vec![],
-        };
+        let dag = DAG { nodes: vec![], edges: vec![], levels: vec![] };
 
-        let result = ExecutionPlan::new(
-            "session-1".to_string(),
-            "device-1".to_string(),
-            5,
-            vec![],
-            dag,
-            60,
-        );
+        let result = ExecutionPlan::new("session-1".to_string(), "device-1".to_string(), 5, vec![], dag, 60);
 
         assert!(result.is_ok());
         let plan = result.unwrap();
@@ -801,52 +739,22 @@ mod tests {
 
     #[test]
     fn test_execution_plan_new_with_invalid_concurrency() {
-        let dag = DAG {
-            nodes: vec![],
-            edges: vec![],
-            levels: vec![],
-        };
+        let dag = DAG { nodes: vec![], edges: vec![], levels: vec![] };
 
         // Concurrency too low
-        let result = ExecutionPlan::new(
-            "session-1".to_string(),
-            "device-1".to_string(),
-            0,
-            vec![],
-            dag.clone(),
-            60,
-        );
+        let result = ExecutionPlan::new("session-1".to_string(), "device-1".to_string(), 0, vec![], dag.clone(), 60);
         assert!(result.is_err());
 
         // Concurrency too high
-        let result = ExecutionPlan::new(
-            "session-1".to_string(),
-            "device-1".to_string(),
-            101,
-            vec![],
-            dag,
-            60,
-        );
+        let result = ExecutionPlan::new("session-1".to_string(), "device-1".to_string(), 101, vec![], dag, 60);
         assert!(result.is_err());
     }
 
     #[test]
     fn test_execution_plan_set_concurrency() {
-        let dag = DAG {
-            nodes: vec![],
-            edges: vec![],
-            levels: vec![],
-        };
+        let dag = DAG { nodes: vec![], edges: vec![], levels: vec![] };
 
-        let mut plan = ExecutionPlan::new(
-            "session-1".to_string(),
-            "device-1".to_string(),
-            5,
-            vec![],
-            dag,
-            60,
-        )
-        .unwrap();
+        let mut plan = ExecutionPlan::new("session-1".to_string(), "device-1".to_string(), 5, vec![], dag, 60).unwrap();
 
         // Valid concurrency change
         assert!(plan.set_concurrency(10).is_ok());
@@ -865,96 +773,51 @@ mod tests {
     fn test_dag_validate_success() {
         use crate::task::{Task, TaskType};
 
-        let task = Task::new(
-            "task-1".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task =
+            Task::new("task-1".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
-        let dag = DAG {
-            nodes: vec![task],
-            edges: vec![],
-            levels: vec![vec!["task-1".to_string()]],
-        };
+        let dag = DAG { nodes: vec![task], edges: vec![], levels: vec![vec!["task-1".to_string()]] };
 
         assert!(dag.validate().is_ok());
     }
 
     #[test]
     fn test_dag_validate_empty_nodes() {
-        let dag = DAG {
-            nodes: vec![],
-            edges: vec![],
-            levels: vec![],
-        };
+        let dag = DAG { nodes: vec![], edges: vec![], levels: vec![] };
 
         let result = dag.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("cannot have zero nodes"));
+        assert!(result.unwrap_err().to_string().contains("cannot have zero nodes"));
     }
 
     #[test]
     fn test_dag_validate_cycle_detected() {
         use crate::task::{Task, TaskType};
 
-        let task1 = Task::new(
-            "task-1".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task1 =
+            Task::new("task-1".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
-        let task2 = Task::new(
-            "task-2".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task2 =
+            Task::new("task-2".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
         // Create invalid DAG: 2 nodes but only 1 in levels (simulating cycle)
-        let dag = DAG {
-            nodes: vec![task1, task2],
-            edges: vec![],
-            levels: vec![vec!["task-1".to_string()]],
-        };
+        let dag = DAG { nodes: vec![task1, task2], edges: vec![], levels: vec![vec!["task-1".to_string()]] };
 
         let result = dag.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Circular dependency"));
+        assert!(result.unwrap_err().to_string().contains("Circular dependency"));
     }
 
     #[test]
     fn test_dag_validate_edge_from_nonexistent() {
         use crate::task::{Task, TaskType};
 
-        let task = Task::new(
-            "task-1".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task =
+            Task::new("task-1".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
         let dag = DAG {
             nodes: vec![task],
-            edges: vec![Edge {
-                from: "nonexistent".to_string(),
-                to: "task-1".to_string(),
-            }],
+            edges: vec![Edge { from: "nonexistent".to_string(), to: "task-1".to_string() }],
             levels: vec![vec!["task-1".to_string()]],
         };
 
@@ -969,21 +832,12 @@ mod tests {
     fn test_dag_validate_edge_to_nonexistent() {
         use crate::task::{Task, TaskType};
 
-        let task = Task::new(
-            "task-1".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task =
+            Task::new("task-1".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
         let dag = DAG {
             nodes: vec![task],
-            edges: vec![Edge {
-                from: "task-1".to_string(),
-                to: "nonexistent".to_string(),
-            }],
+            edges: vec![Edge { from: "task-1".to_string(), to: "nonexistent".to_string() }],
             levels: vec![vec!["task-1".to_string()]],
         };
 
@@ -998,23 +852,11 @@ mod tests {
     fn test_dag_validate_node_not_in_levels() {
         use crate::task::{Task, TaskType};
 
-        let task1 = Task::new(
-            "task-1".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task1 =
+            Task::new("task-1".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
-        let task2 = Task::new(
-            "task-2".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task2 =
+            Task::new("task-2".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
         let dag = DAG {
             nodes: vec![task1, task2],
@@ -1027,24 +869,15 @@ mod tests {
         // Note: This may trigger cycle detection since task-2 is not in levels
         // Both "Circular dependency" and "not assigned to any level" are valid errors
         let err_msg = result.unwrap_err().to_string();
-        assert!(
-            err_msg.contains("Circular dependency")
-                || err_msg.contains("not assigned to any level")
-        );
+        assert!(err_msg.contains("Circular dependency") || err_msg.contains("not assigned to any level"));
     }
 
     #[test]
     fn test_dag_validate_duplicate_in_levels() {
         use crate::task::{Task, TaskType};
 
-        let task = Task::new(
-            "task-1".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task =
+            Task::new("task-1".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
         let dag = DAG {
             nodes: vec![task],
@@ -1059,53 +892,27 @@ mod tests {
         assert!(result.is_err());
         // This may trigger cycle detection due to having more level entries than nodes
         let err_msg = result.unwrap_err().to_string();
-        assert!(
-            err_msg.contains("Duplicate nodes found") || err_msg.contains("Circular dependency")
-        );
+        assert!(err_msg.contains("Duplicate nodes found") || err_msg.contains("Circular dependency"));
     }
 
     #[test]
     fn test_dag_validate_complex_valid_dag() {
         use crate::task::{Task, TaskType};
 
-        let task1 = Task::new(
-            "task-1".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task1 =
+            Task::new("task-1".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
-        let task2 = Task::new(
-            "task-2".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task2 =
+            Task::new("task-2".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
-        let task3 = Task::new(
-            "task-3".to_string(),
-            "Test".to_string(),
-            "Desc".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task3 =
+            Task::new("task-3".to_string(), "Test".to_string(), "Desc".to_string(), TaskType::Feature, 1).unwrap();
 
         let dag = DAG {
             nodes: vec![task1, task2, task3],
             edges: vec![
-                Edge {
-                    from: "task-1".to_string(),
-                    to: "task-2".to_string(),
-                },
-                Edge {
-                    from: "task-1".to_string(),
-                    to: "task-3".to_string(),
-                },
+                Edge { from: "task-1".to_string(), to: "task-2".to_string() },
+                Edge { from: "task-1".to_string(), to: "task-3".to_string() },
             ],
             levels: vec![
                 vec!["task-1".to_string()],
@@ -1136,13 +943,7 @@ mod tests {
 
     #[test]
     fn test_execution_summary_roundtrip() {
-        let summary = ExecutionSummary {
-            total: 100,
-            completed: 90,
-            failed: 5,
-            escalated: 5,
-            success_rate: 90.0,
-        };
+        let summary = ExecutionSummary { total: 100, completed: 90, failed: 5, escalated: 5, success_rate: 90.0 };
 
         let json = serde_json::to_string(&summary).unwrap();
         let deserialized: ExecutionSummary = serde_json::from_str(&json).unwrap();
@@ -1169,14 +970,8 @@ mod tests {
 
     #[test]
     fn test_progress_status_roundtrip() {
-        let progress = ProgressStatus {
-            total: 50,
-            completed: 25,
-            running: 10,
-            waiting: 10,
-            failed: 5,
-            percentage: 50.0,
-        };
+        let progress =
+            ProgressStatus { total: 50, completed: 25, running: 10, waiting: 10, failed: 5, percentage: 50.0 };
 
         let json = serde_json::to_string(&progress).unwrap();
         let deserialized: ProgressStatus = serde_json::from_str(&json).unwrap();

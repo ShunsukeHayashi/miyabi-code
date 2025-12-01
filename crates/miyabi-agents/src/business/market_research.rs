@@ -29,9 +29,8 @@ impl MarketResearchAgent {
     /// Generate comprehensive market research using LLM
     async fn generate_market_research(&self, task: &Task) -> Result<MarketResearch> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -51,16 +50,13 @@ Generate detailed market research as JSON with market size analysis, competitive
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::MarketResearchAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::MarketResearchAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let market_research: MarketResearch = serde_json::from_str(&response).map_err(|e| {
@@ -105,8 +101,8 @@ Generate detailed market research as JSON with market size analysis, competitive
 
     /// Generate market research summary for reporting
     fn generate_summary(&self, research: &MarketResearch) -> String {
-        let total_opportunities = research.market_opportunities.primary.len()
-            + research.market_opportunities.secondary.len();
+        let total_opportunities =
+            research.market_opportunities.primary.len() + research.market_opportunities.secondary.len();
 
         format!(
             "Market Research Generated: {} competitors, {} trends, {} opportunities",
@@ -208,10 +204,7 @@ impl BaseAgent for MarketResearchAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "MarketResearchAgent starting market research generation for task: {}",
-            task.id
-        );
+        tracing::info!("MarketResearchAgent starting market research generation for task: {}", task.id);
 
         // Generate market research using LLM
         let market_research = self.generate_market_research(task).await?;
@@ -247,10 +240,7 @@ impl BaseAgent for MarketResearchAgent {
             "opportunities_count": market_research.market_opportunities.primary.len() + market_research.market_opportunities.secondary.len()
         });
 
-        tracing::info!(
-            "MarketResearchAgent completed market research generation: {}",
-            summary
-        );
+        tracing::info!("MarketResearchAgent completed market research generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -271,7 +261,9 @@ mod tests {
         Task {
             id: "test-task-7".to_string(),
             title: "AI-Powered Customer Support Platform".to_string(),
-            description: "A comprehensive customer support platform with AI-driven ticket routing and automated responses".to_string(),
+            description:
+                "A comprehensive customer support platform with AI-driven ticket routing and automated responses"
+                    .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,

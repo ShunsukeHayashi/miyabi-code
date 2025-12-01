@@ -93,10 +93,7 @@ impl LoopCommand {
             ));
         }
 
-        println!(
-            "{}",
-            format!("🔄 Starting feedback loop for {} issue(s)...", issues.len()).cyan()
-        );
+        println!("{}", format!("🔄 Starting feedback loop for {} issue(s)...", issues.len()).cyan());
 
         config
             .validate()
@@ -107,10 +104,7 @@ impl LoopCommand {
         for &issue_num in issues {
             let goal_id = format!("issue-{}", issue_num);
 
-            println!(
-                "{}",
-                format!("  📋 Processing Issue #{}: {}", issue_num, goal_id).bright_blue()
-            );
+            println!("{}", format!("  📋 Processing Issue #{}: {}", issue_num, goal_id).bright_blue());
 
             match orchestrator.start_loop(&goal_id).await {
                 Ok(feedback_loop) => {
@@ -136,23 +130,12 @@ impl LoopCommand {
                     );
 
                     if !feedback_loop.convergence_metrics.is_empty() {
-                        let final_score = feedback_loop
-                            .convergence_metrics
-                            .last()
-                            .copied()
-                            .unwrap_or(0.0);
-                        println!(
-                            "{}",
-                            format!("    Final quality score: {:.1}/100", final_score)
-                                .bright_cyan()
-                        );
+                        let final_score = feedback_loop.convergence_metrics.last().copied().unwrap_or(0.0);
+                        println!("{}", format!("    Final quality score: {:.1}/100", final_score).bright_cyan());
                     }
                 }
                 Err(e) => {
-                    println!(
-                        "{}",
-                        format!("  ❌ Issue #{}: Failed - {}", issue_num, e).red()
-                    );
+                    println!("{}", format!("  ❌ Issue #{}: Failed - {}", issue_num, e).red());
                 }
             }
         }
@@ -168,35 +151,23 @@ impl LoopCommand {
                 // Note: Status retrieval requires orchestrator instance
                 // For now, print placeholder message
                 println!("{}", "⚠️  Status retrieval not yet implemented".yellow());
-                println!(
-                    "{}",
-                    "💡 Tip: Use 'miyabi loop start --issues N' to start a new loop".bright_blue()
-                );
+                println!("{}", "💡 Tip: Use 'miyabi loop start --issues N' to start a new loop".bright_blue());
             }
             None => {
                 println!("{}", "📊 Active feedback loops:".bright_cyan());
                 println!("{}", "⚠️  Status listing not yet implemented".yellow());
-                println!(
-                    "{}",
-                    "💡 Tip: Specify a goal ID to check specific loop status".bright_blue()
-                );
+                println!("{}", "💡 Tip: Specify a goal ID to check specific loop status".bright_blue());
             }
         }
         Ok(())
     }
 
     async fn execute_cancel(goal_id: &str) -> Result<()> {
-        println!(
-            "{}",
-            format!("🚫 Cancelling loop for goal: {}", goal_id).yellow()
-        );
+        println!("{}", format!("🚫 Cancelling loop for goal: {}", goal_id).yellow());
         // Note: Cancellation requires orchestrator instance
         // For now, print placeholder message
         println!("{}", "⚠️  Loop cancellation not yet implemented".yellow());
-        println!(
-            "{}",
-            "💡 Tip: Use 'miyabi loop start --issues N' to start a new loop".bright_blue()
-        );
+        println!("{}", "💡 Tip: Use 'miyabi loop start --issues N' to start a new loop".bright_blue());
         Ok(())
     }
 }
@@ -221,15 +192,11 @@ mod tests {
         assert!(matches!(start_cmd, LoopCommand::Start { .. }));
 
         // Test Status variant
-        let status_cmd = LoopCommand::Status {
-            goal_id: Some("issue-270".to_string()),
-        };
+        let status_cmd = LoopCommand::Status { goal_id: Some("issue-270".to_string()) };
         assert!(matches!(status_cmd, LoopCommand::Status { .. }));
 
         // Test Cancel variant
-        let cancel_cmd = LoopCommand::Cancel {
-            goal_id: "issue-270".to_string(),
-        };
+        let cancel_cmd = LoopCommand::Cancel { goal_id: "issue-270".to_string() };
         assert!(matches!(cancel_cmd, LoopCommand::Cancel { .. }));
     }
 

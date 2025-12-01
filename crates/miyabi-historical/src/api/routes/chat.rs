@@ -58,11 +58,7 @@ pub async fn chat_handler(
     let sources: Vec<String> = search_results
         .iter()
         .map(|doc| {
-            let source_type = doc
-                .metadata
-                .get("source")
-                .map(|s| s.as_str())
-                .unwrap_or("unknown");
+            let source_type = doc.metadata.get("source").map(|s| s.as_str()).unwrap_or("unknown");
             format!("{}: {}", source_type, &doc.text[..doc.text.len().min(100)])
         })
         .collect();
@@ -89,11 +85,7 @@ pub async fn chat_handler(
             ApiError::InternalError(format!("Failed to build prompt: {}", e))
         })?;
 
-    info!(
-        "Built prompts - system: {} chars, user: {} chars",
-        system_prompt.len(),
-        user_prompt.len()
-    );
+    info!("Built prompts - system: {} chars, user: {} chars", system_prompt.len(), user_prompt.len());
 
     // Step 5: Call LLM
     let messages = vec![Message::system(system_prompt), Message::user(user_prompt)];
@@ -125,10 +117,7 @@ impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_response) = match self {
             ApiError::BadRequest(msg) => (StatusCode::BAD_REQUEST, ErrorResponse::bad_request(msg)),
-            ApiError::InternalError(msg) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                ErrorResponse::internal_error(msg),
-            ),
+            ApiError::InternalError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, ErrorResponse::internal_error(msg)),
             ApiError::Timeout => (StatusCode::GATEWAY_TIMEOUT, ErrorResponse::timeout()),
         };
 

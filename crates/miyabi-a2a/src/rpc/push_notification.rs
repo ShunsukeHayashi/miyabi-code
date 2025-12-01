@@ -205,8 +205,7 @@ pub fn generate_webhook_signature(secret: &str, timestamp: &str, payload_json: &
     let message = format!("{}.{}", timestamp, payload_json);
 
     // Create HMAC instance
-    let mut mac =
-        HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC can take key of any size");
+    let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC can take key of any size");
 
     // Update with message
     mac.update(message.as_bytes());
@@ -322,10 +321,7 @@ pub async fn send_push_notification(
                         "Push notification failed with non-success status"
                     );
 
-                    last_error = Some(A2AError::WebhookDeliveryFailed(format!(
-                        "HTTP {} - {}",
-                        status, error_body
-                    )));
+                    last_error = Some(A2AError::WebhookDeliveryFailed(format!("HTTP {} - {}", status, error_body)));
                 }
             }
             Err(e) => {
@@ -335,10 +331,7 @@ pub async fn send_push_notification(
                     "Push notification request failed"
                 );
 
-                last_error = Some(A2AError::WebhookDeliveryFailed(format!(
-                    "Request error: {}",
-                    e
-                )));
+                last_error = Some(A2AError::WebhookDeliveryFailed(format!("Request error: {}", e)));
             }
         }
 
@@ -347,11 +340,7 @@ pub async fn send_push_notification(
             let delay_ms = BASE_DELAY_MS * 2u64.pow(attempt);
             let delay = Duration::from_millis(delay_ms);
 
-            debug!(
-                delay_ms = delay_ms,
-                next_attempt = attempt + 1,
-                "Retrying push notification after delay"
-            );
+            debug!(delay_ms = delay_ms, next_attempt = attempt + 1, "Retrying push notification after delay");
 
             tokio::time::sleep(delay).await;
         }
@@ -365,9 +354,7 @@ pub async fn send_push_notification(
         MAX_RETRIES + 1
     );
 
-    Err(last_error.unwrap_or_else(|| {
-        A2AError::WebhookDeliveryFailed("Unknown error after retries".to_string())
-    }))
+    Err(last_error.unwrap_or_else(|| A2AError::WebhookDeliveryFailed("Unknown error after retries".to_string())))
 }
 
 #[cfg(test)]
@@ -417,8 +404,7 @@ mod tests {
             .await;
 
         let client = Client::new();
-        let config = WebhookConfig::new(format!("{}/webhook", mock_server.uri()))
-            .with_bearer_token("secret_token");
+        let config = WebhookConfig::new(format!("{}/webhook", mock_server.uri())).with_bearer_token("secret_token");
 
         let payload = PushNotificationPayload {
             event_type: "test.event".to_string(),
@@ -543,8 +529,7 @@ mod tests {
     fn test_generate_webhook_signature_deterministic() {
         let secret = "test-secret-key";
         let timestamp = "2025-10-21T12:00:00Z";
-        let payload_json =
-            r#"{"event_type":"test","task_id":"123","data":{},"timestamp":"2025-10-21T12:00:00Z"}"#;
+        let payload_json = r#"{"event_type":"test","task_id":"123","data":{},"timestamp":"2025-10-21T12:00:00Z"}"#;
 
         // Generate signature twice with same inputs
         let signature1 = generate_webhook_signature(secret, timestamp, payload_json);
@@ -652,8 +637,7 @@ mod tests {
             .await;
 
         let client = Client::new();
-        let config = WebhookConfig::new(format!("{}/webhook", mock_server.uri()))
-            .with_webhook_secret("my-secret-key");
+        let config = WebhookConfig::new(format!("{}/webhook", mock_server.uri())).with_webhook_secret("my-secret-key");
 
         let payload = PushNotificationPayload {
             event_type: "test.event".to_string(),

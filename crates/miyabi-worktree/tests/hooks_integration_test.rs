@@ -29,10 +29,7 @@ struct TestAgent {
 
 impl TestAgent {
     fn new(should_fail: bool, execution_delay_ms: u64) -> Self {
-        Self {
-            should_fail,
-            execution_delay_ms,
-        }
+        Self { should_fail, execution_delay_ms }
     }
 }
 
@@ -47,10 +44,7 @@ impl BaseAgent for TestAgent {
         tokio::time::sleep(tokio::time::Duration::from_millis(self.execution_delay_ms)).await;
 
         if self.should_fail {
-            return Err(MiyabiError::Unknown(format!(
-                "Intentional failure for task {}",
-                task.id
-            )));
+            return Err(MiyabiError::Unknown(format!("Intentional failure for task {}", task.id)));
         }
 
         Ok(AgentResult {
@@ -94,9 +88,7 @@ struct HookEvent {
 
 impl RecordingHook {
     fn new() -> Self {
-        Self {
-            events: Arc::new(Mutex::new(Vec::new())),
-        }
+        Self { events: Arc::new(Mutex::new(Vec::new())) }
     }
 
     fn events(&self) -> Vec<HookEvent> {
@@ -135,12 +127,7 @@ impl AgentHook for RecordingHook {
         Ok(())
     }
 
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        _result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, _result: &AgentResult) -> Result<()> {
         let mut events = self.events.lock().unwrap();
         events.push(HookEvent {
             event_type: "post_execute".to_string(),
@@ -208,12 +195,7 @@ async fn test_scenario_1_parallel_execution_with_hooks() {
         .unwrap();
 
     // Create WorktreePool with 2 concurrency
-    let config = PoolConfig {
-        max_concurrency: 2,
-        timeout_seconds: 10,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 2, timeout_seconds: 10, fail_fast: false, auto_cleanup: true };
 
     let worktree_base = temp_path.join("worktrees");
     let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).unwrap();
@@ -261,10 +243,7 @@ async fn test_scenario_1_parallel_execution_with_hooks() {
 
                     // Create task with worktree_id in metadata
                     let mut metadata = HashMap::new();
-                    metadata.insert(
-                        "worktree_id".to_string(),
-                        serde_json::json!(worktree_info.id.clone()),
-                    );
+                    metadata.insert("worktree_id".to_string(), serde_json::json!(worktree_info.id.clone()));
 
                     let task = Task {
                         id: format!("task-{}", worktree_info.issue_number),
@@ -446,10 +425,7 @@ async fn test_scenario_2_fail_fast_with_error_hooks() {
 
                     // Create task with worktree_id
                     let mut metadata = HashMap::new();
-                    metadata.insert(
-                        "worktree_id".to_string(),
-                        serde_json::json!(worktree_info.id.clone()),
-                    );
+                    metadata.insert("worktree_id".to_string(), serde_json::json!(worktree_info.id.clone()));
 
                     let task = Task {
                         id: format!("task-{}", worktree_info.issue_number),
@@ -488,10 +464,7 @@ async fn test_scenario_2_fail_fast_with_error_hooks() {
     let completed_tasks = result.success_count + result.failed_count;
     if completed_tasks < result.total_tasks {
         // Ideal case: some tasks were cancelled
-        eprintln!(
-            "[Test] Fail-fast cancelled {} tasks",
-            result.cancelled_count
-        );
+        eprintln!("[Test] Fail-fast cancelled {} tasks", result.cancelled_count);
     } else {
         // Edge case: all tasks completed before cancellation propagated
         eprintln!("[Test] All tasks completed (fail-fast timing edge case)");
@@ -508,10 +481,7 @@ async fn test_scenario_2_fail_fast_with_error_hooks() {
 
     // Verify worktree_id was captured in error events
     for event in error_events {
-        assert!(
-            event.worktree_id.is_some(),
-            "Error event should have worktree_id"
-        );
+        assert!(event.worktree_id.is_some(), "Error event should have worktree_id");
     }
 }
 
@@ -558,12 +528,7 @@ async fn test_scenario_3_statistics_consistency() {
         .unwrap();
 
     // Create WorktreePool
-    let config = PoolConfig {
-        max_concurrency: 2,
-        timeout_seconds: 10,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 2, timeout_seconds: 10, fail_fast: false, auto_cleanup: true };
 
     let worktree_base = temp_path.join("worktrees");
     let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).unwrap();
@@ -622,10 +587,7 @@ async fn test_scenario_3_statistics_consistency() {
                     hooked_agent.register_hook(AuditLogHook::new(log_dir));
 
                     let mut metadata = HashMap::new();
-                    metadata.insert(
-                        "worktree_id".to_string(),
-                        serde_json::json!(worktree_info.id.clone()),
-                    );
+                    metadata.insert("worktree_id".to_string(), serde_json::json!(worktree_info.id.clone()));
 
                     let task = Task {
                         id: format!("task-{}", worktree_info.issue_number),
@@ -668,23 +630,13 @@ async fn test_scenario_3_statistics_consistency() {
     assert_eq!(pre_count, 4, "All 4 tasks should have pre_execute hook");
 
     // Success + Error = Total
-    assert_eq!(
-        post_count + error_count,
-        4,
-        "post_execute + error should equal total tasks"
-    );
+    assert_eq!(post_count + error_count, 4, "post_execute + error should equal total tasks");
 
     // Consistency check: success count from pool == post_execute count
-    assert_eq!(
-        result.success_count, post_count,
-        "Pool success count should match post_execute hook count"
-    );
+    assert_eq!(result.success_count, post_count, "Pool success count should match post_execute hook count");
 
     // Consistency check: failed count from pool == error count
-    assert_eq!(
-        result.failed_count, error_count,
-        "Pool failed count should match error hook count"
-    );
+    assert_eq!(result.failed_count, error_count, "Pool failed count should match error hook count");
 
     // Verify statistics methods
     assert_eq!(result.success_rate(), 75.0);

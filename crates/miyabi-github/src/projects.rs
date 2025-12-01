@@ -172,9 +172,7 @@ impl GitHubClient {
                 "variables": field_vars
             }))
             .await
-            .map_err(|e| {
-                MiyabiError::GitHub(format!("Failed to query field {}: {}", field_name, e))
-            })?;
+            .map_err(|e| MiyabiError::GitHub(format!("Failed to query field {}: {}", field_name, e)))?;
 
         let field = field_response
             .data
@@ -182,15 +180,9 @@ impl GitHubClient {
             .field
             .ok_or_else(|| MiyabiError::GitHub(format!("Field '{}' not found", field_name)))?;
 
-        let option = field
-            .options
-            .iter()
-            .find(|opt| opt.name == value)
-            .ok_or_else(|| {
-                MiyabiError::GitHub(format!(
-                    "Option '{}' not found in field '{}'",
-                    value, field_name
-                ))
+        let option =
+            field.options.iter().find(|opt| opt.name == value).ok_or_else(|| {
+                MiyabiError::GitHub(format!("Option '{}' not found in field '{}'", value, field_name))
             })?;
 
         // Update the field value
@@ -222,9 +214,7 @@ impl GitHubClient {
                 "variables": update_vars
             }))
             .await
-            .map_err(|e| {
-                MiyabiError::GitHub(format!("Failed to update field {}: {}", field_name, e))
-            })?;
+            .map_err(|e| MiyabiError::GitHub(format!("Failed to update field {}: {}", field_name, e)))?;
 
         Ok(())
     }

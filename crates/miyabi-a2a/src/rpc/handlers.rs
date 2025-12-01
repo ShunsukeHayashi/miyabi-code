@@ -192,10 +192,7 @@ impl<S: TaskStorage> A2ARpcHandler<S> {
     pub async fn tasks_cancel(&self, params: TasksCancelParams) -> A2AResult<TasksCancelResponse> {
         self.storage.cancel_task(&params.task_id).await?;
 
-        Ok(TasksCancelResponse {
-            task_id: params.task_id,
-            status: TaskStatus::Cancelled,
-        })
+        Ok(TasksCancelResponse { task_id: params.task_id, status: TaskStatus::Cancelled })
     }
 
     /// Handle tasks/list RPC method
@@ -234,9 +231,7 @@ impl AgentCardRpcHandler {
     ) -> A2AResult<GetAuthenticatedExtendedCardResponse> {
         // TODO: Validate JWT token in params.token
         // For now, just return the card
-        Ok(GetAuthenticatedExtendedCardResponse {
-            card: self.card.clone(),
-        })
+        Ok(GetAuthenticatedExtendedCardResponse { card: self.card.clone() })
     }
 }
 
@@ -254,9 +249,7 @@ mod tests {
 
     impl MemoryTaskStorage {
         fn new() -> Self {
-            Self {
-                tasks: Arc::new(RwLock::new(HashMap::new())),
-            }
+            Self { tasks: Arc::new(RwLock::new(HashMap::new())) }
         }
     }
 
@@ -318,10 +311,7 @@ mod tests {
                 .ok_or_else(|| A2AError::TaskNotFound(task_id.to_string()))?;
 
             if task.is_terminal() {
-                return Err(A2AError::InvalidRequest(format!(
-                    "Task {} is already terminal",
-                    task_id
-                )));
+                return Err(A2AError::InvalidRequest(format!("Task {} is already terminal", task_id)));
             }
 
             task.set_status(TaskStatus::Cancelled);
@@ -351,17 +341,11 @@ mod tests {
         let handler = A2ARpcHandler::new(storage.clone());
 
         // Create a task
-        let send_params = MessageSendParams {
-            role: Role::User,
-            parts: vec![Part::text("Test")],
-            context_id: None,
-        };
+        let send_params = MessageSendParams { role: Role::User, parts: vec![Part::text("Test")], context_id: None };
         let send_response = handler.message_send(send_params).await.unwrap();
 
         // Get the task
-        let get_params = TasksGetParams {
-            task_id: send_response.task_id.clone(),
-        };
+        let get_params = TasksGetParams { task_id: send_response.task_id.clone() };
         let get_response = handler.tasks_get(get_params).await.unwrap();
 
         assert_eq!(get_response.task.id, send_response.task_id);
@@ -373,17 +357,11 @@ mod tests {
         let handler = A2ARpcHandler::new(storage.clone());
 
         // Create a task
-        let send_params = MessageSendParams {
-            role: Role::User,
-            parts: vec![Part::text("Test")],
-            context_id: None,
-        };
+        let send_params = MessageSendParams { role: Role::User, parts: vec![Part::text("Test")], context_id: None };
         let send_response = handler.message_send(send_params).await.unwrap();
 
         // Cancel the task
-        let cancel_params = TasksCancelParams {
-            task_id: send_response.task_id.clone(),
-        };
+        let cancel_params = TasksCancelParams { task_id: send_response.task_id.clone() };
         let cancel_response = handler.tasks_cancel(cancel_params).await.unwrap();
 
         assert_eq!(cancel_response.status, TaskStatus::Cancelled);
@@ -405,11 +383,7 @@ mod tests {
         }
 
         // List tasks
-        let list_params = TasksListParams {
-            context_id: Some("test-ctx".to_string()),
-            status: None,
-            limit: 100,
-        };
+        let list_params = TasksListParams { context_id: Some("test-ctx".to_string()), status: None, limit: 100 };
         let list_response = handler.tasks_list(list_params).await.unwrap();
 
         assert_eq!(list_response.total_count, 5);

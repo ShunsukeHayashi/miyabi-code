@@ -62,8 +62,7 @@ async fn generate_image(
         } else {
             "disabled".to_string()
         },
-        sequential_image_generation_options: max_images
-            .map(|max| SequentialOptions { max_images: max }),
+        sequential_image_generation_options: max_images.map(|max| SequentialOptions { max_images: max }),
         response_format: "url".to_string(),
         size: "2K".to_string(),
         stream: false,
@@ -165,14 +164,7 @@ Design requirements:\n\
 - Professional digital art style\n\
 - Suitable for Discord server icon";
 
-    let miyabi_urls = generate_image(
-        &client,
-        &api_key,
-        miyabi_prompt,
-        "Premium Mascot: Miyabiちゃん",
-        None,
-    )
-    .await?;
+    let miyabi_urls = generate_image(&client, &api_key, miyabi_prompt, "Premium Mascot: Miyabiちゃん", None).await?;
 
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
@@ -206,14 +198,7 @@ Include the following in a clean, organized layout:\n\
 Design handoff document, suitable for developers and designers.\n\
 Wide format (16:9), high contrast, print-ready quality.";
 
-    let design_urls = generate_image(
-        &client,
-        &api_key,
-        design_system_prompt,
-        "Design System Guide",
-        None,
-    )
-    .await?;
+    let design_urls = generate_image(&client, &api_key, design_system_prompt, "Design System Guide", None).await?;
 
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
@@ -251,14 +236,7 @@ Design a premium Discord server banner for 'Miyabi Community' with exceptional U
 **Mood**: \n\
 Professional, innovative, trustworthy, cutting-edge.";
 
-    let banner_urls = generate_image(
-        &client,
-        &api_key,
-        banner_prompt,
-        "Premium Community Banner",
-        None,
-    )
-    .await?;
+    let banner_urls = generate_image(&client, &api_key, banner_prompt, "Premium Community Banner", None).await?;
 
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
@@ -294,14 +272,8 @@ Each should be part of a unified design system.\n\
 Arrange all 6 characters in a grid (2 rows × 3 columns) on a single image.\n\
 Equal spacing, centered, clean presentation.";
 
-    let agent_urls = generate_image(
-        &client,
-        &api_key,
-        agent_icons_prompt,
-        "Agent Icon Set (6 characters)",
-        None,
-    )
-    .await?;
+    let agent_urls =
+        generate_image(&client, &api_key, agent_icons_prompt, "Agent Icon Set (6 characters)", None).await?;
 
     // Summary Report
     println!("\n{}", "▓".repeat(70));
@@ -309,18 +281,9 @@ Equal spacing, centered, clean presentation.";
     println!("{}", "▓".repeat(70));
 
     println!("\n✅ Generated Assets:");
-    println!(
-        "   1. 🌸 Miyabiちゃん Premium Mascot: {} image(s)",
-        miyabi_urls.len()
-    );
-    println!(
-        "   2. 📐 Design System Guide: {} image(s)",
-        design_urls.len()
-    );
-    println!(
-        "   3. 🎨 Premium Community Banner: {} image(s)",
-        banner_urls.len()
-    );
+    println!("   1. 🌸 Miyabiちゃん Premium Mascot: {} image(s)", miyabi_urls.len());
+    println!("   2. 📐 Design System Guide: {} image(s)", design_urls.len());
+    println!("   3. 🎨 Premium Community Banner: {} image(s)", banner_urls.len());
     println!("   4. 🤖 Agent Icon Set: {} image(s)", agent_urls.len());
     println!(
         "   Total: {} images\n",

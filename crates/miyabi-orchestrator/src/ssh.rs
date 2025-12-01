@@ -58,13 +58,7 @@ pub struct Machine {
 impl Machine {
     /// Create a new machine configuration
     pub fn new(hostname: String, ip: String, capacity: usize) -> Self {
-        Self {
-            hostname,
-            ip,
-            capacity,
-            running_sessions: 0,
-            status: MachineStatus::Available,
-        }
+        Self { hostname, ip, capacity, running_sessions: 0, status: MachineStatus::Available }
     }
 
     /// Check if machine has available capacity

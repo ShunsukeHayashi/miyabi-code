@@ -10,8 +10,7 @@
 //! ```
 
 use miyabi_agent_business::{
-    AIEntrepreneurAgent, AnalyticsAgent, ExecutionResultBuilder, ExecutionStatus,
-    MarketResearchAgent, PersistableAgent,
+    AIEntrepreneurAgent, AnalyticsAgent, ExecutionResultBuilder, ExecutionStatus, MarketResearchAgent, PersistableAgent,
 };
 use serde_json::json;
 use sqlx::PgPool;
@@ -23,8 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
     // Get database URL from environment
-    let database_url =
-        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set (e.g., postgres://...)");
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set (e.g., postgres://...)");
 
     println!("🔌 Connecting to database...");
     let pool = PgPool::connect(&database_url).await?;
@@ -54,10 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demo 1: Save AIEntrepreneurAgent execution
-async fn demo_ai_entrepreneur(
-    pool: &PgPool,
-    repo_id: Uuid,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn demo_ai_entrepreneur(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std::error::Error>> {
     let agent = AIEntrepreneurAgent::new(Default::default());
 
     // Create execution result
@@ -95,10 +90,7 @@ async fn demo_ai_entrepreneur(
 }
 
 /// Demo 2: MarketResearchAgent with detailed analysis
-async fn demo_market_research(
-    pool: &PgPool,
-    repo_id: Uuid,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn demo_market_research(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std::error::Error>> {
     let agent = MarketResearchAgent::new(Default::default());
 
     let result = ExecutionResultBuilder::new(repo_id, "MarketResearchAgent".to_string())
@@ -161,29 +153,21 @@ async fn demo_analytics(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std:
     });
 
     println!("📊 Saving additional analysis metrics...");
-    agent
-        .save_analysis_metrics(pool, execution_id, metrics)
-        .await?;
+    agent.save_analysis_metrics(pool, execution_id, metrics).await?;
     println!("✅ Metrics saved");
 
     Ok(())
 }
 
 /// Demo 4: Query execution history
-async fn demo_query_history(
-    pool: &PgPool,
-    repo_id: Uuid,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn demo_query_history(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std::error::Error>> {
     println!("📜 Querying execution history...\n");
 
     // Query AIEntrepreneurAgent history
     let entrepreneur = AIEntrepreneurAgent::new(Default::default());
     let history = entrepreneur.load_history(pool, repo_id, 10).await?;
 
-    println!(
-        "📊 AIEntrepreneurAgent History ({} executions):",
-        history.len()
-    );
+    println!("📊 AIEntrepreneurAgent History ({} executions):", history.len());
     for exec in &history {
         println!(
             "  - Execution {}: {:?} (Quality: {:?})",
@@ -280,12 +264,9 @@ async fn create_test_repository(pool: &PgPool) -> Result<Uuid, Box<dyn std::erro
 
 /// Helper: Cleanup test data
 async fn cleanup_test_data(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std::error::Error>> {
-    sqlx::query!(
-        "DELETE FROM agent_executions WHERE repository_id = $1",
-        repo_id
-    )
-    .execute(pool)
-    .await?;
+    sqlx::query!("DELETE FROM agent_executions WHERE repository_id = $1", repo_id)
+        .execute(pool)
+        .await?;
 
     sqlx::query!("DELETE FROM repositories WHERE id = $1", repo_id)
         .execute(pool)

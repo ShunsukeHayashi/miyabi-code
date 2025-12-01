@@ -17,9 +17,7 @@ use tonic::Status;
 /// Convert internal Part to proto Part
 pub fn part_to_proto(part: types::Part) -> Result<proto::Part, Status> {
     let part_type = match part {
-        types::Part::Text { content } => {
-            Some(proto::part::PartType::Text(proto::TextPart { content }))
-        }
+        types::Part::Text { content } => Some(proto::part::PartType::Text(proto::TextPart { content })),
         types::Part::Image { url } => {
             // Internal Part::Image only has URL, map to proto Image
             Some(proto::part::PartType::Image(proto::ImagePart {
@@ -49,9 +47,7 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
         .ok_or_else(|| Status::invalid_argument("Part type is required"))?;
 
     match part_type {
-        proto::part::PartType::Text(text) => Ok(types::Part::Text {
-            content: text.content,
-        }),
+        proto::part::PartType::Text(text) => Ok(types::Part::Text { content: text.content }),
         proto::part::PartType::Image(image) => {
             // Proto Image has url (required), internal Part::Image only has url
             Ok(types::Part::Image { url: image.url })
@@ -62,10 +58,7 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
                 .data
                 .ok_or_else(|| Status::invalid_argument("Audio part requires data"))?;
             let mime_type = audio.mime_type.unwrap_or_else(|| "audio/mpeg".to_string());
-            Ok(types::Part::Data {
-                content: data,
-                mime_type,
-            })
+            Ok(types::Part::Data { content: data, mime_type })
         }
         proto::part::PartType::Video(video) => {
             // Map Video URL to Image (closest match)
@@ -76,10 +69,7 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
             let data = file
                 .data
                 .ok_or_else(|| Status::invalid_argument("File part requires data"))?;
-            Ok(types::Part::Data {
-                content: data,
-                mime_type: file.mime_type,
-            })
+            Ok(types::Part::Data { content: data, mime_type: file.mime_type })
         }
     }
 }
@@ -91,10 +81,7 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
 /// Convert internal Task to proto Task
 pub fn task_to_proto(task: types::Task) -> Result<proto::Task, Status> {
     let (output, error) = match task.output {
-        Some(task_output) => (
-            Some(task_output_to_proto(task_output.result)?),
-            task_output.error,
-        ),
+        Some(task_output) => (Some(task_output_to_proto(task_output.result)?), task_output.error),
         None => (None, None),
     };
 
@@ -119,10 +106,7 @@ pub fn proto_to_task(task: proto::Task) -> Result<types::Task, Status> {
         }
         (None, Some(error)) => {
             // Error without output
-            Some(types::TaskOutput {
-                result: serde_json::Value::Null,
-                error: Some(error),
-            })
+            Some(types::TaskOutput { result: serde_json::Value::Null, error: Some(error) })
         }
         (None, None) => None,
     };
@@ -184,22 +168,17 @@ fn task_input_to_proto(input: types::TaskInput) -> Result<proto::TaskInput, Stat
         vec![]
     };
 
-    let artifacts =
-        if let Some(artifacts_array) = input.params.get("artifacts").and_then(|a| a.as_array()) {
-            artifacts_array
-                .iter()
-                .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
-                .map(artifact_to_proto)
-                .collect::<Result<Vec<_>, _>>()?
-        } else {
-            vec![]
-        };
+    let artifacts = if let Some(artifacts_array) = input.params.get("artifacts").and_then(|a| a.as_array()) {
+        artifacts_array
+            .iter()
+            .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
+            .map(artifact_to_proto)
+            .collect::<Result<Vec<_>, _>>()?
+    } else {
+        vec![]
+    };
 
-    Ok(proto::TaskInput {
-        prompt: input.prompt,
-        parts,
-        artifacts,
-    })
+    Ok(proto::TaskInput { prompt: input.prompt, parts, artifacts })
 }
 
 /// Convert proto TaskInput to internal TaskInput
@@ -221,10 +200,7 @@ fn proto_to_task_input(input: proto::TaskInput) -> Result<types::TaskInput, Stat
 
     let mut params = serde_json::Map::new();
     if !parts.is_empty() {
-        params.insert(
-            "parts".to_string(),
-            serde_json::to_value(parts).map_err(|e| Status::internal(e.to_string()))?,
-        );
+        params.insert("parts".to_string(), serde_json::to_value(parts).map_err(|e| Status::internal(e.to_string()))?);
     }
     if !artifacts.is_empty() {
         params.insert(
@@ -233,10 +209,7 @@ fn proto_to_task_input(input: proto::TaskInput) -> Result<types::TaskInput, Stat
         );
     }
 
-    Ok(types::TaskInput {
-        prompt: input.prompt,
-        params: serde_json::Value::Object(params),
-    })
+    Ok(types::TaskInput { prompt: input.prompt, params: serde_json::Value::Object(params) })
 }
 
 /// Convert internal TaskOutput result (JSON) to proto TaskOutput
@@ -254,21 +227,17 @@ fn task_output_to_proto(result: serde_json::Value) -> Result<proto::TaskOutput, 
         vec![]
     };
 
-    let artifacts =
-        if let Some(artifacts_array) = result.get("artifacts").and_then(|a| a.as_array()) {
-            artifacts_array
-                .iter()
-                .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
-                .map(artifact_to_proto)
-                .collect::<Result<Vec<_>, _>>()?
-        } else {
-            vec![]
-        };
+    let artifacts = if let Some(artifacts_array) = result.get("artifacts").and_then(|a| a.as_array()) {
+        artifacts_array
+            .iter()
+            .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
+            .map(artifact_to_proto)
+            .collect::<Result<Vec<_>, _>>()?
+    } else {
+        vec![]
+    };
 
-    Ok(proto::TaskOutput {
-        messages,
-        artifacts,
-    })
+    Ok(proto::TaskOutput { messages, artifacts })
 }
 
 /// Convert proto TaskOutput to internal TaskOutput result (JSON Value)
@@ -334,10 +303,7 @@ pub fn proto_to_message(message: proto::Message) -> Result<types::Message, Statu
         .collect::<Result<Vec<_>, _>>()?;
 
     // Internal Message only has role and parts (no ID or metadata)
-    Ok(types::Message {
-        role: proto_to_role(message.role)?,
-        parts,
-    })
+    Ok(types::Message { role: proto_to_role(message.role)?, parts })
 }
 
 /// Convert internal Role to proto Role
@@ -424,10 +390,7 @@ pub fn proto_to_artifact(artifact: proto::Artifact) -> Result<types::Artifact, S
     let mut metadata = serde_json::Map::new();
     metadata.insert("name".to_string(), serde_json::Value::String(artifact.name));
     if let Some(mime_type) = artifact.mime_type {
-        metadata.insert(
-            "mime_type".to_string(),
-            serde_json::Value::String(mime_type),
-        );
+        metadata.insert("mime_type".to_string(), serde_json::Value::String(mime_type));
     }
     if let Some(url) = artifact.url {
         metadata.insert("url".to_string(), serde_json::Value::String(url));
@@ -436,10 +399,7 @@ pub fn proto_to_artifact(artifact: proto::Artifact) -> Result<types::Artifact, S
         metadata.insert("size".to_string(), serde_json::Value::Number(size.into()));
     }
     if let Some(created_at) = artifact.created_at {
-        metadata.insert(
-            "created_at".to_string(),
-            serde_json::Value::String(created_at),
-        );
+        metadata.insert("created_at".to_string(), serde_json::Value::String(created_at));
     }
 
     Ok(types::Artifact {

@@ -70,11 +70,7 @@ impl Scheduler {
     /// # }
     /// ```
     pub async fn execute_all(&mut self) -> Result<()> {
-        info!(
-            "Starting scheduler: {} tasks, max {} parallel",
-            self.dag_ops.task_count(),
-            self.max_parallel
-        );
+        info!("Starting scheduler: {} tasks, max {} parallel", self.dag_ops.task_count(), self.max_parallel);
 
         loop {
             // Check running sessions for completion
@@ -145,10 +141,7 @@ impl Scheduler {
 
         // Spawn headless session
         let command = format!("/agent-run --task {}", task.id);
-        let session_id = self
-            .session_manager
-            .spawn_headless(command, worktree_path)
-            .await?;
+        let session_id = self.session_manager.spawn_headless(command, worktree_path).await?;
 
         // Track running session
         self.running.insert(task.id.clone(), session_id.clone());
@@ -173,10 +166,7 @@ impl Scheduler {
                     // Collect result (for logging/metrics)
                     match self.session_manager.collect_result(session_id).await {
                         Ok(result) => {
-                            debug!(
-                                "Task {} result: status={}, success={}",
-                                task_id, result.status, result.success
-                            );
+                            debug!("Task {} result: status={}, success={}", task_id, result.status, result.success);
                         }
                         Err(e) => {
                             warn!("Failed to collect result for task {}: {}", task_id, e);
@@ -247,20 +237,11 @@ mod tests {
     use miyabi_types::workflow::DAG;
 
     fn create_simple_dag() -> DAG {
-        let task1 = Task::new(
-            "task-1".to_string(),
-            "Task 1".to_string(),
-            "First task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task1 =
+            Task::new("task-1".to_string(), "Task 1".to_string(), "First task".to_string(), TaskType::Feature, 1)
+                .unwrap();
 
-        DAG {
-            nodes: vec![task1],
-            edges: vec![],
-            levels: vec![vec!["task-1".to_string()]],
-        }
+        DAG { nodes: vec![task1], edges: vec![], levels: vec![vec!["task-1".to_string()]] }
     }
 
     #[tokio::test]
@@ -291,32 +272,17 @@ mod tests {
     }
 
     fn create_complex_dag() -> DAG {
-        let task1 = Task::new(
-            "task-1".to_string(),
-            "Task 1".to_string(),
-            "First task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task1 =
+            Task::new("task-1".to_string(), "Task 1".to_string(), "First task".to_string(), TaskType::Feature, 1)
+                .unwrap();
 
-        let task2 = Task::new(
-            "task-2".to_string(),
-            "Task 2".to_string(),
-            "Second task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task2 =
+            Task::new("task-2".to_string(), "Task 2".to_string(), "Second task".to_string(), TaskType::Feature, 1)
+                .unwrap();
 
-        let task3 = Task::new(
-            "task-3".to_string(),
-            "Task 3".to_string(),
-            "Third task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task3 =
+            Task::new("task-3".to_string(), "Task 3".to_string(), "Third task".to_string(), TaskType::Feature, 1)
+                .unwrap();
 
         DAG {
             nodes: vec![task1, task2, task3],
@@ -403,11 +369,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_scheduler_with_empty_dag() {
-        let empty_dag = DAG {
-            nodes: vec![],
-            edges: vec![],
-            levels: vec![],
-        };
+        let empty_dag = DAG { nodes: vec![], edges: vec![], levels: vec![] };
 
         let dag_ops = DAGOperations::new(empty_dag).unwrap();
         let scheduler = Scheduler::new(dag_ops, 5, SessionConfig::default());

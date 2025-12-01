@@ -21,26 +21,17 @@ pub enum Role {
 impl Message {
     /// Create a system message
     pub fn system(content: impl Into<String>) -> Self {
-        Self {
-            role: Role::System,
-            content: content.into(),
-        }
+        Self { role: Role::System, content: content.into() }
     }
 
     /// Create a user message
     pub fn user(content: impl Into<String>) -> Self {
-        Self {
-            role: Role::User,
-            content: content.into(),
-        }
+        Self { role: Role::User, content: content.into() }
     }
 
     /// Create an assistant message
     pub fn assistant(content: impl Into<String>) -> Self {
-        Self {
-            role: Role::Assistant,
-            content: content.into(),
-        }
+        Self { role: Role::Assistant, content: content.into() }
     }
 }
 

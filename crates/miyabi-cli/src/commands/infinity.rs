@@ -196,8 +196,7 @@ impl InfinityMode {
             dry_run: config.dry_run,
         };
 
-        let orchestrator =
-            HeadlessOrchestrator::with_github_client(orchestrator_config, github_client.clone());
+        let orchestrator = HeadlessOrchestrator::with_github_client(orchestrator_config, github_client.clone());
 
         Self {
             config,
@@ -242,15 +241,11 @@ impl InfinityMode {
 
         // Filter out processed issues if resuming
         if self.config.resume {
-            if let Ok(Some(processed)) = InfinityCommand::load_previous_state(&self.config.log_dir)
-            {
+            if let Ok(Some(processed)) = InfinityCommand::load_previous_state(&self.config.log_dir) {
                 let before_count = issues.len();
                 issues.retain(|issue| !processed.contains(&issue.number));
                 let after_count = issues.len();
-                println!(
-                    "   Filtered out {} already completed Issues (resume mode)",
-                    before_count - after_count
-                );
+                println!("   Filtered out {} already completed Issues (resume mode)", before_count - after_count);
             }
         }
 
@@ -271,22 +266,14 @@ impl InfinityMode {
             }
 
             // Get next sprint batch
-            let sprint_issues: Vec<Issue> = issues
-                .iter()
-                .take(self.config.sprint_size)
-                .cloned()
-                .collect();
+            let sprint_issues: Vec<Issue> = issues.iter().take(self.config.sprint_size).cloned().collect();
 
             if sprint_issues.is_empty() {
                 break StopReason::AllCompleted;
             }
 
             println!();
-            println!(
-                "🏃 Sprint {} - Processing {} Issues",
-                sprint_id,
-                sprint_issues.len()
-            );
+            println!("🏃 Sprint {} - Processing {} Issues", sprint_id, sprint_issues.len());
 
             // Execute sprint
             let sprint_result = self.execute_sprint(sprint_id, sprint_issues).await?;
@@ -412,12 +399,8 @@ impl InfinityMode {
                     // If PR was created and merged, update Issue status
                     if let Some(pr_num) = pr_number {
                         if Self::is_pr_merged(pr_num).await? {
-                            println!(
-                                "     🔗 PR #{} was merged, updating Issue #{}...",
-                                pr_num, issue.number
-                            );
-                            Self::update_issue_after_merge(&self.github_client, issue.number)
-                                .await?;
+                            println!("     🔗 PR #{} was merged, updating Issue #{}...", pr_num, issue.number);
+                            Self::update_issue_after_merge(&self.github_client, issue.number).await?;
                         }
                     }
 
@@ -450,13 +433,7 @@ impl InfinityMode {
 
         let end_time = Utc::now();
 
-        Ok(Sprint {
-            id: sprint_id,
-            issues: issue_numbers,
-            start_time,
-            end_time: Some(end_time),
-            results,
-        })
+        Ok(Sprint { id: sprint_id, issues: issue_numbers, start_time, end_time: Some(end_time), results })
     }
 
     /// Try to get PR number for an issue (if PR was created)
@@ -497,13 +474,7 @@ impl InfinityMode {
         use std::process::Command;
 
         let output = Command::new("gh")
-            .args([
-                "pr",
-                "view",
-                &pr_number.to_string(),
-                "--json",
-                "state,merged",
-            ])
+            .args(["pr", "view", &pr_number.to_string(), "--json", "state,merged"])
             .output();
 
         if let Ok(output) = output {
@@ -526,10 +497,7 @@ impl InfinityMode {
     }
 
     /// Update Issue status after PR merge
-    async fn update_issue_after_merge(
-        github_client: &Arc<GitHubClient>,
-        issue_number: u64,
-    ) -> Result<()> {
+    async fn update_issue_after_merge(github_client: &Arc<GitHubClient>, issue_number: u64) -> Result<()> {
         // Remove state:pending label and add state:done label
         let remove_label = "📥 state:pending";
         let add_label = "✅ state:done";
@@ -538,17 +506,12 @@ impl InfinityMode {
         let _ = github_client.remove_label(issue_number, remove_label).await;
 
         // Add new state label
-        github_client
-            .add_labels(issue_number, &[add_label.to_string()])
-            .await?;
+        github_client.add_labels(issue_number, &[add_label.to_string()]).await?;
 
         // Close the issue
         github_client.close_issue(issue_number).await?;
 
-        println!(
-            "     ✅ Updated Issue #{}: {} → {}, closed",
-            issue_number, remove_label, add_label
-        );
+        println!("     ✅ Updated Issue #{}: {} → {}, closed", issue_number, remove_label, add_label);
 
         Ok(())
     }
@@ -633,26 +596,17 @@ impl InfinityMode {
 
         // Header
         md.push_str("# 🏁 Miyabi Infinity Mode - 完了報告\n\n");
-        md.push_str(&format!(
-            "**実行日時**: {}\n\n",
-            Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
-        ));
+        md.push_str(&format!("**実行日時**: {}\n\n", Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
 
         // Summary
         md.push_str("## 📊 実行サマリー\n\n");
         let hours = report.total_duration_secs / 3600;
         let minutes = (report.total_duration_secs % 3600) / 60;
         let seconds = report.total_duration_secs % 60;
-        md.push_str(&format!(
-            "- **総実行時間**: {}時間{}分{}秒\n",
-            hours, minutes, seconds
-        ));
+        md.push_str(&format!("- **総実行時間**: {}時間{}分{}秒\n", hours, minutes, seconds));
         md.push_str(&format!("- **総スプリント数**: {}\n", report.total_sprints));
         md.push_str(&format!("- **総Issue処理数**: {}\n", report.total_issues));
-        md.push_str(&format!(
-            "- **成功率**: {:.1}%\n",
-            report.success_rate * 100.0
-        ));
+        md.push_str(&format!("- **成功率**: {:.1}%\n", report.success_rate * 100.0));
         md.push_str(&format!("- **成功**: {} ✅\n", report.successful_issues));
         md.push_str(&format!("- **失敗**: {} ❌\n\n", report.failed_issues));
 
@@ -666,10 +620,7 @@ impl InfinityMode {
                 md.push_str("⏹️  **最大Issue数に到達**\n\n");
             }
             StopReason::Timeout => {
-                md.push_str(&format!(
-                    "⏱️  **タイムアウト** ({}時間経過)\n\n",
-                    self.config.timeout_hours
-                ));
+                md.push_str(&format!("⏱️  **タイムアウト** ({}時間経過)\n\n", self.config.timeout_hours));
             }
             StopReason::ConsecutiveFailures => {
                 md.push_str("❌ **3スプリント連続失敗**\n\n");
@@ -693,10 +644,7 @@ impl InfinityMode {
                 .map(|e| e.format("%H:%M:%S").to_string())
                 .unwrap_or_else(|| "進行中".to_string());
 
-            md.push_str(&format!(
-                "### Sprint {} ({} - {})\n\n",
-                sprint.id, start_str, end_str
-            ));
+            md.push_str(&format!("### Sprint {} ({} - {})\n\n", sprint.id, start_str, end_str));
 
             for result in &sprint.results {
                 let status_icon = if result.success { "✅" } else { "❌" };
@@ -716,20 +664,14 @@ impl InfinityMode {
                     md.push_str(&format!("  - エラー: {}\n", error));
                 }
             }
-            md.push_str(&format!(
-                "\n**結果**: {}/{} 成功\n\n",
-                success_count, total_count
-            ));
+            md.push_str(&format!("\n**結果**: {}/{} 成功\n\n", success_count, total_count));
         }
 
         // Performance metrics
         md.push_str("## ⚡ パフォーマンス\n\n");
         if report.total_issues > 0 {
             let avg_duration = report.total_duration_secs as f64 / report.total_issues as f64;
-            md.push_str(&format!(
-                "- **平均処理時間**: {:.1}秒/Issue\n",
-                avg_duration
-            ));
+            md.push_str(&format!("- **平均処理時間**: {:.1}秒/Issue\n", avg_duration));
         }
 
         // Generated artifacts
@@ -749,44 +691,24 @@ impl InfinityMode {
     /// Display summary
     fn display_summary(&self, report: &InfinityReport) {
         println!();
-        println!(
-            "{}",
-            "========================================".bright_cyan()
-        );
-        println!(
-            "{}",
-            "🏁 Miyabi Infinity Mode - Final Report"
-                .bright_cyan()
-                .bold()
-        );
-        println!(
-            "{}",
-            "========================================".bright_cyan()
-        );
+        println!("{}", "========================================".bright_cyan());
+        println!("{}", "🏁 Miyabi Infinity Mode - Final Report".bright_cyan().bold());
+        println!("{}", "========================================".bright_cyan());
         println!();
 
         println!("{}", "📊 Execution Summary".bright_yellow().bold());
         println!("   Total Duration: {} seconds", report.total_duration_secs);
         println!("   Total Sprints: {}", report.total_sprints);
         println!("   Total Issues: {}", report.total_issues);
-        println!(
-            "   Successful: {} ✅",
-            report.successful_issues.to_string().bright_green()
-        );
-        println!(
-            "   Failed: {} ❌",
-            report.failed_issues.to_string().bright_red()
-        );
+        println!("   Successful: {} ✅", report.successful_issues.to_string().bright_green());
+        println!("   Failed: {} ❌", report.failed_issues.to_string().bright_red());
         println!("   Success Rate: {:.1}%", report.success_rate * 100.0);
         println!();
 
         println!("{}", "🛑 Stop Reason".bright_yellow().bold());
         match &report.stop_reason {
             StopReason::AllCompleted => {
-                println!(
-                    "   {} All Issues completed successfully",
-                    "✅".bright_green()
-                );
+                println!("   {} All Issues completed successfully", "✅".bright_green());
             }
             StopReason::MaxIssuesReached => {
                 println!("   ⏹️  Maximum Issues limit reached");
@@ -811,18 +733,10 @@ impl InfinityMode {
             let success_count = sprint.results.iter().filter(|r| r.success).count();
             let total_count = sprint.results.len();
 
-            println!(
-                "   Sprint {}: {}/{} succeeded",
-                sprint.id,
-                success_count.to_string().bright_green(),
-                total_count
-            );
+            println!("   Sprint {}: {}/{} succeeded", sprint.id, success_count.to_string().bright_green(), total_count);
         }
         println!();
-        println!(
-            "{}",
-            "========================================".bright_cyan()
-        );
+        println!("{}", "========================================".bright_cyan());
     }
 }
 
@@ -848,8 +762,8 @@ impl InfinityCommand {
     /// Execute Infinity Mode
     pub async fn execute(&self) -> Result<()> {
         // Load GitHub token
-        let github_token = std::env::var("GITHUB_TOKEN")
-            .map_err(|_| CliError::ExecutionError("GITHUB_TOKEN not set".to_string()))?;
+        let github_token =
+            std::env::var("GITHUB_TOKEN").map_err(|_| CliError::ExecutionError("GITHUB_TOKEN not set".to_string()))?;
 
         // Detect repository from git remote (simple implementation)
         let (owner, repo) = detect_repository_simple()?;
@@ -857,8 +771,8 @@ impl InfinityCommand {
         println!("🔗 Repository: {}/{}", owner, repo);
 
         // Create GitHub client
-        let github_client = GitHubClient::new(github_token, owner, repo)
-            .map_err(|e| CliError::ExecutionError(e.to_string()))?;
+        let github_client =
+            GitHubClient::new(github_token, owner, repo).map_err(|e| CliError::ExecutionError(e.to_string()))?;
 
         // Create Infinity Mode config
         let config = InfinityConfig {
@@ -875,10 +789,7 @@ impl InfinityCommand {
         if self.resume {
             println!("🔄 Resume mode: Loading previous execution state...");
             if let Some(processed_issues) = Self::load_previous_state(&config.log_dir)? {
-                println!(
-                    "   Found {} completed Issues from previous run",
-                    processed_issues.len()
-                );
+                println!("   Found {} completed Issues from previous run", processed_issues.len());
                 println!("   Will skip these Issues and continue from remaining ones");
             } else {
                 println!("   No previous state found, starting fresh");
@@ -999,24 +910,18 @@ fn detect_repository_simple() -> Result<(String, String)> {
     } else if url.contains("github.com/") {
         url.split("github.com/").collect()
     } else {
-        return Err(CliError::ExecutionError(
-            "Not a GitHub repository".to_string(),
-        ));
+        return Err(CliError::ExecutionError("Not a GitHub repository".to_string()));
     };
 
     if parts.len() != 2 {
-        return Err(CliError::ExecutionError(
-            "Invalid GitHub URL format".to_string(),
-        ));
+        return Err(CliError::ExecutionError("Invalid GitHub URL format".to_string()));
     }
 
     let repo_part = parts[1].trim_end_matches(".git");
     let repo_parts: Vec<&str> = repo_part.split('/').collect();
 
     if repo_parts.len() != 2 {
-        return Err(CliError::ExecutionError(
-            "Invalid GitHub repository path".to_string(),
-        ));
+        return Err(CliError::ExecutionError("Invalid GitHub repository path".to_string()));
     }
 
     Ok((repo_parts[0].to_string(), repo_parts[1].to_string()))

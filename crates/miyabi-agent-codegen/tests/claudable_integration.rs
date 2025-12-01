@@ -57,17 +57,11 @@ async fn test_frontend_task_detection() {
     let config = create_test_config();
     let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
-    let task = create_frontend_task(
-        "Create dashboard UI",
-        "Build a dashboard with charts and tables",
-    );
+    let task = create_frontend_task("Create dashboard UI", "Build a dashboard with charts and tables");
 
     // Verify frontend detection
     use miyabi_agent_codegen::frontend::is_frontend_task;
-    assert!(
-        is_frontend_task(&task),
-        "Task should be detected as frontend"
-    );
+    assert!(is_frontend_task(&task), "Task should be detected as frontend");
 }
 
 #[tokio::test]
@@ -76,10 +70,7 @@ async fn test_claudable_code_generation() {
     let config = create_test_config();
     let agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
-    let task = create_frontend_task(
-        "Create simple homepage",
-        "Build a Next.js homepage with a header and footer",
-    );
+    let task = create_frontend_task("Create simple homepage", "Build a Next.js homepage with a header and footer");
 
     // Generate code (without worktree)
     let result = agent.generate_code(&task, None).await;
@@ -87,10 +78,7 @@ async fn test_claudable_code_generation() {
     assert!(result.is_ok(), "Code generation should succeed");
 
     let code_result = result.unwrap();
-    assert!(
-        !code_result.files_created.is_empty(),
-        "Should create at least one file"
-    );
+    assert!(!code_result.files_created.is_empty(), "Should create at least one file");
     assert!(code_result.lines_added > 0, "Should add some lines of code");
 }
 
@@ -103,35 +91,22 @@ async fn test_worktree_file_writing() {
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
 
-    let task = create_frontend_task(
-        "Create landing page",
-        "Build a marketing landing page with hero section",
-    );
+    let task = create_frontend_task("Create landing page", "Build a marketing landing page with hero section");
 
     // Generate code with worktree
     let result = agent.generate_code(&task, Some(worktree_path)).await;
 
-    assert!(
-        result.is_ok(),
-        "Code generation with worktree should succeed"
-    );
+    assert!(result.is_ok(), "Code generation with worktree should succeed");
 
     let code_result = result.unwrap();
 
     // Verify files were created
-    assert!(
-        !code_result.files_created.is_empty(),
-        "Should create files in worktree"
-    );
+    assert!(!code_result.files_created.is_empty(), "Should create files in worktree");
 
     // Verify at least one file exists
     let first_file = &code_result.files_created[0];
     let file_path = worktree_path.join(first_file);
-    assert!(
-        file_path.exists(),
-        "Generated file should exist: {}",
-        first_file
-    );
+    assert!(file_path.exists(), "Generated file should exist: {}", first_file);
 }
 
 #[tokio::test]
@@ -152,10 +127,7 @@ async fn test_npm_install() {
 
     // Verify node_modules exists
     let node_modules = worktree_path.join("node_modules");
-    assert!(
-        node_modules.exists(),
-        "node_modules directory should exist after npm install"
-    );
+    assert!(node_modules.exists(), "node_modules directory should exist after npm install");
 }
 
 #[tokio::test]
@@ -167,10 +139,7 @@ async fn test_nextjs_build() {
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
 
-    let task = create_frontend_task(
-        "Create dashboard",
-        "Build a dashboard with data visualization",
-    );
+    let task = create_frontend_task("Create dashboard", "Build a dashboard with data visualization");
 
     // Generate code with worktree (includes npm install + build)
     let result = agent.generate_code(&task, Some(worktree_path)).await;
@@ -179,10 +148,7 @@ async fn test_nextjs_build() {
 
     // Verify .next directory exists (build output)
     let next_dir = worktree_path.join(".next");
-    assert!(
-        next_dir.exists(),
-        ".next directory should exist after build"
-    );
+    assert!(next_dir.exists(), ".next directory should exist after build");
 }
 
 #[tokio::test]
@@ -197,10 +163,7 @@ async fn test_e2e_dashboard_generation() {
     let worktree_path = temp_dir.path();
 
     // Simulate LINE Bot request
-    let task = create_frontend_task(
-        "売上ダッシュボードを作って",
-        "グラフと表を表示したい。レスポンシブ対応で。",
-    );
+    let task = create_frontend_task("売上ダッシュボードを作って", "グラフと表を表示したい。レスポンシブ対応で。");
 
     // 1. Verify frontend detection
     use miyabi_agent_codegen::frontend::is_frontend_task;
@@ -213,24 +176,12 @@ async fn test_e2e_dashboard_generation() {
     let code_result = result.unwrap();
 
     // 3. Verify output
-    assert!(
-        !code_result.files_created.is_empty(),
-        "Should create Next.js files"
-    );
-    assert!(
-        code_result.lines_added > 50,
-        "Should generate substantial code"
-    );
+    assert!(!code_result.files_created.is_empty(), "Should create Next.js files");
+    assert!(code_result.lines_added > 50, "Should generate substantial code");
 
     // 4. Verify Next.js structure
-    assert!(
-        worktree_path.join("package.json").exists(),
-        "Should have package.json"
-    );
-    assert!(
-        worktree_path.join("app").exists(),
-        "Should have app/ directory (Next.js 14+ App Router)"
-    );
+    assert!(worktree_path.join("package.json").exists(), "Should have package.json");
+    assert!(worktree_path.join("app").exists(), "Should have app/ directory (Next.js 14+ App Router)");
 }
 
 #[tokio::test]
@@ -256,10 +207,7 @@ async fn test_e2e_landing_page_generation() {
     let code_result = result.unwrap();
 
     // Verify substantial code generated
-    assert!(
-        code_result.lines_added > 100,
-        "Landing page should have 100+ lines of code"
-    );
+    assert!(code_result.lines_added > 100, "Landing page should have 100+ lines of code");
 
     // Verify Tailwind CSS usage (common in landing pages)
     let package_json_path = worktree_path.join("package.json");
@@ -294,10 +242,7 @@ async fn test_non_frontend_task_skips_claudable() {
 
     // Should NOT detect as frontend
     use miyabi_agent_codegen::frontend::is_frontend_task;
-    assert!(
-        !is_frontend_task(&task),
-        "Backend task should not be detected as frontend"
-    );
+    assert!(!is_frontend_task(&task), "Backend task should not be detected as frontend");
 
     // Code generation should use fallback (empty result for test config without LLM)
     let result = agent.generate_code(&task, None).await;

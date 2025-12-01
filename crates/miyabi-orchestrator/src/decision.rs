@@ -106,9 +106,7 @@ pub struct DecisionEngine {
 impl DecisionEngine {
     /// Create a new decision engine with default thresholds
     pub fn new() -> Self {
-        Self {
-            thresholds: DecisionThresholds::default(),
-        }
+        Self { thresholds: DecisionThresholds::default() }
     }
 
     /// Create with custom thresholds
@@ -130,10 +128,7 @@ impl DecisionEngine {
     /// # Returns
     /// Decision on whether to auto-approve, notify, or escalate
     pub fn should_auto_approve(&self, complexity: f64, issue_number: u64) -> Decision {
-        debug!(
-            "Complexity decision for Issue #{}: score={}",
-            issue_number, complexity
-        );
+        debug!("Complexity decision for Issue #{}: score={}", issue_number, complexity);
 
         if complexity < self.thresholds.complexity_auto_approve {
             info!(
@@ -172,10 +167,7 @@ impl DecisionEngine {
     /// # Returns
     /// Decision on whether to auto-merge, review, or reject
     pub fn should_auto_merge(&self, quality_score: f64, pr_number: u64) -> Decision {
-        debug!(
-            "Quality decision for PR #{}: score={}",
-            pr_number, quality_score
-        );
+        debug!("Quality decision for PR #{}: score={}", pr_number, quality_score);
 
         if quality_score >= self.thresholds.quality_auto_merge {
             info!(
@@ -195,10 +187,7 @@ impl DecisionEngine {
                 ),
             }
         } else {
-            warn!(
-                "❌ Rejecting PR #{} (quality: {} < {})",
-                pr_number, quality_score, self.thresholds.quality_review
-            );
+            warn!("❌ Rejecting PR #{} (quality: {} < {})", pr_number, quality_score, self.thresholds.quality_review);
             Decision::Reject {
                 reason: format!(
                     "Low quality score: {:.1}/100 (minimum: {})",
@@ -343,13 +332,11 @@ mod tests {
     fn test_security_sensitivity_detection() {
         let engine = DecisionEngine::new();
 
-        assert!(engine
-            .is_security_sensitive(&["type:feature".to_string(), "security:high".to_string(),]));
+        assert!(engine.is_security_sensitive(&["type:feature".to_string(), "security:high".to_string(),]));
 
         assert!(engine.is_security_sensitive(&["auth:required".to_string(),]));
 
-        assert!(!engine
-            .is_security_sensitive(&["type:feature".to_string(), "priority:high".to_string(),]));
+        assert!(!engine.is_security_sensitive(&["type:feature".to_string(), "priority:high".to_string(),]));
     }
 
     #[test]

@@ -4,9 +4,9 @@ use async_trait::async_trait;
 use once_cell::sync::Lazy;
 
 use miyabi_agent_business::{
-    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
-    MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
-    SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
+    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent, MarketResearchAgent,
+    MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent, SNSStrategyAgent, SalesAgent,
+    SelfAnalysisAgent, YouTubeAgent,
 };
 use miyabi_agent_codegen::CodeGenAgent;
 use miyabi_agent_coordinator::CoordinatorAgentWithLLM;
@@ -77,14 +77,7 @@ impl AgentDescriptor {
         default_issue_template: Option<IssueTaskTemplate>,
         builder: AgentBuilder,
     ) -> Self {
-        Self {
-            agent_type,
-            display_name,
-            category,
-            required_env,
-            default_issue_template,
-            builder,
-        }
+        Self { agent_type, display_name, category, required_env, default_issue_template, builder }
     }
 
     /// Instantiate a hooked agent with standard lifecycle hooks applied.
@@ -126,9 +119,7 @@ pub struct AgentRegistry {
 
 impl AgentRegistry {
     pub fn global() -> &'static AgentRegistry {
-        static REGISTRY: Lazy<AgentRegistry> = Lazy::new(|| AgentRegistry {
-            descriptors: build_descriptor_map(),
-        });
+        static REGISTRY: Lazy<AgentRegistry> = Lazy::new(|| AgentRegistry { descriptors: build_descriptor_map() });
         &REGISTRY
     }
 
@@ -259,14 +250,7 @@ fn build_descriptor_map() -> HashMap<AgentType, AgentDescriptor> {
 
     map.insert(
         PRAgent,
-        AgentDescriptor::new(
-            PRAgent,
-            "PRAgent",
-            Coding,
-            GITHUB_TOKEN_ENV,
-            Some(PR_TEMPLATE),
-            build_pr_agent,
-        ),
+        AgentDescriptor::new(PRAgent, "PRAgent", Coding, GITHUB_TOKEN_ENV, Some(PR_TEMPLATE), build_pr_agent),
     );
 
     map.insert(
@@ -415,26 +399,12 @@ fn build_descriptor_map() -> HashMap<AgentType, AgentDescriptor> {
 
     map.insert(
         SalesAgent,
-        AgentDescriptor::new(
-            SalesAgent,
-            "SalesAgent",
-            Business,
-            EMPTY_ENV,
-            Some(BUSINESS_TEMPLATE),
-            build_sales_agent,
-        ),
+        AgentDescriptor::new(SalesAgent, "SalesAgent", Business, EMPTY_ENV, Some(BUSINESS_TEMPLATE), build_sales_agent),
     );
 
     map.insert(
         CRMAgent,
-        AgentDescriptor::new(
-            CRMAgent,
-            "CRMAgent",
-            Business,
-            EMPTY_ENV,
-            Some(BUSINESS_TEMPLATE),
-            build_crm_agent,
-        ),
+        AgentDescriptor::new(CRMAgent, "CRMAgent", Business, EMPTY_ENV, Some(BUSINESS_TEMPLATE), build_crm_agent),
     );
 
     map.insert(
@@ -457,8 +427,7 @@ fn build_coordinator_agent(config: AgentConfig) -> BoxedAgent {
 }
 
 fn build_codegen_agent(config: AgentConfig) -> BoxedAgent {
-    let agent = CodeGenAgent::new_with_all(config.clone())
-        .unwrap_or_else(|_| CodeGenAgent::new(config.clone()));
+    let agent = CodeGenAgent::new_with_all(config.clone()).unwrap_or_else(|_| CodeGenAgent::new(config.clone()));
     BoxedAgent::from_agent(agent)
 }
 

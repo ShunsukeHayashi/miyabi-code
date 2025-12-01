@@ -22,11 +22,10 @@ async fn main() -> anyhow::Result<()> {
 
     // Test basic generation
     println!("\n📝 Testing basic generation...");
-    let request =
-        LLMRequest::new("Write a simple Rust function to calculate the factorial of a number")
-            .with_temperature(0.2)
-            .with_max_tokens(512)
-            .with_reasoning_effort(ReasoningEffort::Medium);
+    let request = LLMRequest::new("Write a simple Rust function to calculate the factorial of a number")
+        .with_temperature(0.2)
+        .with_max_tokens(512)
+        .with_reasoning_effort(ReasoningEffort::Medium);
 
     let start_time = std::time::Instant::now();
     let response = provider.generate(&request).await?;
@@ -59,11 +58,7 @@ async fn main() -> anyhow::Result<()> {
         let response = provider.generate(&request).await?;
         let duration = start_time.elapsed();
 
-        println!(
-            "⏱️  {} completed in {:.2}s",
-            description,
-            duration.as_secs_f64()
-        );
+        println!("⏱️  {} completed in {:.2}s", description, duration.as_secs_f64());
         println!("📊 Tokens used: {}", response.tokens_used);
         println!(
             "🤖 Response preview: {}",

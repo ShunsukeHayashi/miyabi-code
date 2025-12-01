@@ -13,11 +13,7 @@ use tempfile::TempDir;
 
 /// Helper to create a ToolCall
 fn make_call(name: &str, args: serde_json::Value) -> ToolCall {
-    ToolCall {
-        id: uuid::Uuid::new_v4().to_string(),
-        name: name.to_string(),
-        arguments: args,
-    }
+    ToolCall { id: uuid::Uuid::new_v4().to_string(), name: name.to_string(), arguments: args }
 }
 
 #[tokio::test]
@@ -26,8 +22,7 @@ async fn test_read_file() {
     let file_path = temp_dir.path().join("test.txt");
     std::fs::write(&file_path, "Hello, World!").unwrap();
 
-    let registry =
-        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "read_file",
@@ -48,8 +43,7 @@ async fn test_list_files() {
     std::fs::write(temp_dir.path().join("file2.txt"), "").unwrap();
     std::fs::create_dir(temp_dir.path().join("subdir")).unwrap();
 
-    let registry =
-        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "list_files",
@@ -75,8 +69,7 @@ async fn test_write_file_requires_permission() {
     let temp_dir = TempDir::new().unwrap();
 
     // ReadOnly mode should reject writes
-    let registry =
-        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "write_file",
@@ -96,8 +89,7 @@ async fn test_write_file_with_permission() {
     let temp_dir = TempDir::new().unwrap();
 
     // FileEdits mode should allow writes
-    let registry =
-        ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "write_file",
@@ -121,8 +113,7 @@ async fn test_edit_file() {
     let file_path = temp_dir.path().join("test.txt");
     std::fs::write(&file_path, "Hello, World!").unwrap();
 
-    let registry =
-        ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "edit_file",
@@ -147,8 +138,7 @@ async fn test_edit_file_not_found() {
     let file_path = temp_dir.path().join("test.txt");
     std::fs::write(&file_path, "Hello, World!").unwrap();
 
-    let registry =
-        ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "edit_file",
@@ -238,8 +228,7 @@ async fn test_tool_definitions_full_access() {
 async fn test_path_traversal_protection() {
     let temp_dir = TempDir::new().unwrap();
 
-    let registry =
-        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "read_file",
@@ -250,10 +239,7 @@ async fn test_path_traversal_protection() {
 
     let result = registry.execute(&call).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("directory traversal"));
+    assert!(result.unwrap_err().to_string().contains("directory traversal"));
 }
 
 #[tokio::test]
@@ -281,10 +267,7 @@ async fn test_github_tools_require_client() {
 
     let result = registry.execute(&call).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("GitHub client not configured"));
+    assert!(result.unwrap_err().to_string().contains("GitHub client not configured"));
 }
 
 #[tokio::test]
@@ -293,8 +276,7 @@ async fn test_search_code() {
     let file_path = temp_dir.path().join("test.rs");
     std::fs::write(&file_path, "fn main() {\n    println!(\"Hello\");\n}").unwrap();
 
-    let registry =
-        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
+    let registry = ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
     let call = make_call(
         "search_code",

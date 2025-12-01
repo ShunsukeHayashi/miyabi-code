@@ -60,11 +60,7 @@ pub struct ErrorResponse {
 
 impl ErrorResponse {
     /// Create a new error response
-    pub fn new(
-        status: StatusCode,
-        error_code: impl Into<String>,
-        message: impl Into<String>,
-    ) -> Self {
+    pub fn new(status: StatusCode, error_code: impl Into<String>, message: impl Into<String>) -> Self {
         Self {
             status: status.as_u16(),
             error_code: error_code.into(),
@@ -324,45 +320,26 @@ pub async fn retry_task(
     // 1. Parse task_id as u64
     let id = task_id.parse::<u64>().map_err(|e| {
         tracing::error!("Invalid task ID format: {} - {}", task_id, e);
-        ErrorResponse::new(
-            StatusCode::BAD_REQUEST,
-            "INVALID_TASK_ID",
-            "Invalid task ID format",
-        )
-        .with_details(format!(
-            "Task ID '{}' must be a valid integer: {}",
-            task_id, e
-        ))
+        ErrorResponse::new(StatusCode::BAD_REQUEST, "INVALID_TASK_ID", "Invalid task ID format")
+            .with_details(format!("Task ID '{}' must be a valid integer: {}", task_id, e))
     })?;
 
     // 2. Get task from storage
     let task = state.storage.get_task(id).await.map_err(|e| {
         tracing::error!("Failed to fetch task {}: {}", id, e);
-        ErrorResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "STORAGE_ERROR",
-            "Failed to retrieve task from storage",
-        )
-        .with_details(format!("Storage error for task {}: {}", id, e))
+        ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "STORAGE_ERROR", "Failed to retrieve task from storage")
+            .with_details(format!("Storage error for task {}: {}", id, e))
     })?;
 
     // 3. Check if task exists
     let mut task = task.ok_or_else(|| {
         tracing::warn!("Task {} not found", id);
-        ErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            "TASK_NOT_FOUND",
-            format!("Task {} does not exist", id),
-        )
+        ErrorResponse::new(StatusCode::NOT_FOUND, "TASK_NOT_FOUND", format!("Task {} does not exist", id))
     })?;
 
     // 4. Check if task is in failed state
     if task.status != TaskStatus::Failed {
-        tracing::warn!(
-            "Task {} is not in failed state (current: {:?})",
-            id,
-            task.status
-        );
+        tracing::warn!("Task {} is not in failed state (current: {:?})", id, task.status);
         return Err(ErrorResponse::new(
             StatusCode::CONFLICT,
             "INVALID_TASK_STATE",
@@ -373,24 +350,13 @@ pub async fn retry_task(
 
     // 5. Check retry count limit
     if task.retry_count >= MAX_RETRY_COUNT {
-        tracing::warn!(
-            "Task {} has reached max retry limit ({}/{})",
-            id,
-            task.retry_count,
-            MAX_RETRY_COUNT
-        );
+        tracing::warn!("Task {} has reached max retry limit ({}/{})", id, task.retry_count, MAX_RETRY_COUNT);
         return Err(ErrorResponse::new(
             StatusCode::TOO_MANY_REQUESTS,
             "MAX_RETRIES_EXCEEDED",
-            format!(
-                "Maximum retry limit of {} attempts reached",
-                MAX_RETRY_COUNT
-            ),
+            format!("Maximum retry limit of {} attempts reached", MAX_RETRY_COUNT),
         )
-        .with_details(format!(
-            "Current retry count: {}/{}",
-            task.retry_count, MAX_RETRY_COUNT
-        )));
+        .with_details(format!("Current retry count: {}/{}", task.retry_count, MAX_RETRY_COUNT)));
     }
 
     // 6. Increment retry_count
@@ -398,10 +364,9 @@ pub async fn retry_task(
 
     // 7. Prepare retry reason (clone for WebSocket event later)
     let retry_reason = payload.reason.clone();
-    let description = payload.reason.or(Some(format!(
-        "Retry attempt {} - Previous failure",
-        task.retry_count
-    )));
+    let description = payload
+        .reason
+        .or(Some(format!("Retry attempt {} - Previous failure", task.retry_count)));
 
     // 8. Update task status to Submitted for retry
     let update = TaskUpdate {
@@ -414,12 +379,8 @@ pub async fn retry_task(
 
     state.storage.update_task(id, update).await.map_err(|e| {
         tracing::error!("Failed to update task {}: {}", id, e);
-        ErrorResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "STORAGE_UPDATE_ERROR",
-            "Failed to update task status",
-        )
-        .with_details(format!("Storage update error for task {}: {}", id, e))
+        ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "STORAGE_UPDATE_ERROR", "Failed to update task status")
+            .with_details(format!("Storage update error for task {}: {}", id, e))
     })?;
 
     // 9. Calculate exponential backoff delay: base_delay * 2^retry_count
@@ -442,12 +403,7 @@ pub async fn retry_task(
         tracing::warn!("Failed to broadcast retry event for task {}: {}", id, e);
     }
 
-    tracing::info!(
-        "Task {} queued for retry (attempt {}, next retry at {})",
-        id,
-        task.retry_count,
-        next_retry_at
-    );
+    tracing::info!("Task {} queued for retry (attempt {}, next retry at {})", id, task.retry_count, next_retry_at);
 
     Ok(Json(TaskRetryResponse {
         task_id: task_id.clone(),
@@ -479,45 +435,26 @@ pub async fn cancel_task(
     // 1. Parse task_id as u64
     let id = task_id.parse::<u64>().map_err(|e| {
         tracing::error!("Invalid task ID format: {} - {}", task_id, e);
-        ErrorResponse::new(
-            StatusCode::BAD_REQUEST,
-            "INVALID_TASK_ID",
-            "Invalid task ID format",
-        )
-        .with_details(format!(
-            "Task ID '{}' must be a valid integer: {}",
-            task_id, e
-        ))
+        ErrorResponse::new(StatusCode::BAD_REQUEST, "INVALID_TASK_ID", "Invalid task ID format")
+            .with_details(format!("Task ID '{}' must be a valid integer: {}", task_id, e))
     })?;
 
     // 2. Get task from storage
     let task = state.storage.get_task(id).await.map_err(|e| {
         tracing::error!("Failed to fetch task {}: {}", id, e);
-        ErrorResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "STORAGE_ERROR",
-            "Failed to retrieve task from storage",
-        )
-        .with_details(format!("Storage error for task {}: {}", id, e))
+        ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "STORAGE_ERROR", "Failed to retrieve task from storage")
+            .with_details(format!("Storage error for task {}: {}", id, e))
     })?;
 
     // 3. Check if task exists
     let task = task.ok_or_else(|| {
         tracing::warn!("Task {} not found", id);
-        ErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            "TASK_NOT_FOUND",
-            format!("Task {} does not exist", id),
-        )
+        ErrorResponse::new(StatusCode::NOT_FOUND, "TASK_NOT_FOUND", format!("Task {} does not exist", id))
     })?;
 
     // 4. Check if task is cancellable (must be in Submitted or Working state)
     if task.status != TaskStatus::Submitted && task.status != TaskStatus::Working {
-        tracing::warn!(
-            "Task {} is not cancellable (current state: {:?})",
-            id,
-            task.status
-        );
+        tracing::warn!("Task {} is not cancellable (current state: {:?})", id, task.status);
         return Err(ErrorResponse::new(
             StatusCode::CONFLICT,
             "INVALID_TASK_STATE",
@@ -540,12 +477,8 @@ pub async fn cancel_task(
 
     state.storage.update_task(id, update).await.map_err(|e| {
         tracing::error!("Failed to update task {}: {}", id, e);
-        ErrorResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "STORAGE_UPDATE_ERROR",
-            "Failed to update task status",
-        )
-        .with_details(format!("Storage update error for task {}: {}", id, e))
+        ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "STORAGE_UPDATE_ERROR", "Failed to update task status")
+            .with_details(format!("Storage update error for task {}: {}", id, e))
     })?;
 
     // 6. Send cancellation signal to task executor (future enhancement)

@@ -49,11 +49,7 @@ pub enum SessionStatus {
     Completed,
 
     /// Session failed with error
-    Failed {
-        error: String,
-        resumable: bool,
-        last_successful_turn: Option<usize>,
-    },
+    Failed { error: String, resumable: bool, last_successful_turn: Option<usize> },
 
     /// Session paused (waiting for approval)
     Paused { reason: String },
@@ -124,44 +120,19 @@ pub struct ReasoningStep {
 #[serde(tag = "type")]
 pub enum Action {
     /// Read file
-    ReadFile {
-        path: String,
-        success: bool,
-        error: Option<String>,
-    },
+    ReadFile { path: String, success: bool, error: Option<String> },
 
     /// Write/edit file
-    WriteFile {
-        path: String,
-        content: String,
-        approved: bool,
-        success: bool,
-        error: Option<String>,
-    },
+    WriteFile { path: String, content: String, approved: bool, success: bool, error: Option<String> },
 
     /// Execute command
-    RunCommand {
-        command: String,
-        args: Vec<String>,
-        stdout: String,
-        stderr: String,
-        exit_code: i32,
-        approved: bool,
-    },
+    RunCommand { command: String, args: Vec<String>, stdout: String, stderr: String, exit_code: i32, approved: bool },
 
     /// Create GitHub Issue
-    CreateIssue {
-        title: String,
-        number: u64,
-        success: bool,
-    },
+    CreateIssue { title: String, number: u64, success: bool },
 
     /// Create Pull Request
-    CreatePR {
-        title: String,
-        number: u64,
-        success: bool,
-    },
+    CreatePR { title: String, number: u64, success: bool },
 
     /// Reasoning (internal thought)
     Reasoning { content: String },
@@ -233,16 +204,9 @@ impl Session {
 
     /// Mark session as failed
     pub fn fail(&mut self, error: String, resumable: bool) {
-        let last_successful_turn = self
-            .turns
-            .iter()
-            .rposition(|t| t.status == TurnStatus::Completed);
+        let last_successful_turn = self.turns.iter().rposition(|t| t.status == TurnStatus::Completed);
 
-        self.status = SessionStatus::Failed {
-            error,
-            resumable,
-            last_successful_turn,
-        };
+        self.status = SessionStatus::Failed { error, resumable, last_successful_turn };
         self.updated_at = Utc::now();
     }
 
@@ -373,13 +337,7 @@ impl SessionContext {
             env_vars.insert("USER".to_string(), user);
         }
 
-        Self {
-            cwd,
-            git_root,
-            git_branch,
-            github_repo,
-            env_vars,
-        }
+        Self { cwd, git_root, git_branch, github_repo, env_vars }
     }
 
     fn get_git_root() -> Option<PathBuf> {
@@ -411,14 +369,7 @@ impl SessionContext {
 
     fn get_github_repo() -> Option<String> {
         let output = std::process::Command::new("gh")
-            .args([
-                "repo",
-                "view",
-                "--json",
-                "nameWithOwner",
-                "-q",
-                ".nameWithOwner",
-            ])
+            .args(["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"])
             .output()
             .ok()?;
 
@@ -472,11 +423,7 @@ mod tests {
         session.fail("test error".to_string(), true);
 
         match session.status {
-            SessionStatus::Failed {
-                error,
-                resumable,
-                last_successful_turn,
-            } => {
+            SessionStatus::Failed { error, resumable, last_successful_turn } => {
                 assert_eq!(error, "test error");
                 assert!(resumable);
                 assert_eq!(last_successful_turn, Some(0));

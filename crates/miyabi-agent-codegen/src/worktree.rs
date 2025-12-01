@@ -31,23 +31,14 @@ pub async fn write_generated_code_to_worktree(
     let code_path = worktree_path.join(&code_filename);
     tokio::fs::write(&code_path, generated_code)
         .await
-        .map_err(|e| {
-            MiyabiError::Unknown(format!(
-                "Failed to write generated code to {:?}: {}",
-                code_path, e
-            ))
-        })?;
+        .map_err(|e| MiyabiError::Unknown(format!("Failed to write generated code to {:?}: {}", code_path, e)))?;
 
     tracing::info!("Generated code written to: {:?}", code_path);
     Ok(())
 }
 
 /// Claude Code CLI 実行前の準備（コンテキスト生成のみ）
-pub async fn prepare_claude_context(
-    worktree_path: &Path,
-    config: &AgentConfig,
-    task: &Task,
-) -> Result<()> {
+pub async fn prepare_claude_context(worktree_path: &Path, config: &AgentConfig, task: &Task) -> Result<()> {
     tracing::info!("Preparing Claude context in {:?}", worktree_path);
     write_context_files(worktree_path, config, task).await?;
     tracing::info!("Generated context files in {:?}", worktree_path);
@@ -112,10 +103,7 @@ pub async fn setup_worktree(config: &AgentConfig, task: &Task) -> Result<()> {
                         )
                     })?;
 
-                    let _issue_number = task_id
-                        .trim_start_matches("task-")
-                        .parse::<u64>()
-                        .unwrap_or(0);
+                    let _issue_number = task_id.trim_start_matches("task-").parse::<u64>().unwrap_or(0);
 
                     Ok::<(), MiyabiError>(())
                 })
@@ -155,12 +143,7 @@ pub async fn cleanup_worktree(config: &AgentConfig) -> Result<()> {
         async move {
             tokio::task::spawn_blocking(move || {
                 let rt = tokio::runtime::Runtime::new().map_err(|e| {
-                    AgentError::with_cause(
-                        "Failed to create runtime for cleanup",
-                        AgentType::CodeGenAgent,
-                        None,
-                        e,
-                    )
+                    AgentError::with_cause("Failed to create runtime for cleanup", AgentType::CodeGenAgent, None, e)
                 })?;
 
                 rt.block_on(async {
@@ -181,11 +164,7 @@ pub async fn cleanup_worktree(config: &AgentConfig) -> Result<()> {
             })
             .await
             .map_err(|e| {
-                AgentError::new(
-                    format!("Cleanup spawn blocking failed: {}", e),
-                    AgentType::CodeGenAgent,
-                    None,
-                )
+                AgentError::new(format!("Cleanup spawn blocking failed: {}", e), AgentType::CodeGenAgent, None)
             })??;
 
             Ok(())
@@ -242,10 +221,7 @@ mod tests {
             "miyabi-worktree-test-{}-{}-{}",
             suffix,
             std::process::id(),
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("time")
-                .as_nanos()
+            SystemTime::now().duration_since(UNIX_EPOCH).expect("time").as_nanos()
         );
         std::env::temp_dir().join(unique)
     }
@@ -260,22 +236,15 @@ mod tests {
             .await
             .expect("create dirs");
 
-        write_generated_code_to_worktree(
-            &worktree_dir,
-            &config,
-            &task,
-            "fn generated() {}\n#[cfg(test)] mod tests {}",
-        )
-        .await
-        .expect("write generated code");
+        write_generated_code_to_worktree(&worktree_dir, &config, &task, "fn generated() {}\n#[cfg(test)] mod tests {}")
+            .await
+            .expect("write generated code");
 
         assert!(worktree_dir.join("EXECUTION_CONTEXT.md").exists());
         assert!(worktree_dir.join(".agent-context.json").exists());
         assert!(worktree_dir.join("src/feature.rs").exists());
 
-        tokio::fs::remove_dir_all(&worktree_dir)
-            .await
-            .expect("cleanup dirs");
+        tokio::fs::remove_dir_all(&worktree_dir).await.expect("cleanup dirs");
     }
 
     #[tokio::test]
@@ -284,9 +253,7 @@ mod tests {
         let task = sample_task();
         let worktree_dir = unique_temp_dir("context");
 
-        tokio::fs::create_dir_all(&worktree_dir)
-            .await
-            .expect("create dir");
+        tokio::fs::create_dir_all(&worktree_dir).await.expect("create dir");
 
         prepare_claude_context(&worktree_dir, &config, &task)
             .await
@@ -295,21 +262,15 @@ mod tests {
         assert!(worktree_dir.join("EXECUTION_CONTEXT.md").exists());
         assert!(worktree_dir.join(".agent-context.json").exists());
 
-        tokio::fs::remove_dir_all(&worktree_dir)
-            .await
-            .expect("cleanup");
+        tokio::fs::remove_dir_all(&worktree_dir).await.expect("cleanup");
     }
 
     #[tokio::test]
     async fn parse_code_generation_results_returns_placeholder() {
         let worktree_dir = unique_temp_dir("parse");
-        tokio::fs::create_dir_all(&worktree_dir)
-            .await
-            .expect("create dir");
+        tokio::fs::create_dir_all(&worktree_dir).await.expect("create dir");
 
-        let result = parse_code_generation_results(&worktree_dir)
-            .await
-            .expect("parse");
+        let result = parse_code_generation_results(&worktree_dir).await.expect("parse");
 
         assert!(result.files_created.is_empty());
         assert!(result.files_modified.is_empty());
@@ -318,8 +279,6 @@ mod tests {
         assert_eq!(result.tests_added, 0);
         assert!(result.commit_sha.is_none());
 
-        tokio::fs::remove_dir_all(&worktree_dir)
-            .await
-            .expect("cleanup");
+        tokio::fs::remove_dir_all(&worktree_dir).await.expect("cleanup");
     }
 }

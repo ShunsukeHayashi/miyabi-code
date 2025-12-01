@@ -73,11 +73,7 @@ impl ParallelExecutor {
     }
 
     /// Execute multiple agents in parallel
-    pub async fn execute_agents<A>(
-        &self,
-        agents: Vec<(A, Task)>,
-        _config: AgentConfig,
-    ) -> ParallelResult
+    pub async fn execute_agents<A>(&self, agents: Vec<(A, Task)>, _config: AgentConfig) -> ParallelResult
     where
         A: BaseAgent + Send + Sync + 'static,
     {
@@ -98,11 +94,8 @@ impl ParallelExecutor {
             let handle = tokio::spawn(async move {
                 let _permit = semaphore.acquire().await.expect("Semaphore closed");
 
-                let result = tokio::time::timeout(
-                    std::time::Duration::from_secs(timeout_seconds),
-                    agent.execute(&task),
-                )
-                .await;
+                let result =
+                    tokio::time::timeout(std::time::Duration::from_secs(timeout_seconds), agent.execute(&task)).await;
 
                 match result {
                     Ok(Ok(agent_result)) => {
@@ -123,10 +116,7 @@ impl ParallelExecutor {
                         }
                     }
                     Err(_) => {
-                        warn!(
-                            "Agent {} timed out after {} seconds",
-                            task.id, timeout_seconds
-                        );
+                        warn!("Agent {} timed out after {} seconds", task.id, timeout_seconds);
                         AgentResult {
                             status: miyabi_types::agent::ResultStatus::Failed,
                             metrics: None,
@@ -170,12 +160,7 @@ impl ParallelExecutor {
             success_count, failure_count, total_duration
         );
 
-        ParallelResult {
-            results,
-            total_duration_ms: total_duration,
-            success_count,
-            failure_count,
-        }
+        ParallelResult { results, total_duration_ms: total_duration, success_count, failure_count }
     }
 
     /// Execute agents with different types in parallel
@@ -187,10 +172,7 @@ impl ParallelExecutor {
         let start_time = std::time::Instant::now();
         let mut handles: Vec<JoinHandle<AgentResult>> = Vec::new();
 
-        info!(
-            "Starting mixed parallel execution of {} agents",
-            agent_tasks.len()
-        );
+        info!("Starting mixed parallel execution of {} agents", agent_tasks.len());
 
         for (agent, task) in agent_tasks {
             let semaphore = self.semaphore.clone();
@@ -199,11 +181,8 @@ impl ParallelExecutor {
             let handle = tokio::spawn(async move {
                 let _permit = semaphore.acquire().await.expect("Semaphore closed");
 
-                let result = tokio::time::timeout(
-                    std::time::Duration::from_secs(timeout_seconds),
-                    agent.execute(&task),
-                )
-                .await;
+                let result =
+                    tokio::time::timeout(std::time::Duration::from_secs(timeout_seconds), agent.execute(&task)).await;
 
                 match result {
                     Ok(Ok(agent_result)) => {
@@ -224,10 +203,7 @@ impl ParallelExecutor {
                         }
                     }
                     Err(_) => {
-                        warn!(
-                            "Agent {} timed out after {} seconds",
-                            task.id, timeout_seconds
-                        );
+                        warn!("Agent {} timed out after {} seconds", task.id, timeout_seconds);
                         AgentResult {
                             status: miyabi_types::agent::ResultStatus::Failed,
                             metrics: None,
@@ -265,12 +241,7 @@ impl ParallelExecutor {
             success_count, failure_count, total_duration
         );
 
-        ParallelResult {
-            results,
-            total_duration_ms: total_duration,
-            success_count,
-            failure_count,
-        }
+        ParallelResult { results, total_duration_ms: total_duration, success_count, failure_count }
     }
 }
 
@@ -306,10 +277,7 @@ mod tests {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "test".to_string(),
-                serde_json::json!(true),
-            )])),
+            metadata: Some(HashMap::from([("test".to_string(), serde_json::json!(true))])),
         }
     }
 
@@ -346,23 +314,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_parallel_execution() {
-        let config = ParallelConfig {
-            max_concurrency: 2,
-            timeout_seconds: 10,
-            fail_fast: false,
-        };
+        let config = ParallelConfig { max_concurrency: 2, timeout_seconds: 10, fail_fast: false };
         let executor = ParallelExecutor::new(config);
         let agent_config = create_test_config();
 
         let agents = vec![
-            (
-                MarketingAgent::new(agent_config.clone()),
-                create_test_task("task1"),
-            ),
-            (
-                MarketingAgent::new(agent_config.clone()),
-                create_test_task("task2"),
-            ),
+            (MarketingAgent::new(agent_config.clone()), create_test_task("task1")),
+            (MarketingAgent::new(agent_config.clone()), create_test_task("task2")),
             (MarketingAgent::new(agent_config), create_test_task("task3")),
         ];
 
@@ -379,27 +337,9 @@ mod tests {
     async fn test_parallel_result_properties() {
         let result = ParallelResult {
             results: vec![
-                AgentResult {
-                    status: ResultStatus::Success,
-                    metrics: None,
-                    data: None,
-                    error: None,
-                    escalation: None,
-                },
-                AgentResult {
-                    status: ResultStatus::Success,
-                    metrics: None,
-                    data: None,
-                    error: None,
-                    escalation: None,
-                },
-                AgentResult {
-                    status: ResultStatus::Failed,
-                    metrics: None,
-                    data: None,
-                    error: None,
-                    escalation: None,
-                },
+                AgentResult { status: ResultStatus::Success, metrics: None, data: None, error: None, escalation: None },
+                AgentResult { status: ResultStatus::Success, metrics: None, data: None, error: None, escalation: None },
+                AgentResult { status: ResultStatus::Failed, metrics: None, data: None, error: None, escalation: None },
             ],
             total_duration_ms: 1000,
             success_count: 2,

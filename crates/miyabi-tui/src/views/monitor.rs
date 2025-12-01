@@ -30,12 +30,7 @@ impl MonitorView {
         let mut sys = System::new_all();
         sys.refresh_all();
 
-        Self {
-            sys,
-            cpu_history: vec![0; 60],
-            mem_history: vec![0; 60],
-            tick: 0,
-        }
+        Self { sys, cpu_history: vec![0; 60], mem_history: vec![0; 60], tick: 0 }
     }
 
     pub fn update(&mut self) {
@@ -51,8 +46,7 @@ impl MonitorView {
             }
 
             // Update memory history
-            let mem_usage =
-                ((self.sys.used_memory() as f64 / self.sys.total_memory() as f64) * 100.0) as u64;
+            let mem_usage = ((self.sys.used_memory() as f64 / self.sys.total_memory() as f64) * 100.0) as u64;
             self.mem_history.push(mem_usage);
             if self.mem_history.len() > 60 {
                 self.mem_history.remove(0);
@@ -98,11 +92,7 @@ impl MonitorView {
         f.render_widget(cpu_gauge, cpu_chunk[0]);
 
         let cpu_spark = Sparkline::default()
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" CPU History "),
-            )
+            .block(Block::default().borders(Borders::ALL).title(" CPU History "))
             .data(&self.cpu_history)
             .style(Style::default().fg(Color::Cyan));
         f.render_widget(cpu_spark, cpu_chunk[1]);
@@ -140,11 +130,7 @@ impl MonitorView {
         f.render_widget(mem_gauge, mem_chunk[0]);
 
         let mem_spark = Sparkline::default()
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Memory History "),
-            )
+            .block(Block::default().borders(Borders::ALL).title(" Memory History "))
             .data(&self.mem_history)
             .style(Style::default().fg(Color::Magenta));
         f.render_widget(mem_spark, mem_chunk[1]);
@@ -164,17 +150,10 @@ impl MonitorView {
             ]),
             Line::from(vec![
                 Span::raw("Uptime: "),
-                Span::styled(
-                    format!("{}s", System::uptime()),
-                    Style::default().fg(Color::Cyan),
-                ),
+                Span::styled(format!("{}s", System::uptime()), Style::default().fg(Color::Cyan)),
             ]),
         ])
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(" System Info "),
-        );
+        .block(Block::default().borders(Borders::ALL).title(" System Info "));
         f.render_widget(disk_info, chunks[2]);
 
         // Process list
@@ -190,14 +169,8 @@ impl MonitorView {
             .take(15)
             .map(|(pid, proc)| {
                 Line::from(vec![
-                    Span::styled(
-                        format!("{:>6} ", pid.as_u32()),
-                        Style::default().fg(Color::DarkGray),
-                    ),
-                    Span::styled(
-                        format!("{:<20} ", proc.name().to_string_lossy()),
-                        Style::default().fg(Color::Cyan),
-                    ),
+                    Span::styled(format!("{:>6} ", pid.as_u32()), Style::default().fg(Color::DarkGray)),
+                    Span::styled(format!("{:<20} ", proc.name().to_string_lossy()), Style::default().fg(Color::Cyan)),
                     Span::styled(
                         format!("{:>5.1}% ", proc.cpu_usage()),
                         Style::default().fg(if proc.cpu_usage() > 50.0 {

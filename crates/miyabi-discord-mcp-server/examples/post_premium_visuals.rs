@@ -69,7 +69,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              • Accent: #E91E63 (Pink)\n\
              • Style: Flat Design 2.0 with subtle gradients\n\
              • Accessibility: WCAG 2.1 AA compliant\n\n\
-             **Generated Assets**: 4種類".to_string()
+             **Generated Assets**: 4種類"
+                .to_string(),
         ),
         fields: vec![],
         footer: Some(EmbedFooter {
@@ -87,10 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client
-        .create_message(progress_channel)
-        .embeds(&[header_embed])
-        .await?;
+    client.create_message(progress_channel).embeds(&[header_embed]).await?;
     println!("  ✅ Header embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -127,10 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client
-        .create_message(progress_channel)
-        .embeds(&[miyabi_embed])
-        .await?;
+    client.create_message(progress_channel).embeds(&[miyabi_embed]).await?;
     println!("  ✅ Miyabiちゃん embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -168,10 +163,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client
-        .create_message(progress_channel)
-        .embeds(&[design_embed])
-        .await?;
+    client.create_message(progress_channel).embeds(&[design_embed]).await?;
     println!("  ✅ Design System embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -209,10 +201,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client
-        .create_message(progress_channel)
-        .embeds(&[banner_embed])
-        .await?;
+    client.create_message(progress_channel).embeds(&[banner_embed]).await?;
     println!("  ✅ Banner embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -240,11 +229,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             agent_icon_set_url
         )),
         fields: vec![],
-        footer: Some(EmbedFooter {
-            icon_url: None,
-            proxy_icon_url: None,
-            text: "4/4: Agent Icon Set".to_string(),
-        }),
+        footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "4/4: Agent Icon Set".to_string() }),
         image: None,
         kind: "rich".to_string(),
         provider: None,
@@ -255,10 +240,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client
-        .create_message(progress_channel)
-        .embeds(&[agent_embed])
-        .await?;
+    client.create_message(progress_channel).embeds(&[agent_embed]).await?;
     println!("  ✅ Agent Icon Set embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 

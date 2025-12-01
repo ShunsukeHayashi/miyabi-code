@@ -74,10 +74,7 @@ impl CommunicationMonitor {
         };
 
         self.records.write().await.push(record);
-        self.task_start_times
-            .write()
-            .await
-            .insert(task_id.clone(), Utc::now());
+        self.task_start_times.write().await.insert(task_id.clone(), Utc::now());
 
         // Update communication matrix
         let key = format!("{} -> {}", from.0, to.0);
@@ -85,13 +82,7 @@ impl CommunicationMonitor {
     }
 
     /// Log task completed
-    pub async fn log_complete(
-        &self,
-        from: &AgentId,
-        to: &AgentId,
-        task_id: &TaskId,
-        success: bool,
-    ) {
+    pub async fn log_complete(&self, from: &AgentId, to: &AgentId, task_id: &TaskId, success: bool) {
         let event = if success {
             CommunicationEvent::TaskCompleted
         } else {
@@ -159,10 +150,7 @@ impl CommunicationMonitor {
         let start_times = self.task_start_times.read().await;
 
         for record in records.iter() {
-            if matches!(
-                record.event,
-                CommunicationEvent::TaskCompleted | CommunicationEvent::TaskFailed
-            ) {
+            if matches!(record.event, CommunicationEvent::TaskCompleted | CommunicationEvent::TaskFailed) {
                 if let Some(start) = start_times.get(&record.task_id) {
                     let latency = record.timestamp.signed_duration_since(*start);
                     total_latency += latency.num_milliseconds();

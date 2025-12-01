@@ -105,15 +105,7 @@ pub enum KnowledgeCommand {
 impl KnowledgeCommand {
     pub async fn execute(&self, json_output: bool) -> Result<()> {
         match self {
-            Self::Search {
-                query,
-                workspace,
-                agent,
-                issue,
-                task_type,
-                outcome,
-                limit,
-            } => {
+            Self::Search { query, workspace, agent, issue, task_type, outcome, limit } => {
                 search_knowledge(
                     query,
                     workspace.clone(),
@@ -127,29 +119,11 @@ impl KnowledgeCommand {
                 .await
             }
             Self::Stats { workspace } => show_stats(workspace.clone(), json_output).await,
-            Self::Index { workspace, reindex } => {
-                index_workspace(workspace, *reindex, json_output).await
+            Self::Index { workspace, reindex } => index_workspace(workspace, *reindex, json_output).await,
+            Self::Config { auto_index, delay_seconds, retry_count, show, config_path } => {
+                manage_config(*auto_index, *delay_seconds, *retry_count, *show, config_path, json_output).await
             }
-            Self::Config {
-                auto_index,
-                delay_seconds,
-                retry_count,
-                show,
-                config_path,
-            } => {
-                manage_config(
-                    *auto_index,
-                    *delay_seconds,
-                    *retry_count,
-                    *show,
-                    config_path,
-                    json_output,
-                )
-                .await
-            }
-            Self::ClearCache { workspace, yes } => {
-                clear_cache(workspace.clone(), *yes, json_output).await
-            }
+            Self::ClearCache { workspace, yes } => clear_cache(workspace.clone(), *yes, json_output).await,
             Self::Serve { port, open } => serve_dashboard(*port, *open, json_output).await,
         }
     }
@@ -221,12 +195,7 @@ async fn search_knowledge(
         println!("{}", "─".repeat(80).dimmed());
 
         for (i, result) in results.iter().take(limit).enumerate() {
-            println!(
-                "\n{} {} (score: {:.2})",
-                "📄".cyan(),
-                format!("Result {}", i + 1).bold(),
-                result.score
-            );
+            println!("\n{} {} (score: {:.2})", "📄".cyan(), format!("Result {}", i + 1).bold(), result.score);
             println!("  ID: {}", result.id.to_string().dimmed());
             println!("  Workspace: {}", result.metadata.workspace.cyan());
 
@@ -251,14 +220,7 @@ async fn search_knowledge(
                 println!("  Outcome: {}", outcome_colored);
             }
 
-            println!(
-                "  Timestamp: {}",
-                result
-                    .timestamp
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-                    .dimmed()
-            );
+            println!("  Timestamp: {}", result.timestamp.format("%Y-%m-%d %H:%M:%S").to_string().dimmed());
 
             // Content preview
             let preview = if result.content.len() > 200 {
@@ -271,12 +233,7 @@ async fn search_knowledge(
         }
 
         if results.len() > limit {
-            println!(
-                "\n{} Showing {} of {} results. Use --limit to see more.",
-                "ℹ️".blue(),
-                limit,
-                results.len()
-            );
+            println!("\n{} Showing {} of {} results. Use --limit to see more.", "ℹ️".blue(), limit, results.len());
         }
     }
 
@@ -406,14 +363,8 @@ async fn manage_config(
                     "❌ No".red()
                 }
             );
-            println!(
-                "  Delay: {} seconds",
-                config.auto_index.delay_seconds.to_string().cyan()
-            );
-            println!(
-                "  Retry Count: {}",
-                config.auto_index.retry_count.to_string().cyan()
-            );
+            println!("  Delay: {} seconds", config.auto_index.delay_seconds.to_string().cyan());
+            println!("  Retry Count: {}", config.auto_index.retry_count.to_string().cyan());
             println!("\n{}", "Vector DB:".bold());
             println!("  Type: {}", config.vector_db.db_type);
             println!("  Host: {}", config.vector_db.host);
@@ -435,11 +386,7 @@ async fn manage_config(
         config.auto_index.enabled = enabled;
         updated = true;
         if !json_output {
-            println!(
-                "{} Auto-indexing {}",
-                "✅".green(),
-                if enabled { "enabled" } else { "disabled" }
-            );
+            println!("{} Auto-indexing {}", "✅".green(), if enabled { "enabled" } else { "disabled" });
         }
     }
 
@@ -477,27 +424,16 @@ async fn manage_config(
             });
             println!("{}", serde_json::to_string_pretty(&json)?);
         } else {
-            println!(
-                "\n{} Configuration saved to: {}",
-                "💾".green(),
-                expanded_path.bold()
-            );
+            println!("\n{} Configuration saved to: {}", "💾".green(), expanded_path.bold());
         }
     } else if !json_output {
-        println!(
-            "{}",
-            "ℹ️  No changes made. Use --show to view current configuration.".yellow()
-        );
+        println!("{}", "ℹ️  No changes made. Use --show to view current configuration.".yellow());
     }
 
     Ok(())
 }
 
-async fn clear_cache(
-    workspace: Option<String>,
-    skip_confirmation: bool,
-    json_output: bool,
-) -> Result<()> {
+async fn clear_cache(workspace: Option<String>, skip_confirmation: bool, json_output: bool) -> Result<()> {
     // 確認プロンプト
     if !skip_confirmation && !json_output {
         let workspace_desc = workspace
@@ -505,11 +441,7 @@ async fn clear_cache(
             .map(|w| format!("workspace '{}'", w))
             .unwrap_or_else(|| "all workspaces".to_string());
 
-        println!(
-            "{} This will delete index cache for {}",
-            "⚠️".yellow(),
-            workspace_desc.bold()
-        );
+        println!("{} This will delete index cache for {}", "⚠️".yellow(), workspace_desc.bold());
         print!("Are you sure? (y/N): ");
         use std::io::{self, Write};
         io::stdout().flush()?;
@@ -546,10 +478,7 @@ async fn clear_cache(
             if deleted_count == 1 { "" } else { "s" },
             workspace_desc
         );
-        println!(
-            "{} Next indexing will be a full rebuild (slower)",
-            "ℹ️".cyan()
-        );
+        println!("{} Next indexing will be a full rebuild (slower)", "ℹ️".cyan());
     } else {
         println!("{} No cache files found", "ℹ️".cyan());
     }

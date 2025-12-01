@@ -5,9 +5,8 @@
 
 use crate::grpc::proto::{
     a2a_service_server::{A2aService, A2aServiceServer},
-    GetAuthenticatedExtendedCardRequest, GetAuthenticatedExtendedCardResponse, MessageSendRequest,
-    MessageSendResponse, TasksCancelRequest, TasksCancelResponse, TasksGetRequest,
-    TasksGetResponse, TasksListRequest, TasksListResponse,
+    GetAuthenticatedExtendedCardRequest, GetAuthenticatedExtendedCardResponse, MessageSendRequest, MessageSendResponse,
+    TasksCancelRequest, TasksCancelResponse, TasksGetRequest, TasksGetResponse, TasksListRequest, TasksListResponse,
 };
 use crate::rpc::{A2ARpcHandler, AgentCardRpcHandler, TaskStorage};
 use std::sync::Arc;
@@ -30,31 +29,20 @@ impl<S: TaskStorage> A2AServiceImpl<S> {
     ///
     /// * `rpc_handler` - RPC handler for task operations
     /// * `agent_card_handler` - Optional agent card handler
-    pub fn new(
-        rpc_handler: Arc<A2ARpcHandler<S>>,
-        agent_card_handler: Option<Arc<AgentCardRpcHandler>>,
-    ) -> Self {
-        Self {
-            rpc_handler,
-            agent_card_handler,
-        }
+    pub fn new(rpc_handler: Arc<A2ARpcHandler<S>>, agent_card_handler: Option<Arc<AgentCardRpcHandler>>) -> Self {
+        Self { rpc_handler, agent_card_handler }
     }
 }
 
 #[tonic::async_trait]
 impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
     /// Stream type for TasksStream
-    type TasksStreamStream = std::pin::Pin<
-        Box<dyn futures::Stream<Item = Result<crate::grpc::proto::TaskStreamEvent, Status>> + Send>,
-    >;
+    type TasksStreamStream =
+        std::pin::Pin<Box<dyn futures::Stream<Item = Result<crate::grpc::proto::TaskStreamEvent, Status>> + Send>>;
 
     /// Stream type for MessageStream
-    type MessageStreamStream = std::pin::Pin<
-        Box<
-            dyn futures::Stream<Item = Result<crate::grpc::proto::MessageStreamEvent, Status>>
-                + Send,
-        >,
-    >;
+    type MessageStreamStream =
+        std::pin::Pin<Box<dyn futures::Stream<Item = Result<crate::grpc::proto::MessageStreamEvent, Status>> + Send>>;
 
     /// Handle message/send RPC method
     async fn message_send(
@@ -71,11 +59,7 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
             .map(proto_part_to_part)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let params = crate::rpc::MessageSendParams {
-            role,
-            parts,
-            context_id: req.context_id,
-        };
+        let params = crate::rpc::MessageSendParams { role, parts, context_id: req.context_id };
 
         // Execute RPC method
         let result = self
@@ -85,34 +69,21 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
             .map_err(a2a_error_to_status)?;
 
         // Convert result to proto response
-        let response = MessageSendResponse {
-            task_id: result.task_id,
-            status: task_status_to_proto(result.status) as i32,
-        };
+        let response =
+            MessageSendResponse { task_id: result.task_id, status: task_status_to_proto(result.status) as i32 };
 
         Ok(Response::new(response))
     }
 
     /// Handle tasks/get RPC method
-    async fn tasks_get(
-        &self,
-        request: Request<TasksGetRequest>,
-    ) -> Result<Response<TasksGetResponse>, Status> {
+    async fn tasks_get(&self, request: Request<TasksGetRequest>) -> Result<Response<TasksGetResponse>, Status> {
         let req = request.into_inner();
 
-        let params = crate::rpc::TasksGetParams {
-            task_id: req.task_id,
-        };
+        let params = crate::rpc::TasksGetParams { task_id: req.task_id };
 
-        let result = self
-            .rpc_handler
-            .tasks_get(params)
-            .await
-            .map_err(a2a_error_to_status)?;
+        let result = self.rpc_handler.tasks_get(params).await.map_err(a2a_error_to_status)?;
 
-        let response = TasksGetResponse {
-            task: Some(task_to_proto(result.task)?),
-        };
+        let response = TasksGetResponse { task: Some(task_to_proto(result.task)?) };
 
         Ok(Response::new(response))
     }
@@ -124,9 +95,7 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
     ) -> Result<Response<TasksCancelResponse>, Status> {
         let req = request.into_inner();
 
-        let params = crate::rpc::TasksCancelParams {
-            task_id: req.task_id,
-        };
+        let params = crate::rpc::TasksCancelParams { task_id: req.task_id };
 
         let result = self
             .rpc_handler
@@ -143,10 +112,7 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
     }
 
     /// Handle tasks/list RPC method
-    async fn tasks_list(
-        &self,
-        request: Request<TasksListRequest>,
-    ) -> Result<Response<TasksListResponse>, Status> {
+    async fn tasks_list(&self, request: Request<TasksListRequest>) -> Result<Response<TasksListResponse>, Status> {
         let req = request.into_inner();
 
         let status = if let Some(status_val) = req.status {
@@ -159,17 +125,9 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
             None
         };
 
-        let params = crate::rpc::TasksListParams {
-            status,
-            limit: req.limit as usize,
-            context_id: req.context_id,
-        };
+        let params = crate::rpc::TasksListParams { status, limit: req.limit as usize, context_id: req.context_id };
 
-        let result = self
-            .rpc_handler
-            .tasks_list(params)
-            .await
-            .map_err(a2a_error_to_status)?;
+        let result = self.rpc_handler.tasks_list(params).await.map_err(a2a_error_to_status)?;
 
         let tasks = result
             .tasks
@@ -177,10 +135,7 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
             .map(task_to_proto)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let response = TasksListResponse {
-            tasks,
-            total: result.total_count as u32,
-        };
+        let response = TasksListResponse { tasks, total: result.total_count as u32 };
 
         Ok(Response::new(response))
     }
@@ -237,8 +192,8 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
 // ==============================================================================
 
 use crate::grpc::conversions::{
-    a2a_error_to_status, agent_card_to_proto, proto_to_part, proto_to_role, proto_to_task_status,
-    task_status_to_proto, task_to_proto,
+    a2a_error_to_status, agent_card_to_proto, proto_to_part, proto_to_role, proto_to_task_status, task_status_to_proto,
+    task_to_proto,
 };
 
 /// Convert proto role to internal role (wrapper)
@@ -299,9 +254,7 @@ mod tests {
 
     impl MemoryTaskStorage {
         fn new() -> Self {
-            Self {
-                tasks: Arc::new(RwLock::new(HashMap::new())),
-            }
+            Self { tasks: Arc::new(RwLock::new(HashMap::new())) }
         }
     }
 
@@ -381,13 +334,7 @@ mod tests {
         use crate::grpc::proto::TaskStatus as ProtoTaskStatus;
         use crate::types::TaskStatus;
 
-        assert_eq!(
-            task_status_to_proto(TaskStatus::Submitted) as i32,
-            ProtoTaskStatus::Submitted as i32
-        );
-        assert_eq!(
-            task_status_to_proto(TaskStatus::Completed) as i32,
-            ProtoTaskStatus::Completed as i32
-        );
+        assert_eq!(task_status_to_proto(TaskStatus::Submitted) as i32, ProtoTaskStatus::Submitted as i32);
+        assert_eq!(task_status_to_proto(TaskStatus::Completed) as i32, ProtoTaskStatus::Completed as i32);
     }
 }

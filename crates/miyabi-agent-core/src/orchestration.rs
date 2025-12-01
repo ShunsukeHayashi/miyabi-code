@@ -127,11 +127,7 @@ impl Default for OrchestrationEngine {
 
 impl OrchestrationEngine {
     /// タスクを実行（リトライ・メトリクス計測付き）
-    pub async fn execute<A: Orchestrated>(
-        &self,
-        agent: &A,
-        task: &Task,
-    ) -> Result<AgentResult, MiyabiError> {
+    pub async fn execute<A: Orchestrated>(&self, agent: &A, task: &Task) -> Result<AgentResult, MiyabiError> {
         let mut metrics = ExecutionMetrics::new();
 
         info!(
@@ -224,14 +220,12 @@ impl OrchestrationEngine {
             }
         }
 
-        Err(last_error
-            .unwrap_or_else(|| MiyabiError::Unknown("全リトライ失敗（詳細不明）".to_string())))
+        Err(last_error.unwrap_or_else(|| MiyabiError::Unknown("全リトライ失敗（詳細不明）".to_string())))
     }
 
     /// 指数バックオフ時間を計算
     fn calculate_backoff(&self, attempt: usize) -> u64 {
-        let backoff = (self.config.initial_backoff_ms as f64)
-            * self.config.backoff_multiplier.powi(attempt as i32);
+        let backoff = (self.config.initial_backoff_ms as f64) * self.config.backoff_multiplier.powi(attempt as i32);
         backoff.min(self.config.max_backoff_ms as f64) as u64
     }
 }
@@ -265,9 +259,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_orchestration_success() {
-        let agent = TestAgent {
-            fail_count: std::sync::Arc::new(std::sync::Mutex::new(0)),
-        };
+        let agent = TestAgent { fail_count: std::sync::Arc::new(std::sync::Mutex::new(0)) };
 
         let engine = OrchestrationEngine::default();
         let task = Task {

@@ -13,9 +13,7 @@ pub struct AppState {
 impl AppState {
     /// Create a new application state
     pub fn new(llm_client: OpenAIClient) -> Self {
-        Self {
-            llm_client: Arc::new(llm_client),
-        }
+        Self { llm_client: Arc::new(llm_client) }
     }
 
     /// Create application state from environment variables

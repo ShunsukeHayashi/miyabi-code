@@ -28,10 +28,7 @@ pub fn setup_lambda_production_env() {
     env::set_var("JWT_SECRET", "prod-secret-32-bytes-minimum!!!");
     env::set_var("GITHUB_CLIENT_ID", "Iv1.prod1234567890ab");
     env::set_var("GITHUB_CLIENT_SECRET", "prod0123456789abcdef0123456789abcdef012345");
-    env::set_var(
-        "GITHUB_CALLBACK_URL",
-        "https://api.miyabi-society.com/api/v1/auth/github/callback",
-    );
+    env::set_var("GITHUB_CALLBACK_URL", "https://api.miyabi-society.com/api/v1/auth/github/callback");
     env::set_var("FRONTEND_URL", "https://miyabi-society.com");
     env::set_var("SERVER_ADDRESS", "0.0.0.0:8080");
     env::set_var("ENVIRONMENT", "production");
@@ -208,9 +205,7 @@ pub fn create_cors_preflight_headers(origin: &str) -> serde_json::Value {
 
 /// Verify Lambda response structure
 pub fn verify_lambda_response(response: &serde_json::Value) -> bool {
-    response["statusCode"].is_number()
-        && response["headers"].is_object()
-        && response["body"].is_string()
+    response["statusCode"].is_number() && response["headers"].is_object() && response["body"].is_string()
 }
 
 /// Extract status code from Lambda response

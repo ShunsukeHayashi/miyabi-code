@@ -82,18 +82,10 @@ pub trait KnowledgeSearcher: Send + Sync {
     async fn search(&self, query: &str) -> Result<Vec<KnowledgeResult>>;
 
     /// フィルタ付き検索
-    async fn search_filtered(
-        &self,
-        query: &str,
-        filter: SearchFilter,
-    ) -> Result<Vec<KnowledgeResult>>;
+    async fn search_filtered(&self, query: &str, filter: SearchFilter) -> Result<Vec<KnowledgeResult>>;
 
     /// 類似エントリ検索
-    async fn find_similar(
-        &self,
-        entry_id: &KnowledgeId,
-        limit: usize,
-    ) -> Result<Vec<KnowledgeResult>>;
+    async fn find_similar(&self, entry_id: &KnowledgeId, limit: usize) -> Result<Vec<KnowledgeResult>>;
 }
 
 /// Qdrant検索実装
@@ -114,11 +106,7 @@ impl QdrantSearcher {
         // 埋め込みジェネレータ初期化
         let embedding_generator = create_embedding_generator(config.clone())?;
 
-        Ok(Self {
-            config,
-            qdrant_client,
-            embedding_generator,
-        })
+        Ok(Self { config, qdrant_client, embedding_generator })
     }
 
     /// クエリをベクトル化
@@ -146,14 +134,10 @@ impl QdrantSearcher {
             self.qdrant_client
                 .client
                 .search_points(
-                    qdrant_client::qdrant::SearchPointsBuilder::new(
-                        collection_name,
-                        vector,
-                        limit as u64,
-                    )
-                    .filter(f)
-                    .with_payload(true)
-                    .build(),
+                    qdrant_client::qdrant::SearchPointsBuilder::new(collection_name, vector, limit as u64)
+                        .filter(f)
+                        .with_payload(true)
+                        .build(),
                 )
                 .await
                 .map_err(|e| KnowledgeError::Qdrant(format!("Search failed: {}", e)))?
@@ -180,41 +164,22 @@ impl QdrantSearcher {
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string())
                         .unwrap_or_default(),
-                    worktree: payload
-                        .get("worktree")
-                        .and_then(|v| v.as_str())
-                        .map(|s| s.to_string()),
-                    agent: payload
-                        .get("agent")
-                        .and_then(|v| v.as_str())
-                        .map(|s| s.to_string()),
+                    worktree: payload.get("worktree").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    agent: payload.get("agent").and_then(|v| v.as_str()).map(|s| s.to_string()),
                     issue_number: payload
                         .get("issue_number")
                         .and_then(|v| v.as_integer())
                         .map(|n| n as u32),
-                    task_type: payload
-                        .get("task_type")
-                        .and_then(|v| v.as_str())
-                        .map(|s| s.to_string()),
+                    task_type: payload.get("task_type").and_then(|v| v.as_str()).map(|s| s.to_string()),
                     tools_used: payload
                         .get("tools_used")
                         .and_then(|v| v.as_list())
-                        .map(|list| {
-                            list.iter()
-                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                                .collect()
-                        }),
-                    outcome: payload
-                        .get("outcome")
-                        .and_then(|v| v.as_str())
-                        .map(|s| s.to_string()),
-                    files_changed: payload.get("files_changed").and_then(|v| v.as_list()).map(
-                        |list| {
-                            list.iter()
-                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                                .collect()
-                        },
-                    ),
+                        .map(|list| list.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()),
+                    outcome: payload.get("outcome").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    files_changed: payload
+                        .get("files_changed")
+                        .and_then(|v| v.as_list())
+                        .map(|list| list.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()),
                     extra: serde_json::Map::new(),
                 };
 
@@ -222,9 +187,7 @@ impl QdrantSearcher {
                     .id
                     .map(|id| match id.point_id_options {
                         Some(qdrant_client::qdrant::point_id::PointIdOptions::Uuid(uuid)) => uuid,
-                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(num)) => {
-                            num.to_string()
-                        }
+                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(num)) => num.to_string(),
                         None => "unknown".to_string(),
                     })
                     .unwrap_or_else(|| "unknown".to_string());
@@ -305,11 +268,7 @@ impl KnowledgeSearcher for QdrantSearcher {
         Ok(results)
     }
 
-    async fn search_filtered(
-        &self,
-        query: &str,
-        filter: SearchFilter,
-    ) -> Result<Vec<KnowledgeResult>> {
+    async fn search_filtered(&self, query: &str, filter: SearchFilter) -> Result<Vec<KnowledgeResult>> {
         info!("Searching for: {} with filter", query);
 
         // クエリをベクトル化
@@ -324,11 +283,7 @@ impl KnowledgeSearcher for QdrantSearcher {
         Ok(results)
     }
 
-    async fn find_similar(
-        &self,
-        entry_id: &KnowledgeId,
-        _limit: usize,
-    ) -> Result<Vec<KnowledgeResult>> {
+    async fn find_similar(&self, entry_id: &KnowledgeId, _limit: usize) -> Result<Vec<KnowledgeResult>> {
         info!("Finding similar entries for: {}", entry_id);
 
         // TODO: Get entry vector from Qdrant

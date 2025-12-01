@@ -43,9 +43,7 @@ pub struct StepBackProcessor {
 impl StepBackProcessor {
     /// Create a new step-back processor
     pub async fn new() -> Result<Self> {
-        Ok(Self {
-            max_abstraction_level: 3,
-        })
+        Ok(Self { max_abstraction_level: 3 })
     }
 
     /// Process an intent using 26-step Step-back prompting
@@ -93,10 +91,7 @@ impl StepBackProcessor {
             reasoning_chain,
             implementation_plan,
             constraints: intent.constraints.clone(),
-            success_criteria: vec![
-                "All tests pass".to_string(),
-                "Code quality >= 0.80".to_string(),
-            ],
+            success_criteria: vec!["All tests pass".to_string(), "Code quality >= 0.80".to_string()],
         })
     }
 

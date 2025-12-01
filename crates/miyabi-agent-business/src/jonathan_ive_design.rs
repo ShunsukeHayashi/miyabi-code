@@ -34,8 +34,8 @@ impl JonathanIveDesignAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -72,16 +72,13 @@ Provide a comprehensive design review as JSON including:
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::JonathanIveDesignAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::JonathanIveDesignAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let design_review: DesignReview = serde_json::from_str(&response).map_err(|e| {
@@ -181,10 +178,7 @@ impl BaseAgent for JonathanIveDesignAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "JonathanIveDesignAgent starting design review for task: {}",
-            task.id
-        );
+        tracing::info!("JonathanIveDesignAgent starting design review for task: {}", task.id);
 
         // Generate design review using LLM
         let design_review = self.generate_design_review(task).await?;
@@ -221,10 +215,7 @@ impl BaseAgent for JonathanIveDesignAgent {
             "recommendations_count": design_review.recommendations.len()
         });
 
-        tracing::info!(
-            "JonathanIveDesignAgent completed design review: {}",
-            summary
-        );
+        tracing::info!("JonathanIveDesignAgent completed design review: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -245,8 +236,7 @@ mod tests {
         Task {
             id: "test-task-design-1".to_string(),
             title: "Dashboard UI Design".to_string(),
-            description: "A modern analytics dashboard with clean design and intuitive navigation"
-                .to_string(),
+            description: "A modern analytics dashboard with clean design and intuitive navigation".to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -424,10 +414,7 @@ mod tests {
         let review = DesignReview {
             overall_score: 85,
             strengths: vec!["Clean layout".to_string(), "Good whitespace".to_string()],
-            improvements: vec![
-                "Reduce color usage".to_string(),
-                "Simplify navigation".to_string(),
-            ],
+            improvements: vec!["Reduce color usage".to_string(), "Simplify navigation".to_string()],
             recommendations: vec![
                 DesignRecommendation {
                     category: "Color".to_string(),

@@ -75,15 +75,12 @@ impl Default for DynamicScalerConfig {
 impl DynamicScaler {
     /// Creates a new DynamicScaler
     pub fn new(config: DynamicScalerConfig) -> Self {
-        let hardware =
-            HardwareLimits::detect().unwrap_or_else(|_| HardwareLimits::custom(16, 8, 500));
+        let hardware = HardwareLimits::detect().unwrap_or_else(|_| HardwareLimits::custom(16, 8, 500));
         let per_worktree = PerWorktreeLimits::default();
         let max_concurrent = hardware.max_concurrent_worktrees(&per_worktree);
 
         // Start with hardware-detected limit, clamped to config range
-        let initial_limit = max_concurrent
-            .max(config.min_concurrent)
-            .min(config.max_concurrent);
+        let initial_limit = max_concurrent.max(config.min_concurrent).min(config.max_concurrent);
 
         info!(
             initial_limit = initial_limit,
@@ -114,10 +111,7 @@ impl DynamicScaler {
         // Hook: Monitoring started
         {
             let mut params = std::collections::HashMap::new();
-            params.insert(
-                "MONITOR_INTERVAL_MS".to_string(),
-                self.config.monitor_interval.as_millis().to_string(),
-            );
+            params.insert("MONITOR_INTERVAL_MS".to_string(), self.config.monitor_interval.as_millis().to_string());
             crate::hooks::notify_scaling_event("monitoring_started", params);
         }
 
@@ -163,18 +157,10 @@ impl DynamicScaler {
                 let mut params = std::collections::HashMap::new();
                 params.insert("OLD_LIMIT".to_string(), old_limit.to_string());
                 params.insert("NEW_LIMIT".to_string(), current_limit.to_string());
-                params.insert(
-                    "MEMORY_USAGE".to_string(),
-                    format!("{:.0}", stats.memory_usage_ratio * 100.0),
-                );
-                params.insert(
-                    "CPU_USAGE".to_string(),
-                    format!("{:.0}", stats.cpu_usage_ratio * 100.0),
-                );
-                params.insert(
-                    "SCALE_UP_THRESHOLD".to_string(),
-                    format!("{:.0}", self.config.scale_up_threshold * 100.0),
-                );
+                params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
+                params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
+                params
+                    .insert("SCALE_UP_THRESHOLD".to_string(), format!("{:.0}", self.config.scale_up_threshold * 100.0));
                 crate::hooks::notify_scaling_event("scale_up", params);
             }
         }
@@ -197,14 +183,8 @@ impl DynamicScaler {
                 let mut params = std::collections::HashMap::new();
                 params.insert("OLD_LIMIT".to_string(), old_limit.to_string());
                 params.insert("NEW_LIMIT".to_string(), current_limit.to_string());
-                params.insert(
-                    "MEMORY_USAGE".to_string(),
-                    format!("{:.0}", stats.memory_usage_ratio * 100.0),
-                );
-                params.insert(
-                    "CPU_USAGE".to_string(),
-                    format!("{:.0}", stats.cpu_usage_ratio * 100.0),
-                );
+                params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
+                params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
                 params.insert(
                     "SCALE_DOWN_THRESHOLD".to_string(),
                     format!("{:.0}", self.config.scale_down_threshold * 100.0),
@@ -223,14 +203,8 @@ impl DynamicScaler {
             {
                 let mut params = std::collections::HashMap::new();
                 params.insert("NEW_LIMIT".to_string(), current_limit.to_string());
-                params.insert(
-                    "MEMORY_USAGE".to_string(),
-                    format!("{:.0}", stats.memory_usage_ratio * 100.0),
-                );
-                params.insert(
-                    "CPU_USAGE".to_string(),
-                    format!("{:.0}", stats.cpu_usage_ratio * 100.0),
-                );
+                params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
+                params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
                 crate::hooks::notify_scaling_event("no_scaling", params);
             }
         }
@@ -245,9 +219,7 @@ impl DynamicScaler {
 
     /// Manually sets the concurrent limit (for testing)
     pub async fn set_limit(&self, limit: usize) {
-        let clamped_limit = limit
-            .max(self.config.min_concurrent)
-            .min(self.config.max_concurrent);
+        let clamped_limit = limit.max(self.config.min_concurrent).min(self.config.max_concurrent);
 
         let mut current = self.current_limit.lock().await;
         *current = clamped_limit;
@@ -273,10 +245,7 @@ pub struct ResourceMonitor {
 impl ResourceMonitor {
     /// Creates a new ResourceMonitor
     pub fn new(hardware: HardwareLimits, per_worktree: PerWorktreeLimits) -> Self {
-        Self {
-            hardware,
-            per_worktree,
-        }
+        Self { hardware, per_worktree }
     }
 
     /// Collects current resource statistics
@@ -292,8 +261,8 @@ impl ResourceMonitor {
         let memory_usage_ratio = used_memory as f64 / total_memory as f64;
 
         // Calculate CPU usage (average across all cores)
-        let cpu_usage_ratio = sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>()
-            / (sys.cpus().len() as f32 * 100.0);
+        let cpu_usage_ratio =
+            sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>() / (sys.cpus().len() as f32 * 100.0);
 
         // Calculate available resources
         let available_memory_gb = ((total_memory - used_memory) / (1024 * 1024 * 1024)) as usize;
@@ -312,36 +281,19 @@ impl ResourceMonitor {
         // Hook: Resource stats collected
         {
             let mut params = std::collections::HashMap::new();
-            params.insert(
-                "MEMORY_USAGE".to_string(),
-                format!("{:.0}", stats.memory_usage_ratio * 100.0),
-            );
-            params.insert(
-                "CPU_USAGE".to_string(),
-                format!("{:.0}", stats.cpu_usage_ratio * 100.0),
-            );
-            params.insert(
-                "AVAILABLE_MEMORY_GB".to_string(),
-                stats.available_memory_gb.to_string(),
-            );
-            params.insert(
-                "AVAILABLE_WORKTREES".to_string(),
-                stats.available_worktrees.to_string(),
-            );
-            params.insert(
-                "BOTTLENECK_RESOURCE".to_string(),
-                format!("{:?}", stats.bottleneck_resource),
-            );
+            params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
+            params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
+            params.insert("AVAILABLE_MEMORY_GB".to_string(), stats.available_memory_gb.to_string());
+            params.insert("AVAILABLE_WORKTREES".to_string(), stats.available_worktrees.to_string());
+            params.insert("BOTTLENECK_RESOURCE".to_string(), format!("{:?}", stats.bottleneck_resource));
 
             // Clone params for potential bottleneck detection
             let params_clone = params.clone();
             crate::hooks::notify_scaling_event("resource_stats", params);
 
             // Also report bottleneck if detected
-            if matches!(
-                bottleneck,
-                miyabi_core::resource_limits::ResourceType::Memory
-            ) || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Cpu)
+            if matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Memory)
+                || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Cpu)
                 || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Disk)
             {
                 crate::hooks::notify_scaling_event("bottleneck_detected", params_clone);
@@ -382,11 +334,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_dynamic_scaler_manual_limit() {
-        let config = DynamicScalerConfig {
-            min_concurrent: 1,
-            max_concurrent: 10,
-            ..Default::default()
-        };
+        let config = DynamicScalerConfig { min_concurrent: 1, max_concurrent: 10, ..Default::default() };
         let scaler = DynamicScaler::new(config);
 
         scaler.set_limit(5).await;
@@ -415,14 +363,8 @@ mod tests {
             stats.memory_usage_ratio >= 0.0 && stats.memory_usage_ratio <= 1.0,
             "Memory usage should be between 0 and 1"
         );
-        assert!(
-            stats.cpu_usage_ratio >= 0.0,
-            "CPU usage should be non-negative"
-        );
-        assert!(
-            stats.available_worktrees > 0,
-            "Should have at least 1 available worktree"
-        );
+        assert!(stats.cpu_usage_ratio >= 0.0, "CPU usage should be non-negative");
+        assert!(stats.available_worktrees > 0, "Should have at least 1 available worktree");
     }
 
     #[tokio::test]
@@ -473,10 +415,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_start_monitoring_initialization() {
-        let config = DynamicScalerConfig {
-            monitor_interval: Duration::from_millis(100),
-            ..Default::default()
-        };
+        let config = DynamicScalerConfig { monitor_interval: Duration::from_millis(100), ..Default::default() };
         let scaler = DynamicScaler::new(config);
 
         // Start monitoring (non-blocking)

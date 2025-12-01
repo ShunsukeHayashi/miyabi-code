@@ -73,10 +73,9 @@ impl A2ABridgeView {
             A2ATool {
                 name: "a2a.coordinator_agent.decompose_issue".to_string(),
                 description: "Decompose issue into subtasks".to_string(),
-                agent_prompt:
-                    r#"You are the CoordinatorAgent. Decompose the given task into subtasks.
+                agent_prompt: r#"You are the CoordinatorAgent. Decompose the given task into subtasks.
 Output JSON: {"subtasks": [{"id": 1, "title": "...", "priority": "high|medium|low"}]}"#
-                        .to_string(),
+                    .to_string(),
             },
             A2ATool {
                 name: "a2a.code_generation_agent.generate_code".to_string(),
@@ -109,10 +108,9 @@ Output JSON: {"strengths": [...], "weaknesses": [...], "opportunities": [...], "
             A2ATool {
                 name: "a2a.market_research_agent.research_market".to_string(),
                 description: "Market research analysis".to_string(),
-                agent_prompt:
-                    r#"You are the MarketResearchAgent. Analyze market for the given product.
+                agent_prompt: r#"You are the MarketResearchAgent. Analyze market for the given product.
 Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}"#
-                        .to_string(),
+                    .to_string(),
             },
         ];
 
@@ -256,14 +254,8 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
             .iter()
             .map(|tool| {
                 ListItem::new(vec![
-                    Line::from(Span::styled(
-                        tool.name.clone(),
-                        Style::default().fg(Color::Cyan),
-                    )),
-                    Line::from(Span::styled(
-                        format!("  {}", tool.description),
-                        Style::default().fg(Color::DarkGray),
-                    )),
+                    Line::from(Span::styled(tool.name.clone(), Style::default().fg(Color::Cyan))),
+                    Line::from(Span::styled(format!("  {}", tool.description), Style::default().fg(Color::DarkGray))),
                 ])
             })
             .collect();
@@ -281,11 +273,7 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
                     .title(title)
                     .title_style(Style::default().fg(Color::Yellow)),
             )
-            .highlight_style(
-                Style::default()
-                    .bg(Color::DarkGray)
-                    .add_modifier(Modifier::BOLD),
-            )
+            .highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
             .highlight_symbol(">> ");
 
         f.render_stateful_widget(list, chunks[0], &mut self.selected.clone());
@@ -315,14 +303,13 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
         };
 
         let input = Paragraph::new(self.input.clone()).style(input_style).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(input_title)
-                .border_style(if self.input_mode || self.loading {
+            Block::default().borders(Borders::ALL).title(input_title).border_style(
+                if self.input_mode || self.loading {
                     Style::default().fg(Color::Yellow)
                 } else {
                     Style::default()
-                }),
+                },
+            ),
         );
         f.render_widget(input, right_chunks[0]);
 
@@ -331,21 +318,14 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
 
         // Show error if any
         if let Some(err) = &self.error {
-            history_lines.push(Line::from(Span::styled(
-                format!("⚠ {}", err),
-                Style::default().fg(Color::Red),
-            )));
+            history_lines.push(Line::from(Span::styled(format!("⚠ {}", err), Style::default().fg(Color::Red))));
             history_lines.push(Line::from(""));
         }
 
         // Show execution history
         for result in self.history.iter().rev().take(5) {
             let status = if result.success { "✓" } else { "✗" };
-            let color = if result.success {
-                Color::Green
-            } else {
-                Color::Red
-            };
+            let color = if result.success { Color::Green } else { Color::Red };
 
             history_lines.push(Line::from(vec![
                 Span::styled(status, Style::default().fg(color)),
@@ -357,26 +337,17 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
             // Show first 3 lines of output
             for (i, line) in result.output.lines().take(3).enumerate() {
                 let prefix = if i == 0 { "  → " } else { "    " };
-                history_lines.push(Line::from(Span::styled(
-                    format!("{}{}", prefix, line),
-                    Style::default().fg(Color::White),
-                )));
+                history_lines
+                    .push(Line::from(Span::styled(format!("{}{}", prefix, line), Style::default().fg(Color::White))));
             }
             if result.output.lines().count() > 3 {
-                history_lines.push(Line::from(Span::styled(
-                    "    ...",
-                    Style::default().fg(Color::DarkGray),
-                )));
+                history_lines.push(Line::from(Span::styled("    ...", Style::default().fg(Color::DarkGray))));
             }
             history_lines.push(Line::from(""));
         }
 
         let output = Paragraph::new(history_lines)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Execution History "),
-            )
+            .block(Block::default().borders(Borders::ALL).title(" Execution History "))
             .wrap(Wrap { trim: true });
         f.render_widget(output, right_chunks[1]);
     }

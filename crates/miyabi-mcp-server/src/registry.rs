@@ -187,11 +187,7 @@ pub enum ServerStatus {
 
 impl McpServerConnection {
     /// Create a new HTTP-based MCP server connection
-    pub fn http(
-        id: impl Into<String>,
-        name: impl Into<String>,
-        endpoint: impl Into<String>,
-    ) -> Self {
+    pub fn http(id: impl Into<String>, name: impl Into<String>, endpoint: impl Into<String>) -> Self {
         Self {
             id: id.into(),
             name: name.into(),
@@ -273,20 +269,12 @@ pub struct DiscoveryStats {
 impl ToolRegistry {
     /// Create a new empty tool registry
     pub fn new() -> Self {
-        Self {
-            tools: HashMap::new(),
-            mcp_servers: Vec::new(),
-            stats: DiscoveryStats::default(),
-        }
+        Self { tools: HashMap::new(), mcp_servers: Vec::new(), stats: DiscoveryStats::default() }
     }
 
     /// Create a new tool registry with preconfigured MCP servers
     pub fn with_servers(servers: Vec<McpServerConnection>) -> Self {
-        Self {
-            tools: HashMap::new(),
-            mcp_servers: servers,
-            stats: DiscoveryStats::default(),
-        }
+        Self { tools: HashMap::new(), mcp_servers: servers, stats: DiscoveryStats::default() }
     }
 
     /// Add an MCP server connection
@@ -309,28 +297,18 @@ impl ToolRegistry {
     /// Returns a list of all discovered tool definitions.
     pub async fn discover_tools(&mut self) -> RegistryResult<Vec<ToolDefinition>> {
         let start = std::time::Instant::now();
-        info!(
-            "Starting tool discovery from {} servers",
-            self.mcp_servers.len()
-        );
+        info!("Starting tool discovery from {} servers", self.mcp_servers.len());
 
         let mut discovered_tools = Vec::new();
         let mut servers_healthy = 0;
         let mut servers_failed = 0;
 
         for server in &mut self.mcp_servers {
-            debug!(
-                "Discovering tools from server: {} ({})",
-                server.name, server.id
-            );
+            debug!("Discovering tools from server: {} ({})", server.name, server.id);
 
             match Self::discover_from_server_static(server).await {
                 Ok(tools) => {
-                    info!(
-                        "Discovered {} tools from server: {}",
-                        tools.len(),
-                        server.name
-                    );
+                    info!("Discovered {} tools from server: {}", tools.len(), server.name);
                     server.update_status(ServerStatus::Healthy, None);
                     servers_healthy += 1;
 
@@ -341,10 +319,7 @@ impl ToolRegistry {
                     }
                 }
                 Err(e) => {
-                    warn!(
-                        "Failed to discover tools from server {}: {}",
-                        server.name, e
-                    );
+                    warn!("Failed to discover tools from server {}: {}", server.name, e);
                     server.update_status(ServerStatus::Error, Some(e.to_string()));
                     servers_failed += 1;
                 }
@@ -378,9 +353,7 @@ impl ToolRegistry {
     ///
     /// This method makes a `tools/list` JSON-RPC call to the specified server
     /// and parses the response to extract tool definitions.
-    async fn discover_from_server_static(
-        server: &McpServerConnection,
-    ) -> RegistryResult<Vec<ToolDefinition>> {
+    async fn discover_from_server_static(server: &McpServerConnection) -> RegistryResult<Vec<ToolDefinition>> {
         // For now, implement a basic stdio-based discovery
         // In a production system, this would:
         // 1. Spawn the MCP server process (if stdio-based)
@@ -397,10 +370,7 @@ impl ToolRegistry {
 
         // For now, return empty list
         // Real implementation would parse JSON-RPC response
-        warn!(
-            "Tool discovery not yet fully implemented for server: {}",
-            server.name
-        );
+        warn!("Tool discovery not yet fully implemented for server: {}", server.name);
 
         Ok(Vec::new())
     }
@@ -568,8 +538,7 @@ mod tests {
 
     #[test]
     fn test_tool_definition_with_tags() {
-        let tool = create_test_tool("test.tool", "server1")
-            .with_tags(vec!["github".to_string(), "api".to_string()]);
+        let tool = create_test_tool("test.tool", "server1").with_tags(vec!["github".to_string(), "api".to_string()]);
 
         assert_eq!(tool.tags.len(), 2);
         assert!(tool.tags.contains(&"github".to_string()));
@@ -591,10 +560,7 @@ mod tests {
             "server1",
             "Test Server",
             "npx",
-            vec![
-                "-y".to_string(),
-                "@modelcontextprotocol/server-github".to_string(),
-            ],
+            vec!["-y".to_string(), "@modelcontextprotocol/server-github".to_string()],
         );
 
         assert_eq!(server.id, "server1");

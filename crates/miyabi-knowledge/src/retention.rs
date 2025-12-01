@@ -96,11 +96,7 @@ impl RetentionManager {
     pub async fn new(config: KnowledgeConfig, policy: RetentionPolicy) -> Result<Self> {
         let qdrant_client = Arc::new(QdrantClient::new(config.clone()).await?);
 
-        Ok(Self {
-            config,
-            policy,
-            qdrant_client,
-        })
+        Ok(Self { config, policy, qdrant_client })
     }
 
     /// Perform cleanup based on retention policy
@@ -182,10 +178,7 @@ impl RetentionManager {
         if to_delete.is_empty() {
             info!("No entries need to be deleted");
         } else {
-            info!(
-                "Found {} entries to delete ({} will be retained)",
-                stats.deleted, stats.retained
-            );
+            info!("Found {} entries to delete ({} will be retained)", stats.deleted, stats.retained);
 
             if !dry_run {
                 // Perform actual deletion
@@ -215,15 +208,8 @@ impl RetentionManager {
     ///
     /// * `before_date` - Delete all entries before this date
     /// * `dry_run` - If true, only report what would be deleted
-    pub async fn cleanup_before(
-        &self,
-        before_date: DateTime<Utc>,
-        dry_run: bool,
-    ) -> Result<CleanupStats> {
-        info!(
-            "Starting cleanup before {} (dry_run: {})",
-            before_date, dry_run
-        );
+    pub async fn cleanup_before(&self, before_date: DateTime<Utc>, dry_run: bool) -> Result<CleanupStats> {
+        info!("Starting cleanup before {} (dry_run: {})", before_date, dry_run);
 
         let start = std::time::Instant::now();
         let mut stats = CleanupStats::default();
@@ -292,10 +278,7 @@ impl RetentionManager {
                 info!("Running automatic cleanup");
                 match self.cleanup(false).await {
                     Ok(stats) => {
-                        info!(
-                            "Automatic cleanup completed: {} deleted, {} retained",
-                            stats.deleted, stats.retained
-                        );
+                        info!("Automatic cleanup completed: {} deleted, {} retained", stats.deleted, stats.retained);
                     }
                     Err(e) => {
                         warn!("Automatic cleanup failed: {}", e);
@@ -320,11 +303,7 @@ mod tests {
 
     #[test]
     fn test_retention_policy_serialization() {
-        let policy = RetentionPolicy {
-            max_days: 30,
-            max_entries: 5000,
-            cleanup_interval_hours: 12,
-        };
+        let policy = RetentionPolicy { max_days: 30, max_entries: 5000, cleanup_interval_hours: 12 };
 
         let json = serde_json::to_string(&policy).unwrap();
         let deserialized: RetentionPolicy = serde_json::from_str(&json).unwrap();

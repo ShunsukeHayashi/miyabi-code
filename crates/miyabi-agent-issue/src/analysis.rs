@@ -135,14 +135,9 @@ impl IssueAnalysis {
         let combined_text = format!("{} {}", issue.title, issue.body).to_lowercase();
 
         // Type detection
-        if combined_text.contains("bug")
-            || combined_text.contains("fix")
-            || combined_text.contains("バグ")
-        {
+        if combined_text.contains("bug") || combined_text.contains("fix") || combined_text.contains("バグ") {
             labels.push("type:bug".to_string());
-        } else if combined_text.contains("feature")
-            || combined_text.contains("add")
-            || combined_text.contains("機能")
+        } else if combined_text.contains("feature") || combined_text.contains("add") || combined_text.contains("機能")
         {
             labels.push("type:feature".to_string());
         } else if combined_text.contains("refactor") || combined_text.contains("リファクタ") {
@@ -157,10 +152,7 @@ impl IssueAnalysis {
         }
 
         // Priority detection
-        if combined_text.contains("urgent")
-            || combined_text.contains("critical")
-            || combined_text.contains("緊急")
-        {
+        if combined_text.contains("urgent") || combined_text.contains("critical") || combined_text.contains("緊急") {
             labels.push("priority:P0-Critical".to_string());
         } else if combined_text.contains("important")
             || combined_text.contains("high")
@@ -180,8 +172,7 @@ impl IssueAnalysis {
         if combined_text.contains("webhook") {
             labels.push("component:webhook".to_string());
         }
-        if combined_text.contains("orchestrator") || combined_text.contains("オーケストレーター")
-        {
+        if combined_text.contains("orchestrator") || combined_text.contains("オーケストレーター") {
             labels.push("component:orchestrator".to_string());
         }
 
@@ -218,16 +209,9 @@ impl IssueAnalysis {
         }
 
         if reasons.is_empty() {
-            format!(
-                "Complexity score: {:.1}/10.0 based on keyword analysis",
-                complexity
-            )
+            format!("Complexity score: {:.1}/10.0 based on keyword analysis", complexity)
         } else {
-            format!(
-                "Complexity score: {:.1}/10.0. {}",
-                complexity,
-                reasons.join(". ")
-            )
+            format!("Complexity score: {:.1}/10.0. {}", complexity, reasons.join(". "))
         }
     }
 }
@@ -262,11 +246,8 @@ mod tests {
 
     #[test]
     fn test_high_complexity_database() {
-        let issue = create_test_issue(
-            123,
-            "Database migration",
-            "Add new database table for users with migration scripts",
-        );
+        let issue =
+            create_test_issue(123, "Database migration", "Add new database table for users with migration scripts");
         let analysis = IssueAnalysis::analyze(&issue);
 
         assert!(analysis.complexity >= 5.0);
@@ -286,9 +267,7 @@ mod tests {
         let issue = create_test_issue(123, "Urgent fix needed", "Critical production issue");
         let analysis = IssueAnalysis::analyze(&issue);
 
-        assert!(analysis
-            .labels
-            .contains(&"priority:P0-Critical".to_string()));
+        assert!(analysis.labels.contains(&"priority:P0-Critical".to_string()));
     }
 
     #[test]

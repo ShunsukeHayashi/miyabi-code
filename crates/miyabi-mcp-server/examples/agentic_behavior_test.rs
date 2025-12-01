@@ -21,11 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("🔧 Phase 2: Registering all 21 agents...");
     let start = Instant::now();
     let count = initialize_all_agents(&bridge).await?;
-    println!(
-        "   ✅ {} agents registered in {:?}\n",
-        count,
-        start.elapsed()
-    );
+    println!("   ✅ {} agents registered in {:?}\n", count, start.elapsed());
 
     // Phase 3: List available tools
     println!("📋 Phase 3: Available A2A Tools:");
@@ -59,10 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("   ⏱️  Execution time: {:?}", start.elapsed());
     println!("   ✅ Success: {}", result.success);
     if result.success {
-        println!(
-            "   📊 Output: {}",
-            serde_json::to_string_pretty(&result.output)?
-        );
+        println!("   📊 Output: {}", serde_json::to_string_pretty(&result.output)?);
     } else if let Some(err) = &result.error {
         println!("   ❌ Error: {}", err);
     }
@@ -93,10 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("   ⏱️  Execution time: {:?}", start.elapsed());
     println!("   ✅ Success: {}", result.success);
     if result.success {
-        println!(
-            "   📊 Output: {}",
-            serde_json::to_string_pretty(&result.output)?
-        );
+        println!("   📊 Output: {}", serde_json::to_string_pretty(&result.output)?);
     } else if let Some(err) = &result.error {
         println!("   ❌ Error: {}", err);
     }
@@ -131,10 +121,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("   ⏱️  Execution time: {:?}", start.elapsed());
     println!("   ✅ Success: {}", result.success);
     if result.success {
-        println!(
-            "   📊 Output: {}",
-            serde_json::to_string_pretty(&result.output)?
-        );
+        println!("   📊 Output: {}", serde_json::to_string_pretty(&result.output)?);
     } else if let Some(err) = &result.error {
         println!("   ❌ Error: {}", err);
     }
@@ -164,10 +151,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("   ⏱️  Execution time: {:?}", start.elapsed());
     println!("   ✅ Success: {}", result.success);
     if result.success {
-        println!(
-            "   📊 Output: {}",
-            serde_json::to_string_pretty(&result.output)?
-        );
+        println!("   📊 Output: {}", serde_json::to_string_pretty(&result.output)?);
     } else if let Some(err) = &result.error {
         println!("   ❌ Error: {}", err);
     }

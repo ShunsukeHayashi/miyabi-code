@@ -18,10 +18,7 @@ pub struct ParallelCommand {
 
 impl ParallelCommand {
     pub fn new(issues: Vec<u64>, concurrency: usize) -> Self {
-        Self {
-            issues,
-            concurrency,
-        }
+        Self { issues, concurrency }
     }
 
     pub async fn execute(&self) -> Result<()> {
@@ -43,9 +40,7 @@ impl ParallelCommand {
         }
 
         if self.concurrency == 0 {
-            return Err(CliError::InvalidInput(
-                "Concurrency must be at least 1".to_string(),
-            ));
+            return Err(CliError::InvalidInput("Concurrency must be at least 1".to_string()));
         }
 
         // Load configuration
@@ -65,10 +60,8 @@ impl ParallelCommand {
         println!("    Auto cleanup: {}", pool_config.auto_cleanup);
         println!();
 
-        let pool =
-            WorktreePool::new(pool_config, config.worktree_base_path.clone()).map_err(|e| {
-                CliError::ExecutionError(format!("Failed to create worktree pool: {}", e))
-            })?;
+        let pool = WorktreePool::new(pool_config, config.worktree_base_path.clone())
+            .map_err(|e| CliError::ExecutionError(format!("Failed to create worktree pool: {}", e)))?;
 
         let descriptor = AgentRegistry::global()
             .get(AgentType::CoordinatorAgent)
@@ -88,12 +81,7 @@ impl ParallelCommand {
 
         println!("  Tasks:");
         for task in &tasks {
-            println!(
-                "    {} Issue #{}: {}",
-                "•".dimmed(),
-                task.issue_number,
-                task.description.dimmed()
-            );
+            println!("    {} Issue #{}: {}", "•".dimmed(), task.issue_number, task.description.dimmed());
         }
         println!();
 
@@ -120,9 +108,7 @@ impl ParallelCommand {
                     let agent_task = descriptor
                         .build_issue_task(task.issue_number, None, true)
                         .ok_or_else(|| {
-                            MiyabiError::Unknown(
-                                "CoordinatorAgent missing default task template".to_string(),
-                            )
+                            MiyabiError::Unknown("CoordinatorAgent missing default task template".to_string())
                         })?;
 
                     let agent_result = agent
@@ -157,34 +143,20 @@ impl ParallelCommand {
         println!();
         println!("  Summary:");
         println!("    Total tasks: {}", result.total_tasks);
-        println!(
-            "    {} Successful: {}",
-            "✓".green().bold(),
-            result.success_count
-        );
+        println!("    {} Successful: {}", "✓".green().bold(), result.success_count);
         if result.failed_count > 0 {
             println!("    {} Failed: {}", "✗".red().bold(), result.failed_count);
         }
         if result.timeout_count > 0 {
-            println!(
-                "    {} Timeout: {}",
-                "⏱".yellow().bold(),
-                result.timeout_count
-            );
+            println!("    {} Timeout: {}", "⏱".yellow().bold(), result.timeout_count);
         }
         println!();
 
         println!("  Performance:");
         println!("    Wall time: {:.2}s", elapsed.as_secs_f64());
-        println!(
-            "    Total duration: {:.2}s",
-            result.total_duration_ms as f64 / 1000.0
-        );
+        println!("    Total duration: {:.2}s", result.total_duration_ms as f64 / 1000.0);
         println!("    Success rate: {:.1}%", result.success_rate());
-        println!(
-            "    Average task duration: {:.2}s",
-            result.average_duration_ms() / 1000.0
-        );
+        println!("    Average task duration: {:.2}s", result.average_duration_ms() / 1000.0);
 
         // Calculate speedup
         let sequential_time = result.average_duration_ms() * result.total_tasks as f64;
@@ -235,18 +207,11 @@ impl ParallelCommand {
         } else {
             println!(
                 "{}",
-                format!(
-                    "⚠️  {} of {} tasks failed",
-                    result.failed_count + result.timeout_count,
-                    result.total_tasks
-                )
-                .yellow()
-                .bold()
+                format!("⚠️  {} of {} tasks failed", result.failed_count + result.timeout_count, result.total_tasks)
+                    .yellow()
+                    .bold()
             );
-            Err(CliError::ExecutionError(format!(
-                "{} tasks failed",
-                result.failed_count + result.timeout_count
-            )))
+            Err(CliError::ExecutionError(format!("{} tasks failed", result.failed_count + result.timeout_count)))
         }
     }
 

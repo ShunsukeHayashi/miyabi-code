@@ -48,12 +48,7 @@ pub struct LoggerConfig {
 
 impl Default for LoggerConfig {
     fn default() -> Self {
-        Self {
-            level: LogLevel::Info,
-            format: LogFormat::Pretty,
-            file_directory: None,
-            rotation: Rotation::DAILY,
-        }
+        Self { level: LogLevel::Info, format: LogFormat::Pretty, file_directory: None, rotation: Rotation::DAILY }
     }
 }
 
@@ -94,10 +89,7 @@ impl From<&str> for LogFormat {
 
 /// Initialize logging with default configuration
 pub fn init_logger(level: LogLevel) {
-    let config = LoggerConfig {
-        level,
-        ..Default::default()
-    };
+    let config = LoggerConfig { level, ..Default::default() };
     init_logger_with_config(config);
 }
 
@@ -120,18 +112,12 @@ pub fn init_logger_with_config(config: LoggerConfig) {
         }
         // Console only - Compact format
         (LogFormat::Compact, None) => {
-            let fmt_layer = fmt::layer()
-                .compact()
-                .with_target(false)
-                .with_thread_ids(false);
+            let fmt_layer = fmt::layer().compact().with_target(false).with_thread_ids(false);
             subscriber.with(fmt_layer).init();
         }
         // Console only - JSON format
         (LogFormat::Json, None) => {
-            let fmt_layer = fmt::layer()
-                .json()
-                .with_current_span(true)
-                .with_span_list(true);
+            let fmt_layer = fmt::layer().json().with_current_span(true).with_span_list(true);
             subscriber.with(fmt_layer).init();
         }
         // Console + File - Pretty format
@@ -139,15 +125,9 @@ pub fn init_logger_with_config(config: LoggerConfig) {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
             let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
-            let console_layer = fmt::layer()
-                .pretty()
-                .with_target(true)
-                .with_line_number(true);
+            let console_layer = fmt::layer().pretty().with_target(true).with_line_number(true);
 
-            let file_layer = fmt::layer()
-                .json()
-                .with_writer(non_blocking)
-                .with_ansi(false);
+            let file_layer = fmt::layer().json().with_writer(non_blocking).with_ansi(false);
 
             subscriber.with(console_layer).with(file_layer).init();
 
@@ -161,10 +141,7 @@ pub fn init_logger_with_config(config: LoggerConfig) {
 
             let console_layer = fmt::layer().compact().with_target(false);
 
-            let file_layer = fmt::layer()
-                .json()
-                .with_writer(non_blocking)
-                .with_ansi(false);
+            let file_layer = fmt::layer().json().with_writer(non_blocking).with_ansi(false);
 
             subscriber.with(console_layer).with(file_layer).init();
 
@@ -178,10 +155,7 @@ pub fn init_logger_with_config(config: LoggerConfig) {
 
             let console_layer = fmt::layer().json().with_current_span(true);
 
-            let file_layer = fmt::layer()
-                .json()
-                .with_writer(non_blocking)
-                .with_ansi(false);
+            let file_layer = fmt::layer().json().with_writer(non_blocking).with_ansi(false);
 
             subscriber.with(console_layer).with(file_layer).init();
 

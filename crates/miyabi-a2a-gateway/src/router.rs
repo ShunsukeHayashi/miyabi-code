@@ -24,9 +24,7 @@ pub struct MessageRouter {
 impl MessageRouter {
     /// Create a new router
     pub fn new() -> Self {
-        Self {
-            delivery_status: RwLock::new(HashMap::new()),
-        }
+        Self { delivery_status: RwLock::new(HashMap::new()) }
     }
 
     /// Route task to target agent
@@ -45,17 +43,11 @@ impl MessageRouter {
                         .write()
                         .await
                         .insert(task_id.clone(), DeliveryStatus::Delivered);
-                    info!(
-                        "Delivered task {} to {:?} (attempt {})",
-                        task_id.0, target.0, attempt
-                    );
+                    info!("Delivered task {} to {:?} (attempt {})", task_id.0, target.0, attempt);
                     return Ok(());
                 }
                 Err(e) if attempt < 3 => {
-                    warn!(
-                        "Delivery attempt {} failed for task {}: {}",
-                        attempt, task_id.0, e
-                    );
+                    warn!("Delivery attempt {} failed for task {}: {}", attempt, task_id.0, e);
                     tokio::time::sleep(Duration::from_secs(attempt * 2)).await;
                     continue;
                 }

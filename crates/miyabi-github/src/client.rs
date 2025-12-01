@@ -28,21 +28,13 @@ impl GitHubClient {
     /// let client = GitHubClient::new("ghp_xxx", "user", "repo")?;
     /// # Ok::<(), miyabi_types::error::MiyabiError>(())
     /// ```
-    pub fn new(
-        token: impl Into<String>,
-        owner: impl Into<String>,
-        repo: impl Into<String>,
-    ) -> Result<Self> {
+    pub fn new(token: impl Into<String>, owner: impl Into<String>, repo: impl Into<String>) -> Result<Self> {
         let client = Octocrab::builder()
             .personal_token(token.into())
             .build()
             .map_err(|e| MiyabiError::GitHub(format!("Failed to build Octocrab client: {}", e)))?;
 
-        Ok(Self {
-            client,
-            owner: owner.into(),
-            repo: repo.into(),
-        })
+        Ok(Self { client, owner: owner.into(), repo: repo.into() })
     }
 
     /// Get the underlying Octocrab client for advanced usage
@@ -83,12 +75,7 @@ impl GitHubClient {
             .repos(&self.owner, &self.repo)
             .get()
             .await
-            .map_err(|e| {
-                MiyabiError::GitHub(format!(
-                    "Failed to get repository {}/{}: {}",
-                    self.owner, self.repo, e
-                ))
-            })
+            .map_err(|e| MiyabiError::GitHub(format!("Failed to get repository {}/{}: {}", self.owner, self.repo, e)))
     }
 }
 

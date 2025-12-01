@@ -32,11 +32,7 @@ pub trait LlmClient: Send + Sync {
     /// # Returns
     /// * `Ok(ToolCallResponse)` - Response indicating tool calls or conclusion
     /// * `Err(LlmError)` - Error occurred during request
-    async fn chat_with_tools(
-        &self,
-        messages: Vec<Message>,
-        tools: Vec<ToolDefinition>,
-    ) -> Result<ToolCallResponse>;
+    async fn chat_with_tools(&self, messages: Vec<Message>, tools: Vec<ToolDefinition>) -> Result<ToolCallResponse>;
 
     /// Get the provider name
     fn provider_name(&self) -> &str;

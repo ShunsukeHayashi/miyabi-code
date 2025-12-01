@@ -158,14 +158,7 @@ fn test_cli_error_handling() {
 #[test]
 fn test_cli_help_output() {
     // Help should be available for all commands
-    let commands = vec![
-        "agent",
-        "parallel",
-        "infinity",
-        "status",
-        "work-on",
-        "knowledge",
-    ];
+    let commands = vec!["agent", "parallel", "infinity", "status", "work-on", "knowledge"];
 
     for command in commands {
         assert!(!command.is_empty());

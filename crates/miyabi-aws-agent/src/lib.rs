@@ -17,9 +17,7 @@ pub use agent::AwsAgent;
 pub use error::{AwsAgentError, Result};
 
 // Re-export AWS types from miyabi-types
-pub use miyabi_types::{
-    AwsAccount, AwsResource, AwsResourceType, AwsTask, HistoricalAgent, ServiceAgent,
-};
+pub use miyabi_types::{AwsAccount, AwsResource, AwsResourceType, AwsTask, HistoricalAgent, ServiceAgent};
 
 #[cfg(test)]
 mod tests {

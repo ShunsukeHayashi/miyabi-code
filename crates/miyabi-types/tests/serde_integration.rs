@@ -3,15 +3,13 @@
 //! This file tests JSON serialization/deserialization roundtrips for all types
 
 use miyabi_types::agent::{
-    AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType,
-    ImpactLevel as AgentImpactLevel, ResultStatus, Severity,
+    AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType, ImpactLevel as AgentImpactLevel, ResultStatus,
+    Severity,
 };
 use miyabi_types::issue::{DeploymentStatus, Issue, IssueState, IssueStateGithub, PRState};
 use miyabi_types::quality::{QualityBreakdown, QualityIssueType, QualityReport, QualitySeverity};
 use miyabi_types::task::{GroupingConfig, Task, TaskType};
-use miyabi_types::workflow::{
-    Edge, ExecutionOptions, ExecutionReport, ExecutionSummary, ProgressStatus, DAG,
-};
+use miyabi_types::workflow::{Edge, ExecutionOptions, ExecutionReport, ExecutionSummary, ProgressStatus, DAG};
 use std::path::PathBuf;
 
 // ============================================================================
@@ -214,12 +212,7 @@ fn test_issue_roundtrip() {
 
 #[test]
 fn test_pr_state_roundtrip() {
-    let states = vec![
-        PRState::Draft,
-        PRState::Open,
-        PRState::Merged,
-        PRState::Closed,
-    ];
+    let states = vec![PRState::Draft, PRState::Open, PRState::Merged, PRState::Closed];
 
     for state in states {
         let json = serde_json::to_string(&state).unwrap();
@@ -286,12 +279,7 @@ fn test_quality_report_roundtrip() {
         passed: true,
         issues: vec![],
         recommendations: vec!["Fix types".to_string()],
-        breakdown: QualityBreakdown {
-            clippy_score: 90,
-            rustc_score: 85,
-            security_score: 80,
-            test_coverage_score: 85,
-        },
+        breakdown: QualityBreakdown { clippy_score: 90, rustc_score: 85, security_score: 80, test_coverage_score: 85 },
     };
 
     let json = serde_json::to_string(&report).unwrap();
@@ -306,10 +294,7 @@ fn test_quality_report_roundtrip() {
 
 #[test]
 fn test_edge_roundtrip() {
-    let edge = Edge {
-        from: "task-1".to_string(),
-        to: "task-2".to_string(),
-    };
+    let edge = Edge { from: "task-1".to_string(), to: "task-2".to_string() };
 
     let json = serde_json::to_string(&edge).unwrap();
     let deserialized: Edge = serde_json::from_str(&json).unwrap();
@@ -319,14 +304,7 @@ fn test_edge_roundtrip() {
 
 #[test]
 fn test_progress_status_roundtrip() {
-    let progress = ProgressStatus {
-        total: 20,
-        completed: 15,
-        running: 3,
-        waiting: 2,
-        failed: 0,
-        percentage: 75.0,
-    };
+    let progress = ProgressStatus { total: 20, completed: 15, running: 3, waiting: 2, failed: 0, percentage: 75.0 };
 
     let json = serde_json::to_string(&progress).unwrap();
     let deserialized: ProgressStatus = serde_json::from_str(&json).unwrap();
@@ -427,11 +405,7 @@ fn test_complex_nested_structure() {
         metadata: None,
     };
 
-    let dag = DAG {
-        nodes: vec![task.clone()],
-        edges: vec![],
-        levels: vec![vec!["task-1".to_string()]],
-    };
+    let dag = DAG { nodes: vec![task.clone()], edges: vec![], levels: vec![vec!["task-1".to_string()]] };
 
     let json = serde_json::to_string(&dag).unwrap();
     let deserialized: DAG = serde_json::from_str(&json).unwrap();
@@ -473,13 +447,7 @@ fn test_agent_result_with_metrics() {
 
 #[test]
 fn test_execution_report_full() {
-    let summary = ExecutionSummary {
-        total: 5,
-        completed: 5,
-        failed: 0,
-        escalated: 0,
-        success_rate: 100.0,
-    };
+    let summary = ExecutionSummary { total: 5, completed: 5, failed: 0, escalated: 0, success_rate: 100.0 };
 
     let report = ExecutionReport {
         session_id: "session-123".to_string(),

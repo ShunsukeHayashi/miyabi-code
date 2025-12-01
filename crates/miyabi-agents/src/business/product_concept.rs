@@ -29,9 +29,8 @@ impl ProductConceptAgent {
     /// Generate comprehensive product concept using LLM
     async fn generate_product_concept(&self, task: &Task) -> Result<ProductConcept> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -51,16 +50,13 @@ Create a comprehensive product concept as JSON with value proposition, target cu
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::ProductConceptAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::ProductConceptAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let product_concept: ProductConcept = serde_json::from_str(&response).map_err(|e| {
@@ -181,10 +177,7 @@ impl BaseAgent for ProductConceptAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "ProductConceptAgent starting product concept generation for task: {}",
-            task.id
-        );
+        tracing::info!("ProductConceptAgent starting product concept generation for task: {}", task.id);
 
         // Generate product concept using LLM
         let product_concept = self.generate_product_concept(task).await?;
@@ -220,10 +213,7 @@ impl BaseAgent for ProductConceptAgent {
             "target_segments_count": if product_concept.target_customers.secondary.is_some() { 2 } else { 1 }
         });
 
-        tracing::info!(
-            "ProductConceptAgent completed product concept generation: {}",
-            summary
-        );
+        tracing::info!("ProductConceptAgent completed product concept generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -244,7 +234,8 @@ mod tests {
         Task {
             id: "test-task-2".to_string(),
             title: "AI-Powered Task Management Platform".to_string(),
-            description: "A comprehensive task management solution with AI-driven prioritization and automation".to_string(),
+            description: "A comprehensive task management solution with AI-driven prioritization and automation"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -338,10 +329,7 @@ mod tests {
 
         let invalid_concept = ProductConcept {
             value_proposition: "".to_string(), // Empty value proposition should fail validation
-            target_customers: TargetCustomers {
-                primary: "Primary segment".to_string(),
-                secondary: None,
-            },
+            target_customers: TargetCustomers { primary: "Primary segment".to_string(), secondary: None },
             problem_solution_fit: "Solves the problem".to_string(),
             business_model_canvas: BusinessModelCanvas {
                 key_partners: vec!["Partner 1".to_string()],
@@ -382,10 +370,7 @@ mod tests {
 
         let invalid_concept = ProductConcept {
             value_proposition: "Clear value proposition".to_string(),
-            target_customers: TargetCustomers {
-                primary: "Primary segment".to_string(),
-                secondary: None,
-            },
+            target_customers: TargetCustomers { primary: "Primary segment".to_string(), secondary: None },
             problem_solution_fit: "Solves the problem".to_string(),
             business_model_canvas: BusinessModelCanvas {
                 key_partners: vec!["Partner 1".to_string()],
@@ -421,10 +406,7 @@ mod tests {
 
         let invalid_concept = ProductConcept {
             value_proposition: "Clear value proposition".to_string(),
-            target_customers: TargetCustomers {
-                primary: "Primary segment".to_string(),
-                secondary: None,
-            },
+            target_customers: TargetCustomers { primary: "Primary segment".to_string(), secondary: None },
             problem_solution_fit: "Solves the problem".to_string(),
             business_model_canvas: BusinessModelCanvas {
                 key_partners: vec!["Partner 1".to_string()],

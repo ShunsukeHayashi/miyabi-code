@@ -72,30 +72,22 @@ impl UnifiedError for KnowledgeError {
 
     fn user_message(&self) -> String {
         match self {
-            Self::Qdrant(msg) => format!(
-                "Vector database error: {}. Please check your Qdrant connection and configuration.",
-                msg
-            ),
-            Self::Embedding(msg) => format!(
-                "Failed to generate embeddings: {}. Please check your embedding service configuration.",
-                msg
-            ),
-            Self::Config(msg) => format!(
-                "Knowledge system configuration error: {}. Please verify your knowledge system settings.",
-                msg
-            ),
-            Self::LogParse(msg) => format!(
-                "Failed to parse log data: {}. The log format may be invalid or corrupted.",
-                msg
-            ),
-            Self::NotFound(entry) => format!(
-                "Knowledge entry '{}' was not found. Please check the entry ID or search query.",
-                entry
-            ),
-            Self::Server(msg) => format!(
-                "Knowledge server error: {}. Please try again later or contact support.",
-                msg
-            ),
+            Self::Qdrant(msg) => {
+                format!("Vector database error: {}. Please check your Qdrant connection and configuration.", msg)
+            }
+            Self::Embedding(msg) => {
+                format!("Failed to generate embeddings: {}. Please check your embedding service configuration.", msg)
+            }
+            Self::Config(msg) => {
+                format!("Knowledge system configuration error: {}. Please verify your knowledge system settings.", msg)
+            }
+            Self::LogParse(msg) => {
+                format!("Failed to parse log data: {}. The log format may be invalid or corrupted.", msg)
+            }
+            Self::NotFound(entry) => {
+                format!("Knowledge entry '{}' was not found. Please check the entry ID or search query.", entry)
+            }
+            Self::Server(msg) => format!("Knowledge server error: {}. Please try again later or contact support.", msg),
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }
@@ -168,8 +160,7 @@ mod unified_error_tests {
         let error = KnowledgeError::Io(std::io::Error::other("test"));
         assert!(error.context().is_none());
 
-        let error =
-            KnowledgeError::Json(serde_json::from_str::<serde_json::Value>("invalid").unwrap_err());
+        let error = KnowledgeError::Json(serde_json::from_str::<serde_json::Value>("invalid").unwrap_err());
         assert!(error.context().is_none());
     }
 }

@@ -52,11 +52,7 @@ pub enum StepType {
 impl WorkflowBuilder {
     /// Create a new workflow with the given name
     pub fn new(name: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            steps: Vec::new(),
-            current_step: None,
-        }
+        Self { name: name.to_string(), steps: Vec::new(), current_step: None }
     }
 
     /// Add a step to the workflow (no dependencies)
@@ -132,9 +128,7 @@ impl WorkflowBuilder {
             name: name.to_string(),
             agent_type: AgentType::CoordinatorAgent,
             dependencies,
-            step_type: StepType::Conditional {
-                branches: conditional_branches,
-            },
+            step_type: StepType::Conditional { branches: conditional_branches },
         };
 
         self.steps.push(step);
@@ -183,9 +177,7 @@ impl WorkflowBuilder {
             name: name.to_string(),
             agent_type: AgentType::CoordinatorAgent,
             dependencies,
-            step_type: StepType::Conditional {
-                branches: conditional_branches,
-            },
+            step_type: StepType::Conditional { branches: conditional_branches },
         };
 
         self.steps.push(step);
@@ -199,10 +191,7 @@ impl WorkflowBuilder {
 
         for (name, agent) in steps {
             let step_id = format!("step-{}", self.steps.len());
-            let dependencies = parent_id
-                .as_ref()
-                .map(|id| vec![id.clone()])
-                .unwrap_or_default();
+            let dependencies = parent_id.as_ref().map(|id| vec![id.clone()]).unwrap_or_default();
 
             let step = Step {
                 id: step_id.clone(),
@@ -262,30 +251,20 @@ impl WorkflowBuilder {
 
             // Add dependency edges (incoming edges to this step)
             for dep in &step.dependencies {
-                edges.push(Edge {
-                    from: dep.clone(),
-                    to: step.id.clone(),
-                });
+                edges.push(Edge { from: dep.clone(), to: step.id.clone() });
             }
 
             // Add conditional branch edges (outgoing edges from this step)
             if let StepType::Conditional { branches } = &step.step_type {
                 for branch in branches {
-                    edges.push(Edge {
-                        from: step.id.clone(),
-                        to: branch.next_step.clone(),
-                    });
+                    edges.push(Edge { from: step.id.clone(), to: branch.next_step.clone() });
                 }
             }
         }
 
         let levels = self.compute_levels(&nodes, &edges)?;
 
-        Ok(DAG {
-            nodes,
-            edges,
-            levels,
-        })
+        Ok(DAG { nodes, edges, levels })
     }
 
     fn compute_levels(&self, nodes: &[Task], edges: &[Edge]) -> Result<Vec<Vec<String>>> {
@@ -296,9 +275,7 @@ impl WorkflowBuilder {
             let mut current_level = Vec::new();
 
             for node_id in &remaining {
-                let has_unresolved_deps = edges
-                    .iter()
-                    .any(|e| e.to == *node_id && remaining.contains(&e.from));
+                let has_unresolved_deps = edges.iter().any(|e| e.to == *node_id && remaining.contains(&e.from));
 
                 if !has_unresolved_deps {
                     current_level.push(node_id.clone());
@@ -368,10 +345,7 @@ mod tests {
     fn test_parallel_workflow() {
         let workflow = WorkflowBuilder::new("parallel")
             .step("start", AgentType::IssueAgent)
-            .parallel(vec![
-                ("task1", AgentType::CodeGenAgent),
-                ("task2", AgentType::ReviewAgent),
-            ]);
+            .parallel(vec![("task1", AgentType::CodeGenAgent), ("task2", AgentType::ReviewAgent)]);
 
         let dag = workflow.build_dag().unwrap();
         assert_eq!(dag.nodes.len(), 3);
@@ -384,10 +358,7 @@ mod tests {
         let workflow = WorkflowBuilder::new("complex")
             .step("analyze", AgentType::IssueAgent)
             .then("implement", AgentType::CodeGenAgent)
-            .parallel(vec![
-                ("test", AgentType::ReviewAgent),
-                ("lint", AgentType::CodeGenAgent),
-            ]);
+            .parallel(vec![("test", AgentType::ReviewAgent), ("lint", AgentType::CodeGenAgent)]);
 
         let dag = workflow.build_dag().unwrap();
         assert_eq!(dag.nodes.len(), 4);

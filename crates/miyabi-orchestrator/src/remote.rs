@@ -54,11 +54,7 @@ impl RemoteExecutor {
         let timeout_str = format!("ConnectTimeout={}", self.ssh_config.timeout_secs);
         let user_host = format!("{}@{}", self.ssh_config.user, machine.ip);
 
-        debug!(
-            "SSH connection: {} with key {}",
-            user_host,
-            self.ssh_config.key_path.display()
-        );
+        debug!("SSH connection: {} with key {}", user_host, self.ssh_config.key_path.display());
 
         // Execute SSH command
         let output = tokio::time::timeout(
@@ -71,10 +67,7 @@ impl RemoteExecutor {
                 .arg("-o")
                 .arg("StrictHostKeyChecking=yes")
                 .arg("-o")
-                .arg(format!(
-                    "UserKnownHostsFile={}",
-                    self.ssh_config.known_hosts.display()
-                ))
+                .arg(format!("UserKnownHostsFile={}", self.ssh_config.known_hosts.display()))
                 .arg(&user_host)
                 .arg(&command)
                 .stdout(Stdio::piped())
@@ -96,11 +89,7 @@ impl RemoteExecutor {
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-        debug!(
-            "Command succeeded on {}: {} bytes",
-            machine.hostname,
-            stdout.len()
-        );
+        debug!("Command succeeded on {}: {} bytes", machine.hostname, stdout.len());
 
         Ok(stdout)
     }
@@ -117,17 +106,10 @@ impl RemoteExecutor {
     pub async fn test_connectivity(&self, machine: &Machine) -> Result<bool> {
         debug!("Testing connectivity to {}", machine.hostname);
 
-        match self
-            .execute_on_machine(machine, "echo 'ok'".to_string())
-            .await
-        {
+        match self.execute_on_machine(machine, "echo 'ok'".to_string()).await {
             Ok(output) => {
                 let success = output.trim() == "ok";
-                info!(
-                    "Connectivity test to {}: {}",
-                    machine.hostname,
-                    if success { "SUCCESS" } else { "FAILED" }
-                );
+                info!("Connectivity test to {}: {}", machine.hostname, if success { "SUCCESS" } else { "FAILED" });
                 Ok(success)
             }
             Err(e) => {
@@ -154,10 +136,7 @@ impl RemoteExecutor {
         worktree_path: &str,
         agent_command: &str,
     ) -> Result<String> {
-        info!(
-            "Executing remote session on {}: {}",
-            machine.hostname, agent_command
-        );
+        info!("Executing remote session on {}: {}", machine.hostname, agent_command);
 
         // Build remote command
         let remote_command = format!(
@@ -188,9 +167,7 @@ mod tests {
         let machine = Machine::new("macmini1".to_string(), "192.168.3.27".to_string(), 3);
 
         // This would require actual SSH connectivity
-        let result = executor
-            .execute_on_machine(&machine, "echo 'test'".to_string())
-            .await;
+        let result = executor.execute_on_machine(&machine, "echo 'test'".to_string()).await;
 
         // Should either succeed or fail with SSH error
         match result {

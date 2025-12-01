@@ -42,32 +42,17 @@ pub enum FileOperation {
 impl FileChangeApproval {
     /// Create approval request for file creation
     pub fn create(path: String, content: String) -> Self {
-        Self {
-            path,
-            old_content: String::new(),
-            new_content: content,
-            operation: FileOperation::Create,
-        }
+        Self { path, old_content: String::new(), new_content: content, operation: FileOperation::Create }
     }
 
     /// Create approval request for file modification
     pub fn modify(path: String, old_content: String, new_content: String) -> Self {
-        Self {
-            path,
-            old_content,
-            new_content,
-            operation: FileOperation::Modify,
-        }
+        Self { path, old_content, new_content, operation: FileOperation::Modify }
     }
 
     /// Create approval request for file deletion
     pub fn delete(path: String, old_content: String) -> Self {
-        Self {
-            path,
-            old_content,
-            new_content: String::new(),
-            operation: FileOperation::Delete,
-        }
+        Self { path, old_content, new_content: String::new(), operation: FileOperation::Delete }
     }
 }
 
@@ -103,10 +88,7 @@ impl ApprovalSystem {
     }
 
     /// Request approval for command execution
-    pub fn request_command_execution(
-        &self,
-        approval: &CommandApproval,
-    ) -> Result<ApprovalDecision> {
+    pub fn request_command_execution(&self, approval: &CommandApproval) -> Result<ApprovalDecision> {
         if !self.interactive {
             return Ok(ApprovalDecision::Approve);
         }
@@ -132,11 +114,7 @@ impl ApprovalSystem {
     /// Print command header
     fn print_command_header(&self, approval: &CommandApproval) {
         println!("\n{}", "─".repeat(60).cyan());
-        println!(
-            "{}: {}",
-            "Execute Command".red().bold(),
-            approval.command.cyan()
-        );
+        println!("{}: {}", "Execute Command".red().bold(), approval.command.cyan());
 
         if !approval.args.is_empty() {
             println!("  Args: {}", approval.args.join(" "));
@@ -176,10 +154,7 @@ impl ApprovalSystem {
         }
 
         if total > display_lines {
-            println!(
-                "{}",
-                format!("... ({} more lines)", total - display_lines).dimmed()
-            );
+            println!("{}", format!("... ({} more lines)", total - display_lines).dimmed());
         }
     }
 
@@ -256,8 +231,7 @@ mod tests {
     fn test_approval_system_non_interactive() {
         let system = ApprovalSystem::new(false);
 
-        let approval =
-            FileChangeApproval::create("test.txt".to_string(), "Hello, world!".to_string());
+        let approval = FileChangeApproval::create("test.txt".to_string(), "Hello, world!".to_string());
 
         let decision = system.request_file_change(&approval).unwrap();
         assert_eq!(decision, ApprovalDecision::Approve);
@@ -265,8 +239,7 @@ mod tests {
 
     #[test]
     fn test_file_change_approval_create() {
-        let approval =
-            FileChangeApproval::create("new_file.txt".to_string(), "content".to_string());
+        let approval = FileChangeApproval::create("new_file.txt".to_string(), "content".to_string());
 
         assert_eq!(approval.operation, FileOperation::Create);
         assert_eq!(approval.old_content, "");
@@ -275,19 +248,15 @@ mod tests {
 
     #[test]
     fn test_file_change_approval_modify() {
-        let approval = FileChangeApproval::modify(
-            "file.txt".to_string(),
-            "old content".to_string(),
-            "new content".to_string(),
-        );
+        let approval =
+            FileChangeApproval::modify("file.txt".to_string(), "old content".to_string(), "new content".to_string());
 
         assert_eq!(approval.operation, FileOperation::Modify);
     }
 
     #[test]
     fn test_file_change_approval_delete() {
-        let approval =
-            FileChangeApproval::delete("file.txt".to_string(), "content to delete".to_string());
+        let approval = FileChangeApproval::delete("file.txt".to_string(), "content to delete".to_string());
 
         assert_eq!(approval.operation, FileOperation::Delete);
         assert_eq!(approval.new_content, "");

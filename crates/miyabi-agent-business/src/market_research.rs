@@ -7,8 +7,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -41,8 +40,8 @@ impl MarketResearchAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -65,16 +64,13 @@ Generate detailed market research as JSON with market size analysis, competitive
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::MarketResearchAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::MarketResearchAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let market_research: MarketResearch = serde_json::from_str(&response).map_err(|e| {
@@ -119,8 +115,8 @@ Generate detailed market research as JSON with market size analysis, competitive
 
     /// Generate market research summary for reporting
     fn generate_summary(&self, research: &MarketResearch) -> String {
-        let total_opportunities = research.market_opportunities.primary.len()
-            + research.market_opportunities.secondary.len();
+        let total_opportunities =
+            research.market_opportunities.primary.len() + research.market_opportunities.secondary.len();
 
         format!(
             "Market Research Generated: {} competitors, {} trends, {} opportunities",
@@ -222,10 +218,7 @@ impl BaseAgent for MarketResearchAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "MarketResearchAgent starting market research generation for task: {}",
-            task.id
-        );
+        tracing::info!("MarketResearchAgent starting market research generation for task: {}", task.id);
 
         // Generate market research using LLM
         let market_research = self.generate_market_research(task).await?;
@@ -261,10 +254,7 @@ impl BaseAgent for MarketResearchAgent {
             "opportunities_count": market_research.market_opportunities.primary.len() + market_research.market_opportunities.secondary.len()
         });
 
-        tracing::info!(
-            "MarketResearchAgent completed market research generation: {}",
-            summary
-        );
+        tracing::info!("MarketResearchAgent completed market research generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -315,10 +305,7 @@ impl A2AEnabled for MarketResearchAgent {
         .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
@@ -327,15 +314,9 @@ impl A2AEnabled for MarketResearchAgent {
                     .input
                     .get("product")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing product".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing product".to_string()))?;
 
-                let market = task
-                    .input
-                    .get("market")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("SaaS/Tech");
+                let market = task.input.get("market").and_then(|v| v.as_str()).unwrap_or("SaaS/Tech");
 
                 let internal_task = Task {
                     id: task.id.clone(),
@@ -360,16 +341,10 @@ impl A2AEnabled for MarketResearchAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Market research failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Market research failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -387,7 +362,9 @@ mod tests {
         Task {
             id: "test-task-7".to_string(),
             title: "AI-Powered Customer Support Platform".to_string(),
-            description: "A comprehensive customer support platform with AI-driven ticket routing and automated responses".to_string(),
+            description:
+                "A comprehensive customer support platform with AI-driven ticket routing and automated responses"
+                    .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,

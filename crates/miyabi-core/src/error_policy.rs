@@ -40,39 +40,29 @@ pub enum FallbackStrategy {
 
 impl Default for FallbackStrategy {
     fn default() -> Self {
-        Self::AcceptPartialSuccess {
-            min_successful_worlds: 1,
-        }
+        Self::AcceptPartialSuccess { min_successful_worlds: 1 }
     }
 }
 
 impl FallbackStrategy {
     /// Creates a partial success strategy with default threshold (1/5)
     pub fn partial_success() -> Self {
-        Self::AcceptPartialSuccess {
-            min_successful_worlds: 1,
-        }
+        Self::AcceptPartialSuccess { min_successful_worlds: 1 }
     }
 
     /// Creates a temperature reduction strategy (reduce by 0.2)
     pub fn lower_temperature() -> Self {
-        Self::RetryWithLowerTemperature {
-            temperature_reduction: 0.2,
-        }
+        Self::RetryWithLowerTemperature { temperature_reduction: 0.2 }
     }
 
     /// Creates a model switch strategy (switch to Claude)
     pub fn switch_to_claude() -> Self {
-        Self::SwitchModel {
-            fallback_model: "claude-3-5-sonnet".to_string(),
-        }
+        Self::SwitchModel { fallback_model: "claude-3-5-sonnet".to_string() }
     }
 
     /// Creates a human intervention strategy (24 hour timeout)
     pub fn wait_for_human() -> Self {
-        Self::WaitForHumanIntervention {
-            timeout: Duration::from_secs(24 * 60 * 60),
-        }
+        Self::WaitForHumanIntervention { timeout: Duration::from_secs(24 * 60 * 60) }
     }
 }
 
@@ -209,10 +199,7 @@ impl CircuitBreaker {
             if *state != CircuitState::Closed {
                 *state = CircuitState::Closed;
                 *self.opened_at.lock().await = None;
-                info!(
-                    "Circuit breaker closed after {} consecutive successes",
-                    successes
-                );
+                info!("Circuit breaker closed after {} consecutive successes", successes);
             }
             *successes = 0;
         }
@@ -229,10 +216,7 @@ impl CircuitBreaker {
             if *state == CircuitState::Closed {
                 *state = CircuitState::Open;
                 *self.opened_at.lock().await = Some(Instant::now());
-                warn!(
-                    "Circuit breaker opened after {} consecutive failures",
-                    failures
-                );
+                warn!("Circuit breaker opened after {} consecutive failures", failures);
             }
         }
     }
@@ -297,11 +281,7 @@ mod tests {
         // Simulate 3 failures
         for _ in 0..3 {
             let result = breaker
-                .call(|| {
-                    Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::other("test error"))
-                    })
-                })
+                .call(|| Box::pin(async { Result::<(), std::io::Error>::Err(std::io::Error::other("test error")) }))
                 .await;
             assert!(result.is_err());
         }
@@ -318,20 +298,14 @@ mod tests {
         // Open the circuit
         for _ in 0..2 {
             let _ = breaker
-                .call(|| {
-                    Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
-                    })
-                })
+                .call(|| Box::pin(async { Result::<(), std::io::Error>::Err(std::io::Error::other("error")) }))
                 .await;
         }
 
         assert_eq!(breaker.state().await, CircuitState::Open);
 
         // Next call should be blocked
-        let result = breaker
-            .call(|| Box::pin(async { Ok::<(), std::io::Error>(()) }))
-            .await;
+        let result = breaker.call(|| Box::pin(async { Ok::<(), std::io::Error>(()) })).await;
         assert!(result.is_err());
     }
 
@@ -342,11 +316,7 @@ mod tests {
         // Open the circuit
         for _ in 0..2 {
             let _ = breaker
-                .call(|| {
-                    Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
-                    })
-                })
+                .call(|| Box::pin(async { Result::<(), std::io::Error>::Err(std::io::Error::other("error")) }))
                 .await;
         }
 
@@ -356,9 +326,7 @@ mod tests {
         tokio::time::sleep(Duration::from_millis(100)).await;
 
         // Next call should transition to HalfOpen
-        let result = breaker
-            .call(|| Box::pin(async { Ok::<(), std::io::Error>(()) }))
-            .await;
+        let result = breaker.call(|| Box::pin(async { Ok::<(), std::io::Error>(()) })).await;
         assert!(result.is_ok());
     }
 
@@ -369,11 +337,7 @@ mod tests {
         // Open the circuit
         for _ in 0..2 {
             let _ = breaker
-                .call(|| {
-                    Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
-                    })
-                })
+                .call(|| Box::pin(async { Result::<(), std::io::Error>::Err(std::io::Error::other("error")) }))
                 .await;
         }
 
@@ -384,9 +348,7 @@ mod tests {
 
         // Execute 2 successful operations
         for _ in 0..2 {
-            let result = breaker
-                .call(|| Box::pin(async { Ok::<(), std::io::Error>(()) }))
-                .await;
+            let result = breaker.call(|| Box::pin(async { Ok::<(), std::io::Error>(()) })).await;
             assert!(result.is_ok());
         }
 
@@ -401,11 +363,7 @@ mod tests {
         // Open the circuit
         for _ in 0..2 {
             let _ = breaker
-                .call(|| {
-                    Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
-                    })
-                })
+                .call(|| Box::pin(async { Result::<(), std::io::Error>::Err(std::io::Error::other("error")) }))
                 .await;
         }
 
@@ -423,9 +381,7 @@ mod tests {
     fn test_fallback_strategy_defaults() {
         let partial = FallbackStrategy::partial_success();
         match partial {
-            FallbackStrategy::AcceptPartialSuccess {
-                min_successful_worlds,
-            } => {
+            FallbackStrategy::AcceptPartialSuccess { min_successful_worlds } => {
                 assert_eq!(min_successful_worlds, 1);
             }
             _ => panic!("Wrong fallback type"),
@@ -433,9 +389,7 @@ mod tests {
 
         let lower_temp = FallbackStrategy::lower_temperature();
         match lower_temp {
-            FallbackStrategy::RetryWithLowerTemperature {
-                temperature_reduction,
-            } => {
+            FallbackStrategy::RetryWithLowerTemperature { temperature_reduction } => {
                 assert_eq!(temperature_reduction, 0.2);
             }
             _ => panic!("Wrong fallback type"),

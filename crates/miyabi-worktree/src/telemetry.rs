@@ -9,38 +9,19 @@ use tracing::{debug, error, info, warn};
 #[derive(Debug, Clone)]
 pub enum WorktreeEvent {
     /// 作成開始
-    CreateStart {
-        worktree_id: String,
-        branch_name: String,
-    },
+    CreateStart { worktree_id: String, branch_name: String },
     /// 作成完了
-    CreateComplete {
-        worktree_id: String,
-        duration: Duration,
-    },
+    CreateComplete { worktree_id: String, duration: Duration },
     /// 実行開始
-    ExecuteStart {
-        worktree_id: String,
-        agent_type: String,
-    },
+    ExecuteStart { worktree_id: String, agent_type: String },
     /// 実行完了
-    ExecuteComplete {
-        worktree_id: String,
-        duration: Duration,
-        success: bool,
-    },
+    ExecuteComplete { worktree_id: String, duration: Duration, success: bool },
     /// クリーンアップ開始
     CleanupStart { worktree_id: String },
     /// クリーンアップ完了
-    CleanupComplete {
-        worktree_id: String,
-        duration: Duration,
-    },
+    CleanupComplete { worktree_id: String, duration: Duration },
     /// エラー発生
-    Error {
-        worktree_id: String,
-        error_message: String,
-    },
+    Error { worktree_id: String, error_message: String },
 }
 
 /// テレメトリコレクター
@@ -58,41 +39,28 @@ impl TelemetryCollector {
     pub fn record(&mut self, event: WorktreeEvent) {
         // 構造化ログ出力
         match &event {
-            WorktreeEvent::CreateStart {
-                worktree_id,
-                branch_name,
-            } => {
+            WorktreeEvent::CreateStart { worktree_id, branch_name } => {
                 info!(
                     worktree_id = %worktree_id,
                     branch = %branch_name,
                     "Worktree作成開始"
                 );
             }
-            WorktreeEvent::CreateComplete {
-                worktree_id,
-                duration,
-            } => {
+            WorktreeEvent::CreateComplete { worktree_id, duration } => {
                 info!(
                     worktree_id = %worktree_id,
                     duration_ms = duration.as_millis(),
                     "Worktree作成完了"
                 );
             }
-            WorktreeEvent::ExecuteStart {
-                worktree_id,
-                agent_type,
-            } => {
+            WorktreeEvent::ExecuteStart { worktree_id, agent_type } => {
                 info!(
                     worktree_id = %worktree_id,
                     agent = %agent_type,
                     "Agent実行開始"
                 );
             }
-            WorktreeEvent::ExecuteComplete {
-                worktree_id,
-                duration,
-                success,
-            } => {
+            WorktreeEvent::ExecuteComplete { worktree_id, duration, success } => {
                 if *success {
                     info!(
                         worktree_id = %worktree_id,
@@ -110,20 +78,14 @@ impl TelemetryCollector {
             WorktreeEvent::CleanupStart { worktree_id } => {
                 debug!(worktree_id = %worktree_id, "クリーンアップ開始");
             }
-            WorktreeEvent::CleanupComplete {
-                worktree_id,
-                duration,
-            } => {
+            WorktreeEvent::CleanupComplete { worktree_id, duration } => {
                 debug!(
                     worktree_id = %worktree_id,
                     duration_ms = duration.as_millis(),
                     "クリーンアップ完了"
                 );
             }
-            WorktreeEvent::Error {
-                worktree_id,
-                error_message,
-            } => {
+            WorktreeEvent::Error { worktree_id, error_message } => {
                 error!(
                     worktree_id = %worktree_id,
                     error = %error_message,
@@ -147,9 +109,7 @@ impl TelemetryCollector {
         for event in &self.events {
             match event {
                 WorktreeEvent::CreateComplete { .. } => stats.creates += 1,
-                WorktreeEvent::ExecuteComplete {
-                    success, duration, ..
-                } => {
+                WorktreeEvent::ExecuteComplete { success, duration, .. } => {
                     stats.executions += 1;
                     if *success {
                         stats.successful_executions += 1;
@@ -289,11 +249,8 @@ mod tests {
 
     #[test]
     fn test_telemetry_stats_average() {
-        let stats = TelemetryStats {
-            executions: 2,
-            total_execution_time: Duration::from_secs(10),
-            ..Default::default()
-        };
+        let stats =
+            TelemetryStats { executions: 2, total_execution_time: Duration::from_secs(10), ..Default::default() };
 
         assert_eq!(stats.average_execution_time(), Duration::from_secs(5));
     }

@@ -18,11 +18,7 @@ pub struct ChunkConfig {
 
 impl Default for ChunkConfig {
     fn default() -> Self {
-        Self {
-            chunk_size: 512,
-            overlap_size: 128,
-            min_chunk_size: 50,
-        }
+        Self { chunk_size: 512, overlap_size: 128, min_chunk_size: 50 }
     }
 }
 
@@ -220,11 +216,7 @@ mod tests {
 
     #[test]
     fn test_chunking_long_text() {
-        let chunker = TextChunker::new(ChunkConfig {
-            chunk_size: 100,
-            overlap_size: 20,
-            min_chunk_size: 10,
-        });
+        let chunker = TextChunker::new(ChunkConfig { chunk_size: 100, overlap_size: 20, min_chunk_size: 10 });
 
         let text = "a".repeat(300);
         let chunks = chunker.chunk(&text).unwrap();
@@ -235,11 +227,7 @@ mod tests {
 
     #[test]
     fn test_chunk_by_paragraphs() {
-        let chunker = TextChunker::new(ChunkConfig {
-            chunk_size: 100,
-            overlap_size: 0,
-            min_chunk_size: 10,
-        });
+        let chunker = TextChunker::new(ChunkConfig { chunk_size: 100, overlap_size: 0, min_chunk_size: 10 });
 
         let text = "Paragraph 1.\n\nParagraph 2.\n\nParagraph 3.";
         let chunks = chunker.chunk_by_paragraphs(text).unwrap();
@@ -249,11 +237,7 @@ mod tests {
 
     #[test]
     fn test_chunk_by_sentences() {
-        let chunker = TextChunker::new(ChunkConfig {
-            chunk_size: 100,
-            overlap_size: 0,
-            min_chunk_size: 10,
-        });
+        let chunker = TextChunker::new(ChunkConfig { chunk_size: 100, overlap_size: 0, min_chunk_size: 10 });
 
         let text = "Sentence 1. Sentence 2. Sentence 3.";
         let chunks = chunker.chunk_by_sentences(text).unwrap();

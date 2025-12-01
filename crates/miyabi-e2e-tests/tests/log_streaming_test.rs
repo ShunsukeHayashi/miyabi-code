@@ -141,30 +141,14 @@ async fn test_log_level_filtering() {
 
     // Test filtering by each level
     for target_level in &levels {
-        let filtered: Vec<&LDDLog> = all_logs
-            .iter()
-            .filter(|log| log.level == *target_level)
-            .collect();
+        let filtered: Vec<&LDDLog> = all_logs.iter().filter(|log| log.level == *target_level).collect();
 
-        println!(
-            "   - {} level: {} logs (expected: 5)",
-            target_level,
-            filtered.len()
-        );
-        assert_eq!(
-            filtered.len(),
-            5,
-            "Should have exactly 5 {} logs",
-            target_level
-        );
+        println!("   - {} level: {} logs (expected: 5)", target_level, filtered.len());
+        assert_eq!(filtered.len(), 5, "Should have exactly 5 {} logs", target_level);
 
         // Verify all filtered logs have correct level
         for log in &filtered {
-            assert_eq!(
-                log.level, *target_level,
-                "Filtered log should have level {}",
-                target_level
-            );
+            assert_eq!(log.level, *target_level, "Filtered log should have level {}", target_level);
         }
     }
 
@@ -207,11 +191,7 @@ async fn test_agent_filtering() {
         all_logs.push(log);
     }
 
-    println!(
-        "📝 Generated {} logs from {} agents",
-        all_logs.len(),
-        agents.len()
-    );
+    println!("📝 Generated {} logs from {} agents", all_logs.len(), agents.len());
 
     // Test filtering by each agent
     for target_agent in &agents {
@@ -220,26 +200,12 @@ async fn test_agent_filtering() {
             .filter(|log| log.agent_type.as_deref() == Some(*target_agent))
             .collect();
 
-        println!(
-            "   - {}: {} logs (expected: 5)",
-            target_agent,
-            filtered.len()
-        );
-        assert_eq!(
-            filtered.len(),
-            5,
-            "Should have exactly 5 logs from {}",
-            target_agent
-        );
+        println!("   - {}: {} logs (expected: 5)", target_agent, filtered.len());
+        assert_eq!(filtered.len(), 5, "Should have exactly 5 logs from {}", target_agent);
 
         // Verify all filtered logs are from correct agent
         for log in &filtered {
-            assert_eq!(
-                log.agent_type.as_deref(),
-                Some(*target_agent),
-                "Filtered log should be from {}",
-                target_agent
-            );
+            assert_eq!(log.agent_type.as_deref(), Some(*target_agent), "Filtered log should be from {}", target_agent);
         }
     }
 
@@ -306,30 +272,16 @@ async fn test_large_volume_performance() {
     println!("   - Total logs: {}", retrieved_count);
     println!("   - Generation time: {:?}", generation_time);
     println!("   - Retrieval time: {:?}", retrieval_time);
-    println!(
-        "   - Throughput: {:.2} logs/ms",
-        retrieved_count as f64 / retrieval_time.as_millis() as f64
-    );
+    println!("   - Throughput: {:.2} logs/ms", retrieved_count as f64 / retrieval_time.as_millis() as f64);
 
     // Performance assertion - should handle 1000 logs in under 100ms
-    assert!(
-        generation_time.as_millis() < 100,
-        "Log generation should complete in under 100ms"
-    );
-    assert!(
-        retrieval_time.as_millis() < 50,
-        "Log retrieval should complete in under 50ms"
-    );
+    assert!(generation_time.as_millis() < 100, "Log generation should complete in under 100ms");
+    assert!(retrieval_time.as_millis() < 50, "Log retrieval should complete in under 50ms");
 
     // Verify data integrity with random sampling
     let samples = vec![0, 100, 500, 999];
     for idx in samples {
-        assert_eq!(
-            logs[idx].id,
-            format!("log-{:04}", idx + 1),
-            "Log at index {} should have correct ID",
-            idx
-        );
+        assert_eq!(logs[idx].id, format!("log-{:04}", idx + 1), "Log at index {} should have correct ID", idx);
     }
 
     harness.cleanup().await;
@@ -378,25 +330,15 @@ async fn test_realtime_updates() {
 
     // Verify all logs were captured in order
     for (i, log) in logs.iter().enumerate() {
-        assert_eq!(
-            log.id,
-            format!("realtime-log-{:02}", i + 1),
-            "Log {} should be in correct order",
-            i + 1
-        );
+        assert_eq!(log.id, format!("realtime-log-{:02}", i + 1), "Log {} should be in correct order", i + 1);
     }
 
     // Verify timestamps are in ascending order (real-time)
     for i in 0..logs.len() - 1 {
-        let current_ts =
-            chrono::DateTime::parse_from_rfc3339(&logs[i].timestamp).expect("Valid timestamp");
-        let next_ts =
-            chrono::DateTime::parse_from_rfc3339(&logs[i + 1].timestamp).expect("Valid timestamp");
+        let current_ts = chrono::DateTime::parse_from_rfc3339(&logs[i].timestamp).expect("Valid timestamp");
+        let next_ts = chrono::DateTime::parse_from_rfc3339(&logs[i + 1].timestamp).expect("Valid timestamp");
 
-        assert!(
-            next_ts >= current_ts,
-            "Timestamps should be in ascending order"
-        );
+        assert!(next_ts >= current_ts, "Timestamps should be in ascending order");
     }
 
     harness.cleanup().await;
@@ -442,13 +384,8 @@ async fn test_log_streaming_integration() {
     }
 
     // Add one more log to each category to reach 30 total
-    let log = create_test_log(
-        &format!("integration-log-{:03}", i),
-        "INFO",
-        Some("CoordinatorAgent"),
-        "Final log",
-        Some(638),
-    );
+    let log =
+        create_test_log(&format!("integration-log-{:03}", i), "INFO", Some("CoordinatorAgent"), "Final log", Some(638));
     logs.push(log);
 
     println!("📝 Generated {} logs (integration scenario)", logs.len());
@@ -459,10 +396,7 @@ async fn test_log_streaming_integration() {
         .filter(|log| log.agent_type.as_deref() == Some("CoordinatorAgent"))
         .count();
     println!("   - CoordinatorAgent: {} logs", coordinator_count);
-    assert_eq!(
-        coordinator_count, 10,
-        "CoordinatorAgent should have 10 logs"
-    );
+    assert_eq!(coordinator_count, 10, "CoordinatorAgent should have 10 logs");
 
     for agent in &agents[1..] {
         // CodeGenAgent and ReviewAgent
@@ -479,11 +413,7 @@ async fn test_log_streaming_integration() {
         let count = logs.iter().filter(|log| log.level == *level).count();
         println!("   - {} level: {} logs", level, count);
         let expected = if i == 0 { 10 } else { 9 }; // INFO has one extra
-        assert_eq!(
-            count, expected,
-            "{} level should have {} logs",
-            level, expected
-        );
+        assert_eq!(count, expected, "{} level should have {} logs", level, expected);
     }
 
     // Test 3: Filter by agent AND level
@@ -493,15 +423,8 @@ async fn test_log_streaming_integration() {
         .collect();
 
     println!("\n📊 Combined filter results:");
-    println!(
-        "   - CoordinatorAgent ERROR logs: {} (expected: 3)",
-        coordinator_errors.len()
-    );
-    assert_eq!(
-        coordinator_errors.len(),
-        3,
-        "Should have exactly 3 CoordinatorAgent ERROR logs"
-    );
+    println!("   - CoordinatorAgent ERROR logs: {} (expected: 3)", coordinator_errors.len());
+    assert_eq!(coordinator_errors.len(), 3, "Should have exactly 3 CoordinatorAgent ERROR logs");
 
     // Test 4: All logs have required fields
     for log in &logs {
@@ -510,11 +433,7 @@ async fn test_log_streaming_integration() {
         assert!(!log.level.is_empty(), "Log should have level");
         assert!(log.agent_type.is_some(), "Log should have agent_type");
         assert!(!log.message.is_empty(), "Log should have message");
-        assert_eq!(
-            log.issue_number,
-            Some(638),
-            "Log should reference issue #638"
-        );
+        assert_eq!(log.issue_number, Some(638), "Log should reference issue #638");
     }
 
     harness.cleanup().await;

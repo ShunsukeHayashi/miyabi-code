@@ -91,10 +91,7 @@ impl MilestoneUpdater {
 
         let output = Command::new("gh")
             .arg("api")
-            .arg(format!(
-                "repos/{}/{}/milestones/{}",
-                self.config.owner, self.config.repo, milestone_number
-            ))
+            .arg(format!("repos/{}/{}/milestones/{}", self.config.owner, self.config.repo, milestone_number))
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .output()
@@ -111,14 +108,11 @@ impl MilestoneUpdater {
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let milestone_json: serde_json::Value = serde_json::from_str(&stdout)
-            .map_err(|e| SchedulerError::InvalidConfig(e.to_string()))?;
+        let milestone_json: serde_json::Value =
+            serde_json::from_str(&stdout).map_err(|e| SchedulerError::InvalidConfig(e.to_string()))?;
 
         let milestone = self.parse_milestone(&milestone_json)?;
-        debug!(
-            "Milestone fetched: {} ({:.1}% complete)",
-            milestone.title, milestone.progress
-        );
+        debug!("Milestone fetched: {} ({:.1}% complete)", milestone.title, milestone.progress);
 
         Ok(milestone)
     }
@@ -143,26 +137,13 @@ impl MilestoneUpdater {
         let state = match state_str {
             "open" => MilestoneState::Open,
             "closed" => MilestoneState::Closed,
-            _ => {
-                return Err(SchedulerError::InvalidConfig(format!(
-                    "Invalid milestone state: {}",
-                    state_str
-                )))
-            }
+            _ => return Err(SchedulerError::InvalidConfig(format!("Invalid milestone state: {}", state_str))),
         };
 
         let open_issues = json["open_issues"].as_u64().unwrap_or(0);
         let closed_issues = json["closed_issues"].as_u64().unwrap_or(0);
 
-        let mut milestone = Milestone {
-            number,
-            title,
-            description,
-            state,
-            open_issues,
-            closed_issues,
-            progress: 0.0,
-        };
+        let mut milestone = Milestone { number, title, description, state, open_issues, closed_issues, progress: 0.0 };
 
         milestone.progress = milestone.calculate_progress();
 
@@ -179,11 +160,7 @@ impl MilestoneUpdater {
     /// # Returns
     ///
     /// Returns Ok if update succeeds
-    pub async fn update_milestone(
-        &self,
-        milestone_number: u64,
-        result: &AggregatedResult,
-    ) -> Result<()> {
+    pub async fn update_milestone(&self, milestone_number: u64, result: &AggregatedResult) -> Result<()> {
         info!("Updating milestone #{} with results", milestone_number);
 
         // Get current milestone state
@@ -191,15 +168,11 @@ impl MilestoneUpdater {
 
         // Add comment with results
         let comment = self.generate_milestone_comment(result, &milestone);
-        self.add_milestone_comment(milestone_number, &comment)
-            .await?;
+        self.add_milestone_comment(milestone_number, &comment).await?;
 
         // Close milestone if all issues are complete
         if milestone.is_complete() && result.all_succeeded() {
-            info!(
-                "All issues complete, closing milestone #{}",
-                milestone_number
-            );
+            info!("All issues complete, closing milestone #{}", milestone_number);
             self.close_milestone(milestone_number).await?;
         }
 
@@ -207,11 +180,7 @@ impl MilestoneUpdater {
     }
 
     /// Generate milestone update comment
-    pub fn generate_milestone_comment(
-        &self,
-        result: &AggregatedResult,
-        milestone: &Milestone,
-    ) -> String {
+    pub fn generate_milestone_comment(&self, result: &AggregatedResult, milestone: &Milestone) -> String {
         let mut comment = String::new();
 
         comment.push_str("## 🤖 Water Spider Progress Update\n\n");
@@ -225,15 +194,9 @@ impl MilestoneUpdater {
 
         comment.push_str("### Statistics\n\n");
         comment.push_str(&format!("- Total sessions: {}\n", result.total_sessions));
-        comment.push_str(&format!(
-            "- Successful: {} ✅\n",
-            result.successful_sessions
-        ));
+        comment.push_str(&format!("- Successful: {} ✅\n", result.successful_sessions));
         comment.push_str(&format!("- Failed: {} ❌\n", result.failed_sessions));
-        comment.push_str(&format!(
-            "- Success rate: {:.1}%\n\n",
-            result.success_rate * 100.0
-        ));
+        comment.push_str(&format!("- Success rate: {:.1}%\n\n", result.success_rate * 100.0));
 
         if !result.modified_files.is_empty() {
             comment.push_str("### Modified Files\n\n");
@@ -263,10 +226,7 @@ impl MilestoneUpdater {
 
         // Note: GitHub doesn't have milestone comments, so we add a comment to an issue
         // associated with the milestone. For now, we'll log this as a placeholder.
-        info!(
-            "Milestone #{} comment (placeholder): {}",
-            milestone_number, comment
-        );
+        info!("Milestone #{} comment (placeholder): {}", milestone_number, comment);
 
         Ok(())
     }
@@ -283,10 +243,7 @@ impl MilestoneUpdater {
             .arg("api")
             .arg("-X")
             .arg("PATCH")
-            .arg(format!(
-                "repos/{}/{}/milestones/{}",
-                self.config.owner, self.config.repo, milestone_number
-            ))
+            .arg(format!("repos/{}/{}/milestones/{}", self.config.owner, self.config.repo, milestone_number))
             .arg("-f")
             .arg("state=closed")
             .stdout(Stdio::piped())
@@ -315,10 +272,7 @@ mod tests {
     use super::*;
 
     fn create_test_config() -> MilestoneConfig {
-        MilestoneConfig {
-            owner: "test-owner".to_string(),
-            repo: "test-repo".to_string(),
-        }
+        MilestoneConfig { owner: "test-owner".to_string(), repo: "test-repo".to_string() }
     }
 
     fn create_test_milestone() -> Milestone {

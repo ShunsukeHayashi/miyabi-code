@@ -37,10 +37,7 @@ impl Default for DocumentationConfig {
 impl DocumentationConfig {
     /// Create a new configuration with project root
     pub fn new(project_root: impl Into<PathBuf>) -> Self {
-        Self {
-            project_root: project_root.into(),
-            ..Default::default()
-        }
+        Self { project_root: project_root.into(), ..Default::default() }
     }
 
     /// Enable documentation for private items
@@ -108,12 +105,10 @@ pub async fn generate_rustdoc(config: &DocumentationConfig) -> Result<Documentat
     }
 
     // Execute command
-    let output = cmd.output().await.map_err(|e| {
-        MiyabiError::Io(std::io::Error::new(
-            e.kind(),
-            format!("Failed to execute cargo doc: {}", e),
-        ))
-    })?;
+    let output = cmd
+        .output()
+        .await
+        .map_err(|e| MiyabiError::Io(std::io::Error::new(e.kind(), format!("Failed to execute cargo doc: {}", e))))?;
 
     let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -131,10 +126,7 @@ pub async fn generate_rustdoc(config: &DocumentationConfig) -> Result<Documentat
     let success = output.status.success();
 
     if !success {
-        return Err(MiyabiError::Unknown(format!(
-            "cargo doc failed: {}",
-            stderr
-        )));
+        return Err(MiyabiError::Unknown(format!("cargo doc failed: {}", stderr)));
     }
 
     tracing::info!("Documentation generated successfully at {:?}", doc_path);
@@ -180,12 +172,7 @@ pub struct CodeExample {
 impl CodeExample {
     /// Create a new code example
     pub fn new(title: impl Into<String>, code: impl Into<String>) -> Self {
-        Self {
-            title: title.into(),
-            description: None,
-            code: code.into(),
-            language: "rust".to_string(),
-        }
+        Self { title: title.into(), description: None, code: code.into(), language: "rust".to_string() }
     }
 
     /// Add description to the example
@@ -245,10 +232,7 @@ pub fn generate_readme(template: &ReadmeTemplate) -> String {
     // API docs link
     if let Some(ref api_docs) = template.api_docs_link {
         content.push_str("## API Documentation\n\n");
-        content.push_str(&format!(
-            "For detailed API documentation, see [{}]({})\n\n",
-            api_docs, api_docs
-        ));
+        content.push_str(&format!("For detailed API documentation, see [{}]({})\n\n", api_docs, api_docs));
     }
 
     // License
@@ -366,12 +350,7 @@ pub async fn validate_documentation(file_path: &Path) -> Result<ValidationResult
         100.0
     };
 
-    Ok(ValidationResult {
-        total_public_items,
-        documented_items,
-        missing_docs,
-        coverage_percent,
-    })
+    Ok(ValidationResult { total_public_items, documented_items, missing_docs, coverage_percent })
 }
 
 /// Extract item name from a public declaration line
@@ -380,10 +359,7 @@ fn extract_item_name(line: &str) -> String {
     if parts.len() >= 3 {
         // Extract name and remove trailing characters like ( or <
         let name = parts[2];
-        name.split(['(', '<', '{'])
-            .next()
-            .unwrap_or(name)
-            .to_string()
+        name.split(['(', '<', '{']).next().unwrap_or(name).to_string()
     } else {
         line.to_string()
     }
@@ -462,8 +438,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_readme_with_examples() {
-        let example =
-            CodeExample::new("Basic Usage", "fn main() {}").with_description("Simple example");
+        let example = CodeExample::new("Basic Usage", "fn main() {}").with_description("Simple example");
 
         let template = ReadmeTemplate {
             project_name: "Example".to_string(),

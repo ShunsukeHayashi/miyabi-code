@@ -224,13 +224,7 @@ impl FileContextTracker {
         let imports = self.extract_imports(&tree, source);
         let total_lines = source.lines().count();
 
-        Ok(FileContext {
-            path: path.to_path_buf(),
-            symbols,
-            total_lines,
-            language: "rust".to_string(),
-            imports,
-        })
+        Ok(FileContext { path: path.to_path_buf(), symbols, total_lines, language: "rust".to_string(), imports })
     }
 
     /// Extract all symbols from AST
@@ -489,9 +483,7 @@ impl MyStruct {
     #[test]
     fn test_parse_rust_source() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         assert_eq!(context.language, "rust");
         assert!(context.total_lines > 0);
@@ -501,9 +493,7 @@ impl MyStruct {
     #[test]
     fn test_extract_symbols() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         // Should find struct, functions, impl
         assert!(context.symbols.iter().any(|s| s.name == "MyStruct"));
@@ -514,9 +504,7 @@ impl MyStruct {
     #[test]
     fn test_public_symbols() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         let public = context.public_symbols();
         assert!(public.iter().any(|s| s.name == "MyStruct"));
@@ -527,23 +515,16 @@ impl MyStruct {
     #[test]
     fn test_extract_imports() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         assert_eq!(context.imports.len(), 2);
-        assert!(context
-            .imports
-            .iter()
-            .any(|i| i.contains("std::collections::HashMap")));
+        assert!(context.imports.iter().any(|i| i.contains("std::collections::HashMap")));
     }
 
     #[test]
     fn test_format_summary() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         let summary = context.format_summary();
         assert!(summary.contains("test.rs"));

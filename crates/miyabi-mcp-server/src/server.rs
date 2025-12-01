@@ -8,13 +8,11 @@ use tokio::sync::RwLock;
 use crate::a2a_bridge::A2ABridge;
 use crate::config::{ServerConfig, TransportMode};
 use crate::error::{Result, ServerError};
-use crate::rpc::{
-    AgentExecuteParams, IssueFetchParams, IssueListParams, KnowledgeSearchParams, RpcContext,
-};
+use crate::rpc::{AgentExecuteParams, IssueFetchParams, IssueListParams, KnowledgeSearchParams, RpcContext};
 use crate::session_handler::SessionHandler;
 use crate::session_rpc::{
-    SessionGetParams, SessionHandoffParams, SessionLineageParams, SessionListParams,
-    SessionMonitorParams, SessionSpawnParams, SessionTerminateParams,
+    SessionGetParams, SessionHandoffParams, SessionLineageParams, SessionListParams, SessionMonitorParams,
+    SessionSpawnParams, SessionTerminateParams,
 };
 use serde::{Deserialize, Serialize};
 
@@ -48,12 +46,7 @@ impl McpServer {
     /// Create new MCP server
     pub fn new(config: ServerConfig) -> Result<Self> {
         let context = RpcContext::new(config.clone())?;
-        Ok(Self {
-            config,
-            context: Arc::new(RwLock::new(context)),
-            session_handler: None,
-            a2a_bridge: None,
-        })
+        Ok(Self { config, context: Arc::new(RwLock::new(context)), session_handler: None, a2a_bridge: None })
     }
 
     /// Create new MCP server with A2A Bridge enabled
@@ -425,9 +418,7 @@ impl McpServer {
                 }
                 #[cfg(not(feature = "http"))]
                 {
-                    Err(ServerError::Config(
-                        "HTTP transport requires 'http' feature to be enabled".to_string(),
-                    ))
+                    Err(ServerError::Config("HTTP transport requires 'http' feature to be enabled".to_string()))
                 }
             }
         }

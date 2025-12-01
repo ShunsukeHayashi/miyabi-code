@@ -36,9 +36,7 @@ pub mod state;
 pub use builder::{ConditionalBranch, Step, StepType, WorkflowBuilder};
 pub use condition::Condition;
 pub use error::{Result, WorkflowError};
-pub use state::{
-    ExecutionState, StateStore, StepContext, StepOutput, WorkflowOutput, WorkflowStatus,
-};
+pub use state::{ExecutionState, StateStore, StepContext, StepOutput, WorkflowOutput, WorkflowStatus};
 
 /// Workflow DSL version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

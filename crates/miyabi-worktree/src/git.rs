@@ -32,17 +32,11 @@ pub struct GitWorktreeOps {
 impl GitWorktreeOps {
     /// 新しいGit操作ハンドラを作成
     pub fn new(repo_path: impl AsRef<Path>) -> Self {
-        Self {
-            repo_path: repo_path.as_ref().to_path_buf(),
-        }
+        Self { repo_path: repo_path.as_ref().to_path_buf() }
     }
 
     /// Worktreeを作成
-    pub fn create_worktree(
-        &self,
-        worktree_path: impl AsRef<Path>,
-        branch_name: &str,
-    ) -> GitResult<PathBuf> {
+    pub fn create_worktree(&self, worktree_path: impl AsRef<Path>, branch_name: &str) -> GitResult<PathBuf> {
         let worktree_path = worktree_path.as_ref();
 
         if worktree_path.exists() {
@@ -60,9 +54,7 @@ impl GitWorktreeOps {
             .map_err(|e| GitError::CommandFailed(e.to_string()))?;
 
         if !output.status.success() {
-            return Err(GitError::CommandFailed(
-                String::from_utf8_lossy(&output.stderr).to_string(),
-            ));
+            return Err(GitError::CommandFailed(String::from_utf8_lossy(&output.stderr).to_string()));
         }
 
         Ok(worktree_path.to_path_buf())
@@ -86,9 +78,7 @@ impl GitWorktreeOps {
             .map_err(|e| GitError::CommandFailed(e.to_string()))?;
 
         if !output.status.success() {
-            return Err(GitError::CommandFailed(
-                String::from_utf8_lossy(&output.stderr).to_string(),
-            ));
+            return Err(GitError::CommandFailed(String::from_utf8_lossy(&output.stderr).to_string()));
         }
 
         Ok(())
@@ -105,9 +95,7 @@ impl GitWorktreeOps {
             .map_err(|e| GitError::CommandFailed(e.to_string()))?;
 
         if !output.status.success() {
-            return Err(GitError::CommandFailed(
-                String::from_utf8_lossy(&output.stderr).to_string(),
-            ));
+            return Err(GitError::CommandFailed(String::from_utf8_lossy(&output.stderr).to_string()));
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -131,9 +119,7 @@ impl GitWorktreeOps {
             .map_err(|e| GitError::CommandFailed(e.to_string()))?;
 
         if !output.status.success() {
-            return Err(GitError::CommandFailed(
-                String::from_utf8_lossy(&output.stderr).to_string(),
-            ));
+            return Err(GitError::CommandFailed(String::from_utf8_lossy(&output.stderr).to_string()));
         }
 
         Ok(())

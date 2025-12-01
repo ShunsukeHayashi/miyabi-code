@@ -130,10 +130,7 @@ impl WorldManager {
             .filter_entry(|e| !self.should_exclude(e.path()))
         {
             let entry = entry.map_err(|e| {
-                MiyabiError::Io(std::io::Error::other(format!(
-                    "Failed to read directory entry: {}",
-                    e
-                )))
+                MiyabiError::Io(std::io::Error::other(format!("Failed to read directory entry: {}", e)))
             })?;
 
             if entry.file_type().is_file() {
@@ -174,31 +171,19 @@ impl WorldManager {
 
         // Skip files that are too large
         if metadata.len() > self.config.max_file_size {
-            return Err(MiyabiError::Validation(format!(
-                "File too large: {:?} ({} bytes)",
-                path,
-                metadata.len()
-            )));
+            return Err(MiyabiError::Validation(format!("File too large: {:?} ({} bytes)", path, metadata.len())));
         }
 
         let last_modified = metadata.modified().map_err(MiyabiError::Io)?.into();
 
         // Compute content hash for change detection
-        let content_hash = if path
-            .extension()
-            .is_some_and(|ext| ext == "rs" || ext == "toml")
-        {
+        let content_hash = if path.extension().is_some_and(|ext| ext == "rs" || ext == "toml") {
             Some(self.compute_file_hash(path)?)
         } else {
             None
         };
 
-        Ok(FileInfo {
-            path: path.to_path_buf(),
-            size_bytes: metadata.len(),
-            last_modified,
-            content_hash,
-        })
+        Ok(FileInfo { path: path.to_path_buf(), size_bytes: metadata.len(), last_modified, content_hash })
     }
 
     /// Compute SHA-256 hash of file content
@@ -214,10 +199,7 @@ impl WorldManager {
     }
 
     /// Scan Cargo.toml for dependencies
-    async fn scan_cargo_dependencies(
-        &self,
-        project_root: &Path,
-    ) -> Result<Vec<Dependency>, MiyabiError> {
+    async fn scan_cargo_dependencies(&self, project_root: &Path) -> Result<Vec<Dependency>, MiyabiError> {
         let cargo_toml = project_root.join("Cargo.toml");
 
         if !cargo_toml.exists() {
@@ -235,19 +217,11 @@ impl WorldManager {
             for (name, value) in deps {
                 let version = match value {
                     toml::Value::String(v) => v.clone(),
-                    toml::Value::Table(t) => t
-                        .get("version")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("*")
-                        .to_string(),
+                    toml::Value::Table(t) => t.get("version").and_then(|v| v.as_str()).unwrap_or("*").to_string(),
                     _ => "*".to_string(),
                 };
 
-                dependencies.push(Dependency {
-                    name: name.clone(),
-                    version,
-                    kind: DependencyKind::Cargo,
-                });
+                dependencies.push(Dependency { name: name.clone(), version, kind: DependencyKind::Cargo });
             }
         }
 
@@ -312,12 +286,7 @@ impl WorldManager {
 
     /// Add knowledge to the World (θ₆: Learning phase)
     pub fn learn(&mut self, statement: String, confidence: f64, source: String) {
-        let fact = Fact {
-            statement,
-            confidence: confidence.clamp(0.0, 1.0),
-            source,
-            timestamp: Utc::now(),
-        };
+        let fact = Fact { statement, confidence: confidence.clamp(0.0, 1.0), source, timestamp: Utc::now() };
 
         self.world.context.knowledge.push(fact);
     }
@@ -430,11 +399,7 @@ mod tests {
     async fn test_learn_and_query() {
         let mut manager = WorldManager::new().unwrap();
 
-        manager.learn(
-            "Error handling uses Result<T, E> pattern".to_string(),
-            0.95,
-            "code_analysis".to_string(),
-        );
+        manager.learn("Error handling uses Result<T, E> pattern".to_string(), 0.95, "code_analysis".to_string());
 
         let results = manager.query_knowledge("Error handling");
         assert_eq!(results.len(), 1);

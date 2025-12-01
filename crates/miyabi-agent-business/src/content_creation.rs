@@ -8,8 +8,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -42,8 +41,8 @@ impl ContentCreationAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -66,16 +65,13 @@ Generate detailed content strategy as JSON with content calendar, blog articles,
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::ContentCreationAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::ContentCreationAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let content_strategy: ContentStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -245,10 +241,7 @@ impl BaseAgent for ContentCreationAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "ContentCreationAgent starting content strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("ContentCreationAgent starting content strategy generation for task: {}", task.id);
 
         // Generate content strategy using LLM
         let content_strategy = self.generate_content_strategy(task).await?;
@@ -284,10 +277,7 @@ impl BaseAgent for ContentCreationAgent {
             "email_campaigns_count": content_strategy.email_campaigns.campaigns.len()
         });
 
-        tracing::info!(
-            "ContentCreationAgent completed content strategy generation: {}",
-            summary
-        );
+        tracing::info!("ContentCreationAgent completed content strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -313,10 +303,7 @@ impl A2AEnabled for ContentCreationAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "create_content" => {
@@ -324,9 +311,7 @@ impl A2AEnabled for ContentCreationAgent {
                     .input
                     .get("topic")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing topic".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing topic".to_string()))?;
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: topic.to_string(),
@@ -349,16 +334,10 @@ impl A2AEnabled for ContentCreationAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Content creation failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Content creation failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
     fn execution_mode(&self) -> ExecutionMode {

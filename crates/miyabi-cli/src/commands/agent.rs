@@ -36,20 +36,11 @@ pub struct AgentCommand {
 
 impl AgentCommand {
     pub fn new(agent_type: String, issue: Option<u64>, mode: Option<ExecutionMode>) -> Self {
-        Self {
-            agent_type,
-            issue,
-            mode,
-        }
+        Self { agent_type, issue, mode }
     }
 
     pub async fn execute(&self) -> Result<()> {
-        println!(
-            "{}",
-            format!("🤖 Running {} agent...", self.agent_type)
-                .cyan()
-                .bold()
-        );
+        println!("{}", format!("🤖 Running {} agent...", self.agent_type).cyan().bold());
 
         // Parse agent type
         let agent_type = self.parse_agent_type()?;
@@ -84,10 +75,7 @@ impl AgentCommand {
             AgentType::AnalyticsAgent => self.run_analytics_agent(config).await?,
 
             _ => {
-                println!(
-                    "{}",
-                    format!("Agent type {:?} not yet implemented", agent_type).yellow()
-                );
+                println!("{}", format!("Agent type {:?} not yet implemented", agent_type).yellow());
             }
         }
 
@@ -145,11 +133,7 @@ impl AgentCommand {
             .ok_or_else(|| CliError::AgentNotRegistered(format!("{:?}", agent_type)))
     }
 
-    fn instantiate_agent(
-        &self,
-        agent_type: AgentType,
-        config: &AgentConfig,
-    ) -> Result<HookedAgent<BoxedAgent>> {
+    fn instantiate_agent(&self, agent_type: AgentType, config: &AgentConfig) -> Result<HookedAgent<BoxedAgent>> {
         let descriptor = self.get_descriptor(agent_type)?;
         Ok(descriptor.instantiate(config))
     }
@@ -167,12 +151,7 @@ impl AgentCommand {
             .ok_or_else(|| CliError::AgentTaskTemplateMissing(format!("{:?}", agent_type)))
     }
 
-    async fn execute_business_agent(
-        &self,
-        config: AgentConfig,
-        agent_type: AgentType,
-        type_label: &str,
-    ) -> Result<()> {
+    async fn execute_business_agent(&self, config: AgentConfig, agent_type: AgentType, type_label: &str) -> Result<()> {
         let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
 
         println!("  Issue: #{}", issue_number);
@@ -197,8 +176,7 @@ impl AgentCommand {
         println!();
 
         let agent = self.instantiate_agent(AgentType::CoordinatorAgent, &config)?;
-        let task =
-            self.build_issue_task_for(AgentType::CoordinatorAgent, issue_number, None, true)?;
+        let task = self.build_issue_task_for(AgentType::CoordinatorAgent, issue_number, None, true)?;
 
         // Execute agent
         println!("{}", "  Executing...".dimmed());
@@ -238,9 +216,8 @@ impl AgentCommand {
                 println!("{}", "  📝 Manual Mode Activated".cyan().bold());
                 println!();
 
-                let current_dir = std::env::current_dir().map_err(|e| {
-                    CliError::InvalidInput(format!("Failed to get current directory: {}", e))
-                })?;
+                let current_dir = std::env::current_dir()
+                    .map_err(|e| CliError::InvalidInput(format!("Failed to get current directory: {}", e)))?;
                 let manual_mode = ManualMode::new(current_dir);
 
                 let result = manual_mode
@@ -345,10 +322,7 @@ impl AgentCommand {
                 println!("    Severity: {:?}", analysis.severity);
                 println!("    Impact: {:?}", analysis.impact);
                 println!("    Assigned Agent: {:?}", analysis.assigned_agent);
-                println!(
-                    "    Estimated Duration: {} minutes",
-                    analysis.estimated_duration
-                );
+                println!("    Estimated Duration: {} minutes", analysis.estimated_duration);
                 println!("    Dependencies: {}", analysis.dependencies.join(", "));
                 println!("    Applied Labels: {}", analysis.labels.join(", "));
             }
@@ -365,10 +339,8 @@ impl AgentCommand {
         println!();
 
         let repo_root = self.git_root()?;
-        let branch =
-            get_current_branch(&repo_root).map_err(|e| CliError::GitConfig(e.to_string()))?;
-        let base_branch =
-            std::env::var("MIYABI_BASE_BRANCH").unwrap_or_else(|_| "main".to_string());
+        let branch = get_current_branch(&repo_root).map_err(|e| CliError::GitConfig(e.to_string()))?;
+        let base_branch = std::env::var("MIYABI_BASE_BRANCH").unwrap_or_else(|_| "main".to_string());
 
         let mut metadata = HashMap::new();
         metadata.insert("issueNumber".to_string(), json!(issue_number));
@@ -376,8 +348,7 @@ impl AgentCommand {
         metadata.insert("baseBranch".to_string(), json!(base_branch.clone()));
 
         let agent = self.instantiate_agent(AgentType::PRAgent, &config)?;
-        let task =
-            self.build_issue_task_for(AgentType::PRAgent, issue_number, Some(metadata), false)?;
+        let task = self.build_issue_task_for(AgentType::PRAgent, issue_number, Some(metadata), false)?;
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -403,8 +374,7 @@ impl AgentCommand {
         println!("  Type: DeploymentAgent (Build/Test/Deploy)");
         println!();
 
-        let environment =
-            std::env::var("MIYABI_DEPLOY_ENV").unwrap_or_else(|_| "staging".to_string());
+        let environment = std::env::var("MIYABI_DEPLOY_ENV").unwrap_or_else(|_| "staging".to_string());
 
         let health_url = match environment.as_str() {
             "production" => config
@@ -425,12 +395,7 @@ impl AgentCommand {
         }
 
         let agent = self.instantiate_agent(AgentType::DeploymentAgent, &config)?;
-        let task = self.build_issue_task_for(
-            AgentType::DeploymentAgent,
-            issue_number,
-            Some(metadata),
-            false,
-        )?;
+        let task = self.build_issue_task_for(AgentType::DeploymentAgent, issue_number, Some(metadata), false)?;
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -448,10 +413,7 @@ impl AgentCommand {
         }
 
         if let Some(ref escalation) = result.escalation {
-            println!(
-                "    Escalation: {:?} ({})",
-                escalation.target, escalation.reason
-            );
+            println!("    Escalation: {:?} ({})", escalation.target, escalation.reason);
         }
 
         Ok(())
@@ -492,9 +454,8 @@ impl AgentCommand {
         if let Some(data) = result.data {
             println!(
                 "    Summary: {}",
-                data.get("summary").unwrap_or(&serde_json::Value::String(
-                    "No summary available".to_string()
-                ))
+                data.get("summary")
+                    .unwrap_or(&serde_json::Value::String("No summary available".to_string()))
             );
         }
 
@@ -509,50 +470,29 @@ mod tests {
     #[test]
     fn test_parse_agent_type() {
         let cmd = AgentCommand::new("coordinator".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::CoordinatorAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CoordinatorAgent));
 
         let cmd = AgentCommand::new("codegen".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::CodeGenAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CodeGenAgent));
 
         let cmd = AgentCommand::new("code-gen".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::CodeGenAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CodeGenAgent));
 
         let cmd = AgentCommand::new("invalid".to_string(), None, None);
         assert!(cmd.parse_agent_type().is_err());
 
         // Test Business Agent types
         let cmd = AgentCommand::new("ai-entrepreneur".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::AIEntrepreneurAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::AIEntrepreneurAgent));
 
         let cmd = AgentCommand::new("entrepreneur".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::AIEntrepreneurAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::AIEntrepreneurAgent));
 
         let cmd = AgentCommand::new("marketing".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::MarketingAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::MarketingAgent));
 
         let cmd = AgentCommand::new("analytics".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::AnalyticsAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::AnalyticsAgent));
     }
 
     #[test]
@@ -569,16 +509,10 @@ mod tests {
     #[test]
     fn test_parse_agent_type_case_insensitive() {
         let cmd = AgentCommand::new("COORDINATOR".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::CoordinatorAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CoordinatorAgent));
 
         let cmd = AgentCommand::new("CoDeGen".to_string(), None, None);
-        assert!(matches!(
-            cmd.parse_agent_type().unwrap(),
-            AgentType::CodeGenAgent
-        ));
+        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CodeGenAgent));
     }
 
     #[test]

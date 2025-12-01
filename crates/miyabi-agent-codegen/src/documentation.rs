@@ -3,9 +3,7 @@
 //! コード生成後の Rustdoc と README の作成を担当する。
 
 use crate::codegen::CodeGenerationResult;
-use miyabi_core::documentation::{
-    generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, ReadmeTemplate,
-};
+use miyabi_core::documentation::{generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, ReadmeTemplate};
 use miyabi_types::error::MiyabiError;
 use std::path::Path;
 
@@ -64,16 +62,10 @@ pub(crate) fn build_readme_for_files(files: &[String]) -> Result<String, MiyabiE
     let template = ReadmeTemplate {
         project_name: project_name.clone(),
         description: format!("Auto-generated documentation for {}", project_name),
-        installation: Some(format!(
-            "```bash\ncargo add {}\n```",
-            project_name.to_lowercase()
-        )),
+        installation: Some(format!("```bash\ncargo add {}\n```", project_name.to_lowercase())),
         usage_examples: vec![CodeExample::new(
             "Basic Usage",
-            format!(
-                "use {};\n\nfn main() {{\n    // Your code here\n}}",
-                project_name
-            ),
+            format!("use {};\n\nfn main() {{\n    // Your code here\n}}", project_name),
         )
         .with_description("A simple usage example")],
         api_docs_link: Some(format!("https://docs.rs/{}", project_name.to_lowercase())),
@@ -127,8 +119,7 @@ mod tests {
         assert_eq!(json["readme_path"], "README.md");
         assert_eq!(json["success"], true);
 
-        let deserialized: DocumentationGenerationResult =
-            serde_json::from_value(json).expect("deserialize");
+        let deserialized: DocumentationGenerationResult = serde_json::from_value(json).expect("deserialize");
         assert_eq!(deserialized.rustdoc_path, "target/doc");
         assert_eq!(deserialized.readme_path, Some("README.md".to_string()));
         assert_eq!(deserialized.warnings.len(), 1);

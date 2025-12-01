@@ -30,10 +30,7 @@ pub mod mocks;
 // Re-export commonly used types
 pub use fixtures::{Fixtures, SampleData};
 pub use harness::{TestContext, TestHarness};
-pub use helpers::{
-    assert_file_contains, assert_file_exists, create_test_commit, create_test_file,
-    wait_for_condition,
-};
+pub use helpers::{assert_file_contains, assert_file_exists, create_test_commit, create_test_file, wait_for_condition};
 pub use mocks::{MockGitHub, MockGitHubBuilder};
 
 /// Result type for E2E tests

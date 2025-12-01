@@ -8,8 +8,7 @@
 //! Cost reduction: 60-70% vs pure Claude approach
 
 use crate::{
-    AnthropicClient, GoogleClient, LlmClient, Message, OpenAIClient, Result, ToolCallResponse,
-    ToolDefinition,
+    AnthropicClient, GoogleClient, LlmClient, Message, OpenAIClient, Result, ToolCallResponse, ToolDefinition,
 };
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -147,20 +146,20 @@ impl CostMetrics {
             TaskComplexity::Simple => {
                 self.openai_tokens += tokens;
                 self.openai_requests += 1;
-                self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
-                    * TaskComplexity::Simple.estimated_cost_per_million_tokens();
+                self.estimated_cost_usd +=
+                    (tokens as f64 / 1_000_000.0) * TaskComplexity::Simple.estimated_cost_per_million_tokens();
             }
             TaskComplexity::Medium => {
                 self.google_tokens += tokens;
                 self.google_requests += 1;
-                self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
-                    * TaskComplexity::Medium.estimated_cost_per_million_tokens();
+                self.estimated_cost_usd +=
+                    (tokens as f64 / 1_000_000.0) * TaskComplexity::Medium.estimated_cost_per_million_tokens();
             }
             TaskComplexity::Complex => {
                 self.claude_tokens += tokens;
                 self.claude_requests += 1;
-                self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
-                    * TaskComplexity::Complex.estimated_cost_per_million_tokens();
+                self.estimated_cost_usd +=
+                    (tokens as f64 / 1_000_000.0) * TaskComplexity::Complex.estimated_cost_per_million_tokens();
             }
         }
     }
@@ -177,8 +176,8 @@ impl CostMetrics {
 
     /// Get cost savings vs pure Claude
     pub fn cost_savings_vs_pure_claude(&self) -> f64 {
-        let pure_claude_cost = (self.total_tokens() as f64 / 1_000_000.0)
-            * TaskComplexity::Complex.estimated_cost_per_million_tokens();
+        let pure_claude_cost =
+            (self.total_tokens() as f64 / 1_000_000.0) * TaskComplexity::Complex.estimated_cost_per_million_tokens();
         pure_claude_cost - self.estimated_cost_usd
     }
 
@@ -187,8 +186,8 @@ impl CostMetrics {
         if self.total_tokens() == 0 {
             return 0.0;
         }
-        let pure_claude_cost = (self.total_tokens() as f64 / 1_000_000.0)
-            * TaskComplexity::Complex.estimated_cost_per_million_tokens();
+        let pure_claude_cost =
+            (self.total_tokens() as f64 / 1_000_000.0) * TaskComplexity::Complex.estimated_cost_per_million_tokens();
         if pure_claude_cost == 0.0 {
             return 0.0;
         }
@@ -208,17 +207,8 @@ pub struct HybridRouter {
 
 impl HybridRouter {
     /// Create a new hybrid router
-    pub fn new(
-        claude_client: AnthropicClient,
-        openai_client: OpenAIClient,
-        google_client: GoogleClient,
-    ) -> Self {
-        Self {
-            claude_client,
-            openai_client,
-            google_client,
-            metrics: Arc::new(RwLock::new(CostMetrics::default())),
-        }
+    pub fn new(claude_client: AnthropicClient, openai_client: OpenAIClient, google_client: GoogleClient) -> Self {
+        Self { claude_client, openai_client, google_client, metrics: Arc::new(RwLock::new(CostMetrics::default())) }
     }
 
     /// Create from environment variables
@@ -268,35 +258,20 @@ impl HybridRouter {
 impl LlmClient for HybridRouter {
     async fn chat(&self, messages: Vec<Message>) -> Result<String> {
         let (complexity, client) = self.route_client(&messages).await;
-        tracing::info!(
-            "Routing to {} (complexity: {:?})",
-            complexity.model_name(),
-            complexity
-        );
+        tracing::info!("Routing to {} (complexity: {:?})", complexity.model_name(), complexity);
 
         let response = client.chat(messages).await?;
 
         // Estimate token usage (rough estimate: 1 token ≈ 4 chars)
         let estimated_tokens = (response.len() / 4) as u64;
-        self.metrics
-            .write()
-            .await
-            .record_request(complexity, estimated_tokens);
+        self.metrics.write().await.record_request(complexity, estimated_tokens);
 
         Ok(response)
     }
 
-    async fn chat_with_tools(
-        &self,
-        messages: Vec<Message>,
-        tools: Vec<ToolDefinition>,
-    ) -> Result<ToolCallResponse> {
+    async fn chat_with_tools(&self, messages: Vec<Message>, tools: Vec<ToolDefinition>) -> Result<ToolCallResponse> {
         let (complexity, client) = self.route_client(&messages).await;
-        tracing::info!(
-            "Routing tool call to {} (complexity: {:?})",
-            complexity.model_name(),
-            complexity
-        );
+        tracing::info!("Routing tool call to {} (complexity: {:?})", complexity.model_name(), complexity);
 
         let response = client.chat_with_tools(messages, tools).await?;
 
@@ -307,15 +282,10 @@ impl LlmClient for HybridRouter {
                 .map(|tc| (tc.name.len() + tc.arguments.to_string().len()) / 4)
                 .sum::<usize>() as u64,
             ToolCallResponse::Conclusion { text } => (text.len() / 4) as u64,
-            ToolCallResponse::NeedApproval { action, reason } => {
-                ((action.len() + reason.len()) / 4) as u64
-            }
+            ToolCallResponse::NeedApproval { action, reason } => ((action.len() + reason.len()) / 4) as u64,
         };
 
-        self.metrics
-            .write()
-            .await
-            .record_request(complexity, estimated_tokens);
+        self.metrics.write().await.record_request(complexity, estimated_tokens);
 
         Ok(response)
     }
@@ -335,67 +305,31 @@ mod tests {
 
     #[test]
     fn test_complexity_from_keywords_simple() {
-        assert_eq!(
-            TaskComplexity::from_keywords("Add documentation for this function"),
-            TaskComplexity::Simple
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Fix typo in README"),
-            TaskComplexity::Simple
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Update version number"),
-            TaskComplexity::Simple
-        );
+        assert_eq!(TaskComplexity::from_keywords("Add documentation for this function"), TaskComplexity::Simple);
+        assert_eq!(TaskComplexity::from_keywords("Fix typo in README"), TaskComplexity::Simple);
+        assert_eq!(TaskComplexity::from_keywords("Update version number"), TaskComplexity::Simple);
     }
 
     #[test]
     fn test_complexity_from_keywords_medium() {
-        assert_eq!(
-            TaskComplexity::from_keywords("Implement new API endpoint"),
-            TaskComplexity::Medium
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Add feature for user authentication"),
-            TaskComplexity::Medium
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Bug fix in the payment integration"),
-            TaskComplexity::Medium
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Write tests for the struct"),
-            TaskComplexity::Medium
-        );
+        assert_eq!(TaskComplexity::from_keywords("Implement new API endpoint"), TaskComplexity::Medium);
+        assert_eq!(TaskComplexity::from_keywords("Add feature for user authentication"), TaskComplexity::Medium);
+        assert_eq!(TaskComplexity::from_keywords("Bug fix in the payment integration"), TaskComplexity::Medium);
+        assert_eq!(TaskComplexity::from_keywords("Write tests for the struct"), TaskComplexity::Medium);
     }
 
     #[test]
     fn test_complexity_from_keywords_complex() {
-        assert_eq!(
-            TaskComplexity::from_keywords("Refactor the authentication system"),
-            TaskComplexity::Complex
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Design a new architecture for scalability"),
-            TaskComplexity::Complex
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Perform security audit on the codebase"),
-            TaskComplexity::Complex
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Implement distributed system consensus"),
-            TaskComplexity::Complex
-        );
+        assert_eq!(TaskComplexity::from_keywords("Refactor the authentication system"), TaskComplexity::Complex);
+        assert_eq!(TaskComplexity::from_keywords("Design a new architecture for scalability"), TaskComplexity::Complex);
+        assert_eq!(TaskComplexity::from_keywords("Perform security audit on the codebase"), TaskComplexity::Complex);
+        assert_eq!(TaskComplexity::from_keywords("Implement distributed system consensus"), TaskComplexity::Complex);
     }
 
     #[test]
     fn test_complexity_default() {
         // Unknown tasks default to medium
-        assert_eq!(
-            TaskComplexity::from_keywords("Some random task"),
-            TaskComplexity::Medium
-        );
+        assert_eq!(TaskComplexity::from_keywords("Some random task"), TaskComplexity::Medium);
     }
 
     #[test]
@@ -476,10 +410,7 @@ mod tests {
     fn test_model_names() {
         assert_eq!(TaskComplexity::Simple.model_name(), "gpt-4o-mini");
         assert_eq!(TaskComplexity::Medium.model_name(), "gemini-1.5-flash");
-        assert_eq!(
-            TaskComplexity::Complex.model_name(),
-            "claude-3-5-sonnet-20241022"
-        );
+        assert_eq!(TaskComplexity::Complex.model_name(), "claude-3-5-sonnet-20241022");
     }
 
     #[test]

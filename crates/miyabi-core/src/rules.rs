@@ -215,12 +215,7 @@ fn default_version() -> u32 {
 
 impl Default for MiyabiRules {
     fn default() -> Self {
-        Self {
-            version: 1,
-            rules: Vec::new(),
-            agent_preferences: HashMap::new(),
-            settings: HashMap::new(),
-        }
+        Self { version: 1, rules: Vec::new(), agent_preferences: HashMap::new(), settings: HashMap::new() }
     }
 }
 
@@ -243,16 +238,11 @@ impl MiyabiRules {
         // Validate rules
         for rule in &self.rules {
             if rule.name.is_empty() {
-                return Err(RulesError::ValidationError(
-                    "Rule name cannot be empty".to_string(),
-                ));
+                return Err(RulesError::ValidationError("Rule name cannot be empty".to_string()));
             }
 
             if rule.suggestion.is_empty() {
-                return Err(RulesError::ValidationError(format!(
-                    "Rule '{}' must have a suggestion",
-                    rule.name
-                )));
+                return Err(RulesError::ValidationError(format!("Rule '{}' must have a suggestion", rule.name)));
             }
 
             // Validate severity
@@ -351,9 +341,8 @@ impl RulesLoader {
 
         let content = fs::read_to_string(&rules_path)?;
 
-        let rules: MiyabiRules = serde_yaml::from_str(&content).map_err(|e| {
-            RulesError::ParseError(format!("Failed to parse {}: {}", rules_path.display(), e))
-        })?;
+        let rules: MiyabiRules = serde_yaml::from_str(&content)
+            .map_err(|e| RulesError::ParseError(format!("Failed to parse {}: {}", rules_path.display(), e)))?;
 
         // Validate rules
         rules.validate()?;
@@ -406,11 +395,7 @@ mod tests {
                 );
                 prefs.insert(
                     "review".to_string(),
-                    AgentPreferences {
-                        min_score: Some(85),
-                        clippy_strict: Some(true),
-                        ..Default::default()
-                    },
+                    AgentPreferences { min_score: Some(85), clippy_strict: Some(true), ..Default::default() },
                 );
                 prefs
             },

@@ -56,8 +56,8 @@ mod storage;
 
 pub use error::{Result, SessionError};
 pub use message::{
-    CommandMessage, CustomMessage, ErrorMessage, LogMessage, Message, MessageBuilder, MessageType,
-    Priority, ResultMessage, StatusUpdateMessage,
+    CommandMessage, CustomMessage, ErrorMessage, LogMessage, Message, MessageBuilder, MessageType, Priority,
+    ResultMessage, StatusUpdateMessage,
 };
 pub use queue::{GlobalQueueStats, MessageQueue, QueueStats};
 pub use session::{AgentResult, ManagedSession, Phase, SessionContext, SessionStatus};
@@ -101,12 +101,7 @@ impl SessionManager {
 
         let storage = SessionStorage::new(storage_path.join("sessions.json")).await?;
 
-        Ok(Self {
-            sessions: Arc::new(DashMap::new()),
-            storage,
-            log_dir,
-            message_queue: None,
-        })
+        Ok(Self { sessions: Arc::new(DashMap::new()), storage, log_dir, message_queue: None })
     }
 
     /// メッセージキューを有効化（オプション機能）
@@ -149,9 +144,7 @@ impl SessionManager {
     /// メッセージキューが無効な場合は`SessionError::InvalidState`
     pub async fn send_message(&self, message: Message) -> Result<()> {
         let queue = self.message_queue.as_ref().ok_or_else(|| {
-            SessionError::InvalidState(
-                "Message queue is not enabled. Call with_message_queue(true).".to_string(),
-            )
+            SessionError::InvalidState("Message queue is not enabled. Call with_message_queue(true).".to_string())
         })?;
 
         queue.enqueue(message).await
@@ -167,9 +160,10 @@ impl SessionManager {
     ///
     /// 優先度順で次のメッセージ、またはNone
     pub async fn receive_message(&self, session_id: Uuid) -> Result<Option<Message>> {
-        let queue = self.message_queue.as_ref().ok_or_else(|| {
-            SessionError::InvalidState("Message queue is not enabled.".to_string())
-        })?;
+        let queue = self
+            .message_queue
+            .as_ref()
+            .ok_or_else(|| SessionError::InvalidState("Message queue is not enabled.".to_string()))?;
 
         queue.dequeue(session_id).await
     }
@@ -233,11 +227,7 @@ impl SessionManager {
     ///
     /// * `session_id` - セッションID
     /// * `min_priority` - 最小優先度
-    pub async fn filter_messages_by_priority(
-        &self,
-        session_id: Uuid,
-        min_priority: Priority,
-    ) -> Vec<Message> {
+    pub async fn filter_messages_by_priority(&self, session_id: Uuid, min_priority: Priority) -> Vec<Message> {
         if let Some(queue) = &self.message_queue {
             queue.filter_by_priority(session_id, min_priority).await
         } else {
@@ -287,18 +277,10 @@ impl SessionManager {
     /// # Returns
     ///
     /// 新しいセッションのUUID
-    pub async fn spawn_agent_session(
-        &self,
-        agent_name: &str,
-        purpose: &str,
-        context: SessionContext,
-    ) -> Result<Uuid> {
+    pub async fn spawn_agent_session(&self, agent_name: &str, purpose: &str, context: SessionContext) -> Result<Uuid> {
         let session_id = Uuid::new_v4();
 
-        info!(
-            "🚀 Spawning session {} for {} ({})",
-            session_id, agent_name, purpose
-        );
+        info!("🚀 Spawning session {} for {} ({})", session_id, agent_name, purpose);
 
         // セッションログファイル
         let log_file = self.log_dir.join(format!("{}.log", session_id));
@@ -365,11 +347,7 @@ impl SessionManager {
 
         // 新しいセッションを作成
         let new_session_id = self
-            .spawn_agent_session(
-                to_agent,
-                &format!("Handoff from session {}", from_session_id),
-                updated_context,
-            )
+            .spawn_agent_session(to_agent, &format!("Handoff from session {}", from_session_id), updated_context)
             .await?;
 
         // 親子関係を記録
@@ -383,10 +361,7 @@ impl SessionManager {
             self.storage.save(&parent).await?;
         }
 
-        info!(
-            "✅ Handoff complete: {} → {}",
-            from_session_id, new_session_id
-        );
+        info!("✅ Handoff complete: {} → {}", from_session_id, new_session_id);
 
         Ok(new_session_id)
     }

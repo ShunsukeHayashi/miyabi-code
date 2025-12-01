@@ -34,10 +34,7 @@ impl<'a> Default for WrapOptions<'a> {
 impl<'a> WrapOptions<'a> {
     /// Create options with specified width
     pub fn new(width: usize) -> Self {
-        Self {
-            width,
-            ..Default::default()
-        }
+        Self { width, ..Default::default() }
     }
 
     /// Set initial indent
@@ -102,10 +99,7 @@ pub fn word_wrap_line<'a>(line: &'a Line<'a>, width: usize) -> Vec<Line<'static>
 }
 
 /// Wrap a single line with custom options
-pub fn word_wrap_line_with_options<'a>(
-    line: &'a Line<'a>,
-    options: &WrapOptions<'_>,
-) -> Vec<Line<'static>> {
+pub fn word_wrap_line_with_options<'a>(line: &'a Line<'a>, options: &WrapOptions<'_>) -> Vec<Line<'static>> {
     if line.spans.is_empty() {
         return vec![Line::from("")];
     }
@@ -197,10 +191,7 @@ pub fn wrap_text(text: &str, width: usize) -> Vec<Line<'static>> {
     let textwrap_opts = options.to_textwrap_options();
     let wrapped = textwrap::wrap(text, textwrap_opts);
 
-    wrapped
-        .into_iter()
-        .map(|s| Line::from(s.into_owned()))
-        .collect()
+    wrapped.into_iter().map(|s| Line::from(s.into_owned())).collect()
 }
 
 /// Calculate display width of text (Unicode-aware)
@@ -258,12 +249,7 @@ pub fn center_in_width(text: &str, width: usize) -> String {
     let left_padding = total_padding / 2;
     let right_padding = total_padding - left_padding;
 
-    format!(
-        "{}{}{}",
-        " ".repeat(left_padding),
-        text,
-        " ".repeat(right_padding)
-    )
+    format!("{}{}{}", " ".repeat(left_padding), text, " ".repeat(right_padding))
 }
 
 #[cfg(test)]

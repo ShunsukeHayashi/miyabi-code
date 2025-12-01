@@ -37,9 +37,9 @@ impl Condition {
         match self {
             Condition::Always => true,
 
-            Condition::FieldEquals { field, value } => Self::get_field(context, field)
-                .map(|v| v == value)
-                .unwrap_or(false),
+            Condition::FieldEquals { field, value } => {
+                Self::get_field(context, field).map(|v| v == value).unwrap_or(false)
+            }
 
             Condition::FieldGreaterThan { field, value } => Self::get_field(context, field)
                 .and_then(|v| v.as_f64())
@@ -80,18 +80,12 @@ impl Condition {
 
     /// Create a condition that checks if a field equals true
     pub fn success(field: &str) -> Self {
-        Condition::FieldEquals {
-            field: field.to_string(),
-            value: Value::Bool(true),
-        }
+        Condition::FieldEquals { field: field.to_string(), value: Value::Bool(true) }
     }
 
     /// Create a condition that checks if a field equals false
     pub fn failure(field: &str) -> Self {
-        Condition::FieldEquals {
-            field: field.to_string(),
-            value: Value::Bool(false),
-        }
+        Condition::FieldEquals { field: field.to_string(), value: Value::Bool(false) }
     }
 }
 
@@ -110,10 +104,7 @@ mod tests {
 
     #[test]
     fn test_field_equals() {
-        let cond = Condition::FieldEquals {
-            field: "status".to_string(),
-            value: json!("passed"),
-        };
+        let cond = Condition::FieldEquals { field: "status".to_string(), value: json!("passed") };
 
         let context_pass = json!({ "status": "passed" });
         let context_fail = json!({ "status": "failed" });
@@ -124,10 +115,7 @@ mod tests {
 
     #[test]
     fn test_field_greater_than() {
-        let cond = Condition::FieldGreaterThan {
-            field: "score".to_string(),
-            value: 0.8,
-        };
+        let cond = Condition::FieldGreaterThan { field: "score".to_string(), value: 0.8 };
 
         let context_high = json!({ "score": 0.95 });
         let context_low = json!({ "score": 0.5 });
@@ -138,10 +126,7 @@ mod tests {
 
     #[test]
     fn test_field_less_than() {
-        let cond = Condition::FieldLessThan {
-            field: "errors".to_string(),
-            value: 5.0,
-        };
+        let cond = Condition::FieldLessThan { field: "errors".to_string(), value: 5.0 };
 
         let context_few = json!({ "errors": 2.0 });
         let context_many = json!({ "errors": 10.0 });
@@ -152,9 +137,7 @@ mod tests {
 
     #[test]
     fn test_field_exists() {
-        let cond = Condition::FieldExists {
-            field: "result".to_string(),
-        };
+        let cond = Condition::FieldExists { field: "result".to_string() };
 
         let context_exists = json!({ "result": "data" });
         let context_missing = json!({ "other": "data" });
@@ -165,10 +148,7 @@ mod tests {
 
     #[test]
     fn test_nested_field() {
-        let cond = Condition::FieldEquals {
-            field: "result.status".to_string(),
-            value: json!("success"),
-        };
+        let cond = Condition::FieldEquals { field: "result.status".to_string(), value: json!("success") };
 
         let context = json!({
             "result": {
@@ -183,14 +163,8 @@ mod tests {
     #[test]
     fn test_and_condition() {
         let cond = Condition::And(vec![
-            Condition::FieldEquals {
-                field: "status".to_string(),
-                value: json!("passed"),
-            },
-            Condition::FieldGreaterThan {
-                field: "score".to_string(),
-                value: 0.8,
-            },
+            Condition::FieldEquals { field: "status".to_string(), value: json!("passed") },
+            Condition::FieldGreaterThan { field: "score".to_string(), value: 0.8 },
         ]);
 
         let context_both = json!({ "status": "passed", "score": 0.9 });
@@ -203,14 +177,8 @@ mod tests {
     #[test]
     fn test_or_condition() {
         let cond = Condition::Or(vec![
-            Condition::FieldEquals {
-                field: "status".to_string(),
-                value: json!("passed"),
-            },
-            Condition::FieldEquals {
-                field: "status".to_string(),
-                value: json!("warning"),
-            },
+            Condition::FieldEquals { field: "status".to_string(), value: json!("passed") },
+            Condition::FieldEquals { field: "status".to_string(), value: json!("warning") },
         ]);
 
         let context_pass = json!({ "status": "passed" });
@@ -224,10 +192,7 @@ mod tests {
 
     #[test]
     fn test_not_condition() {
-        let cond = Condition::Not(Box::new(Condition::FieldEquals {
-            field: "failed".to_string(),
-            value: json!(true),
-        }));
+        let cond = Condition::Not(Box::new(Condition::FieldEquals { field: "failed".to_string(), value: json!(true) }));
 
         let context_ok = json!({ "failed": false });
         let context_failed = json!({ "failed": true });

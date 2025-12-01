@@ -59,23 +59,11 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Initialize tracing
-    let level = if cli.verbose {
-        Level::DEBUG
-    } else {
-        Level::INFO
-    };
+    let level = if cli.verbose { Level::DEBUG } else { Level::INFO };
     tracing_subscriber::fmt().with_max_level(level).init();
 
     match cli.command {
-        Commands::Evaluate {
-            dataset,
-            output,
-            limit,
-            concurrency,
-            timeout,
-            worktree_base,
-            model_name,
-        } => {
+        Commands::Evaluate { dataset, output, limit, concurrency, timeout, worktree_base, model_name } => {
             info!("Starting SWE-bench Pro evaluation");
             info!("Dataset: {:?}", dataset);
             info!("Output: {:?}", output);
@@ -83,8 +71,7 @@ async fn main() -> Result<()> {
             info!("Concurrency: {}", concurrency);
 
             // Load dataset
-            let dataset =
-                SWEBenchDataset::load_from_json(&dataset).context("Failed to load dataset")?;
+            let dataset = SWEBenchDataset::load_from_json(&dataset).context("Failed to load dataset")?;
 
             info!("Loaded {} instances from dataset", dataset.len());
 
@@ -99,16 +86,11 @@ async fn main() -> Result<()> {
             };
 
             // Create evaluator config
-            let config = miyabi_benchmark::evaluator::EvaluatorConfig {
-                timeout,
-                concurrency,
-                worktree_base,
-                model_name,
-            };
+            let config =
+                miyabi_benchmark::evaluator::EvaluatorConfig { timeout, concurrency, worktree_base, model_name };
 
             // Create evaluator
-            let evaluator =
-                SWEBenchProEvaluator::with_config(config).context("Failed to create evaluator")?;
+            let evaluator = SWEBenchProEvaluator::with_config(config).context("Failed to create evaluator")?;
 
             // Run evaluation
             info!("Running evaluation with {} workers", concurrency);

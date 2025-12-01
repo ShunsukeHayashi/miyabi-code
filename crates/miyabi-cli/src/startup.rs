@@ -38,20 +38,12 @@ fn check_cargo_bin_in_path() {
     });
 
     if !in_path {
-        eprintln!(
-            "{}",
-            "⚠️  Warning: ~/.cargo/bin is not in your PATH"
-                .yellow()
-                .bold()
-        );
+        eprintln!("{}", "⚠️  Warning: ~/.cargo/bin is not in your PATH".yellow().bold());
         eprintln!();
         eprintln!("This may cause issues if you installed miyabi via cargo install.");
         eprintln!("The miyabi binary might not be found in future terminal sessions.");
         eprintln!();
-        eprintln!(
-            "{}",
-            "To fix this, add the following to your shell configuration:".bold()
-        );
+        eprintln!("{}", "To fix this, add the following to your shell configuration:".bold());
         eprintln!();
 
         // Detect shell and provide specific instructions
@@ -98,12 +90,7 @@ fn check_version_conflicts() {
             paths.dedup();
 
             if paths.len() > 1 {
-                eprintln!(
-                    "{}",
-                    "⚠️  Warning: Multiple miyabi installations detected"
-                        .yellow()
-                        .bold()
-                );
+                eprintln!("{}", "⚠️  Warning: Multiple miyabi installations detected".yellow().bold());
                 eprintln!();
                 eprintln!("Found {} miyabi binaries in your PATH:", paths.len());
                 for (i, path) in paths.iter().enumerate() {

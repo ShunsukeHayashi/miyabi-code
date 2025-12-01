@@ -9,9 +9,7 @@ use tempfile::TempDir;
 #[tokio::test]
 async fn test_session_spawn() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     let params = SessionSpawnParams {
         agent_name: "coordinator".to_string(),
@@ -34,9 +32,7 @@ async fn test_session_spawn() {
 #[tokio::test]
 async fn test_session_lifecycle() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // 1. Spawn session
     let spawn_params = SessionSpawnParams {
@@ -53,9 +49,7 @@ async fn test_session_lifecycle() {
     let session_id = spawn_result.session_id.clone();
 
     // 2. Get session
-    let get_params = SessionGetParams {
-        session_id: session_id.clone(),
-    };
+    let get_params = SessionGetParams { session_id: session_id.clone() };
     let get_result = handler.get_session(get_params).await;
     assert!(get_result.is_ok());
 
@@ -64,9 +58,7 @@ async fn test_session_lifecycle() {
     assert_eq!(session.context.issue_number, Some(200));
 
     // 3. Monitor session
-    let monitor_params = SessionMonitorParams {
-        session_id: session_id.clone(),
-    };
+    let monitor_params = SessionMonitorParams { session_id: session_id.clone() };
     let monitor_result = handler.monitor_session(monitor_params).await;
     assert!(monitor_result.is_ok());
 }
@@ -74,9 +66,7 @@ async fn test_session_lifecycle() {
 #[tokio::test]
 async fn test_session_handoff() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // 1. Spawn initial session
     let spawn_params = SessionSpawnParams {
@@ -112,9 +102,7 @@ async fn test_session_handoff() {
 
     // 3. Verify lineage (must use child session ID to get full lineage)
     let child_id = handoff.new_session_id.clone();
-    let lineage_params = SessionLineageParams {
-        session_id: child_id,
-    };
+    let lineage_params = SessionLineageParams { session_id: child_id };
     let lineage_result = handler.get_lineage(lineage_params).await;
     assert!(lineage_result.is_ok());
 
@@ -126,9 +114,7 @@ async fn test_session_handoff() {
 #[tokio::test]
 async fn test_session_list_and_stats() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // Spawn multiple sessions
     for i in 1..=3 {
@@ -145,10 +131,7 @@ async fn test_session_list_and_stats() {
     }
 
     // 1. List sessions
-    let list_params = SessionListParams {
-        status: None,
-        limit: 10,
-    };
+    let list_params = SessionListParams { status: None, limit: 10 };
     let list_result = handler.list_sessions(list_params).await;
     assert!(list_result.is_ok());
 
@@ -167,9 +150,7 @@ async fn test_session_list_and_stats() {
 #[tokio::test]
 async fn test_session_terminate() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // Spawn session
     let spawn_params = SessionSpawnParams {
@@ -186,9 +167,7 @@ async fn test_session_terminate() {
     let session_id = spawn_result.session_id.clone();
 
     // Terminate
-    let terminate_params = SessionTerminateParams {
-        session_id: session_id.clone(),
-    };
+    let terminate_params = SessionTerminateParams { session_id: session_id.clone() };
     let terminate_result = handler.terminate_session(terminate_params).await;
     assert!(terminate_result.is_ok());
 

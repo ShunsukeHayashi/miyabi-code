@@ -132,8 +132,7 @@ impl LLMConversation {
         let response = self.provider.generate(&request).await?;
 
         // Add assistant message to history
-        self.messages
-            .push(ChatMessage::assistant(response.text.clone()));
+        self.messages.push(ChatMessage::assistant(response.text.clone()));
 
         Ok(response.text)
     }
@@ -147,9 +146,9 @@ impl LLMConversation {
     /// Assistant's response text
     pub async fn ask_with_template(&mut self, template: &LLMPromptTemplate) -> Result<String> {
         let vars = self.context.to_prompt_variables();
-        let rendered = template.render(&vars).map_err(|err| {
-            LLMError::Unknown(format!("Failed to render prompt template: {}", err))
-        })?;
+        let rendered = template
+            .render(&vars)
+            .map_err(|err| LLMError::Unknown(format!("Failed to render prompt template: {}", err)))?;
 
         self.ask(&rendered).await
     }
@@ -173,12 +172,8 @@ impl LLMConversation {
             response.clone()
         };
 
-        serde_json::from_str(&json_str).map_err(|e| {
-            LLMError::ParseError(format!(
-                "Failed to parse JSON response: {}\nResponse: {}",
-                e, json_str
-            ))
-        })
+        serde_json::from_str(&json_str)
+            .map_err(|e| LLMError::ParseError(format!("Failed to parse JSON response: {}\nResponse: {}", e, json_str)))
     }
 
     /// Ask for code response and extract from markdown
@@ -261,9 +256,7 @@ fn extract_json_from_markdown(text: &str) -> Result<String> {
         }
     }
 
-    Err(LLMError::ParseError(
-        "No JSON code block found in response".to_string(),
-    ))
+    Err(LLMError::ParseError("No JSON code block found in response".to_string()))
 }
 
 /// Extract code from markdown code block (any language)
@@ -279,9 +272,7 @@ fn extract_code_from_markdown(text: &str) -> Result<String> {
         }
     }
 
-    Err(LLMError::ParseError(
-        "No code block found in response".to_string(),
-    ))
+    Err(LLMError::ParseError("No code block found in response".to_string()))
 }
 
 /// Extract code block of specific language
@@ -297,10 +288,7 @@ fn extract_code_block(text: &str, language: &str) -> Result<String> {
         }
     }
 
-    Err(LLMError::ParseError(format!(
-        "No {} code block found in response",
-        language
-    )))
+    Err(LLMError::ParseError(format!("No {} code block found in response", language)))
 }
 
 #[cfg(test)]
@@ -340,10 +328,7 @@ mod tests {
 
     impl MockProvider {
         fn new(responses: Vec<String>) -> Self {
-            Self {
-                responses,
-                call_count: std::sync::Arc::new(std::sync::Mutex::new(0)),
-            }
+            Self { responses, call_count: std::sync::Arc::new(std::sync::Mutex::new(0)) }
         }
     }
 
@@ -371,11 +356,7 @@ mod tests {
             Ok(ChatMessage::assistant("Mock chat response"))
         }
 
-        async fn call_function(
-            &self,
-            _name: &str,
-            _args: serde_json::Value,
-        ) -> Result<serde_json::Value> {
+        async fn call_function(&self, _name: &str, _args: serde_json::Value) -> Result<serde_json::Value> {
             Ok(serde_json::json!({}))
         }
 
@@ -476,8 +457,8 @@ mod tests {
         let task = create_test_task();
         let context = LLMContext::from_task(&task);
 
-        let conversation = LLMConversation::new(Box::new(provider), context)
-            .with_reasoning_effort(ReasoningEffort::High);
+        let conversation =
+            LLMConversation::new(Box::new(provider), context).with_reasoning_effort(ReasoningEffort::High);
 
         assert_eq!(conversation.reasoning_effort, ReasoningEffort::High);
     }
@@ -521,10 +502,7 @@ fn main() {
 
         let mut conversation = LLMConversation::new(Box::new(provider), context);
 
-        let code = conversation
-            .ask_for_code("Generate code", "rust")
-            .await
-            .unwrap();
+        let code = conversation.ask_for_code("Generate code", "rust").await.unwrap();
 
         assert!(code.contains("fn main()"));
         assert!(code.contains("println!"));

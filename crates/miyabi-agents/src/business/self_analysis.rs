@@ -29,9 +29,8 @@ impl SelfAnalysisAgent {
     /// Generate comprehensive self-analysis using LLM
     async fn generate_self_analysis(&self, task: &Task) -> Result<SelfAnalysis> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -51,16 +50,13 @@ Generate detailed self-analysis as JSON with SWOT analysis, skills assessment, c
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::SelfAnalysisAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::SelfAnalysisAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let self_analysis: SelfAnalysis = serde_json::from_str(&response).map_err(|e| {
@@ -177,10 +173,7 @@ impl BaseAgent for SelfAnalysisAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "SelfAnalysisAgent starting self-analysis generation for task: {}",
-            task.id
-        );
+        tracing::info!("SelfAnalysisAgent starting self-analysis generation for task: {}", task.id);
 
         // Generate self-analysis using LLM
         let self_analysis = self.generate_self_analysis(task).await?;
@@ -216,10 +209,7 @@ impl BaseAgent for SelfAnalysisAgent {
             "recommendations_count": self_analysis.strategic_recommendations.len()
         });
 
-        tracing::info!(
-            "SelfAnalysisAgent completed self-analysis generation: {}",
-            summary
-        );
+        tracing::info!("SelfAnalysisAgent completed self-analysis generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -449,10 +439,7 @@ mod tests {
 
         let analysis = SelfAnalysis {
             swot_analysis: SWOTAnalysis {
-                strengths: vec![
-                    "Technical expertise".to_string(),
-                    "Problem solving".to_string(),
-                ],
+                strengths: vec!["Technical expertise".to_string(), "Problem solving".to_string()],
                 weaknesses: vec!["Business development".to_string()],
                 opportunities: vec!["Market demand".to_string()],
                 threats: vec!["Competition".to_string()],

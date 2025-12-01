@@ -43,25 +43,13 @@ impl Default for LoopConfig {
 
 impl LoopConfig {
     /// Create a new configuration with custom values
-    pub fn new(
-        max_iterations: Option<usize>,
-        convergence_threshold: f64,
-        auto_refinement_enabled: bool,
-    ) -> Self {
-        Self {
-            max_iterations,
-            convergence_threshold,
-            auto_refinement_enabled,
-            ..Default::default()
-        }
+    pub fn new(max_iterations: Option<usize>, convergence_threshold: f64, auto_refinement_enabled: bool) -> Self {
+        Self { max_iterations, convergence_threshold, auto_refinement_enabled, ..Default::default() }
     }
 
     /// Create an infinite loop configuration (no max_iterations)
     pub fn infinite() -> Self {
-        Self {
-            max_iterations: None,
-            ..Default::default()
-        }
+        Self { max_iterations: None, ..Default::default() }
     }
 
     /// Validate configuration
@@ -116,28 +104,19 @@ mod tests {
 
     #[test]
     fn test_validate_negative_threshold() {
-        let config = LoopConfig {
-            convergence_threshold: -1.0,
-            ..Default::default()
-        };
+        let config = LoopConfig { convergence_threshold: -1.0, ..Default::default() };
         assert!(config.validate().is_err());
     }
 
     #[test]
     fn test_validate_zero_min_iterations() {
-        let config = LoopConfig {
-            min_iterations_before_convergence: 0,
-            ..Default::default()
-        };
+        let config = LoopConfig { min_iterations_before_convergence: 0, ..Default::default() };
         assert!(config.validate().is_err());
     }
 
     #[test]
     fn test_validate_zero_timeout() {
-        let config = LoopConfig {
-            timeout_ms: 0,
-            ..Default::default()
-        };
+        let config = LoopConfig { timeout_ms: 0, ..Default::default() };
         assert!(config.validate().is_err());
     }
 }

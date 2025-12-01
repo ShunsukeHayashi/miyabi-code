@@ -27,11 +27,7 @@ impl AgentFixture {
         .await
         .expect("Failed to create test agent");
 
-        Self {
-            id: row.get("id"),
-            agent_type: row.get("agent_type"),
-            status: row.get("status"),
-        }
+        Self { id: row.get("id"), agent_type: row.get("agent_type"), status: row.get("status") }
     }
 
     /// Create a default CodeGen agent

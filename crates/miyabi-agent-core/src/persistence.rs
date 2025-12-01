@@ -26,10 +26,7 @@ pub struct ExecutionMetadata {
 impl ExecutionMetadata {
     /// Create new execution metadata with user ID
     pub fn with_user_id(user_id: Uuid) -> Self {
-        Self {
-            user_id: Some(user_id),
-            ..Default::default()
-        }
+        Self { user_id: Some(user_id), ..Default::default() }
     }
 
     /// Set repository ID
@@ -76,19 +73,11 @@ pub struct BusinessAnalytics {
 impl BusinessAnalytics {
     /// Create new business analytics with metrics
     pub fn with_metrics(metrics: serde_json::Value) -> Self {
-        Self {
-            metrics,
-            ..Default::default()
-        }
+        Self { metrics, ..Default::default() }
     }
 
     /// Set market research metrics
-    pub fn with_market_research(
-        mut self,
-        competitors: i32,
-        market_size: i64,
-        growth_rate: f64,
-    ) -> Self {
+    pub fn with_market_research(mut self, competitors: i32, market_size: i64, growth_rate: f64) -> Self {
         self.competitors_analyzed = Some(competitors);
         self.market_size_usd = Some(market_size);
         self.growth_rate_percent = Some(growth_rate);
@@ -96,12 +85,7 @@ impl BusinessAnalytics {
     }
 
     /// Set sales metrics
-    pub fn with_sales_metrics(
-        mut self,
-        conversion_rate: f64,
-        audience_size: i32,
-        revenue: i64,
-    ) -> Self {
+    pub fn with_sales_metrics(mut self, conversion_rate: f64, audience_size: i32, revenue: i64) -> Self {
         self.conversion_rate = Some(conversion_rate);
         self.target_audience_size = Some(audience_size);
         self.estimated_revenue_usd = Some(revenue);
@@ -193,18 +177,11 @@ pub trait PersistableAgent: Send + Sync {
 
     /// Get the quality score from the result
     fn get_quality_score(&self, result: &AgentResult) -> Option<i32> {
-        result
-            .metrics
-            .as_ref()
-            .and_then(|m| m.quality_score.map(|s| s as i32))
+        result.metrics.as_ref().and_then(|m| m.quality_score.map(|s| s as i32))
     }
 
     /// Convert agent result to persistable result
-    fn to_persistable_result(
-        &self,
-        result: AgentResult,
-        metadata: ExecutionMetadata,
-    ) -> PersistableResult {
+    fn to_persistable_result(&self, result: AgentResult, metadata: ExecutionMetadata) -> PersistableResult {
         let status = result.status.into();
         let analytics = self.extract_analytics(&result);
         let quality_score = self.get_quality_score(&result);
@@ -275,17 +252,8 @@ mod tests {
     fn test_execution_status_from_result_status() {
         use miyabi_types::agent::ResultStatus;
 
-        assert_eq!(
-            ExecutionStatus::from(ResultStatus::Success),
-            ExecutionStatus::Completed
-        );
-        assert_eq!(
-            ExecutionStatus::from(ResultStatus::Failed),
-            ExecutionStatus::Failed
-        );
-        assert_eq!(
-            ExecutionStatus::from(ResultStatus::Escalated),
-            ExecutionStatus::Failed
-        );
+        assert_eq!(ExecutionStatus::from(ResultStatus::Success), ExecutionStatus::Completed);
+        assert_eq!(ExecutionStatus::from(ResultStatus::Failed), ExecutionStatus::Failed);
+        assert_eq!(ExecutionStatus::from(ResultStatus::Escalated), ExecutionStatus::Failed);
     }
 }

@@ -29,9 +29,8 @@ impl CRMAgent {
     /// Generate comprehensive CRM strategy using LLM
     async fn generate_crm_strategy(&self, task: &Task) -> Result<CRMStrategy> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -51,16 +50,13 @@ Generate detailed CRM strategy as JSON with customer segmentation, journey mappi
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::CRMAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::CRMAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let crm_strategy: CRMStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -105,8 +101,7 @@ Generate detailed CRM strategy as JSON with customer segmentation, journey mappi
 
     /// Generate CRM strategy summary for reporting
     fn generate_summary(&self, strategy: &CRMStrategy) -> String {
-        let total_tactics = strategy.retention_strategies.tactics.len()
-            + strategy.upselling_strategies.tactics.len();
+        let total_tactics = strategy.retention_strategies.tactics.len() + strategy.upselling_strategies.tactics.len();
 
         format!(
             "CRM Strategy Generated: {} customer segments, {} journey stages, {} total tactics",
@@ -216,10 +211,7 @@ impl BaseAgent for CRMAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "CRMAgent starting CRM strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("CRMAgent starting CRM strategy generation for task: {}", task.id);
 
         // Generate CRM strategy using LLM
         let crm_strategy = self.generate_crm_strategy(task).await?;
@@ -247,8 +239,8 @@ impl BaseAgent for CRMAgent {
         };
 
         // Create result data
-        let total_tactics = crm_strategy.retention_strategies.tactics.len()
-            + crm_strategy.upselling_strategies.tactics.len();
+        let total_tactics =
+            crm_strategy.retention_strategies.tactics.len() + crm_strategy.upselling_strategies.tactics.len();
 
         let result_data = serde_json::json!({
             "crm_strategy": crm_strategy,
@@ -279,7 +271,8 @@ mod tests {
         Task {
             id: "test-task-13".to_string(),
             title: "AI-Powered Customer Relationship Platform".to_string(),
-            description: "A comprehensive CRM platform with AI-driven customer insights and automated engagement".to_string(),
+            description: "A comprehensive CRM platform with AI-driven customer insights and automated engagement"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,

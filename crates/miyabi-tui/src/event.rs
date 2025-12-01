@@ -60,9 +60,6 @@ impl EventHandler {
 
     /// Get next event
     pub async fn next(&mut self) -> Result<Event, Box<dyn std::error::Error>> {
-        self.rx
-            .recv()
-            .await
-            .ok_or_else(|| "Event channel closed".into())
+        self.rx.recv().await.ok_or_else(|| "Event channel closed".into())
     }
 }

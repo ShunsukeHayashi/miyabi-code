@@ -5,9 +5,7 @@
 use crate::error::{CliError, Result};
 use clap::Subcommand;
 use colored::Colorize;
-use miyabi_a2a::{
-    A2ATask, GitHubTaskStorage, TaskFilter, TaskStatus, TaskStorage, TaskType, TaskUpdate,
-};
+use miyabi_a2a::{A2ATask, GitHubTaskStorage, TaskFilter, TaskStatus, TaskStorage, TaskType, TaskUpdate};
 
 /// A2A subcommands
 #[derive(Debug, Clone, Subcommand)]
@@ -85,58 +83,33 @@ impl A2ACommand {
         let storage = Self::create_storage()?;
 
         match self {
-            A2ACommand::Create {
-                title,
-                description,
-                task_type,
-                context,
-                priority,
-            } => {
-                Self::cmd_create(
-                    &storage,
-                    title,
-                    description.as_deref(),
-                    task_type,
-                    context.as_deref(),
-                    *priority,
-                )
-                .await
+            A2ACommand::Create { title, description, task_type, context, priority } => {
+                Self::cmd_create(&storage, title, description.as_deref(), task_type, context.as_deref(), *priority)
+                    .await
             }
-            A2ACommand::List {
-                status,
-                context,
-                limit,
-            } => Self::cmd_list(&storage, status.as_deref(), context.as_deref(), *limit).await,
+            A2ACommand::List { status, context, limit } => {
+                Self::cmd_list(&storage, status.as_deref(), context.as_deref(), *limit).await
+            }
             A2ACommand::Get { id } => Self::cmd_get(&storage, *id).await,
-            A2ACommand::Update {
-                id,
-                status,
-                description,
-            } => Self::cmd_update(&storage, *id, status.as_deref(), description.as_deref()).await,
+            A2ACommand::Update { id, status, description } => {
+                Self::cmd_update(&storage, *id, status.as_deref(), description.as_deref()).await
+            }
             A2ACommand::Delete { id } => Self::cmd_delete(&storage, *id).await,
         }
     }
 
     /// Create GitHubTaskStorage from environment
     fn create_storage() -> Result<GitHubTaskStorage> {
-        let token =
-            std::env::var("GITHUB_TOKEN").map_err(|_| CliError::MissingEnvironmentVariable {
-                var: "GITHUB_TOKEN".to_string(),
-            })?;
+        let token = std::env::var("GITHUB_TOKEN")
+            .map_err(|_| CliError::MissingEnvironmentVariable { var: "GITHUB_TOKEN".to_string() })?;
 
         // Get repository from GITHUB_REPOSITORY env var (format: "owner/repo")
-        let repo = std::env::var("GITHUB_REPOSITORY").map_err(|_| {
-            CliError::MissingEnvironmentVariable {
-                var: "GITHUB_REPOSITORY".to_string(),
-            }
-        })?;
+        let repo = std::env::var("GITHUB_REPOSITORY")
+            .map_err(|_| CliError::MissingEnvironmentVariable { var: "GITHUB_REPOSITORY".to_string() })?;
 
         let parts: Vec<&str> = repo.split('/').collect();
         if parts.len() != 2 {
-            return Err(CliError::Config(format!(
-                "Invalid GITHUB_REPOSITORY format: {}. Expected: owner/repo",
-                repo
-            )));
+            return Err(CliError::Config(format!("Invalid GITHUB_REPOSITORY format: {}. Expected: owner/repo", repo)));
         }
 
         let owner = parts[0].to_string();
@@ -209,11 +182,7 @@ impl A2ACommand {
             .map_err(|e| CliError::Execution(format!("Failed to create task: {}", e)))?;
 
         println!("{}", "✅ Task created successfully!".green().bold());
-        println!(
-            "  {} {}",
-            "Task ID:".cyan(),
-            task_id.to_string().yellow().bold()
-        );
+        println!("  {} {}", "Task ID:".cyan(), task_id.to_string().yellow().bold());
         println!("  {} {}", "Title:".cyan(), title);
         println!("  {} {:?}", "Type:".cyan(), &task_type);
         if let Some(ctx) = context {
@@ -253,10 +222,7 @@ impl A2ACommand {
             return Ok(());
         }
 
-        println!(
-            "{}",
-            format!("📋 Found {} tasks:", tasks.len()).cyan().bold()
-        );
+        println!("{}", format!("📋 Found {} tasks:", tasks.len()).cyan().bold());
         println!();
 
         for task in tasks {
@@ -269,12 +235,7 @@ impl A2ACommand {
                 TaskStatus::Cancelled => status_str.dimmed(),
             };
 
-            println!(
-                "  {} {} {}",
-                "ID:".cyan(),
-                task.id.to_string().bold(),
-                status_colored
-            );
+            println!("  {} {} {}", "ID:".cyan(), task.id.to_string().bold(), status_colored);
             println!("    {} {}", "Title:".dimmed(), task.title);
             println!("    {} {:?}", "Type:".dimmed(), task.task_type);
             if let Some(ctx) = task.context_id {
@@ -366,10 +327,7 @@ impl A2ACommand {
             .await
             .map_err(|e| CliError::Execution(format!("Failed to delete task: {}", e)))?;
 
-        println!(
-            "{}",
-            "✅ Task deleted (closed) successfully!".green().bold()
-        );
+        println!("{}", "✅ Task deleted (closed) successfully!".green().bold());
         println!("  {} {}", "Task ID:".cyan(), id.to_string().yellow().bold());
 
         Ok(())

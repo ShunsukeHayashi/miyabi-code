@@ -74,9 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   ✓ State loading working");
     println!();
 
-    println!(
-        "ℹ️  Note: Full workflow execution requires CoordinatorAgent integration (Issue #719)"
-    );
+    println!("ℹ️  Note: Full workflow execution requires CoordinatorAgent integration (Issue #719)");
 
     Ok(())
 }

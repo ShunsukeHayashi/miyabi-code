@@ -55,12 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = Client::new(token);
 
-    post_progress(
-        &client,
-        progress_channel,
-        "\n👥 **フェーズ 3/3**: ロール作成中...",
-    )
-    .await?;
+    post_progress(&client, progress_channel, "\n👥 **フェーズ 3/3**: ロール作成中...").await?;
 
     // Define roles
     let roles = vec![
@@ -110,15 +105,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "Member",
             16777215,
-            Permissions::SEND_MESSAGES
-                | Permissions::READ_MESSAGE_HISTORY
-                | Permissions::ADD_REACTIONS,
+            Permissions::SEND_MESSAGES | Permissions::READ_MESSAGE_HISTORY | Permissions::ADD_REACTIONS,
         ),
-        (
-            "New Member",
-            16776960,
-            Permissions::SEND_MESSAGES | Permissions::READ_MESSAGE_HISTORY,
-        ),
+        ("New Member", 16776960, Permissions::SEND_MESSAGES | Permissions::READ_MESSAGE_HISTORY),
     ];
 
     let mut created = 0;
@@ -138,22 +127,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 created += 1;
 
                 if created % 3 == 0 {
-                    post_progress(
-                        &client,
-                        progress_channel,
-                        &format!("  ✅ {}/7 ロール作成完了", created),
-                    )
-                    .await?;
+                    post_progress(&client, progress_channel, &format!("  ✅ {}/7 ロール作成完了", created)).await?;
                 }
             }
             Err(e) => {
                 println!("  ⚠️ Failed to create role {}: {}", role_name, e);
-                post_progress(
-                    &client,
-                    progress_channel,
-                    &format!("⚠️ ロール作成エラー: {} - {}", role_name, e),
-                )
-                .await?;
+                post_progress(&client, progress_channel, &format!("⚠️ ロール作成エラー: {} - {}", role_name, e))
+                    .await?;
             }
         }
 
@@ -161,12 +141,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
     }
 
-    post_progress(
-        &client,
-        progress_channel,
-        &format!("✅ ロール作成完了！ ({}/7個)", created),
-    )
-    .await?;
+    post_progress(&client, progress_channel, &format!("✅ ロール作成完了！ ({}/7個)", created)).await?;
 
     post_progress(
         &client,

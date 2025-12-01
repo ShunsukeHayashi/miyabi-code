@@ -8,17 +8,13 @@
 //! cargo run --example skills_bridge_demo
 //! ```
 
-use miyabi_orchestrator::skills_bridge::{
-    ErrorSeverity, OrchestratorEvent, SkillRequest, SkillsBridge,
-};
+use miyabi_orchestrator::skills_bridge::{ErrorSeverity, OrchestratorEvent, SkillRequest, SkillsBridge};
 use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
+    tracing_subscriber::fmt().with_max_level(tracing::Level::INFO).init();
 
     println!("🌉 Skills Bridge Demo");
     println!("====================\n");
@@ -32,44 +28,28 @@ async fn main() -> anyhow::Result<()> {
         println!("👂 Event listener started\n");
         while let Some(event) = event_rx.recv().await {
             match event {
-                OrchestratorEvent::SkillCompleted {
-                    skill_name,
-                    phase,
-                    metadata,
-                } => {
+                OrchestratorEvent::SkillCompleted { skill_name, phase, metadata } => {
                     println!("📬 Event received: SkillCompleted");
                     println!("   Skill: {}", skill_name);
                     println!("   Phase: {:?}", phase);
                     println!("   Metadata: {:?}", metadata);
                     println!();
                 }
-                OrchestratorEvent::StopTokenDetected {
-                    workflow_id,
-                    step_id,
-                    context,
-                } => {
+                OrchestratorEvent::StopTokenDetected { workflow_id, step_id, context } => {
                     println!("📬 Event received: StopTokenDetected");
                     println!("   Workflow ID: {}", workflow_id);
                     println!("   Step ID: {}", step_id);
                     println!("   Context: {:?}", context);
                     println!();
                 }
-                OrchestratorEvent::ErrorDetected {
-                    skill_name,
-                    error_message,
-                    severity,
-                } => {
+                OrchestratorEvent::ErrorDetected { skill_name, error_message, severity } => {
                     println!("📬 Event received: ErrorDetected");
                     println!("   Skill: {}", skill_name);
                     println!("   Error: {}", error_message);
                     println!("   Severity: {:?}", severity);
                     println!();
                 }
-                OrchestratorEvent::QualityCheckResult {
-                    score,
-                    passed,
-                    recommendations,
-                } => {
+                OrchestratorEvent::QualityCheckResult { score, passed, recommendations } => {
                     println!("📬 Event received: QualityCheckResult");
                     println!("   Score: {:.1}/100", score);
                     println!("   Passed: {}", passed);
@@ -137,11 +117,7 @@ async fn main() -> anyhow::Result<()> {
     skill_context.insert("ISSUE_NUMBER".to_string(), "809".to_string());
     skill_context.insert("TASK".to_string(), "Run tests".to_string());
 
-    let request = SkillRequest {
-        skill_name: "demo-skill".to_string(),
-        context: skill_context,
-        timeout_secs: 10,
-    };
+    let request = SkillRequest { skill_name: "demo-skill".to_string(), context: skill_context, timeout_secs: 10 };
 
     match bridge.execute_skill(request).await {
         Ok(result) => {

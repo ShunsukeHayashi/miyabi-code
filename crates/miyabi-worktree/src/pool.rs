@@ -91,24 +91,12 @@ impl WorktreePool {
     pub fn new(config: PoolConfig, worktree_base: Option<PathBuf>) -> Result<Self> {
         let repo_path = miyabi_core::find_git_root(None)?;
         let base = worktree_base.unwrap_or_else(default_worktree_base);
-        let resolved_base = if base.is_absolute() {
-            base
-        } else {
-            repo_path.join(base)
-        };
+        let resolved_base = if base.is_absolute() { base } else { repo_path.join(base) };
         let resolved_base = normalize_path(resolved_base);
 
-        let manager = Arc::new(WorktreeManager::new(
-            &repo_path,
-            &resolved_base,
-            config.max_concurrency,
-        )?);
+        let manager = Arc::new(WorktreeManager::new(&repo_path, &resolved_base, config.max_concurrency)?);
 
-        Ok(Self {
-            manager,
-            config,
-            active_tasks: Arc::new(Mutex::new(HashMap::new())),
-        })
+        Ok(Self { manager, config, active_tasks: Arc::new(Mutex::new(HashMap::new())) })
     }
 
     /// Create a worktree pool with explicit repository path
@@ -117,17 +105,9 @@ impl WorktreePool {
         worktree_base: impl AsRef<std::path::Path>,
         config: PoolConfig,
     ) -> Result<Self> {
-        let manager = Arc::new(WorktreeManager::new(
-            repo_path,
-            worktree_base,
-            config.max_concurrency,
-        )?);
+        let manager = Arc::new(WorktreeManager::new(repo_path, worktree_base, config.max_concurrency)?);
 
-        Ok(Self {
-            manager,
-            config,
-            active_tasks: Arc::new(Mutex::new(HashMap::new())),
-        })
+        Ok(Self { manager, config, active_tasks: Arc::new(Mutex::new(HashMap::new())) })
     }
 
     /// Execute multiple tasks in parallel worktrees
@@ -142,11 +122,7 @@ impl WorktreePool {
     /// # Fail-Fast Behavior
     /// If `fail_fast` is enabled in config, execution stops after the first failure
     /// and all remaining tasks are cancelled.
-    pub async fn execute_parallel<F, Fut>(
-        &self,
-        tasks: Vec<WorktreeTask>,
-        executor: F,
-    ) -> PoolExecutionResult
+    pub async fn execute_parallel<F, Fut>(&self, tasks: Vec<WorktreeTask>, executor: F) -> PoolExecutionResult
     where
         F: Fn(WorktreeInfo, WorktreeTask) -> Fut + Send + Sync + Clone + 'static,
         Fut: std::future::Future<Output = Result<serde_json::Value>> + Send + 'static,
@@ -183,10 +159,7 @@ impl WorktreePool {
                 async move {
                     // Check if we should cancel (fail-fast mode)
                     if *cancel_rx.borrow() {
-                        warn!(
-                            "Task for issue #{} cancelled due to fail-fast",
-                            task.issue_number
-                        );
+                        warn!("Task for issue #{} cancelled due to fail-fast", task.issue_number);
                         return TaskResult {
                             issue_number: task.issue_number,
                             worktree_id: String::new(),
@@ -210,10 +183,7 @@ impl WorktreePool {
                             info
                         }
                         Err(e) => {
-                            error!(
-                                "Failed to create worktree for issue #{}: {}",
-                                task.issue_number, e
-                            );
+                            error!("Failed to create worktree for issue #{}: {}", task.issue_number, e);
                             return TaskResult {
                                 issue_number: task.issue_number,
                                 worktree_id: String::new(),
@@ -235,10 +205,7 @@ impl WorktreePool {
                     // Process result
                     let task_result = match execution_result {
                         Ok(Ok(output)) => {
-                            info!(
-                                "Task for issue #{} completed successfully",
-                                task.issue_number
-                            );
+                            info!("Task for issue #{} completed successfully", task.issue_number);
                             // Update worktree status
                             let _ = manager
                                 .update_status(&worktree_info.id, WorktreeStatus::Completed)
@@ -254,9 +221,7 @@ impl WorktreePool {
                         }
                         Ok(Err(e)) => {
                             error!("Task for issue #{} failed: {}", task.issue_number, e);
-                            let _ = manager
-                                .update_status(&worktree_info.id, WorktreeStatus::Failed)
-                                .await;
+                            let _ = manager.update_status(&worktree_info.id, WorktreeStatus::Failed).await;
 
                             // Trigger cancellation if fail_fast is enabled
                             if fail_fast {
@@ -274,13 +239,8 @@ impl WorktreePool {
                             }
                         }
                         Err(_) => {
-                            warn!(
-                                "Task for issue #{} timed out after {} seconds",
-                                task.issue_number, timeout_seconds
-                            );
-                            let _ = manager
-                                .update_status(&worktree_info.id, WorktreeStatus::Failed)
-                                .await;
+                            warn!("Task for issue #{} timed out after {} seconds", task.issue_number, timeout_seconds);
+                            let _ = manager.update_status(&worktree_info.id, WorktreeStatus::Failed).await;
 
                             // Trigger cancellation if fail_fast is enabled
                             if fail_fast {
@@ -315,22 +275,10 @@ impl WorktreePool {
         let total_duration = start_time.elapsed().as_millis() as u64;
 
         // Calculate statistics
-        let success_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Success)
-            .count();
-        let failed_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Failed)
-            .count();
-        let timeout_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Timeout)
-            .count();
-        let cancelled_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Cancelled)
-            .count();
+        let success_count = results.iter().filter(|r| r.status == TaskStatus::Success).count();
+        let failed_count = results.iter().filter(|r| r.status == TaskStatus::Failed).count();
+        let timeout_count = results.iter().filter(|r| r.status == TaskStatus::Timeout).count();
+        let cancelled_count = results.iter().filter(|r| r.status == TaskStatus::Cancelled).count();
 
         info!(
             "Parallel execution completed: {} successful, {} failed, {} timed out, {} cancelled, {}ms total",
@@ -359,11 +307,7 @@ impl WorktreePool {
     /// Execute tasks with automatic worktree lifecycle management
     ///
     /// This is a simplified version that automatically creates, executes, and cleans up worktrees
-    pub async fn execute_simple<F, Fut>(
-        &self,
-        issue_numbers: Vec<u64>,
-        executor: F,
-    ) -> PoolExecutionResult
+    pub async fn execute_simple<F, Fut>(&self, issue_numbers: Vec<u64>, executor: F) -> PoolExecutionResult
     where
         F: Fn(PathBuf, u64) -> Fut + Send + Sync + Clone + 'static,
         Fut: std::future::Future<Output = Result<()>> + Send + 'static,
@@ -489,20 +433,12 @@ impl PoolExecutionResult {
 
     /// Get minimum task duration in milliseconds
     pub fn min_duration_ms(&self) -> u64 {
-        self.results
-            .iter()
-            .map(|r| r.duration_ms)
-            .min()
-            .unwrap_or(0)
+        self.results.iter().map(|r| r.duration_ms).min().unwrap_or(0)
     }
 
     /// Get maximum task duration in milliseconds
     pub fn max_duration_ms(&self) -> u64 {
-        self.results
-            .iter()
-            .map(|r| r.duration_ms)
-            .max()
-            .unwrap_or(0)
+        self.results.iter().map(|r| r.duration_ms).max().unwrap_or(0)
     }
 
     /// Get throughput (tasks per second)
@@ -526,10 +462,7 @@ impl PoolExecutionResult {
 
     /// Get failed tasks
     pub fn failed_tasks(&self) -> Vec<&TaskResult> {
-        self.results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Failed)
-            .collect()
+        self.results.iter().filter(|r| r.status == TaskStatus::Failed).collect()
     }
 
     /// Get timed out tasks

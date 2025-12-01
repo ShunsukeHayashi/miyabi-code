@@ -12,9 +12,7 @@
 //! 3. Low quality code (< 60) → Requires fixes
 
 use anyhow::Result;
-use miyabi_orchestrator::{
-    headless::HeadlessOrchestrator, state_machine::StateMachine, HeadlessOrchestratorConfig,
-};
+use miyabi_orchestrator::{headless::HeadlessOrchestrator, state_machine::StateMachine, HeadlessOrchestratorConfig};
 use miyabi_types::{issue::IssueStateGithub, Issue};
 use tracing::info;
 
@@ -47,11 +45,7 @@ async fn test_phase6_9_high_quality_auto_merge() -> Result<()> {
     let _orchestrator = HeadlessOrchestrator::new(config);
 
     // Create mock issue with feature label
-    let _issue = create_mock_issue(
-        9001,
-        "feat: Add high quality feature",
-        vec!["feature", "enhancement"],
-    );
+    let _issue = create_mock_issue(9001, "feat: Add high quality feature", vec!["feature", "enhancement"]);
 
     // Initialize state machine
     let _state_machine = StateMachine::new(_issue.number);
@@ -120,20 +114,12 @@ fn test_pr_title_generation() {
     // Test bugfix
     let issue_bug = create_mock_issue(101, "Fix memory leak in parser", vec!["bug"]);
     let expected_bug = "fix: Fix memory leak in parser";
-    assert_eq!(
-        generate_pr_title_mock(&issue_bug),
-        expected_bug,
-        "Bug PR title should use 'fix:' prefix"
-    );
+    assert_eq!(generate_pr_title_mock(&issue_bug), expected_bug, "Bug PR title should use 'fix:' prefix");
 
     // Test docs
     let issue_docs = create_mock_issue(102, "Update API documentation", vec!["docs"]);
     let expected_docs = "docs: Update API documentation";
-    assert_eq!(
-        generate_pr_title_mock(&issue_docs),
-        expected_docs,
-        "Docs PR title should use 'docs:' prefix"
-    );
+    assert_eq!(generate_pr_title_mock(&issue_docs), expected_docs, "Docs PR title should use 'docs:' prefix");
 
     // Test refactor
     let issue_refactor = create_mock_issue(103, "Refactor database layer", vec!["refactor"]);
@@ -166,34 +152,19 @@ fn generate_pr_title_mock(issue: &Issue) -> String {
 #[test]
 fn test_auto_merge_decision() {
     // Scenario 1: High quality + High review → Auto-merge
-    assert!(
-        should_auto_merge(85.0, 85.0, 80.0),
-        "Score >= 80 on both should trigger auto-merge"
-    );
+    assert!(should_auto_merge(85.0, 85.0, 80.0), "Score >= 80 on both should trigger auto-merge");
 
     // Scenario 2: High quality + Low review → No auto-merge
-    assert!(
-        !should_auto_merge(85.0, 70.0, 80.0),
-        "Low review score should block auto-merge"
-    );
+    assert!(!should_auto_merge(85.0, 70.0, 80.0), "Low review score should block auto-merge");
 
     // Scenario 3: Low quality + High review → No auto-merge
-    assert!(
-        !should_auto_merge(70.0, 85.0, 80.0),
-        "Low quality score should block auto-merge"
-    );
+    assert!(!should_auto_merge(70.0, 85.0, 80.0), "Low quality score should block auto-merge");
 
     // Scenario 4: Both low → No auto-merge
-    assert!(
-        !should_auto_merge(60.0, 60.0, 80.0),
-        "Both scores below threshold should block auto-merge"
-    );
+    assert!(!should_auto_merge(60.0, 60.0, 80.0), "Both scores below threshold should block auto-merge");
 
     // Scenario 5: Exactly at threshold → Auto-merge
-    assert!(
-        should_auto_merge(80.0, 80.0, 80.0),
-        "Scores exactly at threshold should trigger auto-merge"
-    );
+    assert!(should_auto_merge(80.0, 80.0, 80.0), "Scores exactly at threshold should trigger auto-merge");
 }
 
 /// Mock auto-merge decision (mirrors implementation in headless.rs)

@@ -42,10 +42,7 @@ impl A2ABridge {
     /// Create a new A2A Bridge
     pub async fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let gateway = A2AGateway::new().await?;
-        Ok(Self {
-            gateway: Arc::new(gateway),
-            agent_handlers: RwLock::new(HashMap::new()),
-        })
+        Ok(Self { gateway: Arc::new(gateway), agent_handlers: RwLock::new(HashMap::new()) })
     }
 
     /// Register an A2AEnabled agent handler
@@ -79,11 +76,7 @@ impl A2ABridge {
             let card = handler.agent_card();
             for capability in &card.capabilities {
                 tools.push(A2AToolDefinition {
-                    name: format!(
-                        "a2a.{}.{}",
-                        name.to_lowercase().replace(" ", "_"),
-                        capability.id
-                    ),
+                    name: format!("a2a.{}.{}", name.to_lowercase().replace(" ", "_"), capability.id),
                     description: format!("{}: {}", card.name, capability.description),
                     input_schema: capability.input_schema.clone().unwrap_or(json!({
                         "type": "object",
@@ -153,16 +146,9 @@ impl A2ABridge {
         // Execute task
         match handler.handle_a2a_task(task).await {
             Ok(result) => match result {
-                A2ATaskResult::Success {
-                    output,
-                    execution_time_ms,
-                    ..
-                } => Ok(A2AToolResult {
-                    success: true,
-                    output,
-                    execution_time_ms,
-                    error: None,
-                }),
+                A2ATaskResult::Success { output, execution_time_ms, .. } => {
+                    Ok(A2AToolResult { success: true, output, execution_time_ms, error: None })
+                }
                 A2ATaskResult::Failure { error, .. } => Ok(A2AToolResult {
                     success: false,
                     output: json!(null),

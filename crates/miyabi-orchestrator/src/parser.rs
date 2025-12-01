@@ -61,16 +61,10 @@ pub async fn parse_agent_result(json_path: PathBuf) -> Result<AgentResult> {
     // Parse JSON
     let result: AgentResult = serde_json::from_str(&content).map_err(|source| {
         warn!("Failed to parse JSON: {}", source);
-        SchedulerError::ParseFailed {
-            path: json_path.clone(),
-            source,
-        }
+        SchedulerError::ParseFailed { path: json_path.clone(), source }
     })?;
 
-    debug!(
-        "Parsed result: success={}, status={}",
-        result.success, result.status
-    );
+    debug!("Parsed result: success={}, status={}", result.success, result.status);
 
     Ok(result)
 }

@@ -58,7 +58,6 @@ pub mod api {
 
 // Top-level re-exports for convenience
 pub use ai::{
-    AdviceStyle, HistoricalCharacter, HistoricalEpisode, Personality, PromptBuilder, Tone,
-    WikipediaCollector,
+    AdviceStyle, HistoricalCharacter, HistoricalEpisode, Personality, PromptBuilder, Tone, WikipediaCollector,
 };
 pub use api::{AppState, ChatRequest, ChatResponse};

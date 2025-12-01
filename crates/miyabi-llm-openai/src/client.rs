@@ -5,8 +5,8 @@ use async_trait::async_trait;
 use futures::stream::Stream;
 use futures::StreamExt;
 use miyabi_llm_core::{
-    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamResponse, ToolCall,
-    ToolCallResponse, ToolDefinition,
+    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamResponse, ToolCall, ToolCallResponse,
+    ToolDefinition,
 };
 use serde_json::json;
 
@@ -37,12 +37,7 @@ impl OpenAIClient {
     /// let client = OpenAIClient::new("sk-...".to_string());
     /// ```
     pub fn new(api_key: String) -> Self {
-        Self {
-            api_key,
-            model: "gpt-4o".to_string(),
-            client: reqwest::Client::new(),
-            max_tokens: Some(4096),
-        }
+        Self { api_key, model: "gpt-4o".to_string(), client: reqwest::Client::new(), max_tokens: Some(4096) }
     }
 
     /// Create client from OPENAI_API_KEY environment variable
@@ -50,8 +45,8 @@ impl OpenAIClient {
     /// # Errors
     /// Returns `LlmError::MissingApiKey` if environment variable is not set
     pub fn from_env() -> Result<Self> {
-        let api_key = std::env::var("OPENAI_API_KEY")
-            .map_err(|_| LlmError::MissingApiKey("OPENAI_API_KEY".to_string()))?;
+        let api_key =
+            std::env::var("OPENAI_API_KEY").map_err(|_| LlmError::MissingApiKey("OPENAI_API_KEY".to_string()))?;
         Ok(Self::new(api_key))
     }
 
@@ -59,18 +54,13 @@ impl OpenAIClient {
     ///
     /// GPT-4o-mini is significantly cheaper while maintaining high quality.
     pub fn new_gpt4o_mini(api_key: String) -> Self {
-        Self {
-            api_key,
-            model: "gpt-4o-mini".to_string(),
-            client: reqwest::Client::new(),
-            max_tokens: Some(4096),
-        }
+        Self { api_key, model: "gpt-4o-mini".to_string(), client: reqwest::Client::new(), max_tokens: Some(4096) }
     }
 
     /// Create GPT-4o-mini client from environment
     pub fn gpt4o_mini_from_env() -> Result<Self> {
-        let api_key = std::env::var("OPENAI_API_KEY")
-            .map_err(|_| LlmError::MissingApiKey("OPENAI_API_KEY".to_string()))?;
+        let api_key =
+            std::env::var("OPENAI_API_KEY").map_err(|_| LlmError::MissingApiKey("OPENAI_API_KEY".to_string()))?;
         Ok(Self::new_gpt4o_mini(api_key))
     }
 
@@ -118,11 +108,7 @@ impl OpenAIClient {
             .into_iter()
             .map(|t| OpenAITool {
                 tool_type: "function".to_string(),
-                function: OpenAIFunction {
-                    name: t.name,
-                    description: t.description,
-                    parameters: t.parameters,
-                },
+                function: OpenAIFunction { name: t.name, description: t.description, parameters: t.parameters },
             })
             .collect()
     }
@@ -227,10 +213,7 @@ impl LlmClient for OpenAIClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unable to read error body".to_string());
-            return Err(LlmError::ApiError(format!(
-                "API returned error {}: {}",
-                status, error_body
-            )));
+            return Err(LlmError::ApiError(format!("API returned error {}: {}", status, error_body)));
         }
 
         let openai_response: OpenAIResponse = response
@@ -246,11 +229,7 @@ impl LlmClient for OpenAIClient {
             .ok_or_else(|| LlmError::InvalidResponse("No content in response".to_string()))
     }
 
-    async fn chat_with_tools(
-        &self,
-        messages: Vec<Message>,
-        tools: Vec<ToolDefinition>,
-    ) -> Result<ToolCallResponse> {
+    async fn chat_with_tools(&self, messages: Vec<Message>, tools: Vec<ToolDefinition>) -> Result<ToolCallResponse> {
         let openai_messages = self.convert_messages(messages);
         let openai_tools = self.convert_tools(tools);
 
@@ -281,10 +260,7 @@ impl LlmClient for OpenAIClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unable to read error body".to_string());
-            return Err(LlmError::ApiError(format!(
-                "API returned error {}: {}",
-                status, error_body
-            )));
+            return Err(LlmError::ApiError(format!("API returned error {}: {}", status, error_body)));
         }
 
         let openai_response: OpenAIResponse = response
@@ -307,21 +283,15 @@ impl LlmClient for OpenAIClient {
                     .tool_calls
                     .as_ref()
                     .ok_or_else(|| {
-                        LlmError::InvalidResponse(
-                            "finish_reason was tool_calls but no tool_calls found".to_string(),
-                        )
+                        LlmError::InvalidResponse("finish_reason was tool_calls but no tool_calls found".to_string())
                     })?
                     .iter()
                     .map(|tc| {
                         // Parse JSON string arguments to Value
-                        let arguments = serde_json::from_str(&tc.function.arguments)
-                            .unwrap_or_else(|_| serde_json::json!({}));
+                        let arguments =
+                            serde_json::from_str(&tc.function.arguments).unwrap_or_else(|_| serde_json::json!({}));
 
-                        ToolCall {
-                            id: tc.id.clone(),
-                            name: tc.function.name.clone(),
-                            arguments,
-                        }
+                        ToolCall { id: tc.id.clone(), name: tc.function.name.clone(), arguments }
                     })
                     .collect();
 
@@ -336,10 +306,7 @@ impl LlmClient for OpenAIClient {
                     .unwrap_or_else(|| "Task completed".to_string());
                 Ok(ToolCallResponse::Conclusion { text })
             }
-            other => Err(LlmError::InvalidResponse(format!(
-                "Unexpected finish_reason: {}",
-                other
-            ))),
+            other => Err(LlmError::InvalidResponse(format!("Unexpected finish_reason: {}", other))),
         }
     }
 
@@ -384,10 +351,7 @@ impl LlmStreamingClient for OpenAIClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unable to read error body".to_string());
-            return Err(LlmError::ApiError(format!(
-                "API returned error {}: {}",
-                status, error_body
-            )));
+            return Err(LlmError::ApiError(format!("API returned error {}: {}", status, error_body)));
         }
 
         // Parse SSE stream
@@ -408,8 +372,7 @@ mod tests {
 
     #[test]
     fn test_with_model() {
-        let client =
-            OpenAIClient::new("test-key".to_string()).with_model("gpt-4-turbo".to_string());
+        let client = OpenAIClient::new("test-key".to_string()).with_model("gpt-4-turbo".to_string());
         assert_eq!(client.model, "gpt-4-turbo");
         assert_eq!(client.model_name(), "gpt-4-turbo");
     }

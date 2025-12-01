@@ -39,10 +39,7 @@ pub async fn search_knowledge(query: &str, figure: &str, top_k: usize) -> Result
         .context("Failed to initialize vector store")?;
 
     // Generate query embedding
-    let query_embedding = embedder
-        .embed_text(query)
-        .await
-        .context("Failed to embed query")?;
+    let query_embedding = embedder.embed_text(query).await.context("Failed to embed query")?;
 
     // Create filter for the specific figure
     let mut filter = HashMap::new();
@@ -78,13 +75,8 @@ pub async fn ingest_figure_data(figure_name: &str, vector_store: &VectorStore) -
     tracing::info!("Fetched {} chunks for {}", chunks.len(), figure_name);
 
     // Step 2: Generate embeddings
-    let embedder = TextEmbedder::new(
-        super::embedding::ChunkConfig {
-            chunk_size: 512,
-            overlap: 50,
-        },
-        vector_store.embedding_dim(),
-    );
+    let embedder =
+        TextEmbedder::new(super::embedding::ChunkConfig { chunk_size: 512, overlap: 50 }, vector_store.embedding_dim());
 
     let embeddings = embedder
         .embed_batch(&chunks)
@@ -111,11 +103,7 @@ pub async fn ingest_figure_data(figure_name: &str, vector_store: &VectorStore) -
         .await
         .context("Failed to insert documents into vector store")?;
 
-    tracing::info!(
-        "Successfully ingested {} documents for {}",
-        doc_count,
-        figure_name
-    );
+    tracing::info!("Successfully ingested {} documents for {}", doc_count, figure_name);
 
     Ok(doc_count)
 }
@@ -128,20 +116,16 @@ mod tests {
     async fn test_search_knowledge_empty() {
         // Test search on empty vector store
         let embedder = TextEmbedder::default();
-        let vector_store =
-            VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
-                .await
-                .unwrap();
+        let vector_store = VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
+            .await
+            .unwrap();
 
         let query_embedding = embedder.embed_text("test query").await.unwrap();
 
         let mut filter = HashMap::new();
         filter.insert("figure".to_string(), "織田信長".to_string());
 
-        let results = vector_store
-            .search(&query_embedding, 5, Some(filter))
-            .await
-            .unwrap();
+        let results = vector_store.search(&query_embedding, 5, Some(filter)).await.unwrap();
 
         assert_eq!(results.len(), 0);
     }
@@ -149,10 +133,9 @@ mod tests {
     #[tokio::test]
     async fn test_ingest_figure_data_mock() {
         let embedder = TextEmbedder::default();
-        let vector_store =
-            VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
-                .await
-                .unwrap();
+        let vector_store = VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
+            .await
+            .unwrap();
 
         // Note: This would normally call Wikipedia API
         // For unit tests, we skip if SKIP_INTEGRATION_TESTS is set
@@ -175,10 +158,7 @@ mod tests {
                 let mut filter = HashMap::new();
                 filter.insert("figure".to_string(), "織田信長".to_string());
 
-                let search_results = vector_store
-                    .search(&query_embedding, 3, Some(filter))
-                    .await
-                    .unwrap();
+                let search_results = vector_store.search(&query_embedding, 3, Some(filter)).await.unwrap();
 
                 assert!(!search_results.is_empty(), "Should find search results");
             }
@@ -192,10 +172,9 @@ mod tests {
     async fn test_search_with_manual_data() {
         // Test with manually inserted data (no network required)
         let embedder = TextEmbedder::default();
-        let vector_store =
-            VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
-                .await
-                .unwrap();
+        let vector_store = VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
+            .await
+            .unwrap();
 
         // Insert some test documents
         let texts = vec![
@@ -220,10 +199,7 @@ mod tests {
         let mut filter = HashMap::new();
         filter.insert("figure".to_string(), "織田信長".to_string());
 
-        let results = vector_store
-            .search(&query_embedding, 2, Some(filter))
-            .await
-            .unwrap();
+        let results = vector_store.search(&query_embedding, 2, Some(filter)).await.unwrap();
 
         assert!(!results.is_empty(), "Should find results");
         println!("Found {} results", results.len());
@@ -233,9 +209,6 @@ mod tests {
         }
 
         // The first result should contain "本能寺"
-        assert!(
-            results[0].text.contains("本能寺"),
-            "Top result should be most relevant"
-        );
+        assert!(results[0].text.contains("本能寺"), "Top result should be most relevant");
     }
 }

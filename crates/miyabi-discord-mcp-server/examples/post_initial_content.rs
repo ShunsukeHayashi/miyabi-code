@@ -65,12 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = Client::new(token);
 
-    post_progress(
-        &client,
-        progress_channel,
-        "\n📝 **フェーズ 4/4**: 初期コンテンツ投稿中...",
-    )
-    .await?;
+    post_progress(&client, progress_channel, "\n📝 **フェーズ 4/4**: 初期コンテンツ投稿中...").await?;
 
     // Get all channels
     let channels = client.guild_channels(guild_id).await?.model().await?;
@@ -101,11 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .to_string(),
             ),
             fields: vec![],
-            footer: Some(EmbedFooter {
-                icon_url: None,
-                proxy_icon_url: None,
-                text: "Miyabiちゃん".to_string(),
-            }),
+            footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "Miyabiちゃん".to_string() }),
             image: None,
             kind: "rich".to_string(),
             provider: None,
@@ -181,7 +172,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 1. <#introductions> で自己紹介\n\
                 2. <#general> で雑談\n\
                 3. 各Agentチャンネルで使い方を学ぶ\n\n\
-                Let's build amazing things together! 🚀".to_string()
+                Let's build amazing things together! 🚀"
+                    .to_string(),
             ),
             fields: vec![],
             footer: Some(EmbedFooter {
@@ -211,12 +203,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
     // 4. Post to each Coding Agent channel
-    post_progress(
-        &client,
-        progress_channel,
-        "\n📝 各Agentチャンネルへの説明投稿中...",
-    )
-    .await?;
+    post_progress(&client, progress_channel, "\n📝 各Agentチャンネルへの説明投稿中...").await?;
 
     let agent_channels = vec![
         ("しきるん-coordinator", "🎯 CoordinatorAgent", "タスクを自動分解・並列実行するよ！\n\nIssueを受け取って、複数のタスクに分解してWorktreeで並列実行できるんだ。\n\n**使い方**: Issue番号を指定するだけ！"),
@@ -235,11 +222,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 color: Some(0x5865F2),
                 description: Some(description.to_string()),
                 fields: vec![],
-                footer: Some(EmbedFooter {
-                    icon_url: None,
-                    proxy_icon_url: None,
-                    text: "Miyabiちゃん".to_string(),
-                }),
+                footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "Miyabiちゃん".to_string() }),
                 image: None,
                 kind: "rich".to_string(),
                 provider: None,
@@ -257,12 +240,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    post_progress(
-        &client,
-        progress_channel,
-        &format!("✅ Agentチャンネル説明投稿完了！ ({}/6個)", posted),
-    )
-    .await?;
+    post_progress(&client, progress_channel, &format!("✅ Agentチャンネル説明投稿完了！ ({}/6個)", posted)).await?;
 
     post_progress(
         &client,

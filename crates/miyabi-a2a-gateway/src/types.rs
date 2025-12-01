@@ -84,11 +84,7 @@ pub struct AgentCapabilities {
 
 impl Default for AgentCapabilities {
     fn default() -> Self {
-        Self {
-            streaming: true,
-            push_notifications: false,
-            state_transition_history: true,
-        }
+        Self { streaming: true, push_notifications: false, state_transition_history: true }
     }
 }
 
@@ -149,20 +145,13 @@ pub struct Message {
 
 impl Message {
     pub fn user(text: &str) -> Self {
-        Self {
-            role: "user".to_string(),
-            parts: vec![Part::Text(text.to_string())],
-        }
+        Self { role: "user".to_string(), parts: vec![Part::Text(text.to_string())] }
     }
 
     pub fn get_text(&self) -> Option<String> {
-        self.parts.iter().find_map(|p| {
-            if let Part::Text(t) = p {
-                Some(t.clone())
-            } else {
-                None
-            }
-        })
+        self.parts
+            .iter()
+            .find_map(|p| if let Part::Text(t) = p { Some(t.clone()) } else { None })
     }
 }
 
@@ -236,19 +225,11 @@ pub struct Artifact {
 
 impl Artifact {
     pub fn text(content: String) -> Self {
-        Self {
-            content_type: "text/plain".to_string(),
-            content,
-            name: None,
-        }
+        Self { content_type: "text/plain".to_string(), content, name: None }
     }
 
     pub fn json(value: serde_json::Value) -> Self {
-        Self {
-            content_type: "application/json".to_string(),
-            content: value.to_string(),
-            name: None,
-        }
+        Self { content_type: "application/json".to_string(), content: value.to_string(), name: None }
     }
 }
 

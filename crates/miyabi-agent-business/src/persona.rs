@@ -8,8 +8,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -42,8 +41,8 @@ impl PersonaAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -66,16 +65,13 @@ Generate comprehensive persona analysis as JSON with primary and secondary perso
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::PersonaAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::PersonaAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let persona_analysis: PersonaAnalysis = serde_json::from_str(&response).map_err(|e| {
@@ -219,10 +215,7 @@ impl BaseAgent for PersonaAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "PersonaAgent starting persona analysis generation for task: {}",
-            task.id
-        );
+        tracing::info!("PersonaAgent starting persona analysis generation for task: {}", task.id);
 
         // Generate persona analysis using LLM
         let persona_analysis = self.generate_persona_analysis(task).await?;
@@ -258,10 +251,7 @@ impl BaseAgent for PersonaAgent {
             "total_needs_count": persona_analysis.primary_persona.needs.len() + if let Some(ref secondary) = persona_analysis.secondary_persona { secondary.needs.len() } else { 0 }
         });
 
-        tracing::info!(
-            "PersonaAgent completed persona analysis generation: {}",
-            summary
-        );
+        tracing::info!("PersonaAgent completed persona analysis generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -276,39 +266,33 @@ impl BaseAgent for PersonaAgent {
 #[async_trait]
 impl A2AEnabled for PersonaAgent {
     fn agent_card(&self) -> A2AAgentCard {
-        AgentCardBuilder::new(
-            "PersonaAgent",
-            "Persona and customer segment analysis agent",
-        )
-        .version("0.1.1")
-        .capability(AgentCapability {
-            id: "analyze_personas".to_string(),
-            name: "Analyze Personas".to_string(),
-            description: "Create detailed customer personas and segment analysis".to_string(),
-            input_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "product": { "type": "string", "description": "Product or service" },
-                    "market": { "type": "string", "description": "Target market" }
-                },
-                "required": ["product"]
-            })),
-            output_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "primary_persona": { "type": "object" },
-                    "secondary_persona": { "type": "object" },
-                    "customer_segments": { "type": "array" }
-                }
-            })),
-        })
-        .build()
+        AgentCardBuilder::new("PersonaAgent", "Persona and customer segment analysis agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "analyze_personas".to_string(),
+                name: "Analyze Personas".to_string(),
+                description: "Create detailed customer personas and segment analysis".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "product": { "type": "string", "description": "Product or service" },
+                        "market": { "type": "string", "description": "Target market" }
+                    },
+                    "required": ["product"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "primary_persona": { "type": "object" },
+                        "secondary_persona": { "type": "object" },
+                        "customer_segments": { "type": "array" }
+                    }
+                })),
+            })
+            .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "analyze_personas" => {
@@ -316,14 +300,8 @@ impl A2AEnabled for PersonaAgent {
                     .input
                     .get("product")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing product".to_string())
-                    })?;
-                let market = task
-                    .input
-                    .get("market")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("SaaS");
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing product".to_string()))?;
+                let market = task.input.get("market").and_then(|v| v.as_str()).unwrap_or("SaaS");
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: product.to_string(),
@@ -346,16 +324,10 @@ impl A2AEnabled for PersonaAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Persona analysis failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Persona analysis failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 

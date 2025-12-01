@@ -15,7 +15,5 @@ pub use types::*;
 pub mod prelude {
     pub use crate::client::TelegramClient;
     pub use crate::error::{Result, TelegramError};
-    pub use crate::types::{
-        InlineKeyboard, InlineKeyboardButton, Message, SendMessageRequest, Update, User,
-    };
+    pub use crate::types::{InlineKeyboard, InlineKeyboardButton, Message, SendMessageRequest, Update, User};
 }

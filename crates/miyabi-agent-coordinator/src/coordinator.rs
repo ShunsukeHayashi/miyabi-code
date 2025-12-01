@@ -6,8 +6,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -23,9 +22,7 @@ use serde_json::json;
 use std::collections::HashMap;
 
 #[cfg(feature = "workflow_dsl")]
-use miyabi_workflow::{
-    ConditionalBranch, ExecutionState, StateStore, StepOutput, WorkflowBuilder, WorkflowStatus,
-};
+use miyabi_workflow::{ConditionalBranch, ExecutionState, StateStore, StepOutput, WorkflowBuilder, WorkflowStatus};
 
 #[cfg(feature = "workflow_dsl")]
 use uuid;
@@ -52,9 +49,7 @@ impl CoordinatorAgent {
         // Validate DAG (no cycles)
         let has_cycles = dag.has_cycles();
         if has_cycles {
-            return Err(MiyabiError::Validation(
-                "Task DAG contains cycles - cannot execute".to_string(),
-            ));
+            return Err(MiyabiError::Validation("Task DAG contains cycles - cannot execute".to_string()));
         }
 
         // Calculate total estimated duration
@@ -98,10 +93,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         // 2. Implementation task
@@ -119,10 +111,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         // 3. Testing task
@@ -140,10 +129,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         // 4. Review task
@@ -161,10 +147,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         Ok(tasks)
@@ -189,21 +172,14 @@ impl CoordinatorAgent {
                         task.id, dep_id
                     )));
                 }
-                edges.push(Edge {
-                    from: dep_id.clone(),
-                    to: task.id.clone(),
-                });
+                edges.push(Edge { from: dep_id.clone(), to: task.id.clone() });
             }
         }
 
         // Topological sort to create levels
         let levels = self.topological_sort(tasks, &edges)?;
 
-        Ok(DAG {
-            nodes: tasks.to_vec(),
-            edges,
-            levels,
-        })
+        Ok(DAG { nodes: tasks.to_vec(), edges, levels })
     }
 
     /// Topological sort to determine execution levels
@@ -290,10 +266,8 @@ impl CoordinatorAgent {
         // Check for long critical path
         let critical_path = dag.critical_path();
         if critical_path.len() > 5 {
-            recommendations.push(format!(
-                "Critical path has {} tasks - consider parallelizing more work",
-                critical_path.len()
-            ));
+            recommendations
+                .push(format!("Critical path has {} tasks - consider parallelizing more work", critical_path.len()));
         }
 
         // Check for missing tests
@@ -321,11 +295,9 @@ impl CoordinatorAgent {
         parent_task_id: &str,
     ) -> Result<Vec<TaskMetadata>> {
         // Get project root from config
-        let project_root =
-            std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
-        let manager = TaskMetadataManager::new(&project_root).map_err(|e| {
-            MiyabiError::Unknown(format!("Failed to create TaskMetadataManager: {}", e))
-        })?;
+        let project_root = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+        let manager = TaskMetadataManager::new(&project_root)
+            .map_err(|e| MiyabiError::Unknown(format!("Failed to create TaskMetadataManager: {}", e)))?;
 
         let mut metadata_list = Vec::new();
 
@@ -350,11 +322,7 @@ impl CoordinatorAgent {
                 .map_err(|e| MiyabiError::Unknown(format!("Failed to save TaskMetadata: {}", e)))?;
             metadata_list.push(metadata);
 
-            tracing::info!(
-                "📝 Created sub-task metadata: {} (parent: {})",
-                task.id,
-                parent_task_id
-            );
+            tracing::info!("📝 Created sub-task metadata: {} (parent: {})", task.id, parent_task_id);
         }
 
         tracing::info!(
@@ -371,34 +339,16 @@ impl CoordinatorAgent {
         let mut md = String::new();
 
         // Header
-        md.push_str(&format!(
-            "# Plans for Issue #{}\n\n",
-            decomposition.original_issue.number
-        ));
-        md.push_str(&format!(
-            "**Title**: {}\n\n",
-            decomposition.original_issue.title
-        ));
-        md.push_str(&format!(
-            "**URL**: {}\n\n",
-            decomposition.original_issue.url
-        ));
+        md.push_str(&format!("# Plans for Issue #{}\n\n", decomposition.original_issue.number));
+        md.push_str(&format!("**Title**: {}\n\n", decomposition.original_issue.title));
+        md.push_str(&format!("**URL**: {}\n\n", decomposition.original_issue.url));
         md.push_str("---\n\n");
 
         // Summary
         md.push_str("## 📋 Summary\n\n");
-        md.push_str(&format!(
-            "- **Total Tasks**: {}\n",
-            decomposition.tasks.len()
-        ));
-        md.push_str(&format!(
-            "- **Estimated Duration**: {} minutes\n",
-            decomposition.estimated_total_duration
-        ));
-        md.push_str(&format!(
-            "- **Execution Levels**: {}\n",
-            decomposition.dag.levels.len()
-        ));
+        md.push_str(&format!("- **Total Tasks**: {}\n", decomposition.tasks.len()));
+        md.push_str(&format!("- **Estimated Duration**: {} minutes\n", decomposition.estimated_total_duration));
+        md.push_str(&format!("- **Execution Levels**: {}\n", decomposition.dag.levels.len()));
         md.push_str(&format!(
             "- **Has Cycles**: {}\n",
             if decomposition.has_cycles {
@@ -430,10 +380,7 @@ impl CoordinatorAgent {
             md.push_str(&format!("- **Estimated Duration**: {}\n", duration));
 
             if !task.dependencies.is_empty() {
-                md.push_str(&format!(
-                    "- **Dependencies**: {}\n",
-                    task.dependencies.join(", ")
-                ));
+                md.push_str(&format!("- **Dependencies**: {}\n", task.dependencies.join(", ")));
             }
 
             if !task.description.is_empty() {
@@ -462,18 +409,10 @@ impl CoordinatorAgent {
         md.push_str("```mermaid\ngraph TD\n");
         for task in &decomposition.tasks {
             let task_label = task.title.replace('"', "'");
-            md.push_str(&format!(
-                "    {}[\"{}\"]\n",
-                task.id.replace('-', "_"),
-                task_label
-            ));
+            md.push_str(&format!("    {}[\"{}\"]\n", task.id.replace('-', "_"), task_label));
         }
         for edge in &decomposition.dag.edges {
-            md.push_str(&format!(
-                "    {} --> {}\n",
-                edge.from.replace('-', "_"),
-                edge.to.replace('-', "_")
-            ));
+            md.push_str(&format!("    {} --> {}\n", edge.from.replace('-', "_"), edge.to.replace('-', "_")));
         }
         md.push_str("```\n\n");
 
@@ -573,13 +512,10 @@ impl CoordinatorAgent {
 
         // Initialize state store
         let state_store = if let Some(path) = state_path {
-            StateStore::with_path(path).map_err(|e| {
-                MiyabiError::Validation(format!("Failed to create state store: {}", e))
-            })?
+            StateStore::with_path(path)
+                .map_err(|e| MiyabiError::Validation(format!("Failed to create state store: {}", e)))?
         } else {
-            StateStore::new().map_err(|e| {
-                MiyabiError::Validation(format!("Failed to create state store: {}", e))
-            })?
+            StateStore::new().map_err(|e| MiyabiError::Validation(format!("Failed to create state store: {}", e)))?
         };
 
         // Create initial execution state
@@ -601,11 +537,7 @@ impl CoordinatorAgent {
             .save_execution(&execution_state)
             .map_err(|e| MiyabiError::Validation(format!("Failed to save initial state: {}", e)))?;
 
-        tracing::info!(
-            "Starting workflow execution: {} ({})",
-            workflow_id,
-            dag.nodes.len()
-        );
+        tracing::info!("Starting workflow execution: {} ({})", workflow_id, dag.nodes.len());
 
         // Track which steps to skip due to conditional branching
         let mut skipped_steps: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -631,9 +563,11 @@ impl CoordinatorAgent {
                     .map_err(|e| MiyabiError::Validation(format!("Failed to save state: {}", e)))?;
 
                 // Find the task in DAG
-                let task = dag.nodes.iter().find(|n| &n.id == task_id).ok_or_else(|| {
-                    MiyabiError::Validation(format!("Task not found: {}", task_id))
-                })?;
+                let task = dag
+                    .nodes
+                    .iter()
+                    .find(|n| &n.id == task_id)
+                    .ok_or_else(|| MiyabiError::Validation(format!("Task not found: {}", task_id)))?;
 
                 tracing::info!("Executing step: {} ({})", task.title, task_id);
 
@@ -650,31 +584,26 @@ impl CoordinatorAgent {
                     tracing::error!("Step failed: {}", task_id);
 
                     // Save final state and return error
-                    state_store.save_execution(&execution_state).map_err(|e| {
-                        MiyabiError::Validation(format!("Failed to save state: {}", e))
-                    })?;
+                    state_store
+                        .save_execution(&execution_state)
+                        .map_err(|e| MiyabiError::Validation(format!("Failed to save state: {}", e)))?;
 
                     return Err(MiyabiError::Validation(format!(
                         "Step {} failed: {}",
                         task_id,
-                        step_result
-                            .error
-                            .unwrap_or_else(|| "Unknown error".to_string())
+                        step_result.error.unwrap_or_else(|| "Unknown error".to_string())
                     )));
                 }
 
                 // Store step result
-                execution_state.step_results.insert(
-                    task_id.clone(),
-                    serde_json::to_value(&step_result).unwrap_or(serde_json::Value::Null),
-                );
+                execution_state
+                    .step_results
+                    .insert(task_id.clone(), serde_json::to_value(&step_result).unwrap_or(serde_json::Value::Null));
 
                 // Save step output to state store
                 state_store
                     .save_step(&workflow_id, task_id, &step_result)
-                    .map_err(|e| {
-                        MiyabiError::Validation(format!("Failed to save step output: {}", e))
-                    })?;
+                    .map_err(|e| MiyabiError::Validation(format!("Failed to save step output: {}", e)))?;
 
                 // Handle conditional branching
                 if let Some(ref metadata) = task.metadata {
@@ -697,8 +626,7 @@ impl CoordinatorAgent {
                             });
 
                             // Evaluate branches to find which one to take
-                            let chosen_branch =
-                                Self::evaluate_branches(&branches, &branch_context)?;
+                            let chosen_branch = Self::evaluate_branches(&branches, &branch_context)?;
 
                             tracing::info!(
                                 "Conditional step {}: chose branch '{}' -> {}",
@@ -711,11 +639,7 @@ impl CoordinatorAgent {
                             for branch in &branches {
                                 if branch.next_step != chosen_branch.next_step {
                                     // Find all descendant steps of this non-chosen branch
-                                    Self::mark_descendants_for_skip(
-                                        &branch.next_step,
-                                        &dag.edges,
-                                        &mut skipped_steps,
-                                    );
+                                    Self::mark_descendants_for_skip(&branch.next_step, &dag.edges, &mut skipped_steps);
                                 }
                             }
 
@@ -778,10 +702,7 @@ impl CoordinatorAgent {
     /// Branches are evaluated in order, and the first branch whose condition
     /// evaluates to true is chosen. If no conditions match, returns an error.
     #[cfg(feature = "workflow_dsl")]
-    fn evaluate_branches(
-        branches: &[ConditionalBranch],
-        context: &serde_json::Value,
-    ) -> Result<ConditionalBranch> {
+    fn evaluate_branches(branches: &[ConditionalBranch], context: &serde_json::Value) -> Result<ConditionalBranch> {
         for branch in branches {
             if branch.condition.evaluate(context) {
                 return Ok(branch.clone());
@@ -841,9 +762,7 @@ impl BaseAgent for CoordinatorAgent {
             .as_ref()
             .and_then(|m| m.get("issue_number"))
             .and_then(|v| v.as_u64())
-            .ok_or_else(|| {
-                MiyabiError::Validation("Task metadata missing issue_number".to_string())
-            })?;
+            .ok_or_else(|| MiyabiError::Validation("Task metadata missing issue_number".to_string()))?;
 
         // Fetch issue from GitHub
         let owner = self
@@ -947,34 +866,27 @@ impl A2AEnabled for CoordinatorAgent {
             .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
             "decompose_issue" => {
-                let issue_number = task.input["issue_number"].as_u64().ok_or_else(|| {
-                    A2AIntegrationError::TaskExecutionFailed("Missing issue_number".to_string())
-                })?;
+                let issue_number = task.input["issue_number"]
+                    .as_u64()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing issue_number".to_string()))?;
 
                 // Get owner/repo from input or config
                 let owner = task.input["owner"]
                     .as_str()
                     .map(|s| s.to_string())
                     .or_else(|| self.config.repo_owner.clone())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing owner".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing owner".to_string()))?;
 
                 let repo = task.input["repo"]
                     .as_str()
                     .map(|s| s.to_string())
                     .or_else(|| self.config.repo_name.clone())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing repo".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing repo".to_string()))?;
 
                 // Fetch issue
                 let github_client = GitHubClient::new(&self.config.github_token, &owner, &repo)
@@ -992,20 +904,14 @@ impl A2AEnabled for CoordinatorAgent {
                     .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
 
                 Ok(A2ATaskResult::Success {
-                    output: serde_json::to_value(decomposition)
-                        .map_err(A2AIntegrationError::SerializationError)?,
+                    output: serde_json::to_value(decomposition).map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
             "generate_plans" => {
-                let decomposition: TaskDecomposition =
-                    serde_json::from_value(task.input["decomposition"].clone()).map_err(|e| {
-                        A2AIntegrationError::TaskExecutionFailed(format!(
-                            "Invalid decomposition: {}",
-                            e
-                        ))
-                    })?;
+                let decomposition: TaskDecomposition = serde_json::from_value(task.input["decomposition"].clone())
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid decomposition: {}", e)))?;
 
                 let markdown = self.generate_plans_md(&decomposition);
 
@@ -1015,10 +921,7 @@ impl A2AEnabled for CoordinatorAgent {
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -1128,10 +1031,7 @@ mod tests {
             .iter()
             .find(|(key, _)| key.ends_with("_chosen_branch"))
             .expect("chosen branch metadata");
-        assert_eq!(
-            chosen_branch.1.get("branch_name").and_then(|v| v.as_str()),
-            Some("pass")
-        );
+        assert_eq!(chosen_branch.1.get("branch_name").and_then(|v| v.as_str()), Some("pass"));
     }
 
     #[tokio::test]
@@ -1379,16 +1279,10 @@ mod tests {
         };
 
         let result = agent.build_dag(&[task]);
-        assert!(
-            result.is_err(),
-            "build_dag should reject tasks with non-existent dependencies"
-        );
+        assert!(result.is_err(), "build_dag should reject tasks with non-existent dependencies");
 
         if let Err(e) = result {
-            assert!(
-                matches!(e, MiyabiError::Validation(_)),
-                "Error should be a Validation error"
-            );
+            assert!(matches!(e, MiyabiError::Validation(_)), "Error should be a Validation error");
         }
     }
 
@@ -1515,11 +1409,7 @@ mod tests {
             let mut issue = create_test_issue();
             issue.labels = labels.iter().map(|s| s.to_string()).collect();
             let inferred_type = agent.infer_task_type(&issue);
-            assert_eq!(
-                inferred_type, expected_type,
-                "Failed for labels: {:?}",
-                labels
-            );
+            assert_eq!(inferred_type, expected_type, "Failed for labels: {:?}", labels);
         }
     }
 

@@ -39,9 +39,7 @@ fn draw_tabs(f: &mut Frame, app: &App, area: Rect) {
         .enumerate()
         .map(|(i, tab)| {
             let style = if *tab == app.active_tab {
-                Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD)
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(Color::Gray)
             };
@@ -49,21 +47,14 @@ fn draw_tabs(f: &mut Frame, app: &App, area: Rect) {
         })
         .collect();
 
-    let selected = Tab::all()
-        .iter()
-        .position(|t| *t == app.active_tab)
-        .unwrap_or(0);
+    let selected = Tab::all().iter().position(|t| *t == app.active_tab).unwrap_or(0);
 
     let tabs = Tabs::new(titles)
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .title(" Miyabi TUI ")
-                .title_style(
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                ),
+                .title_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
         )
         .select(selected)
         .style(Style::default())

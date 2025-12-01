@@ -35,8 +35,8 @@ pub mod store;
 pub use error::{ApprovalError, Result};
 pub use gate::{ApprovalGate, ApprovalGateBuilder};
 pub use notifications::{
-    ApprovalRequest, DiscordEmbed, DiscordNotifier, MessageFormatter, Notifier, SlackBlock,
-    SlackNotifier, WorkflowStatusUpdate,
+    ApprovalRequest, DiscordEmbed, DiscordNotifier, MessageFormatter, Notifier, SlackBlock, SlackNotifier,
+    WorkflowStatusUpdate,
 };
 pub use state::{ApprovalResponse, ApprovalState, ApprovalStatus};
 pub use store::ApprovalStore;

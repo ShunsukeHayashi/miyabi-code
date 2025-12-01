@@ -182,10 +182,7 @@ mod tests {
     fn test_task_create_request_with_previous_frame() {
         let req = TaskCreateRequest::new("test prompt".to_string())
             .with_previous_frame("https://example.com/video.mp4".to_string());
-        assert_eq!(
-            req.previous_frame_url,
-            Some("https://example.com/video.mp4".to_string())
-        );
+        assert_eq!(req.previous_frame_url, Some("https://example.com/video.mp4".to_string()));
     }
 
     #[test]
@@ -229,9 +226,6 @@ mod tests {
 
         task.update_from_response(&response);
         assert_eq!(task.status, TaskStatus::Completed);
-        assert_eq!(
-            task.video_url,
-            Some("https://example.com/video.mp4".to_string())
-        );
+        assert_eq!(task.video_url, Some("https://example.com/video.mp4".to_string()));
     }
 }

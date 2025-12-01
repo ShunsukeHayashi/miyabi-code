@@ -114,32 +114,16 @@ pub struct SkillResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OrchestratorEvent {
     /// Skill completed successfully, trigger next phase
-    SkillCompleted {
-        skill_name: String,
-        phase: Option<String>,
-        metadata: HashMap<String, String>,
-    },
+    SkillCompleted { skill_name: String, phase: Option<String>, metadata: HashMap<String, String> },
 
     /// STOP token detected in output
-    StopTokenDetected {
-        workflow_id: String,
-        step_id: String,
-        context: HashMap<String, String>,
-    },
+    StopTokenDetected { workflow_id: String, step_id: String, context: HashMap<String, String> },
 
     /// Error detected, needs escalation
-    ErrorDetected {
-        skill_name: String,
-        error_message: String,
-        severity: ErrorSeverity,
-    },
+    ErrorDetected { skill_name: String, error_message: String, severity: ErrorSeverity },
 
     /// Quality check result
-    QualityCheckResult {
-        score: f64,
-        passed: bool,
-        recommendations: Vec<String>,
-    },
+    QualityCheckResult { score: f64, passed: bool, recommendations: Vec<String> },
 }
 
 /// Error severity levels
@@ -217,11 +201,7 @@ impl SkillsBridge {
         }
 
         // Execute with timeout
-        let output = tokio::time::timeout(
-            tokio::time::Duration::from_secs(request.timeout_secs),
-            cmd.output(),
-        )
-        .await;
+        let output = tokio::time::timeout(tokio::time::Duration::from_secs(request.timeout_secs), cmd.output()).await;
 
         let duration_ms = start.elapsed().as_millis() as u64;
 
@@ -231,10 +211,7 @@ impl SkillsBridge {
                 let stdout = String::from_utf8_lossy(&output.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-                info!(
-                    "   ✅ Skill completed: {} ({}ms)",
-                    request.skill_name, duration_ms
-                );
+                info!("   ✅ Skill completed: {} ({}ms)", request.skill_name, duration_ms);
 
                 let result = SkillResult {
                     skill_name: request.skill_name.clone(),
@@ -255,21 +232,12 @@ impl SkillsBridge {
                 Ok(result)
             }
             Ok(Err(e)) => {
-                warn!(
-                    "   ❌ Skill execution failed: {} ({:?})",
-                    request.skill_name, e
-                );
+                warn!("   ❌ Skill execution failed: {} ({:?})", request.skill_name, e);
                 Err(anyhow!("Skill execution failed: {}", e))
             }
             Err(_) => {
-                warn!(
-                    "   ⏰ Skill execution timeout: {} ({}s)",
-                    request.skill_name, request.timeout_secs
-                );
-                Err(anyhow!(
-                    "Skill execution timeout after {}s",
-                    request.timeout_secs
-                ))
+                warn!("   ⏰ Skill execution timeout: {} ({}s)", request.skill_name, request.timeout_secs);
+                Err(anyhow!("Skill execution timeout after {}s", request.timeout_secs))
             }
         }
     }
@@ -299,17 +267,10 @@ impl Default for SkillsBridge {
 #[async_trait::async_trait]
 pub trait SkillExecutor {
     /// Execute a skill by name with context
-    async fn execute_skill(
-        &self,
-        skill_name: &str,
-        context: HashMap<String, String>,
-    ) -> Result<SkillResult>;
+    async fn execute_skill(&self, skill_name: &str, context: HashMap<String, String>) -> Result<SkillResult>;
 
     /// Execute multiple skills in parallel
-    async fn execute_skills_parallel(
-        &self,
-        requests: Vec<SkillRequest>,
-    ) -> Vec<Result<SkillResult>>;
+    async fn execute_skills_parallel(&self, requests: Vec<SkillRequest>) -> Vec<Result<SkillResult>>;
 }
 
 /// Trait for skills that can trigger orchestrator workflows
@@ -321,12 +282,7 @@ pub trait OrchestratorTrigger {
     fn notify_error(&self, error_message: &str, severity: ErrorSeverity) -> Result<()>;
 
     /// Notify orchestrator of STOP token detection
-    fn notify_stop_token(
-        &self,
-        workflow_id: &str,
-        step_id: &str,
-        context: HashMap<String, String>,
-    ) -> Result<()>;
+    fn notify_stop_token(&self, workflow_id: &str, step_id: &str, context: HashMap<String, String>) -> Result<()>;
 }
 
 #[cfg(test)]

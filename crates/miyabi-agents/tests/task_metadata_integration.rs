@@ -65,9 +65,7 @@ mod task_metadata_tests {
 
         // Test mark_failed helper
         let error_msg = "Test error message".to_string();
-        manager
-            .mark_failed(task_id, Some(error_msg.clone()))
-            .unwrap();
+        manager.mark_failed(task_id, Some(error_msg.clone())).unwrap();
 
         let loaded = manager.load(task_id).unwrap();
         assert_eq!(loaded.status, TaskStatus::Failed);
@@ -140,9 +138,7 @@ mod task_metadata_tests {
         assert_eq!(loaded.status, TaskStatus::Running);
 
         // Update to Cancelled
-        manager
-            .update_status(task_id, TaskStatus::Cancelled)
-            .unwrap();
+        manager.update_status(task_id, TaskStatus::Cancelled).unwrap();
         let loaded = manager.load(task_id).unwrap();
         assert_eq!(loaded.status, TaskStatus::Cancelled);
     }
@@ -204,12 +200,7 @@ mod task_metadata_tests {
         manager.save(&parent).unwrap();
 
         // Create 4 subtasks (like CoordinatorAgent would)
-        let subtask_ids = [
-            "task-300-analysis",
-            "task-300-impl",
-            "task-300-test",
-            "task-300-review",
-        ];
+        let subtask_ids = ["task-300-analysis", "task-300-impl", "task-300-test", "task-300-review"];
 
         for (i, subtask_id) in subtask_ids.iter().enumerate() {
             let mut subtask = TaskMetadata::new(

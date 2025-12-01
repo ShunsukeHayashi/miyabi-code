@@ -330,15 +330,7 @@ impl WorldExecutionResult {
         duration_ms: u64,
         cost_usd: f64,
     ) -> Self {
-        Self {
-            world_id,
-            success: true,
-            score,
-            artifacts_path,
-            duration_ms,
-            cost_usd,
-            error: None,
-        }
+        Self { world_id, success: true, score, artifacts_path, duration_ms, cost_usd, error: None }
     }
 }
 
@@ -373,12 +365,7 @@ impl FiveWorldsResult {
             })
             .map(|(world_id, _)| *world_id);
 
-        Self {
-            results,
-            winner,
-            total_duration_ms,
-            total_cost_usd,
-        }
+        Self { results, winner, total_duration_ms, total_cost_usd }
     }
 
     /// Returns the result for the winning world, if any
@@ -514,10 +501,7 @@ mod tests {
             ),
         );
 
-        results.insert(
-            WorldId::Gamma,
-            WorldExecutionResult::failed(WorldId::Gamma, "Compilation failed".to_string()),
-        );
+        results.insert(WorldId::Gamma, WorldExecutionResult::failed(WorldId::Gamma, "Compilation failed".to_string()));
 
         let five_worlds = FiveWorldsResult::from_results(results);
 
@@ -532,12 +516,8 @@ mod tests {
 
     #[test]
     fn test_world_config_with_issue_task_path() {
-        let config =
-            WorldConfig::default_for(WorldId::Alpha).with_issue_task_path(270, "implement_feature");
+        let config = WorldConfig::default_for(WorldId::Alpha).with_issue_task_path(270, "implement_feature");
 
-        assert_eq!(
-            config.worktree_path,
-            PathBuf::from("worktrees/world-alpha/issue-270/implement_feature")
-        );
+        assert_eq!(config.worktree_path, PathBuf::from("worktrees/world-alpha/issue-270/implement_feature"));
     }
 }

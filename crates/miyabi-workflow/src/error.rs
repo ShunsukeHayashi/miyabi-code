@@ -12,10 +12,7 @@ pub type Result<T> = std::result::Result<T, WorkflowError>;
 pub enum WorkflowError {
     /// Step execution failed
     #[error("Step '{step_id}' failed: {source}")]
-    StepFailed {
-        step_id: String,
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
+    StepFailed { step_id: String, source: Box<dyn std::error::Error + Send + Sync> },
 
     /// State persistence error
     #[error("State persistence error: {0}")]
@@ -64,14 +61,8 @@ pub enum WorkflowError {
 
 impl WorkflowError {
     /// Create a step failed error
-    pub fn step_failed(
-        step_id: impl Into<String>,
-        error: impl std::error::Error + Send + Sync + 'static,
-    ) -> Self {
-        Self::StepFailed {
-            step_id: step_id.into(),
-            source: Box::new(error),
-        }
+    pub fn step_failed(step_id: impl Into<String>, error: impl std::error::Error + Send + Sync + 'static) -> Self {
+        Self::StepFailed { step_id: step_id.into(), source: Box::new(error) }
     }
 }
 

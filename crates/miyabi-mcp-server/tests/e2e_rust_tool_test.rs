@@ -27,11 +27,7 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
     let count = initialize_all_agents(&bridge)
         .await
         .expect("Failed to initialize agents");
-    println!(
-        "   ✅ Registered {} agents in {:?}\n",
-        count,
-        start.elapsed()
-    );
+    println!("   ✅ Registered {} agents in {:?}\n", count, start.elapsed());
     assert_eq!(count, 21, "Expected 21 agents, got {}", count);
 
     // Phase 3: List registered agents
@@ -50,16 +46,12 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
     println!("   Found {} tools:", tools.len());
 
     // Group tools by agent
-    let mut tools_by_agent: std::collections::HashMap<String, Vec<String>> =
-        std::collections::HashMap::new();
+    let mut tools_by_agent: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
     for tool in &tools {
         let parts: Vec<&str> = tool.name.split('.').collect();
         if parts.len() >= 2 {
             let agent = parts[1].to_string();
-            tools_by_agent
-                .entry(agent)
-                .or_default()
-                .push(tool.name.clone());
+            tools_by_agent.entry(agent).or_default().push(tool.name.clone());
         }
     }
 
@@ -93,10 +85,7 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
 
     println!("   Execution time: {:?}", start.elapsed());
     println!("   Success: {}", result.success);
-    println!(
-        "   Output: {}",
-        serde_json::to_string_pretty(&result.output).unwrap_or_default()
-    );
+    println!("   Output: {}", serde_json::to_string_pretty(&result.output).unwrap_or_default());
     if let Some(err) = &result.error {
         println!("   Error: {}", err);
     }
@@ -155,10 +144,7 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
 
     assert!(!result.success, "Invalid tool should fail");
     assert!(result.error.is_some(), "Should have error message");
-    println!(
-        "   ✅ Invalid tool correctly rejected: {}",
-        result.error.unwrap_or_default()
-    );
+    println!("   ✅ Invalid tool correctly rejected: {}", result.error.unwrap_or_default());
     println!();
 
     // Test 5e: Test non-existent agent
@@ -188,15 +174,16 @@ async fn test_e2e_tool_execution_timing() {
     println!("\n⏱️ Tool Execution Timing Test\n");
 
     let bridge = A2ABridge::new().await.expect("Failed to create bridge");
-    initialize_all_agents(&bridge)
-        .await
-        .expect("Failed to init agents");
+    initialize_all_agents(&bridge).await.expect("Failed to init agents");
 
     let _tools = bridge.get_tool_definitions().await;
 
     // Test execution timing for multiple tools (using actual tool names)
     let test_tools = vec![
-        ("a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self", json!({"career_history": "test"})),
+        (
+            "a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self",
+            json!({"career_history": "test"}),
+        ),
         ("a2a.persona_and_customer_segment_analysis_agent.analyze_personas", json!({"target": "developers"})),
         ("a2a.data_analytics_and_business_intelligence_agent.plan_analytics", json!({"data": [1, 2, 3]})),
     ];
@@ -237,9 +224,7 @@ async fn test_e2e_concurrent_tool_execution() {
     println!("\n🔄 Concurrent Tool Execution Test\n");
 
     let bridge = std::sync::Arc::new(A2ABridge::new().await.expect("Failed to create bridge"));
-    initialize_all_agents(&bridge)
-        .await
-        .expect("Failed to init agents");
+    initialize_all_agents(&bridge).await.expect("Failed to init agents");
 
     // Execute multiple tools concurrently
     let bridge1 = bridge.clone();
@@ -249,9 +234,18 @@ async fn test_e2e_concurrent_tool_execution() {
     let start = Instant::now();
 
     let (r1, r2, r3) = tokio::join!(
-        bridge1.execute_tool("a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self", json!({"career_history": "test1"})),
-        bridge2.execute_tool("a2a.market_research_and_competitive_analysis_agent.research_market", json!({"industry": "test2"})),
-        bridge3.execute_tool("a2a.persona_and_customer_segment_analysis_agent.analyze_personas", json!({"target": "test3"})),
+        bridge1.execute_tool(
+            "a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self",
+            json!({"career_history": "test1"})
+        ),
+        bridge2.execute_tool(
+            "a2a.market_research_and_competitive_analysis_agent.research_market",
+            json!({"industry": "test2"})
+        ),
+        bridge3.execute_tool(
+            "a2a.persona_and_customer_segment_analysis_agent.analyze_personas",
+            json!({"target": "test3"})
+        ),
     );
 
     let elapsed = start.elapsed();
@@ -278,9 +272,6 @@ async fn test_e2e_concurrent_tool_execution() {
     println!();
 
     // Verify all completed
-    assert!(
-        r1.is_ok() && r2.is_ok() && r3.is_ok(),
-        "All concurrent executions should complete"
-    );
+    assert!(r1.is_ok() && r2.is_ok() && r3.is_ok(), "All concurrent executions should complete");
     println!("✅ Concurrent execution test passed!\n");
 }

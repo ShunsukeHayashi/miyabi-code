@@ -329,9 +329,7 @@ impl Task {
 
     /// Check if task is ready to be executed (all dependencies met)
     pub fn is_ready(&self, completed_tasks: &[String]) -> bool {
-        self.dependencies
-            .iter()
-            .all(|dep| completed_tasks.contains(dep))
+        self.dependencies.iter().all(|dep| completed_tasks.contains(dep))
     }
 
     /// Get task urgency score (0.0 - 1.0) based on priority and severity
@@ -555,11 +553,7 @@ mod tests {
             metadata: None,
         };
 
-        let dag = DAG {
-            nodes: vec![task.clone()],
-            edges: vec![],
-            levels: vec![vec!["task-1".to_string()]],
-        };
+        let dag = DAG { nodes: vec![task.clone()], edges: vec![], levels: vec![vec!["task-1".to_string()]] };
 
         let decomposition = TaskDecomposition {
             original_issue: issue,
@@ -747,10 +741,7 @@ mod tests {
         let json = serde_json::to_string(&config).unwrap();
         let deserialized: GroupingConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(config.min_group_size, deserialized.min_group_size);
-        assert_eq!(
-            config.max_concurrent_groups,
-            deserialized.max_concurrent_groups
-        );
+        assert_eq!(config.max_concurrent_groups, deserialized.max_concurrent_groups);
     }
 
     // ========================================================================
@@ -830,9 +821,7 @@ mod tests {
         task.description = "".to_string();
         let result = task.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("Task description cannot be empty"));
+        assert!(result.unwrap_err().contains("Task description cannot be empty"));
     }
 
     #[test]
@@ -853,9 +842,7 @@ mod tests {
         task.estimated_duration = Some(0);
         let result = task.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("Estimated duration cannot be 0"));
+        assert!(result.unwrap_err().contains("Estimated duration cannot be 0"));
     }
 
     #[test]
@@ -942,11 +929,7 @@ mod tests {
 
         // Ready when all dependencies complete
         assert!(task.is_ready(&["task-2".to_string(), "task-3".to_string()]));
-        assert!(task.is_ready(&[
-            "task-2".to_string(),
-            "task-3".to_string(),
-            "task-4".to_string()
-        ]));
+        assert!(task.is_ready(&["task-2".to_string(), "task-3".to_string(), "task-4".to_string()]));
     }
 
     // ========================================================================
@@ -1064,23 +1047,13 @@ mod tests {
     #[test]
     fn test_task_new_with_invalid_priority() {
         // Priority too high (4 > MAX_PRIORITY)
-        let result = Task::new(
-            "task-1".to_string(),
-            "Test Task".to_string(),
-            "Description".to_string(),
-            TaskType::Feature,
-            4,
-        );
+        let result =
+            Task::new("task-1".to_string(), "Test Task".to_string(), "Description".to_string(), TaskType::Feature, 4);
         assert!(result.is_err());
 
         // Priority way too high
-        let result = Task::new(
-            "task-1".to_string(),
-            "Test Task".to_string(),
-            "Description".to_string(),
-            TaskType::Feature,
-            11,
-        );
+        let result =
+            Task::new("task-1".to_string(), "Test Task".to_string(), "Description".to_string(), TaskType::Feature, 11);
         assert!(result.is_err());
     }
 

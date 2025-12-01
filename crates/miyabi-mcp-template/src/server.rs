@@ -77,10 +77,7 @@ impl TemplateServer {
     /// - `Ok(CallToolResult)`: Successful execution
     /// - `Err(McpError)`: Error occurred
     #[tool(description = "Greet a user by name with optional repetition")]
-    async fn greet_user(
-        &self,
-        Parameters(args): Parameters<ExampleArgs>,
-    ) -> Result<CallToolResult, McpError> {
+    async fn greet_user(&self, Parameters(args): Parameters<ExampleArgs>) -> Result<CallToolResult, McpError> {
         tracing::info!("greet_user called: {:?}", args);
 
         let count = args.count.unwrap_or(1);
@@ -105,10 +102,7 @@ impl TemplateServer {
     ///
     /// This tool takes no arguments
     #[tool(description = "Get server information and status")]
-    async fn get_server_info(
-        &self,
-        Parameters(_args): Parameters<NoArgs>,
-    ) -> Result<CallToolResult, McpError> {
+    async fn get_server_info(&self, Parameters(_args): Parameters<NoArgs>) -> Result<CallToolResult, McpError> {
         tracing::info!("get_server_info called");
 
         let info = serde_json::json!({
@@ -119,17 +113,12 @@ impl TemplateServer {
             "features": ["stdio"],
         });
 
-        Ok(CallToolResult::success(vec![Content::text(
-            serde_json::to_string_pretty(&info).unwrap(),
-        )]))
+        Ok(CallToolResult::success(vec![Content::text(serde_json::to_string_pretty(&info).unwrap())]))
     }
 
     /// Example tool: Echo input (useful for testing)
     #[tool(description = "Echo back the input for testing purposes")]
-    async fn echo(
-        &self,
-        Parameters(args): Parameters<EchoArgs>,
-    ) -> Result<CallToolResult, McpError> {
+    async fn echo(&self, Parameters(args): Parameters<EchoArgs>) -> Result<CallToolResult, McpError> {
         tracing::info!("echo called: {:?}", args);
 
         Ok(CallToolResult::success(vec![Content::text(args.message)]))
@@ -139,10 +128,7 @@ impl TemplateServer {
     ///
     /// Shows how to return errors from tools
     #[tool(description = "Demonstrate error handling (always fails)")]
-    async fn fail_intentionally(
-        &self,
-        Parameters(_args): Parameters<NoArgs>,
-    ) -> Result<CallToolResult, McpError> {
+    async fn fail_intentionally(&self, Parameters(_args): Parameters<NoArgs>) -> Result<CallToolResult, McpError> {
         tracing::error!("fail_intentionally called - returning error");
 
         // Return an error
@@ -174,12 +160,11 @@ impl ServerHandler for TemplateServer {
         ServerInfo {
             protocol_version: ProtocolVersion::V_2024_11_05,
             capabilities: ServerCapabilities::builder()
-                .enable_tools()  // Enable tool support
+                .enable_tools() // Enable tool support
                 .build(),
             server_info: Implementation::from_build_env(),
             instructions: Some(
-                "Miyabi MCP Template Server. Tools: greet_user, get_server_info, echo, fail_intentionally."
-                    .to_string(),
+                "Miyabi MCP Template Server. Tools: greet_user, get_server_info, echo, fail_intentionally.".to_string(),
             ),
         }
     }
@@ -203,10 +188,7 @@ mod tests {
     async fn test_greet_user() {
         let server = TemplateServer::new();
 
-        let args = ExampleArgs {
-            name: "Alice".to_string(),
-            count: Some(1),
-        };
+        let args = ExampleArgs { name: "Alice".to_string(), count: Some(1) };
 
         let result = server.greet_user(Parameters(args)).await;
         assert!(result.is_ok());
@@ -220,9 +202,7 @@ mod tests {
     async fn test_echo() {
         let server = TemplateServer::new();
 
-        let args = EchoArgs {
-            message: "test message".to_string(),
-        };
+        let args = EchoArgs { message: "test message".to_string() };
 
         let result = server.echo(Parameters(args)).await;
         assert!(result.is_ok());

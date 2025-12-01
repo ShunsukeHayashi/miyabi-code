@@ -53,12 +53,7 @@ async fn test_parallel_execution_basic() {
     // Cleanup stale worktrees from previous test runs
     cleanup_stale_worktrees().await;
 
-    let config = PoolConfig {
-        max_concurrency: 3,
-        timeout_seconds: 60,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 3, timeout_seconds: 60, fail_fast: false, auto_cleanup: true };
 
     let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
@@ -122,12 +117,7 @@ async fn test_parallel_execution_basic() {
                     // Update max if needed
                     let mut max = max_concurrent.load(Ordering::SeqCst);
                     while current > max {
-                        match max_concurrent.compare_exchange_weak(
-                            max,
-                            current,
-                            Ordering::SeqCst,
-                            Ordering::SeqCst,
-                        ) {
+                        match max_concurrent.compare_exchange_weak(max, current, Ordering::SeqCst, Ordering::SeqCst) {
                             Ok(_) => break,
                             Err(x) => max = x,
                         }
@@ -162,14 +152,8 @@ async fn test_parallel_execution_basic() {
     eprintln!("[Test]   Timeout: {}", result.timeout_count);
     eprintln!("[Test]   Total duration: {}ms", result.total_duration_ms);
     eprintln!("[Test]   Success rate: {:.1}%", result.success_rate());
-    eprintln!(
-        "[Test]   Average duration: {:.1}ms",
-        result.average_duration_ms()
-    );
-    eprintln!(
-        "[Test]   Max concurrent: {}",
-        max_concurrent.load(Ordering::SeqCst)
-    );
+    eprintln!("[Test]   Average duration: {:.1}ms", result.average_duration_ms());
+    eprintln!("[Test]   Max concurrent: {}", max_concurrent.load(Ordering::SeqCst));
 
     assert_eq!(result.total_tasks, 5);
     assert_eq!(result.success_count, 5);
@@ -202,12 +186,7 @@ async fn test_parallel_execution_with_failures() {
     // Cleanup stale worktrees from previous test runs
     cleanup_stale_worktrees().await;
 
-    let config = PoolConfig {
-        max_concurrency: 2,
-        timeout_seconds: 60,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 2, timeout_seconds: 60, fail_fast: false, auto_cleanup: true };
 
     let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
@@ -218,24 +197,14 @@ async fn test_parallel_execution_with_failures() {
     };
 
     let tasks = vec![
-        WorktreeTask {
-            issue_number: 2001,
-            description: "Success task".to_string(),
-            agent_type: None,
-            metadata: None,
-        },
+        WorktreeTask { issue_number: 2001, description: "Success task".to_string(), agent_type: None, metadata: None },
         WorktreeTask {
             issue_number: 2002,
             description: "Failure task".to_string(),
             agent_type: None,
             metadata: Some(serde_json::json!({"should_fail": true})),
         },
-        WorktreeTask {
-            issue_number: 2003,
-            description: "Success task".to_string(),
-            agent_type: None,
-            metadata: None,
-        },
+        WorktreeTask { issue_number: 2003, description: "Success task".to_string(), agent_type: None, metadata: None },
     ];
 
     let result = pool
@@ -243,9 +212,7 @@ async fn test_parallel_execution_with_failures() {
             // Check if this task should fail
             if let Some(metadata) = &task.metadata {
                 if metadata.get("should_fail").and_then(|v| v.as_bool()) == Some(true) {
-                    return Err(miyabi_types::error::MiyabiError::Unknown(
-                        "Simulated failure".to_string(),
-                    ));
+                    return Err(miyabi_types::error::MiyabiError::Unknown("Simulated failure".to_string()));
                 }
             }
 
@@ -296,12 +263,7 @@ async fn test_parallel_execution_with_timeout() {
     };
 
     let tasks = vec![
-        WorktreeTask {
-            issue_number: 3001,
-            description: "Fast task".to_string(),
-            agent_type: None,
-            metadata: None,
-        },
+        WorktreeTask { issue_number: 3001, description: "Fast task".to_string(), agent_type: None, metadata: None },
         WorktreeTask {
             issue_number: 3002,
             description: "Slow task (will timeout)".to_string(),
@@ -347,12 +309,7 @@ async fn test_execute_simple() {
         return;
     }
 
-    let config = PoolConfig {
-        max_concurrency: 2,
-        timeout_seconds: 60,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 2, timeout_seconds: 60, fail_fast: false, auto_cleanup: true };
 
     let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
@@ -365,19 +322,13 @@ async fn test_execute_simple() {
     let issue_numbers = vec![4001, 4002, 4003];
 
     let result = pool
-        .execute_simple(
-            issue_numbers,
-            move |worktree_path, issue_number| async move {
-                eprintln!(
-                    "[Test] Processing issue #{} in worktree {:?}",
-                    issue_number, worktree_path
-                );
+        .execute_simple(issue_numbers, move |worktree_path, issue_number| async move {
+            eprintln!("[Test] Processing issue #{} in worktree {:?}", issue_number, worktree_path);
 
-                tokio::time::sleep(Duration::from_millis(200)).await;
+            tokio::time::sleep(Duration::from_millis(200)).await;
 
-                Ok(())
-            },
-        )
+            Ok(())
+        })
         .await;
 
     eprintln!("[Test] Simple execution completed");
@@ -447,12 +398,7 @@ async fn test_parallel_execution_benchmark() {
         return;
     }
 
-    let config = PoolConfig {
-        max_concurrency: 5,
-        timeout_seconds: 300,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 5, timeout_seconds: 300, fail_fast: false, auto_cleanup: true };
 
     let max_concurrency = config.max_concurrency;
 
@@ -507,8 +453,7 @@ async fn test_parallel_execution_benchmark() {
     );
     eprintln!(
         "  Speedup: {:.2}x",
-        (result.average_duration_ms() * result.total_tasks as f64)
-            / result.total_duration_ms as f64
+        (result.average_duration_ms() * result.total_tasks as f64) / result.total_duration_ms as f64
     );
 
     assert_eq!(result.success_count, 10);

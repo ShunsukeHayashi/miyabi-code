@@ -47,11 +47,7 @@ pub struct CodeGraph {
 impl CodeGraph {
     /// Create empty code graph
     pub fn new() -> Self {
-        Self {
-            nodes: Vec::new(),
-            edges: Vec::new(),
-            metadata: HashMap::new(),
-        }
+        Self { nodes: Vec::new(), edges: Vec::new(), metadata: HashMap::new() }
     }
 
     /// Find node by ID

@@ -29,9 +29,8 @@ impl SalesAgent {
     /// Generate comprehensive sales strategy using LLM
     async fn generate_sales_strategy(&self, task: &Task) -> Result<SalesStrategy> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -51,16 +50,13 @@ Generate detailed sales strategy as JSON with sales process, lead generation, cl
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::SalesAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::SalesAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let sales_strategy: SalesStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -105,8 +101,7 @@ Generate detailed sales strategy as JSON with sales process, lead generation, cl
 
     /// Generate sales strategy summary for reporting
     fn generate_summary(&self, strategy: &SalesStrategy) -> String {
-        let total_techniques =
-            strategy.closing_strategies.techniques.len() + strategy.sales_training.modules.len();
+        let total_techniques = strategy.closing_strategies.techniques.len() + strategy.sales_training.modules.len();
 
         format!(
             "Sales Strategy Generated: {} sales stages, {} lead channels, {} total techniques",
@@ -215,10 +210,7 @@ impl BaseAgent for SalesAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "SalesAgent starting sales strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("SalesAgent starting sales strategy generation for task: {}", task.id);
 
         // Generate sales strategy using LLM
         let sales_strategy = self.generate_sales_strategy(task).await?;
@@ -246,8 +238,8 @@ impl BaseAgent for SalesAgent {
         };
 
         // Create result data
-        let total_techniques = sales_strategy.closing_strategies.techniques.len()
-            + sales_strategy.sales_training.modules.len();
+        let total_techniques =
+            sales_strategy.closing_strategies.techniques.len() + sales_strategy.sales_training.modules.len();
 
         let result_data = serde_json::json!({
             "sales_strategy": sales_strategy,
@@ -257,10 +249,7 @@ impl BaseAgent for SalesAgent {
             "total_techniques_count": total_techniques
         });
 
-        tracing::info!(
-            "SalesAgent completed sales strategy generation: {}",
-            summary
-        );
+        tracing::info!("SalesAgent completed sales strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -281,7 +270,9 @@ mod tests {
         Task {
             id: "test-task-12".to_string(),
             title: "AI-Powered Sales Automation Platform".to_string(),
-            description: "A comprehensive sales automation platform with AI-driven lead scoring and pipeline management".to_string(),
+            description:
+                "A comprehensive sales automation platform with AI-driven lead scoring and pipeline management"
+                    .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,

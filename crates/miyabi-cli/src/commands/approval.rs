@@ -66,18 +66,10 @@ pub enum ApprovalSubcommand {
 impl ApprovalCommand {
     pub async fn execute(&self) -> Result<(), MiyabiError> {
         match &self.command {
-            ApprovalSubcommand::Approve {
-                id,
-                approver,
-                comment,
-            } => {
+            ApprovalSubcommand::Approve { id, approver, comment } => {
                 Self::approve(id, approver, comment.clone()).await?;
             }
-            ApprovalSubcommand::Reject {
-                id,
-                approver,
-                reason,
-            } => {
+            ApprovalSubcommand::Reject { id, approver, reason } => {
                 Self::reject(id, approver, reason.clone()).await?;
             }
             ApprovalSubcommand::List { approver, all } => {
@@ -90,22 +82,15 @@ impl ApprovalCommand {
         Ok(())
     }
 
-    async fn approve(
-        approval_id: &str,
-        approver: &str,
-        comment: Option<String>,
-    ) -> Result<(), MiyabiError> {
-        let store = ApprovalStore::new().map_err(|e| {
-            MiyabiError::Validation(format!("Failed to open approval store: {}", e))
-        })?;
+    async fn approve(approval_id: &str, approver: &str, comment: Option<String>) -> Result<(), MiyabiError> {
+        let store = ApprovalStore::new()
+            .map_err(|e| MiyabiError::Validation(format!("Failed to open approval store: {}", e)))?;
 
         // Load approval state to get gate_id
         let state = store
             .load(approval_id)
             .map_err(|e| MiyabiError::Validation(format!("Failed to load approval: {}", e)))?
-            .ok_or_else(|| {
-                MiyabiError::Validation(format!("Approval not found: {}", approval_id))
-            })?;
+            .ok_or_else(|| MiyabiError::Validation(format!("Approval not found: {}", approval_id)))?;
 
         // Recreate gate (with minimal config, only need store)
         let gate = ApprovalGate::builder(&state.gate_id)
@@ -127,11 +112,7 @@ impl ApprovalCommand {
             println!("Comment: {}", c);
         }
         println!("Status: {:?}", updated_state.status);
-        println!(
-            "Approvals: {}/{}",
-            updated_state.approval_count(),
-            updated_state.required_approvers.len()
-        );
+        println!("Approvals: {}/{}", updated_state.approval_count(), updated_state.required_approvers.len());
 
         if updated_state.is_completed() {
             println!("\n{}", "🎉 Approval completed!".green().bold());
@@ -140,22 +121,15 @@ impl ApprovalCommand {
         Ok(())
     }
 
-    async fn reject(
-        approval_id: &str,
-        approver: &str,
-        reason: Option<String>,
-    ) -> Result<(), MiyabiError> {
-        let store = ApprovalStore::new().map_err(|e| {
-            MiyabiError::Validation(format!("Failed to open approval store: {}", e))
-        })?;
+    async fn reject(approval_id: &str, approver: &str, reason: Option<String>) -> Result<(), MiyabiError> {
+        let store = ApprovalStore::new()
+            .map_err(|e| MiyabiError::Validation(format!("Failed to open approval store: {}", e)))?;
 
         // Load approval state to get gate_id
         let state = store
             .load(approval_id)
             .map_err(|e| MiyabiError::Validation(format!("Failed to load approval: {}", e)))?
-            .ok_or_else(|| {
-                MiyabiError::Validation(format!("Approval not found: {}", approval_id))
-            })?;
+            .ok_or_else(|| MiyabiError::Validation(format!("Approval not found: {}", approval_id)))?;
 
         // Recreate gate
         let gate = ApprovalGate::builder(&state.gate_id)
@@ -182,9 +156,8 @@ impl ApprovalCommand {
     }
 
     async fn list(approver: Option<&str>, all: bool) -> Result<(), MiyabiError> {
-        let store = ApprovalStore::new().map_err(|e| {
-            MiyabiError::Validation(format!("Failed to open approval store: {}", e))
-        })?;
+        let store = ApprovalStore::new()
+            .map_err(|e| MiyabiError::Validation(format!("Failed to open approval store: {}", e)))?;
 
         let approvals = if all {
             store
@@ -213,18 +186,10 @@ impl ApprovalCommand {
             println!("  Workflow: {}", approval.workflow_id);
             println!("  Gate: {}", approval.gate_id);
             println!("  Status: {:?}", approval.status);
-            println!(
-                "  Progress: {}/{} approvals",
-                approval.approval_count(),
-                approval.required_approvers.len()
-            );
+            println!("  Progress: {}/{} approvals", approval.approval_count(), approval.required_approvers.len());
 
             if !approval.pending_approvers().is_empty() {
-                let pending: Vec<String> = approval
-                    .pending_approvers()
-                    .iter()
-                    .map(|s| s.to_string())
-                    .collect();
+                let pending: Vec<String> = approval.pending_approvers().iter().map(|s| s.to_string()).collect();
                 println!("  Pending: {}", pending.join(", "));
             }
 
@@ -249,16 +214,13 @@ impl ApprovalCommand {
     }
 
     async fn show(approval_id: &str) -> Result<(), MiyabiError> {
-        let store = ApprovalStore::new().map_err(|e| {
-            MiyabiError::Validation(format!("Failed to open approval store: {}", e))
-        })?;
+        let store = ApprovalStore::new()
+            .map_err(|e| MiyabiError::Validation(format!("Failed to open approval store: {}", e)))?;
 
         let state = store
             .load(approval_id)
             .map_err(|e| MiyabiError::Validation(format!("Failed to load approval: {}", e)))?
-            .ok_or_else(|| {
-                MiyabiError::Validation(format!("Approval not found: {}", approval_id))
-            })?;
+            .ok_or_else(|| MiyabiError::Validation(format!("Approval not found: {}", approval_id)))?;
 
         println!("\n{}", "Approval Details:".bold());
         println!("{}", "─".repeat(80));
@@ -266,20 +228,13 @@ impl ApprovalCommand {
         println!("Workflow: {}", state.workflow_id);
         println!("Gate: {}", state.gate_id);
         println!("Status: {:?}", state.status);
-        println!(
-            "Created: {}",
-            state.created_at.format("%Y-%m-%d %H:%M:%S UTC")
-        );
+        println!("Created: {}", state.created_at.format("%Y-%m-%d %H:%M:%S UTC"));
 
         if let Some(completed) = state.completed_at {
             println!("Completed: {}", completed.format("%Y-%m-%d %H:%M:%S UTC"));
         }
 
-        println!(
-            "\nProgress: {}/{} approvals",
-            state.approval_count(),
-            state.required_approvers.len()
-        );
+        println!("\nProgress: {}/{} approvals", state.approval_count(), state.required_approvers.len());
 
         println!("\nRequired Approvers:");
         for approver in &state.required_approvers {
@@ -299,12 +254,7 @@ impl ApprovalCommand {
                 } else {
                     "❌ Rejected".red()
                 };
-                println!(
-                    "  {} {} at {}",
-                    status,
-                    approver,
-                    response.responded_at.format("%Y-%m-%d %H:%M:%S UTC")
-                );
+                println!("  {} {} at {}", status, approver, response.responded_at.format("%Y-%m-%d %H:%M:%S UTC"));
                 if let Some(comment) = &response.comment {
                     println!("    Comment: {}", comment);
                 }

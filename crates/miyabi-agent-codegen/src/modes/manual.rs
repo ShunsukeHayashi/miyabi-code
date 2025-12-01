@@ -21,9 +21,7 @@ pub struct ManualMode {
 impl ManualMode {
     /// Create a new manual mode executor
     pub fn new<P: AsRef<Path>>(work_dir: P) -> Self {
-        Self {
-            work_dir: work_dir.as_ref().to_path_buf(),
-        }
+        Self { work_dir: work_dir.as_ref().to_path_buf() }
     }
 
     /// Generate detailed execution context for manual implementation
@@ -180,12 +178,8 @@ Timestamp: {timestamp}
         let context_content = self.generate_execution_context(task)?;
         let context_path = self.work_dir.join("EXECUTION_CONTEXT.md");
 
-        fs::write(&context_path, &context_content).map_err(|e| {
-            format!(
-                "Failed to write execution context to {:?}: {}",
-                context_path, e
-            )
-        })?;
+        fs::write(&context_path, &context_content)
+            .map_err(|e| format!("Failed to write execution context to {:?}: {}", context_path, e))?;
 
         Ok(context_path)
     }

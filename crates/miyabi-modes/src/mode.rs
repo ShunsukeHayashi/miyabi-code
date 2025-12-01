@@ -40,11 +40,7 @@ pub struct MiyabiMode {
     pub description: Option<String>,
 
     /// Optional custom template arguments (Phase 2.1)
-    #[serde(
-        rename = "systemPromptArgs",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "systemPromptArgs", default, skip_serializing_if = "Option::is_none")]
     pub system_prompt_args: Option<HashMap<String, String>>,
 
     /// Optional tool configurations (Phase 2.2)
@@ -102,10 +98,7 @@ impl MiyabiMode {
     }
 
     /// Render templates in role definition and custom instructions
-    pub fn render_templates(
-        &self,
-        renderer: &crate::template::TemplateRenderer,
-    ) -> crate::error::ModeResult<Self> {
+    pub fn render_templates(&self, renderer: &crate::template::TemplateRenderer) -> crate::error::ModeResult<Self> {
         let custom_args = self.system_prompt_args.clone().unwrap_or_default();
 
         Ok(Self {
@@ -207,10 +200,7 @@ mod tests {
         assert!(system_mode.is_system_mode());
         assert!(!system_mode.is_custom_mode());
 
-        let custom_mode = MiyabiMode {
-            source: "user".into(),
-            ..system_mode.clone()
-        };
+        let custom_mode = MiyabiMode { source: "user".into(), ..system_mode.clone() };
 
         assert!(!custom_mode.is_system_mode());
         assert!(custom_mode.is_custom_mode());
@@ -242,9 +232,7 @@ mod tests {
         assert!(rendered_mode
             .role_definition
             .contains(&env::current_dir().unwrap().display().to_string()));
-        assert!(rendered_mode
-            .custom_instructions
-            .contains("Current time: 2"));
+        assert!(rendered_mode.custom_instructions.contains("Current time: 2"));
     }
 
     #[test]

@@ -102,17 +102,9 @@ pub struct A2ATask {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum A2ATaskResult {
     /// Task completed successfully
-    Success {
-        output: serde_json::Value,
-        artifacts: Vec<A2AArtifact>,
-        execution_time_ms: u64,
-    },
+    Success { output: serde_json::Value, artifacts: Vec<A2AArtifact>, execution_time_ms: u64 },
     /// Task failed
-    Failure {
-        error: String,
-        error_code: Option<String>,
-        retriable: bool,
-    },
+    Failure { error: String, error_code: Option<String>, retriable: bool },
 }
 
 /// Artifact produced by A2A task
@@ -187,11 +179,8 @@ pub trait A2AEnabled: BaseAgent {
         args: serde_json::Value,
     ) -> Result<CoreToolResult, A2AIntegrationError> {
         let registry = ToolRegistry::new(self.execution_mode());
-        let call = miyabi_llm::ToolCall {
-            id: uuid::Uuid::new_v4().to_string(),
-            name: tool_name.to_string(),
-            arguments: args,
-        };
+        let call =
+            miyabi_llm::ToolCall { id: uuid::Uuid::new_v4().to_string(), name: tool_name.to_string(), arguments: args };
 
         registry
             .execute(&call)
@@ -271,9 +260,9 @@ pub trait A2AEnabled: BaseAgent {
 
         let result = match tool_name {
             "read_file" => {
-                let path = args["path"].as_str().ok_or_else(|| {
-                    A2AIntegrationError::ToolExecutionFailed("Missing path".to_string())
-                })?;
+                let path = args["path"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::ToolExecutionFailed("Missing path".to_string()))?;
 
                 match tokio::fs::read_to_string(path).await {
                     Ok(content) => serde_json::json!({ "content": content }),
@@ -281,9 +270,9 @@ pub trait A2AEnabled: BaseAgent {
                 }
             }
             "list_files" => {
-                let path = args["path"].as_str().ok_or_else(|| {
-                    A2AIntegrationError::ToolExecutionFailed("Missing path".to_string())
-                })?;
+                let path = args["path"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::ToolExecutionFailed("Missing path".to_string()))?;
 
                 let mut entries = Vec::new();
                 let mut dir = tokio::fs::read_dir(path)
@@ -297,11 +286,7 @@ pub trait A2AEnabled: BaseAgent {
                 {
                     let path = entry.path();
                     let name = entry.file_name().to_string_lossy().to_string();
-                    let is_dir = entry
-                        .file_type()
-                        .await
-                        .map(|ft| ft.is_dir())
-                        .unwrap_or(false);
+                    let is_dir = entry.file_type().await.map(|ft| ft.is_dir()).unwrap_or(false);
 
                     entries.push(serde_json::json!({
                         "name": name,
@@ -313,13 +298,13 @@ pub trait A2AEnabled: BaseAgent {
                 serde_json::json!({ "entries": entries })
             }
             "search_code" => {
-                let pattern = args["pattern"].as_str().ok_or_else(|| {
-                    A2AIntegrationError::ToolExecutionFailed("Missing pattern".to_string())
-                })?;
+                let pattern = args["pattern"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::ToolExecutionFailed("Missing pattern".to_string()))?;
 
                 // Validate regex pattern
-                let _regex = regex::Regex::new(pattern)
-                    .map_err(|e| A2AIntegrationError::ToolExecutionFailed(e.to_string()))?;
+                let _regex =
+                    regex::Regex::new(pattern).map_err(|e| A2AIntegrationError::ToolExecutionFailed(e.to_string()))?;
 
                 // For now, return a placeholder - full implementation would use walkdir
                 serde_json::json!({
@@ -375,10 +360,7 @@ pub trait A2AGatewayClient: Send + Sync {
     async fn send_task(&self, task: A2ATask) -> Result<A2ATaskResult, A2AIntegrationError>;
 
     /// Discover agents by capability
-    async fn discover_agents(
-        &self,
-        capability: &str,
-    ) -> Result<Vec<A2AAgentCard>, A2AIntegrationError>;
+    async fn discover_agents(&self, capability: &str) -> Result<Vec<A2AAgentCard>, A2AIntegrationError>;
 
     /// Get a specific agent's card
     async fn get_agent_card(&self, agent_id: &str) -> Result<A2AAgentCard, A2AIntegrationError>;
@@ -503,10 +485,7 @@ mod tests {
                 .build()
         }
 
-        async fn handle_a2a_task(
-            &self,
-            task: A2ATask,
-        ) -> Result<A2ATaskResult, A2AIntegrationError> {
+        async fn handle_a2a_task(&self, task: A2ATask) -> Result<A2ATaskResult, A2AIntegrationError> {
             Ok(A2ATaskResult::Success {
                 output: serde_json::json!({ "result": "ok", "task_id": task.id }),
                 artifacts: vec![],

@@ -46,14 +46,9 @@ impl PotpieClient {
         let http_client = Client::builder()
             .timeout(Duration::from_secs(config.timeout_seconds))
             .build()
-            .map_err(|e| {
-                PotpieError::ConfigError(format!("Failed to create HTTP client: {}", e))
-            })?;
+            .map_err(|e| PotpieError::ConfigError(format!("Failed to create HTTP client: {}", e)))?;
 
-        Ok(Self {
-            config,
-            http_client,
-        })
+        Ok(Self { config, http_client })
     }
 
     /// Build request with authentication
@@ -70,10 +65,7 @@ impl PotpieClient {
     }
 
     /// Handle API response
-    async fn handle_response<T: for<'de> Deserialize<'de>>(
-        &self,
-        response: reqwest::Response,
-    ) -> Result<T> {
+    async fn handle_response<T: for<'de> Deserialize<'de>>(&self, response: reqwest::Response) -> Result<T> {
         let status = response.status();
 
         if status.is_success() {
@@ -82,15 +74,9 @@ impl PotpieClient {
                 .await
                 .map_err(|e| PotpieError::InvalidResponse(format!("Failed to parse JSON: {}", e)))
         } else {
-            let message = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
+            let message = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
 
-            Err(PotpieError::ApiError {
-                status: status.as_u16(),
-                message,
-            })
+            Err(PotpieError::ApiError { status: status.as_u16(), message })
         }
     }
 
@@ -108,10 +94,7 @@ impl PotpieClient {
                 if response.status() == StatusCode::OK {
                     Ok(true)
                 } else {
-                    Err(PotpieError::ServiceUnavailable(format!(
-                        "Health check returned status: {}",
-                        response.status()
-                    )))
+                    Err(PotpieError::ServiceUnavailable(format!("Health check returned status: {}", response.status())))
                 }
             }
             Err(e) => {
@@ -126,11 +109,7 @@ impl PotpieClient {
     // ============================================
 
     /// Tool 1: Search nodes by name
-    pub async fn search_nodes(
-        &self,
-        query: &str,
-        node_types: Option<Vec<String>>,
-    ) -> Result<Vec<GraphNode>> {
+    pub async fn search_nodes(&self, query: &str, node_types: Option<Vec<String>>) -> Result<Vec<GraphNode>> {
         info!("Searching nodes with query: {}", query);
 
         #[derive(Serialize)]
@@ -140,10 +119,7 @@ impl PotpieClient {
             node_types: Option<Vec<String>>,
         }
 
-        let request_body = SearchRequest {
-            query: query.to_string(),
-            node_types,
-        };
+        let request_body = SearchRequest { query: query.to_string(), node_types };
 
         let response = self
             .http_client
@@ -166,10 +142,7 @@ impl PotpieClient {
             depth: Option<u32>,
         }
 
-        let request_body = GraphRequest {
-            path: path.to_string(),
-            depth,
-        };
+        let request_body = GraphRequest { path: path.to_string(), depth };
 
         let response = self
             .http_client
@@ -182,15 +155,8 @@ impl PotpieClient {
     }
 
     /// Tool 3: Detect changes and their impact
-    pub async fn detect_changes(
-        &self,
-        base_commit: &str,
-        head_commit: &str,
-    ) -> Result<ChangeDetection> {
-        info!(
-            "Detecting changes between {} and {}",
-            base_commit, head_commit
-        );
+    pub async fn detect_changes(&self, base_commit: &str, head_commit: &str) -> Result<ChangeDetection> {
+        info!("Detecting changes between {} and {}", base_commit, head_commit);
 
         #[derive(Serialize)]
         struct ChangesRequest {
@@ -198,10 +164,8 @@ impl PotpieClient {
             head_commit: String,
         }
 
-        let request_body = ChangesRequest {
-            base_commit: base_commit.to_string(),
-            head_commit: head_commit.to_string(),
-        };
+        let request_body =
+            ChangesRequest { base_commit: base_commit.to_string(), head_commit: head_commit.to_string() };
 
         let response = self
             .http_client
@@ -222,9 +186,7 @@ impl PotpieClient {
             file_path: String,
         }
 
-        let request_body = FileStructureRequest {
-            file_path: file_path.to_string(),
-        };
+        let request_body = FileStructureRequest { file_path: file_path.to_string() };
 
         let response = self
             .http_client
@@ -245,9 +207,7 @@ impl PotpieClient {
             file_path: String,
         }
 
-        let request_body = AstRequest {
-            file_path: file_path.to_string(),
-        };
+        let request_body = AstRequest { file_path: file_path.to_string() };
 
         let response = self
             .http_client
@@ -268,9 +228,7 @@ impl PotpieClient {
             module_name: String,
         }
 
-        let request_body = DependencyRequest {
-            module_name: module_name.to_string(),
-        };
+        let request_body = DependencyRequest { module_name: module_name.to_string() };
 
         let response = self
             .http_client
@@ -291,9 +249,7 @@ impl PotpieClient {
             diff_text: String,
         }
 
-        let request_body = DiffRequest {
-            diff_text: diff_text.to_string(),
-        };
+        let request_body = DiffRequest { diff_text: diff_text.to_string() };
 
         let response = self
             .http_client
@@ -306,11 +262,7 @@ impl PotpieClient {
     }
 
     /// Tool 8: Semantic search (RAG-powered)
-    pub async fn semantic_search(
-        &self,
-        query: &str,
-        top_k: Option<usize>,
-    ) -> Result<Vec<SemanticSearchResult>> {
+    pub async fn semantic_search(&self, query: &str, top_k: Option<usize>) -> Result<Vec<SemanticSearchResult>> {
         info!("Performing semantic search: {}", query);
 
         #[derive(Serialize)]
@@ -320,10 +272,7 @@ impl PotpieClient {
             top_k: Option<usize>,
         }
 
-        let request_body = SemanticSearchRequest {
-            query: query.to_string(),
-            top_k,
-        };
+        let request_body = SemanticSearchRequest { query: query.to_string(), top_k };
 
         let response = self
             .http_client

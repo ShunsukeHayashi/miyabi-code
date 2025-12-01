@@ -10,8 +10,7 @@ use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 
 use super::routes::{
-    cancel_task, get_agents, get_events, get_system_status, get_workflow_dag, health_check,
-    retry_task,
+    cancel_task, get_agents, get_events, get_system_status, get_workflow_dag, health_check, retry_task,
 };
 use super::websocket::{broadcast_updates, ws_handler, WsState};
 use crate::storage::TaskStorage;
@@ -35,26 +34,17 @@ pub struct HttpServerConfig {
 
 impl Default for HttpServerConfig {
     fn default() -> Self {
-        Self {
-            host: "127.0.0.1".to_string(),
-            port: 3001,
-        }
+        Self { host: "127.0.0.1".to_string(), port: 3001 }
     }
 }
 
 /// Start the HTTP REST API server with task storage
-pub async fn start_http_server(
-    config: HttpServerConfig,
-    storage: Arc<dyn TaskStorage>,
-) -> anyhow::Result<()> {
+pub async fn start_http_server(config: HttpServerConfig, storage: Arc<dyn TaskStorage>) -> anyhow::Result<()> {
     // Create WebSocket state
     let ws_state = Arc::new(WsState::new());
 
     // Create application state
-    let app_state = AppState {
-        ws_state: ws_state.clone(),
-        storage,
-    };
+    let app_state = AppState { ws_state: ws_state.clone(), storage };
 
     // Spawn background task to broadcast updates
     let ws_state_clone = ws_state.clone();
@@ -86,10 +76,7 @@ pub async fn start_http_server(
     // Bind to address
     let addr = format!("{}:{}", config.host, config.port).parse::<SocketAddr>()?;
 
-    tracing::info!(
-        "🚀 Miyabi Dashboard API server listening on http://{}",
-        addr
-    );
+    tracing::info!("🚀 Miyabi Dashboard API server listening on http://{}", addr);
     tracing::info!("📡 WebSocket endpoint available at ws://{}/ws", addr);
 
     // Start server

@@ -66,12 +66,7 @@ mod integration {
         let body = json!({
             "test": "data"
         });
-        let event = create_mock_api_gateway_event(
-            "POST",
-            "/api/v1/test",
-            None,
-            Some(body.to_string()),
-        );
+        let event = create_mock_api_gateway_event("POST", "/api/v1/test", None, Some(body.to_string()));
 
         assert!(event["body"].is_string());
         let body_str = event["body"].as_str().unwrap();
@@ -98,7 +93,10 @@ mod integration {
         // Verify event structure for health check
         assert_eq!(event["rawPath"], "/api/v1/health");
         assert_eq!(event["requestContext"]["http"]["method"], "GET");
-        assert!(event["headers"]["accept"].as_str().unwrap().contains("application/json"));
+        assert!(event["headers"]["accept"]
+            .as_str()
+            .unwrap()
+            .contains("application/json"));
     }
 
     #[test]
@@ -141,12 +139,8 @@ mod integration {
             "content-type": "application/json",
             "authorization": "Bearer test-token"
         });
-        let event = create_mock_api_gateway_event(
-            "POST",
-            "/api/v1/agents/execute",
-            Some(headers),
-            Some(body.to_string()),
-        );
+        let event =
+            create_mock_api_gateway_event("POST", "/api/v1/agents/execute", Some(headers), Some(body.to_string()));
 
         assert_eq!(event["requestContext"]["http"]["method"], "POST");
         assert_eq!(event["headers"]["content-type"], "application/json");
@@ -187,11 +181,11 @@ mod integration {
         });
         let event = create_mock_api_gateway_event("GET", "/api/v1/test", Some(headers), None);
 
-        assert!(event["headers"]["accept"].as_str().unwrap().contains("application/json"));
-        assert!(event["headers"]["accept-encoding"]
+        assert!(event["headers"]["accept"]
             .as_str()
             .unwrap()
-            .contains("gzip"));
+            .contains("application/json"));
+        assert!(event["headers"]["accept-encoding"].as_str().unwrap().contains("gzip"));
     }
 
     #[test]
@@ -247,10 +241,7 @@ mod integration {
         event["requestContext"]["vpcEndpointId"] = json!("vpce-0123456789abcdef0");
 
         // Requests from VPC endpoint should be handled the same way
-        assert_eq!(
-            event["requestContext"]["vpcEndpointId"],
-            "vpce-0123456789abcdef0"
-        );
+        assert_eq!(event["requestContext"]["vpcEndpointId"], "vpce-0123456789abcdef0");
     }
 
     #[test]
@@ -270,12 +261,7 @@ mod integration {
     fn test_large_request_body_handling() {
         // API Gateway has 10MB payload limit
         let large_body = "x".repeat(1024 * 1024); // 1MB
-        let event = create_mock_api_gateway_event(
-            "POST",
-            "/api/v1/test",
-            None,
-            Some(large_body.clone()),
-        );
+        let event = create_mock_api_gateway_event("POST", "/api/v1/test", None, Some(large_body.clone()));
 
         assert_eq!(event["body"].as_str().unwrap().len(), large_body.len());
     }

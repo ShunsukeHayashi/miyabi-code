@@ -26,9 +26,7 @@ impl ConfigLoader {
     /// ```
     pub fn global() -> &'static Self {
         static INSTANCE: OnceCell<ConfigLoader> = OnceCell::new();
-        INSTANCE.get_or_init(|| ConfigLoader {
-            cache: Mutex::new(None),
-        })
+        INSTANCE.get_or_init(|| ConfigLoader { cache: Mutex::new(None) })
     }
 
     /// Load configuration (cached after first call)
@@ -100,10 +98,7 @@ impl ConfigLoader {
         }
 
         // 2. Try gh CLI
-        if let Ok(output) = std::process::Command::new("gh")
-            .args(["auth", "token"])
-            .output()
-        {
+        if let Ok(output) = std::process::Command::new("gh").args(["auth", "token"]).output() {
             if output.status.success() {
                 let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 if !token.is_empty()
@@ -149,9 +144,7 @@ impl ConfigLoader {
             .map_err(|e| CliError::GitConfig(format!("Failed to run git command: {}", e)))?;
 
         if !output.status.success() {
-            return Err(CliError::GitConfig(
-                "Failed to get git remote URL. Not a git repository?".to_string(),
-            ));
+            return Err(CliError::GitConfig("Failed to get git remote URL. Not a git repository?".to_string()));
         }
 
         let remote_url = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -184,10 +177,7 @@ impl ConfigLoader {
             }
         }
 
-        Err(CliError::GitConfig(format!(
-            "Could not parse GitHub owner/repo from remote URL: {}",
-            remote_url
-        )))
+        Err(CliError::GitConfig(format!("Could not parse GitHub owner/repo from remote URL: {}", remote_url)))
     }
 
     /// Clear the cached configuration (useful for testing)

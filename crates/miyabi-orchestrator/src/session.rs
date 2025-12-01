@@ -80,10 +80,7 @@ pub struct SessionManager {
 impl SessionManager {
     /// Create a new SessionManager
     pub fn new(config: SessionConfig) -> Self {
-        Self {
-            sessions: Arc::new(RwLock::new(HashMap::new())),
-            config,
-        }
+        Self { sessions: Arc::new(RwLock::new(HashMap::new())), config }
     }
 
     /// Spawn a new headless Claude Code session
@@ -113,16 +110,9 @@ impl SessionManager {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn spawn_headless(
-        &mut self,
-        command: String,
-        worktree_path: PathBuf,
-    ) -> Result<SessionId> {
+    pub async fn spawn_headless(&mut self, command: String, worktree_path: PathBuf) -> Result<SessionId> {
         let session_id = Uuid::new_v4().to_string();
-        info!(
-            "Spawning headless session: id={}, command={}",
-            session_id, command
-        );
+        info!("Spawning headless session: id={}, command={}", session_id, command);
 
         // Create session log directory
         let session_log_dir = self.config.log_dir.join(&session_id);
@@ -132,9 +122,7 @@ impl SessionManager {
         let result_file = session_log_dir.join("result.json");
 
         // Launch process
-        let child =
-            launch_claude_headless(command.clone(), worktree_path.clone(), output_file.clone())
-                .await?;
+        let child = launch_claude_headless(command.clone(), worktree_path.clone(), output_file.clone()).await?;
 
         // Store session
         let session = Session {
@@ -185,10 +173,7 @@ impl SessionManager {
                 } else {
                     SessionStatus::Failed
                 };
-                debug!(
-                    "Session {} exited with status: {:?}",
-                    session_id, new_status
-                );
+                debug!("Session {} exited with status: {:?}", session_id, new_status);
                 session.status = new_status.clone();
                 Ok(new_status)
             }
@@ -226,10 +211,7 @@ impl SessionManager {
                 }
                 SessionStatus::Running => {
                     if start.elapsed() > timeout {
-                        warn!(
-                            "Session {} timed out after {} seconds",
-                            session_id, self.config.timeout_secs
-                        );
+                        warn!("Session {} timed out after {} seconds", session_id, self.config.timeout_secs);
 
                         // Kill the process
                         let mut sessions = self.sessions.write().await;
@@ -299,10 +281,7 @@ impl SessionManager {
             }
         }
 
-        info!(
-            "Result collected: session={}, success={}",
-            session_id, result.success
-        );
+        info!("Result collected: session={}, success={}", session_id, result.success);
 
         Ok(result)
     }
@@ -324,12 +303,7 @@ impl SessionManager {
         let mut sessions = self.sessions.write().await;
         let initial_count = sessions.len();
 
-        sessions.retain(|_, session| {
-            matches!(
-                session.status,
-                SessionStatus::Running | SessionStatus::Pending
-            )
-        });
+        sessions.retain(|_, session| matches!(session.status, SessionStatus::Running | SessionStatus::Pending));
 
         let removed = initial_count - sessions.len();
         info!("Cleaned up {} sessions", removed);
@@ -361,10 +335,7 @@ mod tests {
     #[tokio::test]
     async fn test_cleanup() {
         let temp_dir = tempdir().unwrap();
-        let config = SessionConfig {
-            timeout_secs: 30,
-            log_dir: temp_dir.path().to_path_buf(),
-        };
+        let config = SessionConfig { timeout_secs: 30, log_dir: temp_dir.path().to_path_buf() };
         let mut manager = SessionManager::new(config);
 
         // Initially no sessions

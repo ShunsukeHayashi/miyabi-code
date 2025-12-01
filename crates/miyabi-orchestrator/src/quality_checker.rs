@@ -3,9 +3,7 @@
 //! Runs cargo test, clippy, fmt, and audit to assess code quality
 
 use crate::error::{Result, SchedulerError};
-use miyabi_types::quality::{
-    QualityBreakdown, QualityIssue, QualityIssueType, QualityReport, QualitySeverity,
-};
+use miyabi_types::quality::{QualityBreakdown, QualityIssue, QualityIssueType, QualityReport, QualitySeverity};
 use std::path::Path;
 use std::process::Stdio;
 use tokio::process::Command;
@@ -20,9 +18,7 @@ pub struct QualityChecker {
 impl QualityChecker {
     /// Create a new quality checker
     pub fn new(project_path: impl AsRef<Path>) -> Self {
-        Self {
-            project_path: project_path.as_ref().to_path_buf(),
-        }
+        Self { project_path: project_path.as_ref().to_path_buf() }
     }
 
     /// Run all quality checks and generate report
@@ -112,13 +108,7 @@ impl QualityChecker {
         // Generate recommendations
         let recommendations = Self::generate_recommendations(&breakdown);
 
-        Ok(QualityReport {
-            score: overall_score,
-            passed: overall_score >= 80,
-            issues,
-            recommendations,
-            breakdown,
-        })
+        Ok(QualityReport { score: overall_score, passed: overall_score >= 80, issues, recommendations, breakdown })
     }
 
     /// Run cargo test
@@ -142,10 +132,7 @@ impl QualityChecker {
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
             warn!("   ❌ Test failures detected");
-            Err(SchedulerError::CommandFailed {
-                command: "cargo test".to_string(),
-                stderr: stderr.to_string(),
-            })
+            Err(SchedulerError::CommandFailed { command: "cargo test".to_string(), stderr: stderr.to_string() })
         }
     }
 
@@ -171,10 +158,7 @@ impl QualityChecker {
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
             warn!("   ⚠️  Clippy warnings detected");
-            Err(SchedulerError::CommandFailed {
-                command: "cargo clippy".to_string(),
-                stderr: stderr.to_string(),
-            })
+            Err(SchedulerError::CommandFailed { command: "cargo clippy".to_string(), stderr: stderr.to_string() })
         }
     }
 
@@ -236,10 +220,7 @@ impl QualityChecker {
         } else {
             let stdout = String::from_utf8_lossy(&output.stdout);
             warn!("   ⚠️  Security vulnerabilities detected");
-            Err(SchedulerError::CommandFailed {
-                command: "cargo audit".to_string(),
-                stderr: stdout.to_string(),
-            })
+            Err(SchedulerError::CommandFailed { command: "cargo audit".to_string(), stderr: stdout.to_string() })
         }
     }
 
@@ -322,8 +303,7 @@ impl QualityChecker {
         }
 
         if breakdown.security_score < 80 {
-            recommendations
-                .push("Address security vulnerabilities with 'cargo update'".to_string());
+            recommendations.push("Address security vulnerabilities with 'cargo update'".to_string());
         }
 
         if breakdown.test_coverage_score < 80 {
@@ -383,41 +363,26 @@ mod tests {
 
     #[test]
     fn test_calculate_overall_score() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 100,
-            rustc_score: 100,
-            security_score: 100,
-            test_coverage_score: 100,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 100, rustc_score: 100, security_score: 100, test_coverage_score: 100 };
         assert_eq!(QualityChecker::calculate_overall_score(&breakdown), 100);
 
-        let breakdown = QualityBreakdown {
-            clippy_score: 80,
-            rustc_score: 80,
-            security_score: 80,
-            test_coverage_score: 80,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 80, rustc_score: 80, security_score: 80, test_coverage_score: 80 };
         assert_eq!(QualityChecker::calculate_overall_score(&breakdown), 80);
     }
 
     #[test]
     fn test_generate_recommendations() {
-        let breakdown = QualityBreakdown {
-            clippy_score: 70,
-            rustc_score: 70,
-            security_score: 70,
-            test_coverage_score: 70,
-        };
+        let breakdown =
+            QualityBreakdown { clippy_score: 70, rustc_score: 70, security_score: 70, test_coverage_score: 70 };
         let recommendations = QualityChecker::generate_recommendations(&breakdown);
         assert_eq!(recommendations.len(), 4);
     }
 
     #[test]
     fn test_calculate_test_score() {
-        assert_eq!(
-            QualityChecker::calculate_test_score(&Ok(String::new())),
-            100
-        );
+        assert_eq!(QualityChecker::calculate_test_score(&Ok(String::new())), 100);
         assert_eq!(
             QualityChecker::calculate_test_score(&Err(SchedulerError::CommandFailed {
                 command: "test".to_string(),

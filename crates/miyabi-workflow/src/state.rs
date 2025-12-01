@@ -102,9 +102,8 @@ impl StepContext {
             .get(key)
             .ok_or_else(|| WorkflowError::Other(format!("Metadata key '{}' not found", key)))
             .and_then(|v| {
-                serde_json::from_value(v.clone()).map_err(|e| {
-                    WorkflowError::Other(format!("Failed to deserialize metadata: {}", e))
-                })
+                serde_json::from_value(v.clone())
+                    .map_err(|e| WorkflowError::Other(format!("Failed to deserialize metadata: {}", e)))
             })
     }
 }
@@ -128,22 +127,12 @@ pub struct StepOutput {
 impl StepOutput {
     /// Create a successful output
     pub fn success(data: impl Serialize) -> Result<Self> {
-        Ok(Self {
-            success: true,
-            data: serde_json::to_value(data)?,
-            error: None,
-            duration_ms: 0,
-        })
+        Ok(Self { success: true, data: serde_json::to_value(data)?, error: None, duration_ms: 0 })
     }
 
     /// Create a failed output
     pub fn failure(error: impl Into<String>) -> Self {
-        Self {
-            success: false,
-            data: serde_json::Value::Null,
-            error: Some(error.into()),
-            duration_ms: 0,
-        }
+        Self { success: false, data: serde_json::Value::Null, error: Some(error.into()), duration_ms: 0 }
     }
 
     /// Set execution duration
@@ -174,12 +163,7 @@ impl WorkflowOutput {
     pub fn from_context(ctx: StepContext, duration_ms: u64) -> Self {
         let success = ctx.outputs.values().all(|o| o.success);
 
-        Self {
-            workflow_id: ctx.workflow_id,
-            success,
-            steps: ctx.outputs,
-            total_duration_ms: duration_ms,
-        }
+        Self { workflow_id: ctx.workflow_id, success, steps: ctx.outputs, total_duration_ms: duration_ms }
     }
 }
 
@@ -294,10 +278,7 @@ impl StateStore {
             let (_, value) = item?;
             let state: ExecutionState = serde_json::from_slice(&value)?;
 
-            if matches!(
-                state.status,
-                WorkflowStatus::Running | WorkflowStatus::Paused
-            ) {
+            if matches!(state.status, WorkflowStatus::Running | WorkflowStatus::Paused) {
                 states.push(state);
             }
         }

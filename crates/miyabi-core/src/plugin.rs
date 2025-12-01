@@ -130,9 +130,7 @@ pub struct PluginManager {
 impl PluginManager {
     /// Creates a new plugin manager
     pub fn new() -> Self {
-        Self {
-            plugins: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self { plugins: Arc::new(RwLock::new(HashMap::new())) }
     }
 
     /// Registers a plugin
@@ -159,13 +157,7 @@ impl PluginManager {
 
         // Store plugin
         let mut plugins = self.plugins.write().unwrap();
-        plugins.insert(
-            name.clone(),
-            PluginEntry {
-                plugin,
-                state: PluginState::Initialized,
-            },
-        );
+        plugins.insert(name.clone(), PluginEntry { plugin, state: PluginState::Initialized });
 
         Ok(())
     }
@@ -204,11 +196,7 @@ impl PluginManager {
             .ok_or_else(|| anyhow!("Plugin '{}' not found", name))?;
 
         if entry.state != PluginState::Initialized {
-            return Err(anyhow!(
-                "Plugin '{}' is not initialized (state: {:?})",
-                name,
-                entry.state
-            ));
+            return Err(anyhow!("Plugin '{}' is not initialized (state: {:?})", name, entry.state));
         }
 
         entry.plugin.execute(context)
@@ -217,10 +205,7 @@ impl PluginManager {
     /// Lists all registered plugins
     pub fn list_plugins(&self) -> Vec<PluginMetadata> {
         let plugins = self.plugins.read().unwrap();
-        plugins
-            .values()
-            .map(|entry| entry.plugin.metadata())
-            .collect()
+        plugins.values().map(|entry| entry.plugin.metadata()).collect()
     }
 
     /// Gets plugin metadata
@@ -292,10 +277,7 @@ mod tests {
 
     impl TestPlugin {
         fn new(name: &str) -> Self {
-            Self {
-                name: name.to_string(),
-                initialized: false,
-            }
+            Self { name: name.to_string(), initialized: false }
         }
     }
 
@@ -315,11 +297,7 @@ mod tests {
         }
 
         fn execute(&self, _context: &PluginContext) -> Result<PluginResult> {
-            Ok(PluginResult {
-                success: true,
-                message: Some(format!("Plugin '{}' executed", self.name)),
-                data: None,
-            })
+            Ok(PluginResult { success: true, message: Some(format!("Plugin '{}' executed", self.name)), data: None })
         }
     }
 

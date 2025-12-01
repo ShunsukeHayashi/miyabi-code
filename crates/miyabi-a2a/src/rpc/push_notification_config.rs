@@ -84,17 +84,11 @@ impl PushNotificationConfig {
             Ok(parsed_url) => {
                 // Check if URL has a host
                 if parsed_url.host_str().is_none() {
-                    return Err(A2AError::InvalidRequest(format!(
-                        "Webhook URL must have a valid host: {}",
-                        url
-                    )));
+                    return Err(A2AError::InvalidRequest(format!("Webhook URL must have a valid host: {}", url)));
                 }
                 Ok(())
             }
-            Err(e) => Err(A2AError::InvalidRequest(format!(
-                "Invalid webhook URL: {}",
-                e
-            ))),
+            Err(e) => Err(A2AError::InvalidRequest(format!("Invalid webhook URL: {}", e))),
         }
     }
 }
@@ -124,9 +118,7 @@ pub struct MemoryConfigStorage {
 impl MemoryConfigStorage {
     /// Create a new in-memory config storage
     pub fn new() -> Self {
-        Self {
-            configs: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self { configs: Arc::new(RwLock::new(HashMap::new())) }
     }
 }
 
@@ -160,9 +152,10 @@ impl ConfigStorage for MemoryConfigStorage {
             .read()
             .map_err(|e| A2AError::InternalError(format!("Lock poisoned: {}", e)))?;
 
-        configs.get(client_id).cloned().ok_or_else(|| {
-            A2AError::InvalidRequest(format!("No config found for client: {}", client_id))
-        })
+        configs
+            .get(client_id)
+            .cloned()
+            .ok_or_else(|| A2AError::InvalidRequest(format!("No config found for client: {}", client_id)))
     }
 
     async fn delete_config(&self, client_id: &str) -> A2AResult<()> {
@@ -171,9 +164,9 @@ impl ConfigStorage for MemoryConfigStorage {
             .write()
             .map_err(|e| A2AError::InternalError(format!("Lock poisoned: {}", e)))?;
 
-        configs.remove(client_id).ok_or_else(|| {
-            A2AError::InvalidRequest(format!("No config found for client: {}", client_id))
-        })?;
+        configs
+            .remove(client_id)
+            .ok_or_else(|| A2AError::InvalidRequest(format!("No config found for client: {}", client_id)))?;
 
         Ok(())
     }

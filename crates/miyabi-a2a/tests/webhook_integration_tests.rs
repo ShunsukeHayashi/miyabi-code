@@ -21,9 +21,7 @@
 //! SSRF tests are included below but currently marked as `#[ignore]` until
 //! production code is implemented.
 
-use miyabi_a2a::{
-    generate_webhook_signature, send_push_notification, PushNotificationPayload, WebhookConfig,
-};
+use miyabi_a2a::{generate_webhook_signature, send_push_notification, PushNotificationPayload, WebhookConfig};
 use reqwest::Client;
 use wiremock::{
     matchers::{header, header_exists, method, path},
@@ -62,10 +60,7 @@ async fn test_webhook_delivery_full_features() {
     };
 
     let result = send_push_notification(&client, &config, &payload).await;
-    assert!(
-        result.is_ok(),
-        "Full-featured webhook delivery should succeed"
-    );
+    assert!(result.is_ok(), "Full-featured webhook delivery should succeed");
 }
 
 /// Test webhook signature generation and verification
@@ -73,8 +68,7 @@ async fn test_webhook_delivery_full_features() {
 fn test_webhook_signature_generation() {
     let secret = "integration-test-secret";
     let timestamp = "2025-10-22T12:00:00Z";
-    let payload_json =
-        r#"{"event_type":"test","task_id":"123","data":{},"timestamp":"2025-10-22T12:00:00Z"}"#;
+    let payload_json = r#"{"event_type":"test","task_id":"123","data":{},"timestamp":"2025-10-22T12:00:00Z"}"#;
 
     let signature = generate_webhook_signature(secret, timestamp, payload_json);
 
@@ -86,8 +80,7 @@ fn test_webhook_signature_generation() {
     assert_eq!(signature.len(), 64);
 
     // Different secrets should produce different signatures
-    let different_signature =
-        generate_webhook_signature("different-secret", timestamp, payload_json);
+    let different_signature = generate_webhook_signature("different-secret", timestamp, payload_json);
     assert_ne!(signature, different_signature);
 }
 
@@ -138,10 +131,7 @@ async fn test_concurrent_webhook_sends_100() {
         }
     }
 
-    assert_eq!(
-        success_count, 100,
-        "All 100 concurrent requests should succeed"
-    );
+    assert_eq!(success_count, 100, "All 100 concurrent requests should succeed");
 }
 
 /// Test load: 1000 concurrent webhook sends
@@ -196,11 +186,7 @@ async fn test_load_1000_concurrent_webhooks() {
     }
 
     // We expect at least 95% success rate (some may fail due to timeouts or resource limits)
-    assert!(
-        success_count >= 950,
-        "Expected >= 950 successes out of 1000, got {}",
-        success_count
-    );
+    assert!(success_count >= 950, "Expected >= 950 successes out of 1000, got {}", success_count);
 }
 
 /// Test retry logic with mixed success/failure responses
@@ -240,10 +226,7 @@ async fn test_webhook_retry_mixed_responses() {
     };
 
     let result = send_push_notification(&client, &config, &payload).await;
-    assert!(
-        result.is_ok(),
-        "Webhook should eventually succeed after retries"
-    );
+    assert!(result.is_ok(), "Webhook should eventually succeed after retries");
 }
 
 /// Test timeout handling
@@ -350,10 +333,7 @@ async fn test_ssrf_prevention_metadata_endpoint() {
     };
 
     let result = send_push_notification(&client, &config, &payload).await;
-    assert!(
-        result.is_err(),
-        "SSRF: Should block AWS/GCP metadata endpoint"
-    );
+    assert!(result.is_err(), "SSRF: Should block AWS/GCP metadata endpoint");
 }
 
 /// Test SSRF prevention: IPv6 localhost (::1)

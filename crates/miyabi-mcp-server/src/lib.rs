@@ -94,8 +94,7 @@ pub use config::{ServerArgs, ServerConfig, TransportMode};
 pub use error::{Result, ServerError};
 pub use metrics::{ToolExecutionMetrics, ToolMetrics};
 pub use registry::{
-    DiscoveryStats, McpServerConnection, RegistryError, RegistryResult, ServerStatus,
-    ToolDefinition, ToolRegistry,
+    DiscoveryStats, McpServerConnection, RegistryError, RegistryResult, ServerStatus, ToolDefinition, ToolRegistry,
 };
 pub use server::{A2AExecuteParams, A2AListAgentsParams, A2AListToolsParams, McpServer};
 pub use service::{ServiceConfig, ServiceStats, ToolRegistryService};
@@ -107,15 +106,14 @@ pub use agent_init::initialize_all_agents;
 
 // Re-export RPC types for convenience
 pub use rpc::{
-    AgentExecuteParams, AgentExecuteResult, HealthCheckResult, IssueFetchParams, IssueListParams,
-    IssueResponse, KnowledgeMetadata, KnowledgeSearchParams, KnowledgeSearchResult,
+    AgentExecuteParams, AgentExecuteResult, HealthCheckResult, IssueFetchParams, IssueListParams, IssueResponse,
+    KnowledgeMetadata, KnowledgeSearchParams, KnowledgeSearchResult,
 };
 
 // Re-export Session RPC types
 pub use session_rpc::{
-    SessionContextParams, SessionGetParams, SessionGetResult, SessionHandoffParams,
-    SessionHandoffResult, SessionInfo, SessionLineageParams, SessionLineageResult,
-    SessionListParams, SessionListResult, SessionMonitorParams, SessionMonitorResult,
-    SessionSpawnParams, SessionSpawnResult, SessionStatsResult, SessionTerminateParams,
+    SessionContextParams, SessionGetParams, SessionGetResult, SessionHandoffParams, SessionHandoffResult, SessionInfo,
+    SessionLineageParams, SessionLineageResult, SessionListParams, SessionListResult, SessionMonitorParams,
+    SessionMonitorResult, SessionSpawnParams, SessionSpawnResult, SessionStatsResult, SessionTerminateParams,
     SessionTerminateResult,
 };

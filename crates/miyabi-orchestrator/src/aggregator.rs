@@ -76,9 +76,7 @@ pub struct ResultAggregator {
 impl ResultAggregator {
     /// Create a new ResultAggregator
     pub fn new() -> Self {
-        Self {
-            results: HashMap::new(),
-        }
+        Self { results: HashMap::new() }
     }
 
     /// Add a session result
@@ -88,10 +86,7 @@ impl ResultAggregator {
     /// * `session_id` - Session identifier
     /// * `result` - Agent result from the session
     pub fn add_result(&mut self, session_id: SessionId, result: AgentResult) {
-        debug!(
-            "Adding result for session {}: success={}",
-            session_id, result.success
-        );
+        debug!("Adding result for session {}: success={}", session_id, result.success);
         self.results.insert(session_id, result);
     }
 

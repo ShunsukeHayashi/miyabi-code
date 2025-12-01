@@ -181,9 +181,7 @@ impl StateMachine {
     /// Create a new state machine
     pub fn new(issue_number: u64) -> Self {
         info!("🚀 Starting new execution for Issue #{}", issue_number);
-        Self {
-            state: ExecutionState::new(issue_number),
-        }
+        Self { state: ExecutionState::new(issue_number) }
     }
 
     /// Create from existing state
@@ -227,10 +225,7 @@ impl StateMachine {
             return Err(anyhow!("Invalid state transition: {} -> {}", from, to));
         }
 
-        info!(
-            "📍 State transition for Issue #{}: {} -> {}",
-            self.state.issue_number, from, to
-        );
+        info!("📍 State transition for Issue #{}: {} -> {}", self.state.issue_number, from, to);
 
         // Update state
         self.state.current_phase = to;
@@ -246,10 +241,7 @@ impl StateMachine {
             );
         }
 
-        debug!(
-            "State updated: execution_id={}, phase={:?}",
-            self.state.execution_id, to
-        );
+        debug!("State updated: execution_id={}, phase={:?}", self.state.execution_id, to);
 
         Ok(())
     }
@@ -304,10 +296,7 @@ impl StateMachine {
     /// Get progress percentage (0-100)
     pub fn progress_percentage(&self) -> u8 {
         let phases = Phase::all();
-        let current_index = phases
-            .iter()
-            .position(|p| p == &self.state.current_phase)
-            .unwrap_or(0);
+        let current_index = phases.iter().position(|p| p == &self.state.current_phase).unwrap_or(0);
 
         ((current_index as f64 / phases.len() as f64) * 100.0) as u8
     }
@@ -338,10 +327,7 @@ mod tests {
     #[test]
     fn test_phase_progression() {
         assert_eq!(Phase::IssueAnalysis.next(), Some(Phase::TaskDecomposition));
-        assert_eq!(
-            Phase::TaskDecomposition.next(),
-            Some(Phase::WorktreeCreation)
-        );
+        assert_eq!(Phase::TaskDecomposition.next(), Some(Phase::WorktreeCreation));
         assert_eq!(Phase::AutoMerge.next(), None);
     }
 

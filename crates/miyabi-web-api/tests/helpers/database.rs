@@ -16,8 +16,8 @@ pub struct TestDatabase {
 impl TestDatabase {
     /// Create a new test database
     pub async fn new() -> Self {
-        let database_url = std::env::var("TEST_DATABASE_URL")
-            .unwrap_or_else(|_| "postgres://localhost/miyabi_test".to_string());
+        let database_url =
+            std::env::var("TEST_DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/miyabi_test".to_string());
 
         // Use optimized test pool configuration
         let pool_config = DatabasePoolConfig::test();
@@ -47,10 +47,7 @@ impl TestDatabase {
             .await
             .expect("Failed to run migrations");
 
-        Self {
-            pool,
-            database_name: "miyabi_test".to_string(),
-        }
+        Self { pool, database_name: "miyabi_test".to_string() }
     }
 
     /// Clean all tables for a fresh test

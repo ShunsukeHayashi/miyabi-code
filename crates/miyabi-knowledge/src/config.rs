@@ -120,10 +120,7 @@ pub struct WorkspaceConfig {
 
 impl Default for WorkspaceConfig {
     fn default() -> Self {
-        Self {
-            name: "default".to_string(),
-            hierarchy: "project > worktree > agent".to_string(),
-        }
+        Self { name: "default".to_string(), hierarchy: "project > worktree > agent".to_string() }
     }
 }
 
@@ -166,10 +163,7 @@ pub struct SearchConfig {
 
 impl Default for SearchConfig {
     fn default() -> Self {
-        Self {
-            default_limit: 10,
-            min_score: 0.7,
-        }
+        Self { default_limit: 10, min_score: 0.7 }
     }
 }
 
@@ -297,11 +291,7 @@ mod tests {
 
     #[test]
     fn test_auto_index_config_serialization() {
-        let config = AutoIndexConfig {
-            enabled: false,
-            delay_seconds: 5,
-            retry_count: 10,
-        };
+        let config = AutoIndexConfig { enabled: false, delay_seconds: 5, retry_count: 10 };
 
         let json = serde_json::to_string(&config).unwrap();
         let deserialized: AutoIndexConfig = serde_json::from_str(&json).unwrap();

@@ -162,9 +162,7 @@ mod unified_error_tests {
         let error = DiscordMcpError::NotFound("resource".to_string());
         assert!(error.context().is_some());
 
-        let error = DiscordMcpError::Serialization(
-            serde_json::from_str::<serde_json::Value>("invalid").unwrap_err(),
-        );
+        let error = DiscordMcpError::Serialization(serde_json::from_str::<serde_json::Value>("invalid").unwrap_err());
         assert!(error.context().is_none());
     }
 }

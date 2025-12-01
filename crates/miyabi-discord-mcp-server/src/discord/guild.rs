@@ -31,7 +31,7 @@ impl DiscordClient {
 
         // 現時点ではエラーを返す
         Err(DiscordMcpError::Unauthorized(
-            "Bot accounts cannot create guilds. Please create a guild manually and use the guild_id.".to_string()
+            "Bot accounts cannot create guilds. Please create a guild manually and use the guild_id.".to_string(),
         ))
     }
 

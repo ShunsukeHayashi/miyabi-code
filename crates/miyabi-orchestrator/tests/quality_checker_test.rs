@@ -123,10 +123,7 @@ async fn test_quality_checker_clean_project() {
     // Clean project should have high scores
     assert!(report.score >= 90, "Clean project should score >= 90");
     assert!(report.passed, "Clean project should pass quality checks");
-    assert!(
-        report.issues.is_empty(),
-        "Clean project should have no issues"
-    );
+    assert!(report.issues.is_empty(), "Clean project should have no issues");
 }
 
 #[tokio::test]
@@ -140,11 +137,7 @@ async fn test_quality_checker_with_warnings() {
     // Project should still have reasonable score
     // Note: Modern clippy with -D warnings may treat some patterns as clean,
     // so we just check for a reasonable score rather than requiring reduced clippy score
-    assert!(
-        report.score >= 70,
-        "Project should score >= 70, got {}",
-        report.score
-    );
+    assert!(report.score >= 70, "Project should score >= 70, got {}", report.score);
 }
 
 #[tokio::test]
@@ -157,8 +150,7 @@ async fn test_quality_checker_with_fmt_issues() {
 
     // Formatting issues should be detected
     assert!(
-        report.breakdown.clippy_score < 100
-            || report.issues.iter().any(|i| i.message.contains("Format")),
+        report.breakdown.clippy_score < 100 || report.issues.iter().any(|i| i.message.contains("Format")),
         "Format issues should be detected"
     );
 }
@@ -172,14 +164,8 @@ async fn test_quality_checker_with_test_failures() {
     let report = checker.run_checks().await.unwrap();
 
     // Test failures should significantly impact score
-    assert!(
-        report.breakdown.test_coverage_score < 100,
-        "Test score should be reduced"
-    );
-    assert!(
-        report.issues.iter().any(|i| i.message.contains("Test")),
-        "Test failures should be reported"
-    );
+    assert!(report.breakdown.test_coverage_score < 100, "Test score should be reduced");
+    assert!(report.issues.iter().any(|i| i.message.contains("Test")), "Test failures should be reported");
 }
 
 #[tokio::test]
@@ -194,10 +180,7 @@ async fn test_auto_fix() {
 
     // Check that code is now formatted
     let formatted_code = fs::read_to_string(project_path.join("src/main.rs")).unwrap();
-    assert!(
-        formatted_code.contains("fn main()"),
-        "Code should be formatted"
-    );
+    assert!(formatted_code.contains("fn main()"), "Code should be formatted");
 }
 
 #[tokio::test]
@@ -209,22 +192,10 @@ async fn test_quality_breakdown() {
     let report = checker.run_checks().await.unwrap();
 
     // Verify breakdown structure
-    assert!(
-        report.breakdown.clippy_score <= 100,
-        "Clippy score should be valid"
-    );
-    assert!(
-        report.breakdown.rustc_score <= 100,
-        "Rustc score should be valid"
-    );
-    assert!(
-        report.breakdown.security_score <= 100,
-        "Security score should be valid"
-    );
-    assert!(
-        report.breakdown.test_coverage_score <= 100,
-        "Coverage score should be valid"
-    );
+    assert!(report.breakdown.clippy_score <= 100, "Clippy score should be valid");
+    assert!(report.breakdown.rustc_score <= 100, "Rustc score should be valid");
+    assert!(report.breakdown.security_score <= 100, "Security score should be valid");
+    assert!(report.breakdown.test_coverage_score <= 100, "Coverage score should be valid");
 }
 
 #[tokio::test]
@@ -237,15 +208,8 @@ async fn test_recommendations() {
 
     // Project with test failures should have recommendations
     // Score: clippy(100)*30% + rustc(50)*25% + security(100)*30% + coverage(50)*15% = 82.5
-    assert!(
-        report.score < 90,
-        "Project with test failures should score < 90, got {}",
-        report.score
-    );
-    assert!(
-        !report.recommendations.is_empty(),
-        "Should provide recommendations for projects with test failures"
-    );
+    assert!(report.score < 90, "Project with test failures should score < 90, got {}", report.score);
+    assert!(!report.recommendations.is_empty(), "Should provide recommendations for projects with test failures");
 }
 
 #[tokio::test]
@@ -264,8 +228,5 @@ async fn test_weighted_scoring() {
         + report.breakdown.test_coverage_score as u32 * 15)
         / 100;
 
-    assert_eq!(
-        report.score as u32, expected_score,
-        "Score should match weighted average"
-    );
+    assert_eq!(report.score as u32, expected_score, "Score should match weighted average");
 }

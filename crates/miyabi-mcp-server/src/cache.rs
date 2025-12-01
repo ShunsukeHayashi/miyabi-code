@@ -66,10 +66,7 @@ impl CacheKey {
         let args_string = serde_json::to_string(arguments).unwrap_or_default();
         args_string.hash(&mut hasher);
 
-        Self {
-            tool_name: tool_name.into(),
-            arguments_hash: hasher.finish(),
-        }
+        Self { tool_name: tool_name.into(), arguments_hash: hasher.finish() }
     }
 }
 
@@ -85,10 +82,7 @@ struct CacheEntry {
 impl CacheEntry {
     /// Create a new cache entry
     fn new(result: Value) -> Self {
-        Self {
-            result,
-            timestamp: Instant::now(),
-        }
+        Self { result, timestamp: Instant::now() }
     }
 
     /// Check if the entry has expired
@@ -157,11 +151,7 @@ impl ToolResultCache {
     pub fn new(capacity: usize, ttl: Duration) -> Self {
         let capacity = NonZeroUsize::new(capacity).unwrap_or(NonZeroUsize::new(1000).unwrap());
 
-        info!(
-            capacity = capacity.get(),
-            ttl_secs = ttl.as_secs(),
-            "Initializing ToolResultCache"
-        );
+        info!(capacity = capacity.get(), ttl_secs = ttl.as_secs(), "Initializing ToolResultCache");
 
         Self {
             cache: Arc::new(Mutex::new(LruCache::new(capacity))),

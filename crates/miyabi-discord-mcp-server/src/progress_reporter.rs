@@ -13,10 +13,7 @@ pub struct ProgressReporter {
 
 impl ProgressReporter {
     pub fn new(http: Arc<HttpClient>, progress_channel_id: Id<ChannelMarker>) -> Self {
-        Self {
-            http,
-            progress_channel_id,
-        }
+        Self { http, progress_channel_id }
     }
 
     /// Report bot startup
@@ -37,11 +34,7 @@ impl ProgressReporter {
                     .to_string(),
             ),
             fields: vec![],
-            footer: Some(EmbedFooter {
-                icon_url: None,
-                proxy_icon_url: None,
-                text: "Miyabi Bot v1.0.0".to_string(),
-            }),
+            footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "Miyabi Bot v1.0.0".to_string() }),
             image: None,
             kind: "rich".to_string(),
             provider: None,
@@ -72,11 +65,7 @@ impl ProgressReporter {
                     .to_string(),
             ),
             fields: vec![],
-            footer: Some(EmbedFooter {
-                icon_url: None,
-                proxy_icon_url: None,
-                text: "Miyabi Bot v1.0.0".to_string(),
-            }),
+            footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "Miyabi Bot v1.0.0".to_string() }),
             image: None,
             kind: "rich".to_string(),
             provider: None,
@@ -118,11 +107,7 @@ impl ProgressReporter {
                 agent_name, issue_info
             )),
             fields: vec![],
-            footer: Some(EmbedFooter {
-                icon_url: None,
-                proxy_icon_url: None,
-                text: "Agent Execution".to_string(),
-            }),
+            footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "Agent Execution".to_string() }),
             image: None,
             kind: "rich".to_string(),
             provider: None,
@@ -219,11 +204,7 @@ impl ProgressReporter {
                 emoji, action, issue_number, issue_title, issue_url
             )),
             fields: vec![],
-            footer: Some(EmbedFooter {
-                icon_url: None,
-                proxy_icon_url: None,
-                text: "GitHub Integration".to_string(),
-            }),
+            footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "GitHub Integration".to_string() }),
             image: None,
             kind: "rich".to_string(),
             provider: None,
@@ -267,11 +248,7 @@ impl ProgressReporter {
                 emoji, action, pr_number, pr_title, pr_url
             )),
             fields: vec![],
-            footer: Some(EmbedFooter {
-                icon_url: None,
-                proxy_icon_url: None,
-                text: "GitHub Integration".to_string(),
-            }),
+            footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "GitHub Integration".to_string() }),
             image: None,
             kind: "rich".to_string(),
             provider: None,
@@ -291,11 +268,7 @@ impl ProgressReporter {
     }
 
     /// Report error
-    pub async fn report_error(
-        &self,
-        context: &str,
-        error_message: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn report_error(&self, context: &str, error_message: &str) -> Result<(), Box<dyn std::error::Error>> {
         let embed = Embed {
             author: None,
             color: Some(0xE74C3C), // Red
@@ -307,11 +280,7 @@ impl ProgressReporter {
                 context, error_message
             )),
             fields: vec![],
-            footer: Some(EmbedFooter {
-                icon_url: None,
-                proxy_icon_url: None,
-                text: "Error Report".to_string(),
-            }),
+            footer: Some(EmbedFooter { icon_url: None, proxy_icon_url: None, text: "Error Report".to_string() }),
             image: None,
             kind: "rich".to_string(),
             provider: None,

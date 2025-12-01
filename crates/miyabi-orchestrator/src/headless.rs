@@ -16,9 +16,7 @@ use miyabi_agent_core::BaseAgent;
 use miyabi_agent_issue::IssueAgent;
 use miyabi_agent_review::ReviewAgent;
 use miyabi_github::client::GitHubClient;
-use miyabi_session_manager::{
-    CustomMessage, ErrorMessage, MessageBuilder, MessageType, Priority, SessionManager,
-};
+use miyabi_session_manager::{CustomMessage, ErrorMessage, MessageBuilder, MessageType, Priority, SessionManager};
 use miyabi_types::task::TaskDecomposition;
 use miyabi_types::{AgentConfig, Issue};
 use miyabi_worktree::{WorktreeInfo, WorktreeManager};
@@ -48,12 +46,7 @@ pub struct HeadlessOrchestratorConfig {
 
 impl Default for HeadlessOrchestratorConfig {
     fn default() -> Self {
-        Self {
-            autonomous_mode: true,
-            auto_approve_complexity: 5.0,
-            auto_merge_quality: 80.0,
-            dry_run: false,
-        }
+        Self { autonomous_mode: true, auto_approve_complexity: 5.0, auto_merge_quality: 80.0, dry_run: false }
     }
 }
 
@@ -130,17 +123,13 @@ impl HeadlessOrchestrator {
     pub fn new(config: HeadlessOrchestratorConfig) -> Self {
         info!("🚀 Initializing Headless Orchestrator");
         info!("   Autonomous mode: {}", config.autonomous_mode);
-        info!(
-            "   Auto-approve threshold: {}",
-            config.auto_approve_complexity
-        );
+        info!("   Auto-approve threshold: {}", config.auto_approve_complexity);
         info!("   Auto-merge threshold: {}", config.auto_merge_quality);
         info!("   Dry-run: {}", config.dry_run);
 
         // Create minimal AgentConfig for dry-run mode
         let agent_config = AgentConfig {
-            device_identifier: std::env::var("DEVICE_IDENTIFIER")
-                .unwrap_or_else(|_| "orchestrator".to_string()),
+            device_identifier: std::env::var("DEVICE_IDENTIFIER").unwrap_or_else(|_| "orchestrator".to_string()),
             github_token: std::env::var("GITHUB_TOKEN").unwrap_or_default(),
             repo_owner: None,
             repo_name: None,
@@ -227,10 +216,7 @@ impl HeadlessOrchestrator {
     /// Enable Skills Bridge for skill execution integration
     pub fn with_skills_bridge(
         mut self,
-    ) -> (
-        Self,
-        tokio::sync::mpsc::UnboundedReceiver<crate::skills_bridge::OrchestratorEvent>,
-    ) {
+    ) -> (Self, tokio::sync::mpsc::UnboundedReceiver<crate::skills_bridge::OrchestratorEvent>) {
         let (bridge, event_rx) = SkillsBridge::new();
         info!("   Skills Bridge initialized: Orchestrator ↔ Skills integration enabled");
         self.skills_bridge = Some(Arc::new(bridge));
@@ -238,23 +224,16 @@ impl HeadlessOrchestrator {
     }
 
     /// Create with GitHub client for label automation
-    pub fn with_github_client(
-        config: HeadlessOrchestratorConfig,
-        github_client: GitHubClient,
-    ) -> Self {
+    pub fn with_github_client(config: HeadlessOrchestratorConfig, github_client: GitHubClient) -> Self {
         info!("🚀 Initializing Headless Orchestrator with GitHub integration");
         info!("   Autonomous mode: {}", config.autonomous_mode);
-        info!(
-            "   Auto-approve threshold: {}",
-            config.auto_approve_complexity
-        );
+        info!("   Auto-approve threshold: {}", config.auto_approve_complexity);
         info!("   Auto-merge threshold: {}", config.auto_merge_quality);
         info!("   Dry-run: {}", config.dry_run);
 
         // Create AgentConfig with GitHub credentials
         let agent_config = AgentConfig {
-            device_identifier: std::env::var("DEVICE_IDENTIFIER")
-                .unwrap_or_else(|_| "orchestrator".to_string()),
+            device_identifier: std::env::var("DEVICE_IDENTIFIER").unwrap_or_else(|_| "orchestrator".to_string()),
             github_token: std::env::var("GITHUB_TOKEN").unwrap_or_default(),
             repo_owner: Some(github_client.owner().to_string()),
             repo_name: Some(github_client.repo().to_string()),
@@ -313,10 +292,7 @@ impl HeadlessOrchestrator {
                 base_branch: "main".to_string(),
                 draft: false,
             };
-            info!(
-                "   PRCreator initialized: base_branch={}",
-                pr_config.base_branch
-            );
+            info!("   PRCreator initialized: base_branch={}", pr_config.base_branch);
             Some(PRCreator::new(pr_config))
         } else {
             info!("   Dry-run mode: PRCreator disabled");
@@ -365,9 +341,7 @@ impl HeadlessOrchestrator {
         }
 
         // Phase 1: Issue Analysis
-        let analysis_result = self
-            .run_phase_1_issue_analysis(issue, &mut state_machine)
-            .await?;
+        let analysis_result = self.run_phase_1_issue_analysis(issue, &mut state_machine).await?;
 
         // Check complexity and decide
         let decision = self
@@ -387,38 +361,22 @@ impl HeadlessOrchestrator {
                 self.notification_service.send(&notification).await?;
 
                 // Continue to Phase 2: Task Decomposition
-                let decomposition = self
-                    .run_phase_2_task_decomposition(issue, &mut state_machine)
-                    .await?;
+                let decomposition = self.run_phase_2_task_decomposition(issue, &mut state_machine).await?;
 
-                info!(
-                    "✅ Phase 2 complete: {} tasks generated",
-                    decomposition.tasks.len()
-                );
+                info!("✅ Phase 2 complete: {} tasks generated", decomposition.tasks.len());
 
                 // Continue to Phase 3: Worktree Creation (if multiple tasks and worktree enabled)
                 if decomposition.tasks.len() > 1 {
                     if self.worktree_manager.is_some() {
                         let worktrees = self
-                            .run_phase_3_worktree_creation(
-                                issue,
-                                &decomposition,
-                                &mut state_machine,
-                            )
+                            .run_phase_3_worktree_creation(issue, &decomposition, &mut state_machine)
                             .await?;
-                        info!(
-                            "✅ Phase 3 complete: {} worktrees created",
-                            decomposition.tasks.len()
-                        );
+                        info!("✅ Phase 3 complete: {} worktrees created", decomposition.tasks.len());
 
                         // Continue to Phase 4: CodeGen Execution (5-Worlds parallel)
                         if self.claude_code_executor.is_some() && !worktrees.is_empty() {
                             let execution_result = self
-                                .run_phase_4_codegen_execution(
-                                    issue,
-                                    &worktrees,
-                                    &mut state_machine,
-                                )
+                                .run_phase_4_codegen_execution(issue, &worktrees, &mut state_machine)
                                 .await?;
                             info!(
                                 "✅ Phase 4 complete: {}% confidence ({}/{} worlds succeeded)",
@@ -432,20 +390,12 @@ impl HeadlessOrchestrator {
                                 let branch_name = format!("feat/issue-{}", issue.number);
 
                                 // Phase 6: Quality Check
-                                let quality_report =
-                                    self.run_phase_6_quality_check(&mut state_machine).await?;
-                                info!(
-                                    "✅ Phase 6 complete: Quality score {}/100",
-                                    quality_report.score
-                                );
+                                let quality_report = self.run_phase_6_quality_check(&mut state_machine).await?;
+                                info!("✅ Phase 6 complete: Quality score {}/100", quality_report.score);
 
                                 // Phase 7: PR Creation
                                 let pr = self
-                                    .run_phase_7_pr_creation(
-                                        issue,
-                                        branch_name.clone(),
-                                        &mut state_machine,
-                                    )
+                                    .run_phase_7_pr_creation(issue, branch_name.clone(), &mut state_machine)
                                     .await?;
                                 info!("✅ Phase 7 complete: PR #{} created", pr.number);
 
@@ -465,10 +415,7 @@ impl HeadlessOrchestrator {
                                     &mut state_machine,
                                 )
                                 .await?;
-                                info!(
-                                    "✅ Phase 9 complete: Workflow finished for Issue #{}",
-                                    issue.number
-                                );
+                                info!("✅ Phase 9 complete: Workflow finished for Issue #{}", issue.number);
                             } else {
                                 warn!(
                                     "⚠️  Phase 6-9 skipped: Low confidence ({:.1}%), requires human review",
@@ -479,19 +426,14 @@ impl HeadlessOrchestrator {
                             info!("⏭️  Phase 4 skipped: ClaudeCodeExecutor not initialized or no worktrees");
                         }
                     } else {
-                        info!(
-                            "⏭️  Phase 3 skipped: Single-threaded execution (no worktree manager)"
-                        );
+                        info!("⏭️  Phase 3 skipped: Single-threaded execution (no worktree manager)");
                     }
                 } else {
                     info!("⏭️  Phase 3 skipped: Single task execution (worktree not needed)");
                 }
             }
             Decision::NotifyAndProceed { delay_seconds } => {
-                info!(
-                    "🔔 Notifying and proceeding after {}s for Issue #{}",
-                    delay_seconds, issue.number
-                );
+                info!("🔔 Notifying and proceeding after {}s for Issue #{}", delay_seconds, issue.number);
 
                 // Send Phase 1 completion notification
                 let notification = Notification::phase1_complete(
@@ -505,38 +447,22 @@ impl HeadlessOrchestrator {
                 tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
 
                 // Continue to Phase 2: Task Decomposition
-                let decomposition = self
-                    .run_phase_2_task_decomposition(issue, &mut state_machine)
-                    .await?;
+                let decomposition = self.run_phase_2_task_decomposition(issue, &mut state_machine).await?;
 
-                info!(
-                    "✅ Phase 2 complete: {} tasks generated",
-                    decomposition.tasks.len()
-                );
+                info!("✅ Phase 2 complete: {} tasks generated", decomposition.tasks.len());
 
                 // Continue to Phase 3: Worktree Creation (if multiple tasks and worktree enabled)
                 if decomposition.tasks.len() > 1 {
                     if self.worktree_manager.is_some() {
                         let worktrees = self
-                            .run_phase_3_worktree_creation(
-                                issue,
-                                &decomposition,
-                                &mut state_machine,
-                            )
+                            .run_phase_3_worktree_creation(issue, &decomposition, &mut state_machine)
                             .await?;
-                        info!(
-                            "✅ Phase 3 complete: {} worktrees created",
-                            decomposition.tasks.len()
-                        );
+                        info!("✅ Phase 3 complete: {} worktrees created", decomposition.tasks.len());
 
                         // Continue to Phase 4: CodeGen Execution (5-Worlds parallel)
                         if self.claude_code_executor.is_some() && !worktrees.is_empty() {
                             let execution_result = self
-                                .run_phase_4_codegen_execution(
-                                    issue,
-                                    &worktrees,
-                                    &mut state_machine,
-                                )
+                                .run_phase_4_codegen_execution(issue, &worktrees, &mut state_machine)
                                 .await?;
                             info!(
                                 "✅ Phase 4 complete: {}% confidence ({}/{} worlds succeeded)",
@@ -550,20 +476,12 @@ impl HeadlessOrchestrator {
                                 let branch_name = format!("feat/issue-{}", issue.number);
 
                                 // Phase 6: Quality Check
-                                let quality_report =
-                                    self.run_phase_6_quality_check(&mut state_machine).await?;
-                                info!(
-                                    "✅ Phase 6 complete: Quality score {}/100",
-                                    quality_report.score
-                                );
+                                let quality_report = self.run_phase_6_quality_check(&mut state_machine).await?;
+                                info!("✅ Phase 6 complete: Quality score {}/100", quality_report.score);
 
                                 // Phase 7: PR Creation
                                 let pr = self
-                                    .run_phase_7_pr_creation(
-                                        issue,
-                                        branch_name.clone(),
-                                        &mut state_machine,
-                                    )
+                                    .run_phase_7_pr_creation(issue, branch_name.clone(), &mut state_machine)
                                     .await?;
                                 info!("✅ Phase 7 complete: PR #{} created", pr.number);
 
@@ -583,10 +501,7 @@ impl HeadlessOrchestrator {
                                     &mut state_machine,
                                 )
                                 .await?;
-                                info!(
-                                    "✅ Phase 9 complete: Workflow finished for Issue #{}",
-                                    issue.number
-                                );
+                                info!("✅ Phase 9 complete: Workflow finished for Issue #{}", issue.number);
                             } else {
                                 warn!(
                                     "⚠️  Phase 6-9 skipped: Low confidence ({:.1}%), requires human review",
@@ -597,26 +512,17 @@ impl HeadlessOrchestrator {
                             info!("⏭️  Phase 4 skipped: ClaudeCodeExecutor not initialized or no worktrees");
                         }
                     } else {
-                        info!(
-                            "⏭️  Phase 3 skipped: Single-threaded execution (no worktree manager)"
-                        );
+                        info!("⏭️  Phase 3 skipped: Single-threaded execution (no worktree manager)");
                     }
                 } else {
                     info!("⏭️  Phase 3 skipped: Single task execution (worktree not needed)");
                 }
             }
             Decision::EscalateToHuman { reason } => {
-                warn!(
-                    "⚠️  Escalating Issue #{} to human: {}",
-                    issue.number, reason
-                );
+                warn!("⚠️  Escalating Issue #{} to human: {}", issue.number, reason);
 
                 // Send escalation notification
-                let notification = Notification::escalation(
-                    issue.number,
-                    analysis_result.complexity,
-                    reason.clone(),
-                );
+                let notification = Notification::escalation(issue.number, analysis_result.complexity, reason.clone());
                 self.notification_service.send(&notification).await?;
 
                 // Stop and wait for human approval
@@ -671,15 +577,9 @@ impl HeadlessOrchestrator {
         info!("   Executing IssueAgent for Issue #{}", issue.number);
         let analysis = self.issue_agent.analyze_issue(issue).await?;
 
-        info!(
-            "   Complexity: {:.1}/10.0 ({:?})",
-            analysis.complexity, analysis.complexity_level
-        );
+        info!("   Complexity: {:.1}/10.0 ({:?})", analysis.complexity, analysis.complexity_level);
         info!("   Suggested labels: {:?}", analysis.labels);
-        info!(
-            "   Estimated duration: {} hours",
-            analysis.estimated_duration_hours
-        );
+        info!("   Estimated duration: {} hours", analysis.estimated_duration_hours);
         info!("   Reasoning: {}", analysis.reasoning);
 
         // Apply labels to GitHub Issue if client is available
@@ -687,10 +587,7 @@ impl HeadlessOrchestrator {
             self.apply_labels_to_issue(client, issue.number, &analysis.labels)
                 .await?;
         } else if !self.config.dry_run {
-            warn!(
-                "GitHub client not configured, skipping label application for Issue #{}",
-                issue.number
-            );
+            warn!("GitHub client not configured, skipping label application for Issue #{}", issue.number);
         }
 
         state_machine.transition_to(Phase::IssueAnalysis)?;
@@ -728,24 +625,13 @@ impl HeadlessOrchestrator {
     }
 
     /// Apply suggested labels to GitHub Issue
-    async fn apply_labels_to_issue(
-        &self,
-        client: &GitHubClient,
-        issue_number: u64,
-        labels: &[String],
-    ) -> Result<()> {
+    async fn apply_labels_to_issue(&self, client: &GitHubClient, issue_number: u64, labels: &[String]) -> Result<()> {
         if self.config.dry_run {
-            info!(
-                "   [DRY-RUN] Would apply labels to Issue #{}: {:?}",
-                issue_number, labels
-            );
+            info!("   [DRY-RUN] Would apply labels to Issue #{}: {:?}", issue_number, labels);
             return Ok(());
         }
 
-        info!(
-            "🏷️  Applying labels to Issue #{}: {:?}",
-            issue_number, labels
-        );
+        info!("🏷️  Applying labels to Issue #{}: {:?}", issue_number, labels);
 
         match client.add_labels(issue_number, labels).await {
             Ok(_) => {
@@ -753,10 +639,7 @@ impl HeadlessOrchestrator {
                 Ok(())
             }
             Err(e) => {
-                warn!(
-                    "⚠️  Failed to apply labels to Issue #{}: {}",
-                    issue_number, e
-                );
+                warn!("⚠️  Failed to apply labels to Issue #{}: {}", issue_number, e);
                 // Don't fail the entire workflow if label application fails
                 Ok(())
             }
@@ -835,10 +718,7 @@ impl HeadlessOrchestrator {
 
         info!("   Generated {} tasks", decomposition.tasks.len());
         info!("   DAG levels: {}", decomposition.dag.levels.len());
-        info!(
-            "   Estimated total duration: {} minutes",
-            decomposition.estimated_total_duration
-        );
+        info!("   Estimated total duration: {} minutes", decomposition.estimated_total_duration);
         info!("   Has cycles: {}", decomposition.has_cycles);
 
         if !decomposition.recommendations.is_empty() {
@@ -895,10 +775,7 @@ impl HeadlessOrchestrator {
         decomposition: &TaskDecomposition,
         state_machine: &mut StateMachine,
     ) -> Result<Vec<WorktreeInfo>> {
-        info!(
-            "🌳 Phase 3: Worktree Creation for {} tasks",
-            decomposition.tasks.len()
-        );
+        info!("🌳 Phase 3: Worktree Creation for {} tasks", decomposition.tasks.len());
 
         let worktree_manager = self
             .worktree_manager
@@ -915,12 +792,7 @@ impl HeadlessOrchestrator {
 
         // Create a worktree for each task
         for (idx, task) in decomposition.tasks.iter().enumerate() {
-            info!(
-                "   Creating worktree {}/{}: {}",
-                idx + 1,
-                decomposition.tasks.len(),
-                task.title
-            );
+            info!("   Creating worktree {}/{}: {}", idx + 1, decomposition.tasks.len(), task.title);
 
             // Create worktree for this task
             let worktree = worktree_manager.create_worktree(issue.number).await?;
@@ -970,14 +842,8 @@ impl HeadlessOrchestrator {
         worktrees: &[WorktreeInfo],
         state_machine: &mut StateMachine,
     ) -> Result<crate::claude_code_executor::ExecutionResult> {
-        info!(
-            "🚀 Phase 4: CodeGen Execution (5-Worlds Parallel) for #{}",
-            issue.number
-        );
-        info!(
-            "   Worktrees: {:?}",
-            worktrees.iter().map(|w| &w.path).collect::<Vec<_>>()
-        );
+        info!("🚀 Phase 4: CodeGen Execution (5-Worlds Parallel) for #{}", issue.number);
+        info!("   Worktrees: {:?}", worktrees.iter().map(|w| &w.path).collect::<Vec<_>>());
 
         let executor = self
             .claude_code_executor
@@ -1014,22 +880,13 @@ impl HeadlessOrchestrator {
 
         info!("   5-Worlds execution complete:");
         info!("     Success: {}", execution_result.success);
-        info!(
-            "     Confidence: {}%",
-            (execution_result.confidence * 100.0).round()
-        );
-        info!(
-            "     Successful worlds: {}/{}",
-            execution_result.successful_worlds, execution_result.total_worlds
-        );
+        info!("     Confidence: {}%", (execution_result.confidence * 100.0).round());
+        info!("     Successful worlds: {}/{}", execution_result.successful_worlds, execution_result.total_worlds);
 
         // Display individual world results
         for world_result in &execution_result.world_results {
             let status_icon = if world_result.success { "✅" } else { "❌" };
-            info!(
-                "     {} World {}: {}",
-                status_icon, world_result.world_id, world_result.message
-            );
+            info!("     {} World {}: {}", status_icon, world_result.world_id, world_result.message);
         }
 
         if execution_result.success {
@@ -1185,10 +1042,7 @@ impl HeadlessOrchestrator {
         branch_name: String,
         state_machine: &mut StateMachine,
     ) -> Result<crate::pr_creator::PullRequest> {
-        info!(
-            "📝 Phase 7: PR Creation & Auto-Description for #{}",
-            issue.number
-        );
+        info!("📝 Phase 7: PR Creation & Auto-Description for #{}", issue.number);
         info!("   Branch: {}", branch_name);
 
         let pr_creator = self
@@ -1259,10 +1113,7 @@ impl HeadlessOrchestrator {
         pr_number: u64,
         state_machine: &mut StateMachine,
     ) -> Result<f64> {
-        info!(
-            "🔍 Phase 8: Code Review自動化 for PR #{} (Issue #{})",
-            pr_number, issue.number
-        );
+        info!("🔍 Phase 8: Code Review自動化 for PR #{} (Issue #{})", pr_number, issue.number);
 
         if self.config.dry_run {
             info!("   [DRY-RUN] Skipping actual code review");
@@ -1355,10 +1206,7 @@ impl HeadlessOrchestrator {
                     .priority(Priority::Urgent)
                     .message_type(MessageType::Error(ErrorMessage {
                         code: "PHASE8_LOW_REVIEW_SCORE".to_string(),
-                        message: format!(
-                            "Code review failed: {:.1}/100 < 60 threshold",
-                            review_score
-                        ),
+                        message: format!("Code review failed: {:.1}/100 < 60 threshold", review_score),
                         stacktrace: None,
                     }))
                     .build()
@@ -1381,14 +1229,8 @@ impl HeadlessOrchestrator {
         review_score: f64,
         state_machine: &mut StateMachine,
     ) -> Result<()> {
-        info!(
-            "🚀 Phase 9: Auto-Merge & Deployment for PR #{} (Issue #{})",
-            pr_number, issue.number
-        );
-        info!(
-            "   Quality Score: {:.1}/100, Review Score: {:.1}/100",
-            quality_score, review_score
-        );
+        info!("🚀 Phase 9: Auto-Merge & Deployment for PR #{} (Issue #{})", pr_number, issue.number);
+        info!("   Quality Score: {:.1}/100, Review Score: {:.1}/100", quality_score, review_score);
 
         if self.config.dry_run {
             info!("   [DRY-RUN] Skipping actual auto-merge and deployment");
@@ -1397,8 +1239,8 @@ impl HeadlessOrchestrator {
         }
 
         // Auto-merge judgment
-        let should_merge = quality_score >= self.config.auto_merge_quality
-            && review_score >= self.config.auto_merge_quality;
+        let should_merge =
+            quality_score >= self.config.auto_merge_quality && review_score >= self.config.auto_merge_quality;
 
         if !should_merge {
             warn!(
@@ -1436,10 +1278,7 @@ impl HeadlessOrchestrator {
         }
 
         // Execute auto-merge
-        info!(
-            "   ✅ Auto-merge criteria met! Merging PR #{}...",
-            pr_number
-        );
+        info!("   ✅ Auto-merge criteria met! Merging PR #{}...", pr_number);
         self.execute_auto_merge(pr_number).await?;
         info!("   ✅ PR #{} merged successfully", pr_number);
 
@@ -1524,10 +1363,7 @@ impl HeadlessOrchestrator {
         // Add metrics if available
         if let Some(ref metrics) = agent_result.metrics {
             if let Some(quality_score) = metrics.quality_score {
-                body.push_str(&format!(
-                    "**Metrics Quality Score**: {:.1}/100\n",
-                    quality_score
-                ));
+                body.push_str(&format!("**Metrics Quality Score**: {:.1}/100\n", quality_score));
             }
             body.push_str(&format!("**Duration**: {}ms\n", metrics.duration_ms));
         }
@@ -1596,10 +1432,7 @@ impl HeadlessOrchestrator {
     }
 
     /// Create aggregated result from worktrees for PR body
-    async fn create_aggregated_result(
-        &self,
-        issue: &Issue,
-    ) -> Result<crate::aggregator::AggregatedResult> {
+    async fn create_aggregated_result(&self, issue: &Issue) -> Result<crate::aggregator::AggregatedResult> {
         use crate::aggregator::AggregatedResult;
         use crate::parser::AgentResult;
         use std::collections::HashMap;
@@ -1645,14 +1478,11 @@ impl HeadlessOrchestrator {
 /// Implementation of SkillExecutor trait for HeadlessOrchestrator
 #[async_trait::async_trait]
 impl SkillExecutor for HeadlessOrchestrator {
-    async fn execute_skill(
-        &self,
-        skill_name: &str,
-        context: HashMap<String, String>,
-    ) -> Result<SkillResult> {
-        let bridge = self.skills_bridge.as_ref().ok_or_else(|| {
-            anyhow!("Skills Bridge not initialized. Call with_skills_bridge() first")
-        })?;
+    async fn execute_skill(&self, skill_name: &str, context: HashMap<String, String>) -> Result<SkillResult> {
+        let bridge = self
+            .skills_bridge
+            .as_ref()
+            .ok_or_else(|| anyhow!("Skills Bridge not initialized. Call with_skills_bridge() first"))?;
 
         let request = SkillRequest {
             skill_name: skill_name.to_string(),
@@ -1663,10 +1493,7 @@ impl SkillExecutor for HeadlessOrchestrator {
         bridge.execute_skill(request).await
     }
 
-    async fn execute_skills_parallel(
-        &self,
-        requests: Vec<SkillRequest>,
-    ) -> Vec<Result<SkillResult>> {
+    async fn execute_skills_parallel(&self, requests: Vec<SkillRequest>) -> Vec<Result<SkillResult>> {
         let bridge = match self.skills_bridge.as_ref() {
             Some(b) => b,
             None => {
@@ -1742,10 +1569,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_dry_run_mode() {
-        let config = HeadlessOrchestratorConfig {
-            dry_run: true,
-            ..Default::default()
-        };
+        let config = HeadlessOrchestratorConfig { dry_run: true, ..Default::default() };
         let mut orchestrator = HeadlessOrchestrator::new(config);
 
         let issue = create_test_issue(123, "Test issue", "Test body");

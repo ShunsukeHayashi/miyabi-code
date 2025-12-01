@@ -75,10 +75,7 @@ impl Notification {
             notification_type: NotificationType::Error,
             issue_number,
             title: format!("❌ Error: Issue #{}", issue_number),
-            message: format!(
-                "Error occurred while processing Issue #{}:\n{}",
-                issue_number, error_message
-            ),
+            message: format!("Error occurred while processing Issue #{}:\n{}", issue_number, error_message),
             metadata: serde_json::json!({
                 "error": error_message,
             })
@@ -100,11 +97,7 @@ pub struct NotificationService {
 impl NotificationService {
     /// Create a new notification service
     pub fn new() -> Self {
-        Self {
-            discord_webhook: None,
-            slack_webhook: None,
-            enabled: false,
-        }
+        Self { discord_webhook: None, slack_webhook: None, enabled: false }
     }
 
     /// Enable Discord notifications
@@ -191,16 +184,10 @@ mod tests {
 
     #[test]
     fn test_notification_phase1_complete() {
-        let notification = Notification::phase1_complete(
-            123,
-            4.5,
-            vec!["type:feature".to_string(), "priority:P2-Medium".to_string()],
-        );
+        let notification =
+            Notification::phase1_complete(123, 4.5, vec!["type:feature".to_string(), "priority:P2-Medium".to_string()]);
 
-        assert_eq!(
-            notification.notification_type,
-            NotificationType::Phase1Complete
-        );
+        assert_eq!(notification.notification_type, NotificationType::Phase1Complete);
         assert_eq!(notification.issue_number, 123);
         assert!(notification.title.contains("Phase 1 Complete"));
         assert!(notification.message.contains("4.5"));
@@ -208,8 +195,7 @@ mod tests {
 
     #[test]
     fn test_notification_escalation() {
-        let notification =
-            Notification::escalation(456, 8.5, "High complexity requires review".to_string());
+        let notification = Notification::escalation(456, 8.5, "High complexity requires review".to_string());
 
         assert_eq!(notification.notification_type, NotificationType::Escalation);
         assert_eq!(notification.issue_number, 456);
@@ -237,8 +223,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_notification_service_with_discord() {
-        let service =
-            NotificationService::new().with_discord("https://discord.com/webhook/test".to_string());
+        let service = NotificationService::new().with_discord("https://discord.com/webhook/test".to_string());
 
         let notification = Notification::phase1_complete(123, 4.5, vec![]);
         let result = service.send(&notification).await;
@@ -249,8 +234,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_notification_service_with_slack() {
-        let service = NotificationService::new()
-            .with_slack("https://hooks.slack.com/services/test".to_string());
+        let service = NotificationService::new().with_slack("https://hooks.slack.com/services/test".to_string());
 
         let notification = Notification::phase1_complete(123, 4.5, vec![]);
         let result = service.send(&notification).await;

@@ -207,11 +207,7 @@ async fn main() -> Result<()> {
     ensure_valid_working_directory();
 
     let result = match cli.command {
-        Some(Commands::Init {
-            name,
-            private,
-            interactive,
-        }) => {
+        Some(Commands::Init { name, private, interactive }) => {
             let cmd = InitCommand::with_interactive(name, private, interactive);
             cmd.execute().await
         }
@@ -227,26 +223,17 @@ async fn main() -> Result<()> {
             let cmd = StatusCommand::new(watch);
             cmd.execute().await
         }
-        Some(Commands::Agent {
-            agent_type,
-            issue,
-            mode,
-        }) => {
+        Some(Commands::Agent { agent_type, issue, mode }) => {
             // Parse execution mode
             let execution_mode = mode
                 .map(|m| m.parse::<miyabi_agent_codegen::ExecutionMode>())
                 .transpose()
-                .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
-                    error::CliError::InvalidInput(e.to_string())
-                })?;
+                .map_err(|e: Box<dyn std::error::Error + Send + Sync>| error::CliError::InvalidInput(e.to_string()))?;
 
             let cmd = AgentCommand::new(agent_type, issue, execution_mode);
             cmd.execute().await
         }
-        Some(Commands::Parallel {
-            issues,
-            concurrency,
-        }) => {
+        Some(Commands::Parallel { issues, concurrency }) => {
             let cmd = ParallelCommand::new(issues, concurrency);
             cmd.execute().await
         }
@@ -269,10 +256,7 @@ async fn main() -> Result<()> {
                 println!("  2. Run: miyabi work-on <issue-number>");
                 println!();
                 println!("{}", "Or use GitHub CLI:".dimmed());
-                println!(
-                    "  {}",
-                    format!("gh issue create --title \"{}\" --label type:feature", task).yellow()
-                );
+                println!("  {}", format!("gh issue create --title \"{}\" --label type:feature", task).yellow());
                 Ok(())
             }
         }
@@ -285,30 +269,14 @@ async fn main() -> Result<()> {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
         }
-        Some(Commands::Cleanup {
-            dry_run,
-            force,
-            all,
-        }) => {
+        Some(Commands::Cleanup { dry_run, force, all }) => {
             let cmd = CleanupCommand::new(dry_run, force, all);
             cmd.execute().await
         }
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
-        Some(Commands::Infinity {
-            max_issues,
-            concurrency,
-            sprint_size,
-            dry_run,
-            resume,
-        }) => {
-            let cmd = InfinityCommand {
-                max_issues,
-                concurrency,
-                sprint_size,
-                dry_run,
-                resume,
-            };
+        Some(Commands::Infinity { max_issues, concurrency, sprint_size, dry_run, resume }) => {
+            let cmd = InfinityCommand { max_issues, concurrency, sprint_size, dry_run, resume };
             cmd.execute().await
         }
         // Temporarily disabled until Issue #719 is merged
@@ -333,21 +301,12 @@ async fn main() -> Result<()> {
 
         // Attempt directory recovery if error is related to working directory
         if is_directory_related_error(e) {
-            eprintln!(
-                "{}",
-                "⚠️  Attempting to recover from directory error...".yellow()
-            );
+            eprintln!("{}", "⚠️  Attempting to recover from directory error...".yellow());
             if recover_from_directory_error() {
-                eprintln!(
-                    "{}",
-                    "✅ Directory recovered. Please retry the command.".green()
-                );
+                eprintln!("{}", "✅ Directory recovered. Please retry the command.".green());
                 std::process::exit(2); // Exit with recoverable error code
             } else {
-                eprintln!(
-                    "{}",
-                    "❌ Failed to recover directory. Please manually cd to project root.".red()
-                );
+                eprintln!("{}", "❌ Failed to recover directory. Please manually cd to project root.".red());
             }
         }
 
@@ -364,18 +323,12 @@ fn ensure_valid_working_directory() {
         Ok(current) => {
             // Check if current directory exists
             if !current.exists() {
-                eprintln!(
-                    "{}",
-                    "⚠️  Current directory no longer exists (possibly deleted worktree)".yellow()
-                );
+                eprintln!("{}", "⚠️  Current directory no longer exists (possibly deleted worktree)".yellow());
                 recover_from_directory_error();
             }
         }
         Err(e) => {
-            eprintln!(
-                "{}",
-                format!("⚠️  Cannot read current directory: {}", e).yellow()
-            );
+            eprintln!("{}", format!("⚠️  Cannot read current directory: {}", e).yellow());
             recover_from_directory_error();
         }
     }
@@ -401,10 +354,7 @@ fn recover_from_directory_error() -> bool {
             if let Ok(repo_root) = String::from_utf8(output.stdout) {
                 let repo_root = repo_root.trim();
                 if std::env::set_current_dir(repo_root).is_ok() {
-                    eprintln!(
-                        "{}",
-                        format!("  ✓ Changed directory to: {}", repo_root).green()
-                    );
+                    eprintln!("{}", format!("  ✓ Changed directory to: {}", repo_root).green());
                     return true;
                 }
             }
@@ -414,10 +364,7 @@ fn recover_from_directory_error() -> bool {
     // Fallback: Try to go to home directory (cross-platform)
     if let Some(home) = dirs::home_dir() {
         if std::env::set_current_dir(&home).is_ok() {
-            eprintln!(
-                "{}",
-                format!("  ✓ Changed directory to home: {}", home.display()).green()
-            );
+            eprintln!("{}", format!("  ✓ Changed directory to home: {}", home.display()).green());
             return true;
         }
     }

@@ -40,10 +40,7 @@ impl SeedanceClient {
             header::HeaderValue::from_str(&format!("Bearer {}", api_key))
                 .map_err(|e| SeedanceError::ApiError(format!("Invalid API key format: {}", e)))?,
         );
-        headers.insert(
-            header::CONTENT_TYPE,
-            header::HeaderValue::from_static("application/json"),
-        );
+        headers.insert(header::CONTENT_TYPE, header::HeaderValue::from_static("application/json"));
 
         let client = Client::builder()
             .default_headers(headers)
@@ -97,10 +94,7 @@ impl SeedanceClient {
 
         let task_response: TaskCreateResponse = response.json().await?;
 
-        info!(
-            "Created Seedance task: {} (status: {:?})",
-            task_response.task_id, task_response.status
-        );
+        info!("Created Seedance task: {} (status: {:?})", task_response.task_id, task_response.status);
 
         Ok(task_response)
     }
@@ -120,18 +114,12 @@ impl SeedanceClient {
 
         if !response.status().is_success() {
             let error_text = response.text().await?;
-            return Err(SeedanceError::ApiError(format!(
-                "Failed to query task {}: {}",
-                task_id, error_text
-            )));
+            return Err(SeedanceError::ApiError(format!("Failed to query task {}: {}", task_id, error_text)));
         }
 
         let status_response: TaskStatusResponse = response.json().await?;
 
-        debug!(
-            "Task {} status: {:?} (progress: {:?}%)",
-            task_id, status_response.status, status_response.progress
-        );
+        debug!("Task {} status: {:?} (progress: {:?}%)", task_id, status_response.status, status_response.progress);
 
         Ok(status_response)
     }
@@ -158,9 +146,7 @@ impl SeedanceClient {
         loop {
             // Check timeout
             if start_time.elapsed() > self.polling_timeout {
-                return Err(SeedanceError::PollingTimeout(
-                    self.polling_timeout.as_secs(),
-                ));
+                return Err(SeedanceError::PollingTimeout(self.polling_timeout.as_secs()));
             }
 
             // Query task status
@@ -175,9 +161,7 @@ impl SeedanceClient {
                     warn!("Task {} failed: {:?}", task_id, response.error);
                     return Err(SeedanceError::InvalidTaskStatus(format!(
                         "Task failed: {}",
-                        response
-                            .error
-                            .unwrap_or_else(|| "Unknown error".to_string())
+                        response.error.unwrap_or_else(|| "Unknown error".to_string())
                     )));
                 }
                 TaskStatus::Pending | TaskStatus::Processing => {
@@ -211,9 +195,9 @@ impl SeedanceClient {
         let status_response = self.poll_task(&create_response.task_id).await?;
 
         // Extract video URL
-        status_response.video_url.ok_or_else(|| {
-            SeedanceError::InvalidResponse("Completed task missing video URL".to_string())
-        })
+        status_response
+            .video_url
+            .ok_or_else(|| SeedanceError::InvalidResponse("Completed task missing video URL".to_string()))
     }
 }
 

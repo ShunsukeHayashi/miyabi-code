@@ -164,11 +164,7 @@ impl Default for CompositeServiceState {
             agent_state: AgentState {
                 active_agents: vec![],
                 task_queue: vec![],
-                github_state: GitHubState {
-                    open_issues: 0,
-                    open_prs: 0,
-                    recent_commits: vec![],
-                },
+                github_state: GitHubState { open_issues: 0, open_prs: 0, recent_commits: vec![] },
             },
             business_state: BusinessState {
                 products: vec![],
@@ -177,15 +173,8 @@ impl Default for CompositeServiceState {
                 payments: vec![],
                 approvals: vec![],
             },
-            user_state: UserState {
-                logged_in_users: vec![],
-                active_sessions: vec![],
-            },
-            aws_state: AwsState {
-                accounts: vec![],
-                resources: vec![],
-                service_agents: vec![],
-            },
+            user_state: UserState { logged_in_users: vec![], active_sessions: vec![] },
+            aws_state: AwsState { accounts: vec![], resources: vec![], service_agents: vec![] },
             last_updated: Utc::now(),
             version: 0,
         }

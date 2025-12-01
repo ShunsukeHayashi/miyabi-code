@@ -19,8 +19,7 @@ pub use push_notification::{
 
 // Re-export RPC handlers
 pub use handlers::{
-    A2ARpcHandler, AgentCardRpcHandler, GetAuthenticatedExtendedCardParams,
-    GetAuthenticatedExtendedCardResponse, MessageSendParams, MessageSendResponse, TaskStorage,
-    TasksCancelParams, TasksCancelResponse, TasksGetParams, TasksGetResponse, TasksListParams,
-    TasksListResponse,
+    A2ARpcHandler, AgentCardRpcHandler, GetAuthenticatedExtendedCardParams, GetAuthenticatedExtendedCardResponse,
+    MessageSendParams, MessageSendResponse, TaskStorage, TasksCancelParams, TasksCancelResponse, TasksGetParams,
+    TasksGetResponse, TasksListParams, TasksListResponse,
 };

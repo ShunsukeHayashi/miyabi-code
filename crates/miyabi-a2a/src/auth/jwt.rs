@@ -34,9 +34,7 @@ pub struct JwtValidator {
 impl JwtValidator {
     /// Create a new JWT validator with the given secret
     pub fn new(secret: impl Into<String>) -> Self {
-        Self {
-            secret: secret.into(),
-        }
+        Self { secret: secret.into() }
     }
 
     /// Validate a JWT token and return the claims
@@ -53,9 +51,7 @@ impl JwtValidator {
     /// Extract bearer token from Authorization header
     pub fn extract_bearer_token(auth_header: &str) -> A2AResult<&str> {
         if !auth_header.starts_with("Bearer ") {
-            return Err(A2AError::InvalidRequest(
-                "Authorization header must start with 'Bearer '".to_string(),
-            ));
+            return Err(A2AError::InvalidRequest("Authorization header must start with 'Bearer '".to_string()));
         }
 
         Ok(&auth_header[7..]) // Skip "Bearer "
@@ -82,12 +78,7 @@ mod tests {
             character_id: Some("test-character".to_string()),
         };
 
-        encode(
-            &Header::new(Algorithm::HS256),
-            &claims,
-            &EncodingKey::from_secret(secret.as_bytes()),
-        )
-        .unwrap()
+        encode(&Header::new(Algorithm::HS256), &claims, &EncodingKey::from_secret(secret.as_bytes())).unwrap()
     }
 
     #[test]
@@ -113,10 +104,7 @@ mod tests {
         let result = validator.validate(&token);
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Invalid JWT token"));
+        assert!(result.unwrap_err().to_string().contains("Invalid JWT token"));
     }
 
     #[test]

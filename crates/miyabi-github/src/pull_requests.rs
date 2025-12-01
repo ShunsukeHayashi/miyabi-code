@@ -44,10 +44,7 @@ impl GitHubClient {
         }
 
         let page = handler.send().await.map_err(|e| {
-            MiyabiError::GitHub(format!(
-                "Failed to list pull requests for {}/{}: {}",
-                self.owner, self.repo, e
-            ))
+            MiyabiError::GitHub(format!("Failed to list pull requests for {}/{}: {}", self.owner, self.repo, e))
         })?;
 
         page.items.into_iter().map(convert_pull_request).collect()
@@ -79,10 +76,7 @@ impl GitHubClient {
         handler = handler.draft(draft);
 
         let pr = handler.send().await.map_err(|e| {
-            MiyabiError::GitHub(format!(
-                "Failed to create pull request in {}/{}: {}",
-                self.owner, self.repo, e
-            ))
+            MiyabiError::GitHub(format!("Failed to create pull request in {}/{}: {}", self.owner, self.repo, e))
         })?;
 
         convert_pull_request(pr)
@@ -187,17 +181,8 @@ fn convert_pull_request(pr: OctoPR) -> Result<PRResult> {
         match pr.state {
             Some(OctoState::Open) => PRState::Open,
             Some(OctoState::Closed) => PRState::Closed,
-            Some(ref s) => {
-                return Err(MiyabiError::GitHub(format!(
-                    "Unknown pull request state: {:?}",
-                    s
-                )))
-            }
-            None => {
-                return Err(MiyabiError::GitHub(
-                    "Pull request state is missing".to_string(),
-                ))
-            }
+            Some(ref s) => return Err(MiyabiError::GitHub(format!("Unknown pull request state: {:?}", s))),
+            None => return Err(MiyabiError::GitHub("Pull request state is missing".to_string())),
         }
     };
 

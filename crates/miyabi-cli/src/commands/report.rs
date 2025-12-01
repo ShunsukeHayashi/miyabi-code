@@ -97,11 +97,7 @@ pub struct ReportMetrics {
 
 impl ReportCommand {
     pub fn new(report_type: ReportType) -> Self {
-        Self {
-            report_type,
-            output_path: None,
-            send_to: None,
-        }
+        Self { report_type, output_path: None, send_to: None }
     }
 
     pub fn with_output(mut self, path: PathBuf) -> Self {
@@ -115,12 +111,7 @@ impl ReportCommand {
     }
 
     pub async fn execute(&self) -> Result<()> {
-        println!(
-            "{}",
-            format!("📊 Generating {:?} Report...", self.report_type)
-                .cyan()
-                .bold()
-        );
+        println!("{}", format!("📊 Generating {:?} Report...", self.report_type).cyan().bold());
         println!();
 
         // Collect data
@@ -137,11 +128,7 @@ impl ReportCommand {
             // Default: write to reports directory
             let default_path = self.get_default_output_path();
             self.write_to_file(&default_path, &markdown).await?;
-            println!(
-                "  {} Report saved to: {}",
-                "✅".green(),
-                default_path.display()
-            );
+            println!("  {} Report saved to: {}", "✅".green(), default_path.display());
         }
 
         if let Some(ref target) = self.send_to {
@@ -269,9 +256,7 @@ impl ReportCommand {
             .await
         {
             if output.status.success() {
-                if let Ok(json_issues) =
-                    serde_json::from_slice::<Vec<serde_json::Value>>(&output.stdout)
-                {
+                if let Ok(json_issues) = serde_json::from_slice::<Vec<serde_json::Value>>(&output.stdout) {
                     for issue in json_issues {
                         issues.push(IssueEntry {
                             number: issue["number"].as_u64().unwrap_or(0) as u32,
@@ -350,11 +335,7 @@ impl ReportCommand {
 
         // Check for critical issues
         for issue in issues {
-            if issue
-                .labels
-                .iter()
-                .any(|l| l.contains("P0") || l.contains("Critical"))
-            {
+            if issue.labels.iter().any(|l| l.contains("P0") || l.contains("Critical")) {
                 challenges.push(format!("Critical issue: #{} {}", issue.number, issue.title));
             }
         }
@@ -371,11 +352,7 @@ impl ReportCommand {
 
         // Get high priority open issues
         for issue in issues.iter().filter(|i| i.state == "OPEN") {
-            if issue
-                .labels
-                .iter()
-                .any(|l| l.contains("P0") || l.contains("P1"))
-            {
+            if issue.labels.iter().any(|l| l.contains("P0") || l.contains("P1")) {
                 actions.push(format!("Address Issue #{}: {}", issue.number, issue.title));
             }
         }
@@ -523,11 +500,7 @@ _🤖 Generated with [Claude Code](https://claude.com/claude-code)_
 
     fn get_default_output_path(&self) -> PathBuf {
         let now = Local::now();
-        let filename = format!(
-            "{:?}-report-{}.md",
-            self.report_type,
-            now.format("%Y%m%d-%H%M%S")
-        );
+        let filename = format!("{:?}-report-{}.md", self.report_type, now.format("%Y%m%d-%H%M%S"));
 
         // Create reports directory if needed
         let reports_dir = PathBuf::from("reports");
@@ -595,28 +568,12 @@ _🤖 Generated with [Claude Code](https://claude.com/claude-code)_
     fn print_summary(&self, report: &Report) {
         println!();
         println!("{}", "Report Summary:".bold());
-        println!(
-            "  {} Tasks Completed: {}",
-            "✅".green(),
-            report.summary.tasks_completed
-        );
-        println!(
-            "  {} Tasks In Progress: {}",
-            "🔄".blue(),
-            report.summary.tasks_in_progress
-        );
+        println!("  {} Tasks Completed: {}", "✅".green(), report.summary.tasks_completed);
+        println!("  {} Tasks In Progress: {}", "🔄".blue(), report.summary.tasks_in_progress);
         if report.summary.tasks_blocked > 0 {
-            println!(
-                "  {} Tasks Blocked: {}",
-                "⚠".yellow(),
-                report.summary.tasks_blocked
-            );
+            println!("  {} Tasks Blocked: {}", "⚠".yellow(), report.summary.tasks_blocked);
         }
-        println!(
-            "  {} Success Rate: {:.1}%",
-            "📈".cyan(),
-            report.metrics.success_rate
-        );
+        println!("  {} Success Rate: {:.1}%", "📈".cyan(), report.metrics.success_rate);
         println!();
     }
 }

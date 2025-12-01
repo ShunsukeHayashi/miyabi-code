@@ -37,11 +37,7 @@ impl ProjectType {
 
 impl InitCommand {
     pub fn with_interactive(name: String, private: bool, interactive: bool) -> Self {
-        Self {
-            name,
-            private,
-            interactive,
-        }
+        Self { name, private, interactive }
     }
 
     pub async fn execute(&self) -> Result<()> {
@@ -75,11 +71,7 @@ impl InitCommand {
         let project_type = &project_types[project_type_selection];
 
         println!();
-        println!(
-            "  {} {}",
-            "✨".green(),
-            format!("Great choice! Building: {}", project_type.as_str()).bold()
-        );
+        println!("  {} {}", "✨".green(), format!("Great choice! Building: {}", project_type.as_str()).bold());
         println!();
 
         // Step 2: GitHub connection
@@ -93,10 +85,7 @@ impl InitCommand {
         if connect_github {
             println!("  {} Will set up GitHub integration", "🔗".green());
         } else {
-            println!(
-                "  {} Skipping GitHub (you can set it up later)",
-                "⏭️".yellow()
-            );
+            println!("  {} Skipping GitHub (you can set it up later)", "⏭️".yellow());
         }
         println!();
 
@@ -125,10 +114,7 @@ impl InitCommand {
         println!("{}", "🎉 You're all set!".green().bold());
         println!();
         println!("Your first AI-powered task:");
-        println!(
-            "  {}",
-            "miyabi work-on \"Setup project structure\"".yellow()
-        );
+        println!("  {}", "miyabi work-on \"Setup project structure\"".yellow());
         println!();
         println!("Or try the traditional way:");
         println!("  {}", "miyabi agent run coordinator --issue 1".cyan());
@@ -145,16 +131,13 @@ impl InitCommand {
             if private_repo { "private" } else { "public" }
         );
 
-        let gh_check = Command::new("gh").arg("--version").output().map_err(|_| {
-            CliError::GitConfig(
-                "gh CLI not found. Install from https://cli.github.com/".to_string(),
-            )
-        })?;
+        let gh_check = Command::new("gh")
+            .arg("--version")
+            .output()
+            .map_err(|_| CliError::GitConfig("gh CLI not found. Install from https://cli.github.com/".to_string()))?;
 
         if !gh_check.status.success() {
-            return Err(CliError::GitConfig(
-                "gh CLI could not be executed. Verify installation.".to_string(),
-            ));
+            return Err(CliError::GitConfig("gh CLI could not be executed. Verify installation.".to_string()));
         }
 
         let gh_auth = Command::new("gh")
@@ -163,9 +146,7 @@ impl InitCommand {
             .map_err(|e| CliError::GitConfig(format!("Failed to check gh auth status: {}", e)))?;
 
         if !gh_auth.status.success() {
-            return Err(CliError::GitConfig(
-                "GitHub authentication required. Run: gh auth login".to_string(),
-            ));
+            return Err(CliError::GitConfig("GitHub authentication required. Run: gh auth login".to_string()));
         }
 
         let add_status = Command::new("git")
@@ -175,9 +156,7 @@ impl InitCommand {
             .map_err(|e| CliError::GitConfig(format!("Failed to stage files: {}", e)))?;
 
         if !add_status.success() {
-            return Err(CliError::GitConfig(
-                "Failed to stage files for initial commit".to_string(),
-            ));
+            return Err(CliError::GitConfig("Failed to stage files for initial commit".to_string()));
         }
 
         let commit_output = Command::new("git")
@@ -188,18 +167,11 @@ impl InitCommand {
 
         if !commit_output.status.success() {
             let stderr = String::from_utf8_lossy(&commit_output.stderr);
-            return Err(CliError::GitConfig(format!(
-                "Failed to create initial commit: {}",
-                stderr.trim()
-            )));
+            return Err(CliError::GitConfig(format!("Failed to create initial commit: {}", stderr.trim())));
         }
 
         let mut args = vec!["repo", "create", &self.name];
-        args.push(if private_repo {
-            "--private"
-        } else {
-            "--public"
-        });
+        args.push(if private_repo { "--private" } else { "--public" });
         args.extend_from_slice(&["--source=.", "--remote=origin", "--push"]);
 
         let gh_create = Command::new("gh")
@@ -210,10 +182,7 @@ impl InitCommand {
 
         if !gh_create.status.success() {
             let stderr = String::from_utf8_lossy(&gh_create.stderr);
-            return Err(CliError::GitConfig(format!(
-                "gh repo create failed: {}",
-                stderr.trim()
-            )));
+            return Err(CliError::GitConfig(format!("gh repo create failed: {}", stderr.trim())));
         }
 
         Ok(())
@@ -247,19 +216,11 @@ impl InitCommand {
                     if private_repo { "private" } else { "public" }
                 ),
                 Err(err) => {
-                    eprintln!(
-                        "  {} Failed to create GitHub repository: {}",
-                        "⚠️".yellow(),
-                        err
-                    );
+                    eprintln!("  {} Failed to create GitHub repository: {}", "⚠️".yellow(), err);
                     eprintln!(
                         "     Run `gh repo create {} {} --source=. --remote=origin --push` later.",
                         self.name,
-                        if private_repo {
-                            "--private"
-                        } else {
-                            "--public"
-                        }
+                        if private_repo { "--private" } else { "--public" }
                     );
                 }
             }
@@ -281,10 +242,7 @@ impl InitCommand {
         println!("  {} Check installation:", "3.".yellow().bold());
         println!("     miyabi status");
         println!();
-        println!(
-            "  {} Create your first issue on GitHub, then:",
-            "4.".yellow().bold()
-        );
+        println!("  {} Create your first issue on GitHub, then:", "4.".yellow().bold());
         println!("     miyabi agent run coordinator --issue 1");
         println!();
         println!("{}", "📖 Documentation:".cyan().bold());
@@ -303,20 +261,13 @@ impl InitCommand {
     fn validate_project_name(&self) -> Result<()> {
         // Check if name is valid
         if self.name.is_empty() {
-            return Err(CliError::InvalidProjectName(
-                "Project name cannot be empty".to_string(),
-            ));
+            return Err(CliError::InvalidProjectName("Project name cannot be empty".to_string()));
         }
 
         // Check if name contains invalid characters
-        if !self
-            .name
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
-        {
+        if !self.name.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
             return Err(CliError::InvalidProjectName(
-                "Project name can only contain alphanumeric characters, hyphens, and underscores"
-                    .to_string(),
+                "Project name can only contain alphanumeric characters, hyphens, and underscores".to_string(),
             ));
         }
 
@@ -342,15 +293,10 @@ impl InitCommand {
         use std::process::Command;
 
         // Initialize git repository
-        let output = Command::new("git")
-            .args(["init"])
-            .current_dir(project_dir)
-            .output()?;
+        let output = Command::new("git").args(["init"]).current_dir(project_dir).output()?;
 
         if !output.status.success() {
-            return Err(CliError::Io(std::io::Error::other(
-                "Failed to initialize git repository",
-            )));
+            return Err(CliError::Io(std::io::Error::other("Failed to initialize git repository")));
         }
 
         println!("  Initialized git repository");
@@ -655,10 +601,7 @@ cp example-agent-spec.md my-custom-agent.md
 - Miyabiプロジェクトの `.claude/agents/specs/coding/` ディレクトリ
 - [Agent Operations Manual](https://github.com/ShunsukeHayashi/Miyabi/blob/main/docs/AGENT_OPERATIONS_MANUAL.md)
 "#;
-        fs::write(
-            project_dir.join(".claude/agents/specs/coding/README.md"),
-            coding_specs_readme,
-        )?;
+        fs::write(project_dir.join(".claude/agents/specs/coding/README.md"), coding_specs_readme)?;
 
         // Create .claude/agents/specs/business/README.md
         let business_specs_readme = r#"# Business Agent 仕様
@@ -726,10 +669,7 @@ miyabi agent run ai-entrepreneur --output business-plan.md
 - [SaaS Business Model Guide](https://github.com/ShunsukeHayashi/Miyabi/blob/main/docs/SAAS_BUSINESS_MODEL.md)
 - [Business Agents User Guide](https://github.com/ShunsukeHayashi/Miyabi/blob/main/docs/BUSINESS_AGENTS_USER_GUIDE.md)
 "#;
-        fs::write(
-            project_dir.join(".claude/agents/specs/business/README.md"),
-            business_specs_readme,
-        )?;
+        fs::write(project_dir.join(".claude/agents/specs/business/README.md"), business_specs_readme)?;
 
         // Create .claude/agents/prompts/coding/example-prompt.md
         let example_prompt = r#"# Example Agent Prompt
@@ -786,10 +726,7 @@ cd .worktrees/issue-123
 
 実際のプロンプト例は、Miyabiプロジェクトの `.claude/agents/prompts/coding/` を参照してください。
 "#;
-        fs::write(
-            project_dir.join(".claude/agents/prompts/coding/example-prompt.md"),
-            example_prompt,
-        )?;
+        fs::write(project_dir.join(".claude/agents/prompts/coding/example-prompt.md"), example_prompt)?;
 
         // Create REAL example: CodeGen Agent spec
         let codegen_example = r#"# CodeGenAgent Specification
@@ -880,10 +817,7 @@ miyabi work-on 123
 **このファイルはClaude Codeが参照する実際のAgent仕様です。**
 **プロジェクト固有の要件に合わせてカスタマイズしてください。**
 "#;
-        fs::write(
-            project_dir.join(".claude/agents/specs/coding/codegen-agent-example.md"),
-            codegen_example,
-        )?;
+        fs::write(project_dir.join(".claude/agents/specs/coding/codegen-agent-example.md"), codegen_example)?;
 
         // Create REAL example: Issue creation workflow
         let issue_workflow_example = format!(
@@ -1025,10 +959,7 @@ cat .claude/agents/README.md
 "#,
             self.name, self.name
         );
-        fs::write(
-            project_dir.join(".claude/agents/issue-workflow-example.md"),
-            issue_workflow_example,
-        )?;
+        fs::write(project_dir.join(".claude/agents/issue-workflow-example.md"), issue_workflow_example)?;
 
         Ok(())
     }
@@ -1703,11 +1634,7 @@ mod tests {
 
         for name in valid_names {
             let cmd = InitCommand::with_interactive(name.to_string(), false, false);
-            assert!(
-                cmd.validate_project_name().is_ok(),
-                "Should be valid: {}",
-                name
-            );
+            assert!(cmd.validate_project_name().is_ok(), "Should be valid: {}", name);
         }
     }
 
@@ -1727,11 +1654,7 @@ mod tests {
 
         for name in invalid_names {
             let cmd = InitCommand::with_interactive(name.to_string(), false, false);
-            assert!(
-                cmd.validate_project_name().is_err(),
-                "Should be invalid: {}",
-                name
-            );
+            assert!(cmd.validate_project_name().is_err(), "Should be invalid: {}", name);
         }
     }
 
@@ -1750,18 +1673,9 @@ mod tests {
 
     #[test]
     fn test_project_type_as_str() {
-        assert_eq!(
-            ProjectType::WebApp.as_str(),
-            "Web App (React/Next.js/SvelteKit)"
-        );
-        assert_eq!(
-            ProjectType::ApiBackend.as_str(),
-            "API Backend (Rust/Node.js/Python)"
-        );
+        assert_eq!(ProjectType::WebApp.as_str(), "Web App (React/Next.js/SvelteKit)");
+        assert_eq!(ProjectType::ApiBackend.as_str(), "API Backend (Rust/Node.js/Python)");
         assert_eq!(ProjectType::CliTool.as_str(), "CLI Tool (Rust/Go)");
-        assert_eq!(
-            ProjectType::Library.as_str(),
-            "Library/SDK (Rust/TypeScript)"
-        );
+        assert_eq!(ProjectType::Library.as_str(), "Library/SDK (Rust/TypeScript)");
     }
 }

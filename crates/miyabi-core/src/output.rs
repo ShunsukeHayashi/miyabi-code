@@ -13,26 +13,13 @@ use std::io::{self, Write};
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ExecutionEvent {
     /// Session started
-    SessionStart {
-        session_id: String,
-        task: String,
-        mode: String,
-        timestamp: DateTime<Utc>,
-    },
+    SessionStart { session_id: String, task: String, mode: String, timestamp: DateTime<Utc> },
 
     /// New turn started
-    TurnStart {
-        turn_id: usize,
-        timestamp: DateTime<Utc>,
-    },
+    TurnStart { turn_id: usize, timestamp: DateTime<Utc> },
 
     /// Tool call requested by LLM
-    ToolCall {
-        tool_name: String,
-        tool_id: String,
-        arguments: Value,
-        timestamp: DateTime<Utc>,
-    },
+    ToolCall { tool_name: String, tool_id: String, arguments: Value, timestamp: DateTime<Utc> },
 
     /// Tool execution result
     ToolResult {
@@ -46,39 +33,19 @@ pub enum ExecutionEvent {
     },
 
     /// LLM response received
-    LlmResponse {
-        content: String,
-        timestamp: DateTime<Utc>,
-    },
+    LlmResponse { content: String, timestamp: DateTime<Utc> },
 
     /// Task completed successfully
-    Conclusion {
-        summary: String,
-        total_turns: usize,
-        duration_ms: u64,
-        timestamp: DateTime<Utc>,
-    },
+    Conclusion { summary: String, total_turns: usize, duration_ms: u64, timestamp: DateTime<Utc> },
 
     /// Task failed
-    Failure {
-        error: String,
-        resumable: bool,
-        total_turns: usize,
-        timestamp: DateTime<Utc>,
-    },
+    Failure { error: String, resumable: bool, total_turns: usize, timestamp: DateTime<Utc> },
 
     /// Progress update
-    Progress {
-        message: String,
-        percent: Option<u8>,
-        timestamp: DateTime<Utc>,
-    },
+    Progress { message: String, percent: Option<u8>, timestamp: DateTime<Utc> },
 
     /// Warning message
-    Warning {
-        message: String,
-        timestamp: DateTime<Utc>,
-    },
+    Warning { message: String, timestamp: DateTime<Utc> },
 }
 
 /// JSONL event writer
@@ -90,10 +57,7 @@ pub struct JsonlWriter {
 impl JsonlWriter {
     /// Create a new JSONL writer that writes to stdout
     pub fn stdout(enabled: bool) -> Self {
-        Self {
-            writer: Box::new(io::stdout()),
-            enabled,
-        }
+        Self { writer: Box::new(io::stdout()), enabled }
     }
 
     /// Create a new JSONL writer with custom writer
@@ -114,41 +78,18 @@ impl JsonlWriter {
     }
 
     /// Write session start event
-    pub fn session_start(
-        &mut self,
-        session_id: String,
-        task: String,
-        mode: String,
-    ) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::SessionStart {
-            session_id,
-            task,
-            mode,
-            timestamp: Utc::now(),
-        })
+    pub fn session_start(&mut self, session_id: String, task: String, mode: String) -> io::Result<()> {
+        self.write_event(&ExecutionEvent::SessionStart { session_id, task, mode, timestamp: Utc::now() })
     }
 
     /// Write turn start event
     pub fn turn_start(&mut self, turn_id: usize) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::TurnStart {
-            turn_id,
-            timestamp: Utc::now(),
-        })
+        self.write_event(&ExecutionEvent::TurnStart { turn_id, timestamp: Utc::now() })
     }
 
     /// Write tool call event
-    pub fn tool_call(
-        &mut self,
-        tool_name: String,
-        tool_id: String,
-        arguments: Value,
-    ) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::ToolCall {
-            tool_name,
-            tool_id,
-            arguments,
-            timestamp: Utc::now(),
-        })
+    pub fn tool_call(&mut self, tool_name: String, tool_id: String, arguments: Value) -> io::Result<()> {
+        self.write_event(&ExecutionEvent::ToolCall { tool_name, tool_id, arguments, timestamp: Utc::now() })
     }
 
     /// Write tool result event
@@ -174,57 +115,27 @@ impl JsonlWriter {
 
     /// Write LLM response event
     pub fn llm_response(&mut self, content: String) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::LlmResponse {
-            content,
-            timestamp: Utc::now(),
-        })
+        self.write_event(&ExecutionEvent::LlmResponse { content, timestamp: Utc::now() })
     }
 
     /// Write conclusion event
-    pub fn conclusion(
-        &mut self,
-        summary: String,
-        total_turns: usize,
-        duration_ms: u64,
-    ) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::Conclusion {
-            summary,
-            total_turns,
-            duration_ms,
-            timestamp: Utc::now(),
-        })
+    pub fn conclusion(&mut self, summary: String, total_turns: usize, duration_ms: u64) -> io::Result<()> {
+        self.write_event(&ExecutionEvent::Conclusion { summary, total_turns, duration_ms, timestamp: Utc::now() })
     }
 
     /// Write failure event
-    pub fn failure(
-        &mut self,
-        error: String,
-        resumable: bool,
-        total_turns: usize,
-    ) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::Failure {
-            error,
-            resumable,
-            total_turns,
-            timestamp: Utc::now(),
-        })
+    pub fn failure(&mut self, error: String, resumable: bool, total_turns: usize) -> io::Result<()> {
+        self.write_event(&ExecutionEvent::Failure { error, resumable, total_turns, timestamp: Utc::now() })
     }
 
     /// Write progress event
     pub fn progress(&mut self, message: String, percent: Option<u8>) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::Progress {
-            message,
-            percent,
-            timestamp: Utc::now(),
-        })
+        self.write_event(&ExecutionEvent::Progress { message, percent, timestamp: Utc::now() })
     }
 
     /// Write warning event
     pub fn warning(&mut self, message: String) -> io::Result<()> {
-        self.write_event(&ExecutionEvent::Warning {
-            message,
-            timestamp: Utc::now(),
-        })
+        self.write_event(&ExecutionEvent::Warning { message, timestamp: Utc::now() })
     }
 }
 
@@ -288,11 +199,7 @@ mod tests {
         let mut writer = JsonlWriter::stdout(false);
 
         // Should not panic or error when disabled
-        let result = writer.session_start(
-            "ses_123".to_string(),
-            "test task".to_string(),
-            "ReadOnly".to_string(),
-        );
+        let result = writer.session_start("ses_123".to_string(), "test task".to_string(), "ReadOnly".to_string());
 
         assert!(result.is_ok());
     }

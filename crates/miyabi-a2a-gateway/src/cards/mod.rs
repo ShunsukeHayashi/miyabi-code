@@ -42,11 +42,7 @@ pub fn coordinator_agent_card() -> AgentCard {
         version: "1.0.0".to_string(),
         protocol_version: "0.2.6".to_string(),
         url: String::new(),
-        capabilities: AgentCapabilities {
-            streaming: true,
-            push_notifications: true,
-            state_transition_history: true,
-        },
+        capabilities: AgentCapabilities { streaming: true, push_notifications: true, state_transition_history: true },
         skills: vec![
             Skill {
                 id: "task_coordination".to_string(),

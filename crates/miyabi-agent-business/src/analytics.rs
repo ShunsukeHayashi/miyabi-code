@@ -7,8 +7,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -41,8 +40,8 @@ impl AnalyticsAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -65,26 +64,22 @@ Generate detailed analytics strategy as JSON with KPI framework, dashboard desig
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::AnalyticsAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::AnalyticsAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
-        let analytics_strategy: AnalyticsStrategy =
-            serde_json::from_str(&response).map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("Failed to parse analytics strategy JSON: {}", e),
-                    AgentType::AnalyticsAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let analytics_strategy: AnalyticsStrategy = serde_json::from_str(&response).map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("Failed to parse analytics strategy JSON: {}", e),
+                AgentType::AnalyticsAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         Ok(analytics_strategy)
     }
@@ -120,8 +115,7 @@ Generate detailed analytics strategy as JSON with KPI framework, dashboard desig
 
     /// Generate analytics strategy summary for reporting
     fn generate_summary(&self, strategy: &AnalyticsStrategy) -> String {
-        let total_models = strategy.predictive_analytics.models.len()
-            + strategy.reporting_automation.reports.len();
+        let total_models = strategy.predictive_analytics.models.len() + strategy.reporting_automation.reports.len();
 
         format!(
             "Analytics Strategy Generated: {} KPIs, {} dashboards, {} total models",
@@ -235,10 +229,7 @@ impl BaseAgent for AnalyticsAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "AnalyticsAgent starting analytics strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("AnalyticsAgent starting analytics strategy generation for task: {}", task.id);
 
         // Generate analytics strategy using LLM
         let analytics_strategy = self.generate_analytics_strategy(task).await?;
@@ -277,10 +268,7 @@ impl BaseAgent for AnalyticsAgent {
             "total_models_count": total_models
         });
 
-        tracing::info!(
-            "AnalyticsAgent completed analytics strategy generation: {}",
-            summary
-        );
+        tracing::info!("AnalyticsAgent completed analytics strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -306,10 +294,7 @@ impl A2AEnabled for AnalyticsAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "plan_analytics" => {
@@ -317,9 +302,7 @@ impl A2AEnabled for AnalyticsAgent {
                     .input
                     .get("business")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing business".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing business".to_string()))?;
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: business.to_string(),
@@ -342,16 +325,12 @@ impl A2AEnabled for AnalyticsAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Analytics strategy failed: {}",
-                        e
-                    ))),
+                    Err(e) => {
+                        Err(A2AIntegrationError::TaskExecutionFailed(format!("Analytics strategy failed: {}", e)))
+                    }
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
     fn execution_mode(&self) -> ExecutionMode {
@@ -368,9 +347,7 @@ mod tests {
         Task {
             id: "test-task-14".to_string(),
             title: "AI-Powered Business Intelligence Platform".to_string(),
-            description:
-                "A comprehensive BI platform with AI-driven insights and automated reporting"
-                    .to_string(),
+            description: "A comprehensive BI platform with AI-driven insights and automated reporting".to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -543,9 +520,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_analytics_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_analytics_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -608,9 +583,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_analytics_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_analytics_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -674,9 +647,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_analytics_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_analytics_strategy(&invalid_strategy).is_err());
     }
 
     #[test]

@@ -31,10 +31,7 @@ pub struct TemplateRenderer {
 impl TemplateRenderer {
     /// Create a new template renderer for the given working directory
     pub fn new(work_dir: PathBuf) -> Self {
-        Self {
-            work_dir,
-            cache: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self { work_dir, cache: Arc::new(RwLock::new(HashMap::new())) }
     }
 
     /// Render a template string with variable substitution
@@ -53,11 +50,7 @@ impl TemplateRenderer {
     /// let template = "Working in ${MIYABI_WORK_DIR} at ${MIYABI_NOW}";
     /// let result = renderer.render(template, &HashMap::new()).unwrap();
     /// ```
-    pub fn render(
-        &self,
-        template: &str,
-        custom_args: &HashMap<String, String>,
-    ) -> ModeResult<String> {
+    pub fn render(&self, template: &str, custom_args: &HashMap<String, String>) -> ModeResult<String> {
         let mut rendered = template.to_string();
 
         // Replace built-in variables

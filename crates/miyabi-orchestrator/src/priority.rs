@@ -145,18 +145,9 @@ mod tests {
 
     #[test]
     fn test_priority_level_parsing() {
-        assert_eq!(
-            PriorityLevel::from_label("priority:P0-Critical"),
-            Some(PriorityLevel::P0Critical)
-        );
-        assert_eq!(
-            PriorityLevel::from_label("P1-High"),
-            Some(PriorityLevel::P1High)
-        );
-        assert_eq!(
-            PriorityLevel::from_label("P2"),
-            Some(PriorityLevel::P2Medium)
-        );
+        assert_eq!(PriorityLevel::from_label("priority:P0-Critical"), Some(PriorityLevel::P0Critical));
+        assert_eq!(PriorityLevel::from_label("P1-High"), Some(PriorityLevel::P1High));
+        assert_eq!(PriorityLevel::from_label("P2"), Some(PriorityLevel::P2Medium));
         assert_eq!(PriorityLevel::from_label("invalid"), None);
     }
 
@@ -208,13 +199,8 @@ mod tests {
         };
         assert!(!calc.has_dependencies(&issue_no_deps));
 
-        let issue_with_deps = Issue {
-            number: 2,
-            title: "Dependent task".to_string(),
-            labels: vec![],
-            dependencies: vec![1],
-            body: None,
-        };
+        let issue_with_deps =
+            Issue { number: 2, title: "Dependent task".to_string(), labels: vec![], dependencies: vec![1], body: None };
         assert!(calc.has_dependencies(&issue_with_deps));
     }
 

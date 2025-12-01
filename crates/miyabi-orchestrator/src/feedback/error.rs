@@ -22,10 +22,7 @@ pub enum LoopError {
 
     /// Maximum retries exceeded
     #[error("Maximum retries ({max_retries}) exceeded for iteration {iteration}")]
-    MaxRetriesExceeded {
-        iteration: usize,
-        max_retries: usize,
-    },
+    MaxRetriesExceeded { iteration: usize, max_retries: usize },
 
     /// Timeout occurred
     #[error("Iteration {iteration} timed out after {timeout_ms}ms")]
@@ -59,12 +56,7 @@ pub enum LoopError {
 impl LoopError {
     /// Check if error is retryable
     pub fn is_retryable(&self) -> bool {
-        matches!(
-            self,
-            LoopError::IterationFailed { .. }
-                | LoopError::Timeout { .. }
-                | LoopError::AgentError(_)
-        )
+        matches!(self, LoopError::IterationFailed { .. } | LoopError::Timeout { .. } | LoopError::AgentError(_))
     }
 
     /// Get error severity (0-100, higher = more severe)
@@ -91,10 +83,7 @@ mod tests {
 
     #[test]
     fn test_error_retryable() {
-        let error = LoopError::IterationFailed {
-            iteration: 1,
-            reason: "test".to_string(),
-        };
+        let error = LoopError::IterationFailed { iteration: 1, reason: "test".to_string() };
         assert!(error.is_retryable());
 
         let error = LoopError::GoalNotFound("test".to_string());
@@ -106,28 +95,16 @@ mod tests {
         let error = LoopError::GoalNotFound("test".to_string());
         assert_eq!(error.severity(), 90);
 
-        let error = LoopError::Timeout {
-            iteration: 1,
-            timeout_ms: 5000,
-        };
+        let error = LoopError::Timeout { iteration: 1, timeout_ms: 5000 };
         assert_eq!(error.severity(), 40);
     }
 
     #[test]
     fn test_error_display() {
-        let error = LoopError::IterationFailed {
-            iteration: 3,
-            reason: "agent failed".to_string(),
-        };
+        let error = LoopError::IterationFailed { iteration: 3, reason: "agent failed".to_string() };
         assert_eq!(error.to_string(), "Iteration 3 failed: agent failed");
 
-        let error = LoopError::MaxRetriesExceeded {
-            iteration: 5,
-            max_retries: 3,
-        };
-        assert_eq!(
-            error.to_string(),
-            "Maximum retries (3) exceeded for iteration 5"
-        );
+        let error = LoopError::MaxRetriesExceeded { iteration: 5, max_retries: 3 };
+        assert_eq!(error.to_string(), "Maximum retries (3) exceeded for iteration 5");
     }
 }

@@ -17,8 +17,7 @@ pub trait LLMProvider: Send + Sync {
     async fn chat(&self, messages: &[ChatMessage]) -> Result<ChatMessage>;
 
     /// Call a function using function calling
-    async fn call_function(&self, name: &str, args: serde_json::Value)
-        -> Result<serde_json::Value>;
+    async fn call_function(&self, name: &str, args: serde_json::Value) -> Result<serde_json::Value>;
 
     /// Get model name
     fn model_name(&self) -> &str;
@@ -345,10 +344,7 @@ impl GPTOSSProvider {
             .to_string();
 
         // Calculate tokens from context if available
-        let tokens_used = response_json
-            .get("eval_count")
-            .and_then(|e| e.as_u64())
-            .unwrap_or(0) as u32;
+        let tokens_used = response_json.get("eval_count").and_then(|e| e.as_u64()).unwrap_or(0) as u32;
 
         Ok(LLMResponse {
             text: response_text,
@@ -368,22 +364,12 @@ impl GPTOSSProvider {
 #[async_trait]
 impl LLMProvider for GPTOSSProvider {
     async fn generate(&self, request: &LLMRequest) -> Result<LLMResponse> {
-        tracing::info!(
-            "Generating with model {} (reasoning: {})",
-            self.model,
-            request.reasoning_effort
-        );
+        tracing::info!("Generating with model {} (reasoning: {})", self.model, request.reasoning_effort);
 
         let (request_body, endpoint_path) = if self.is_ollama() {
-            (
-                self.build_ollama_request_body(request),
-                "/api/generate".to_string(),
-            )
+            (self.build_ollama_request_body(request), "/api/generate".to_string())
         } else {
-            (
-                self.build_request_body(request),
-                "/chat/completions".to_string(),
-            )
+            (self.build_request_body(request), "/chat/completions".to_string())
         };
 
         // Build HTTP request
@@ -411,10 +397,7 @@ impl LLMProvider for GPTOSSProvider {
         let status = response.status();
         if !status.is_success() {
             let error_text = response.text().await.unwrap_or_default();
-            return Err(LLMError::ApiError(format!(
-                "API returned status {}: {}",
-                status, error_text
-            )));
+            return Err(LLMError::ApiError(format!("API returned status {}: {}", status, error_text)));
         }
 
         // Parse response
@@ -456,10 +439,7 @@ impl LLMProvider for GPTOSSProvider {
         let status = response.status();
         if !status.is_success() {
             let error_text = response.text().await.unwrap_or_default();
-            return Err(LLMError::ApiError(format!(
-                "API returned status {}: {}",
-                status, error_text
-            )));
+            return Err(LLMError::ApiError(format!("API returned status {}: {}", status, error_text)));
         }
 
         let response_json: serde_json::Value = response
@@ -471,11 +451,7 @@ impl LLMProvider for GPTOSSProvider {
         Ok(ChatMessage::assistant(llm_response.text))
     }
 
-    async fn call_function(
-        &self,
-        name: &str,
-        args: serde_json::Value,
-    ) -> Result<serde_json::Value> {
+    async fn call_function(&self, name: &str, args: serde_json::Value) -> Result<serde_json::Value> {
         // TODO: Implement function calling
         // For now, return a placeholder
         tracing::warn!("Function calling not yet implemented");
@@ -635,9 +611,7 @@ mod tests {
 
     #[test]
     fn test_custom_model() {
-        let provider = GPTOSSProvider::new_groq("test")
-            .unwrap()
-            .with_model("custom-model");
+        let provider = GPTOSSProvider::new_groq("test").unwrap().with_model("custom-model");
         assert_eq!(provider.model_name(), "custom-model");
     }
 
@@ -688,9 +662,7 @@ mod tests {
         });
 
         let result = provider.parse_ollama_response(&response_json).unwrap();
-        assert!(result
-            .text
-            .contains("Hello! I'm just a bunch of algorithms"));
+        assert!(result.text.contains("Hello! I'm just a bunch of algorithms"));
         assert_eq!(result.tokens_used, 71);
         assert_eq!(result.finish_reason, "stop");
     }

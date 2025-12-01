@@ -1,8 +1,6 @@
 //! Integration tests for notification system
 
-use miyabi_approval::notifications::{
-    ApprovalRequest, DiscordNotifier, SlackNotifier, WorkflowStatusUpdate,
-};
+use miyabi_approval::notifications::{ApprovalRequest, DiscordNotifier, SlackNotifier, WorkflowStatusUpdate};
 
 #[cfg(feature = "integration-tests")]
 use miyabi_approval::notifications::Notifier;
@@ -213,11 +211,7 @@ mod integration {
         };
 
         let result = notifier.send_approval_request(&req).await;
-        assert!(
-            result.is_ok(),
-            "Failed to send Discord notification: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Failed to send Discord notification: {:?}", result.err());
     }
 
     #[tokio::test]
@@ -241,10 +235,6 @@ mod integration {
         };
 
         let result = notifier.send_status_update(&status).await;
-        assert!(
-            result.is_ok(),
-            "Failed to send Slack notification: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Failed to send Slack notification: {:?}", result.err());
     }
 }

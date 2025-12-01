@@ -67,10 +67,7 @@ mod serde_path {
     use serde::{Deserialize, Deserializer, Serializer};
     use std::path::{Path, PathBuf};
 
-    pub fn serialize_option<S>(
-        value: &Option<PathBuf>,
-        serializer: S,
-    ) -> std::result::Result<S::Ok, S::Error>
+    pub fn serialize_option<S>(value: &Option<PathBuf>, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -80,9 +77,7 @@ mod serde_path {
         }
     }
 
-    pub fn deserialize_option<'de, D>(
-        deserializer: D,
-    ) -> std::result::Result<Option<PathBuf>, D::Error>
+    pub fn deserialize_option<'de, D>(deserializer: D) -> std::result::Result<Option<PathBuf>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -116,9 +111,7 @@ fn default_report_directory() -> String {
 fn validate_log_level(level: &str) -> std::result::Result<(), ValidationError> {
     match level.to_lowercase().as_str() {
         "trace" | "debug" | "info" | "warn" | "error" => Ok(()),
-        _ => Err(ValidationError::new(
-            "Invalid log level. Must be one of: trace, debug, info, warn, error",
-        )),
+        _ => Err(ValidationError::new("Invalid log level. Must be one of: trace, debug, info, warn, error")),
     }
 }
 
@@ -134,9 +127,9 @@ impl Config {
     pub fn load() -> Result<Self> {
         // Try environment variables first
         if let Some(config) = Self::from_env()? {
-            config.validate().map_err(|e| {
-                MiyabiError::Config(format!("Configuration validation failed: {}", e))
-            })?;
+            config
+                .validate()
+                .map_err(|e| MiyabiError::Config(format!("Configuration validation failed: {}", e)))?;
             return Ok(config);
         }
 
@@ -146,9 +139,9 @@ impl Config {
             if path.exists() {
                 match Self::from_file(&path) {
                     Ok(config) => {
-                        config.validate().map_err(|e| {
-                            MiyabiError::Config(format!("Configuration validation failed: {}", e))
-                        })?;
+                        config
+                            .validate()
+                            .map_err(|e| MiyabiError::Config(format!("Configuration validation failed: {}", e)))?;
                         return Ok(config);
                     }
                     Err(e) => {
@@ -160,8 +153,7 @@ impl Config {
         }
 
         Err(MiyabiError::Config(
-            "No configuration found. Set GITHUB_TOKEN environment variable or create .miyabi.yml"
-                .to_string(),
+            "No configuration found. Set GITHUB_TOKEN environment variable or create .miyabi.yml".to_string(),
         ))
     }
 
@@ -181,13 +173,9 @@ impl Config {
                 .ok()
                 .and_then(|s| s.parse().ok())
                 .unwrap_or_else(default_concurrency),
-            log_directory: std::env::var("MIYABI_LOG_DIRECTORY")
-                .unwrap_or_else(|_| default_log_directory()),
-            report_directory: std::env::var("MIYABI_REPORT_DIRECTORY")
-                .unwrap_or_else(|_| default_report_directory()),
-            worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE_PATH")
-                .ok()
-                .map(PathBuf::from),
+            log_directory: std::env::var("MIYABI_LOG_DIRECTORY").unwrap_or_else(|_| default_log_directory()),
+            report_directory: std::env::var("MIYABI_REPORT_DIRECTORY").unwrap_or_else(|_| default_report_directory()),
+            worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE_PATH").ok().map(PathBuf::from),
             tech_lead_github_username: std::env::var("TECH_LEAD_GITHUB_USERNAME").ok(),
             ciso_github_username: std::env::var("CISO_GITHUB_USERNAME").ok(),
             po_github_username: std::env::var("PO_GITHUB_USERNAME").ok(),
@@ -199,9 +187,8 @@ impl Config {
     /// Supports YAML, TOML, and JSON formats based on file extension
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
-        let content = std::fs::read_to_string(path).map_err(|e| {
-            MiyabiError::Config(format!("Failed to read config file {:?}: {}", path, e))
-        })?;
+        let content = std::fs::read_to_string(path)
+            .map_err(|e| MiyabiError::Config(format!("Failed to read config file {:?}: {}", path, e)))?;
 
         let config = match path.extension().and_then(|s| s.to_str()) {
             Some("yml") | Some("yaml") => serde_yaml::from_str(&content)
@@ -210,12 +197,7 @@ impl Config {
                 .map_err(|e| MiyabiError::Config(format!("Failed to parse TOML config: {}", e)))?,
             Some("json") => serde_json::from_str(&content)
                 .map_err(|e| MiyabiError::Config(format!("Failed to parse JSON config: {}", e)))?,
-            _ => {
-                return Err(MiyabiError::Config(format!(
-                    "Unsupported config file extension: {:?}",
-                    path
-                )))
-            }
+            _ => return Err(MiyabiError::Config(format!("Unsupported config file extension: {:?}", path))),
         };
 
         Ok(config)
@@ -242,26 +224,17 @@ impl Config {
     pub fn save(&self, path: impl AsRef<Path>) -> Result<()> {
         let path = path.as_ref();
         let content = match path.extension().and_then(|s| s.to_str()) {
-            Some("yml") | Some("yaml") => serde_yaml::to_string(self).map_err(|e| {
-                MiyabiError::Config(format!("Failed to serialize YAML config: {}", e))
-            })?,
-            Some("toml") => toml::to_string(self).map_err(|e| {
-                MiyabiError::Config(format!("Failed to serialize TOML config: {}", e))
-            })?,
-            Some("json") => serde_json::to_string_pretty(self).map_err(|e| {
-                MiyabiError::Config(format!("Failed to serialize JSON config: {}", e))
-            })?,
-            _ => {
-                return Err(MiyabiError::Config(format!(
-                    "Unsupported config file extension: {:?}",
-                    path
-                )))
-            }
+            Some("yml") | Some("yaml") => serde_yaml::to_string(self)
+                .map_err(|e| MiyabiError::Config(format!("Failed to serialize YAML config: {}", e)))?,
+            Some("toml") => toml::to_string(self)
+                .map_err(|e| MiyabiError::Config(format!("Failed to serialize TOML config: {}", e)))?,
+            Some("json") => serde_json::to_string_pretty(self)
+                .map_err(|e| MiyabiError::Config(format!("Failed to serialize JSON config: {}", e)))?,
+            _ => return Err(MiyabiError::Config(format!("Unsupported config file extension: {:?}", path))),
         };
 
-        std::fs::write(path, content).map_err(|e| {
-            MiyabiError::Config(format!("Failed to write config file {:?}: {}", path, e))
-        })?;
+        std::fs::write(path, content)
+            .map_err(|e| MiyabiError::Config(format!("Failed to write config file {:?}: {}", path, e)))?;
 
         Ok(())
     }

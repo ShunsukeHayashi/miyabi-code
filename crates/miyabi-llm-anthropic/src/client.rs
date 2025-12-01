@@ -5,8 +5,8 @@ use async_trait::async_trait;
 use futures::stream::Stream;
 use futures::StreamExt;
 use miyabi_llm_core::{
-    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamResponse, ToolCall,
-    ToolCallResponse, ToolDefinition,
+    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamResponse, ToolCall, ToolCallResponse,
+    ToolDefinition,
 };
 use serde_json::json;
 
@@ -52,8 +52,8 @@ impl AnthropicClient {
     /// # Errors
     /// Returns `LlmError::MissingApiKey` if environment variable is not set
     pub fn from_env() -> Result<Self> {
-        let api_key = std::env::var("ANTHROPIC_API_KEY")
-            .map_err(|_| LlmError::MissingApiKey("ANTHROPIC_API_KEY".to_string()))?;
+        let api_key =
+            std::env::var("ANTHROPIC_API_KEY").map_err(|_| LlmError::MissingApiKey("ANTHROPIC_API_KEY".to_string()))?;
         Ok(Self::new(api_key))
     }
 
@@ -108,11 +108,7 @@ impl AnthropicClient {
     fn convert_tools(&self, tools: Vec<ToolDefinition>) -> Vec<AnthropicTool> {
         tools
             .into_iter()
-            .map(|t| AnthropicTool {
-                name: t.name,
-                description: t.description,
-                input_schema: t.parameters,
-            })
+            .map(|t| AnthropicTool { name: t.name, description: t.description, input_schema: t.parameters })
             .collect()
     }
 
@@ -245,10 +241,7 @@ impl LlmClient for AnthropicClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unable to read error body".to_string());
-            return Err(LlmError::ApiError(format!(
-                "API returned error {}: {}",
-                status, error_body
-            )));
+            return Err(LlmError::ApiError(format!("API returned error {}: {}", status, error_body)));
         }
 
         let anthropic_response: AnthropicResponse = response
@@ -259,11 +252,7 @@ impl LlmClient for AnthropicClient {
         self.extract_text(&anthropic_response)
     }
 
-    async fn chat_with_tools(
-        &self,
-        messages: Vec<Message>,
-        tools: Vec<ToolDefinition>,
-    ) -> Result<ToolCallResponse> {
+    async fn chat_with_tools(&self, messages: Vec<Message>, tools: Vec<ToolDefinition>) -> Result<ToolCallResponse> {
         let system_prompt = self.extract_system_prompt(&messages);
         let anthropic_messages = self.convert_messages(messages);
         let anthropic_tools = self.convert_tools(tools);
@@ -298,10 +287,7 @@ impl LlmClient for AnthropicClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unable to read error body".to_string());
-            return Err(LlmError::ApiError(format!(
-                "API returned error {}: {}",
-                status, error_body
-            )));
+            return Err(LlmError::ApiError(format!("API returned error {}: {}", status, error_body)));
         }
 
         let anthropic_response: AnthropicResponse = response
@@ -325,10 +311,7 @@ impl LlmClient for AnthropicClient {
                 let text = self.extract_text(&anthropic_response)?;
                 Ok(ToolCallResponse::Conclusion { text })
             }
-            other => Err(LlmError::InvalidResponse(format!(
-                "Unexpected stop_reason: {}",
-                other
-            ))),
+            other => Err(LlmError::InvalidResponse(format!("Unexpected stop_reason: {}", other))),
         }
     }
 
@@ -377,10 +360,7 @@ impl LlmStreamingClient for AnthropicClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unable to read error body".to_string());
-            return Err(LlmError::ApiError(format!(
-                "API returned error {}: {}",
-                status, error_body
-            )));
+            return Err(LlmError::ApiError(format!("API returned error {}: {}", status, error_body)));
         }
 
         // Parse SSE stream
@@ -401,8 +381,7 @@ mod tests {
 
     #[test]
     fn test_with_model() {
-        let client =
-            AnthropicClient::new("test-key".to_string()).with_model("claude-opus".to_string());
+        let client = AnthropicClient::new("test-key".to_string()).with_model("claude-opus".to_string());
         assert_eq!(client.model, "claude-opus");
         assert_eq!(client.model_name(), "claude-opus");
     }

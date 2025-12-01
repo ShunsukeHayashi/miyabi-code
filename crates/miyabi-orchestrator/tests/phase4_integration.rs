@@ -194,11 +194,7 @@ async fn test_phase4_execution_result_validation() {
     assert_eq!(execution_result.world_results.len(), 5);
 
     // Count actual successful worlds
-    let actual_successful = execution_result
-        .world_results
-        .iter()
-        .filter(|r| r.success)
-        .count();
+    let actual_successful = execution_result.world_results.iter().filter(|r| r.success).count();
     assert_eq!(actual_successful, 4);
 
     // Verify confidence calculation

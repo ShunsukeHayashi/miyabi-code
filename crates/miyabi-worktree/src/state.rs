@@ -74,20 +74,12 @@ impl WorktreeStateManager {
         let resolved_root = match find_git_root(Some(&project_root)) {
             Ok(root) => {
                 if root != project_root {
-                    tracing::debug!(
-                        "Resolved git repository root {:?} from {:?}",
-                        root,
-                        project_root
-                    );
+                    tracing::debug!("Resolved git repository root {:?} from {:?}", root, project_root);
                 }
                 root
             }
             Err(err) => {
-                tracing::debug!(
-                    "WorktreeStateManager fallback to provided path {:?}: {}",
-                    project_root,
-                    err
-                );
+                tracing::debug!("WorktreeStateManager fallback to provided path {:?}: {}", project_root, err);
                 project_root.clone()
             }
         };
@@ -96,11 +88,7 @@ impl WorktreeStateManager {
         let task_metadata_manager = TaskMetadataManager::new(&resolved_root)
             .map_err(|e| MiyabiError::Io(std::io::Error::other(e.to_string())))?;
 
-        Ok(Self {
-            project_root: resolved_root,
-            worktree_base,
-            task_metadata_manager,
-        })
+        Ok(Self { project_root: resolved_root, worktree_base, task_metadata_manager })
     }
 
     /// Scan all worktrees and return their states
@@ -143,10 +131,7 @@ impl WorktreeStateManager {
         }
 
         // Get branch name from directory name (e.g., "issue-123" -> "issue-123")
-        let dir_name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("unknown");
+        let dir_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("unknown");
         let branch = dir_name.to_string();
 
         // Extract issue number from directory name
@@ -210,8 +195,7 @@ impl WorktreeStateManager {
         }
 
         // Remove worktree using git
-        let _repo = git2::Repository::open(&self.project_root)
-            .map_err(|e| MiyabiError::Git(e.to_string()))?;
+        let _repo = git2::Repository::open(&self.project_root).map_err(|e| MiyabiError::Git(e.to_string()))?;
 
         // Use git worktree remove command
         let status = std::process::Command::new("git")
@@ -261,10 +245,7 @@ impl WorktreeStateManager {
         if errors.is_empty() {
             Ok(cleaned)
         } else {
-            Err(MiyabiError::Unknown(format!(
-                "Failed to clean some worktrees: {}",
-                errors.join(", ")
-            )))
+            Err(MiyabiError::Unknown(format!("Failed to clean some worktrees: {}", errors.join(", "))))
         }
     }
 
@@ -287,11 +268,7 @@ impl WorktreeStateManager {
             if let Some(issue_num) = worktree.issue_number {
                 // Check if there's corresponding task metadata
                 if !task_map.contains_key(&issue_num) {
-                    tracing::warn!(
-                        "Orphaned worktree detected: {} (issue #{})",
-                        worktree.path.display(),
-                        issue_num
-                    );
+                    tracing::warn!("Orphaned worktree detected: {} (issue #{})", worktree.path.display(), issue_num);
                 }
             }
         }
@@ -307,10 +284,7 @@ impl WorktreeStateManager {
         // - "issue-123-feature"
         // - "123-bugfix"
 
-        if let Some(captures) = regex::Regex::new(r"issue[_-]?(\d+)")
-            .ok()?
-            .captures(dir_name)
-        {
+        if let Some(captures) = regex::Regex::new(r"issue[_-]?(\d+)").ok()?.captures(dir_name) {
             return captures.get(1)?.as_str().parse().ok();
         }
 
@@ -322,11 +296,7 @@ impl WorktreeStateManager {
         None
     }
 
-    fn determine_status(
-        &self,
-        path: &Path,
-        issue_number: Option<u64>,
-    ) -> Result<WorktreeStatusDetailed> {
+    fn determine_status(&self, path: &Path, issue_number: Option<u64>) -> Result<WorktreeStatusDetailed> {
         // Check if corrupted (git errors)
         if git2::Repository::open(path).is_err() {
             return Ok(WorktreeStatusDetailed::Corrupted);
@@ -383,9 +353,7 @@ impl WorktreeStateManager {
     fn has_uncommitted_changes(&self, path: &Path) -> Result<bool> {
         let repo = git2::Repository::open(path).map_err(|e| MiyabiError::Git(e.to_string()))?;
 
-        let statuses = repo
-            .statuses(None)
-            .map_err(|e| MiyabiError::Git(e.to_string()))?;
+        let statuses = repo.statuses(None).map_err(|e| MiyabiError::Git(e.to_string()))?;
 
         Ok(!statuses.is_empty())
     }
@@ -469,10 +437,7 @@ mod tests {
             .current_dir(repo_path)
             .output()
             .expect("git init should be invokable");
-        assert!(
-            init_output.status.success(),
-            "git init did not exit successfully"
-        );
+        assert!(init_output.status.success(), "git init did not exit successfully");
 
         let subdir = repo_path.join("nested");
         std::fs::create_dir(&subdir).unwrap();

@@ -93,10 +93,7 @@ impl ApprovalState {
 
     /// Check if approval is completed (approved, rejected, or timed out)
     pub fn is_completed(&self) -> bool {
-        matches!(
-            self.status,
-            ApprovalStatus::Approved | ApprovalStatus::Rejected | ApprovalStatus::TimedOut
-        )
+        matches!(self.status, ApprovalStatus::Approved | ApprovalStatus::Rejected | ApprovalStatus::TimedOut)
     }
 
     /// Check if approval has timed out
@@ -105,9 +102,7 @@ impl ApprovalState {
             return false;
         }
 
-        let elapsed = Utc::now()
-            .signed_duration_since(self.created_at)
-            .num_seconds() as u64;
+        let elapsed = Utc::now().signed_duration_since(self.created_at).num_seconds() as u64;
 
         elapsed >= self.timeout_seconds
     }

@@ -404,9 +404,7 @@ impl ConfigLoader {
 
     /// Create a new config loader with a custom config directory
     pub fn with_config_dir<P: AsRef<Path>>(config_dir: P) -> Self {
-        Self {
-            config_dir: config_dir.as_ref().to_path_buf(),
-        }
+        Self { config_dir: config_dir.as_ref().to_path_buf() }
     }
 
     /// Load the core configuration
@@ -435,10 +433,7 @@ impl ConfigLoader {
 
     /// Load an integration configuration
     pub fn load_integration(&self, name: &str) -> Result<toml::Value> {
-        let path = self
-            .config_dir
-            .join("integrations")
-            .join(format!("{}.toml", name));
+        let path = self.config_dir.join("integrations").join(format!("{}.toml", name));
         self.load_toml(&path)
     }
 
@@ -454,11 +449,10 @@ impl ConfigLoader {
 
     /// Generic TOML loader
     fn load_toml<T: for<'de> Deserialize<'de>>(&self, path: &Path) -> Result<T> {
-        let content = std::fs::read_to_string(path)
-            .with_context(|| format!("Failed to read config file: {}", path.display()))?;
+        let content =
+            std::fs::read_to_string(path).with_context(|| format!("Failed to read config file: {}", path.display()))?;
 
-        toml::from_str(&content)
-            .with_context(|| format!("Failed to parse TOML config: {}", path.display()))
+        toml::from_str(&content).with_context(|| format!("Failed to parse TOML config: {}", path.display()))
     }
 }
 

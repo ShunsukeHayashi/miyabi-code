@@ -21,10 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
     {
         Ok(issue) => {
-            println!(
-                "✅ Success! Created Issue #{}: {}",
-                issue.number, issue.html_url
-            );
+            println!("✅ Success! Created Issue #{}: {}", issue.number, issue.html_url);
         }
         Err(e) => {
             println!("❌ Error: {}", e);

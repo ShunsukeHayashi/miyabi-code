@@ -43,12 +43,7 @@ pub struct Pane {
 
 impl Pane {
     /// Create a new pane
-    pub fn new(
-        tmux_pane_id: String,
-        segment_id: u32,
-        working_dir: String,
-        agent_type: String,
-    ) -> Self {
+    pub fn new(tmux_pane_id: String, segment_id: u32, working_dir: String, agent_type: String) -> Self {
         let now = chrono::Utc::now();
         Self {
             id: Uuid::new_v4(),
@@ -85,12 +80,7 @@ mod tests {
 
     #[test]
     fn test_pane_creation() {
-        let pane = Pane::new(
-            "%1".to_string(),
-            0,
-            "/tmp/work".to_string(),
-            "video-generator".to_string(),
-        );
+        let pane = Pane::new("%1".to_string(), 0, "/tmp/work".to_string(), "video-generator".to_string());
         assert_eq!(pane.tmux_pane_id, "%1");
         assert_eq!(pane.segment_id, 0);
         assert_eq!(pane.status, PaneStatus::Idle);

@@ -52,10 +52,7 @@ fn create_test_issue(number: u64, title: &str, body: &str) -> Issue {
         title: title.to_string(),
         body: body.to_string(),
         state: IssueStateGithub::Open,
-        labels: vec![
-            "✨ type:feature".to_string(),
-            "📊 priority:P2-Medium".to_string(),
-        ],
+        labels: vec!["✨ type:feature".to_string(), "📊 priority:P2-Medium".to_string()],
         assignee: None,
         created_at: Utc::now(),
         updated_at: Utc::now(),
@@ -104,10 +101,7 @@ fn test_coordinator_task_decomposition() {
     let decomposition = result.unwrap();
 
     // Verify tasks were created
-    assert!(
-        !decomposition.tasks.is_empty(),
-        "Should create at least one task"
-    );
+    assert!(!decomposition.tasks.is_empty(), "Should create at least one task");
 
     // Verify DAG was built
     assert!(!decomposition.has_cycles, "DAG should not have cycles");
@@ -125,15 +119,9 @@ fn test_coordinator_task_decomposition() {
         .tasks
         .iter()
         .any(|t| t.assigned_agent == Some(AgentType::CodeGenAgent));
-    assert!(
-        has_impl_task,
-        "Should have at least one CodeGenAgent implementation task"
-    );
+    assert!(has_impl_task, "Should have at least one CodeGenAgent implementation task");
 
-    println!(
-        "✅ Task decomposition test passed: {} tasks created",
-        decomposition.tasks.len()
-    );
+    println!("✅ Task decomposition test passed: {} tasks created", decomposition.tasks.len());
 }
 
 #[test]
@@ -143,17 +131,9 @@ fn test_pr_agent_title_generation() {
     let _pr_agent = PRAgent::new(config);
 
     let test_cases = vec![
-        (
-            TaskType::Feature,
-            "Add user authentication",
-            "feat: Add user authentication",
-        ),
+        (TaskType::Feature, "Add user authentication", "feat: Add user authentication"),
         (TaskType::Bug, "Fix login error", "fix: Fix login error"),
-        (
-            TaskType::Refactor,
-            "Refactor auth module",
-            "refactor: Refactor auth module",
-        ),
+        (TaskType::Refactor, "Refactor auth module", "refactor: Refactor auth module"),
         (TaskType::Docs, "Update README", "docs: Update README"),
         (TaskType::Test, "Add unit tests", "test: Add unit tests"),
     ];
@@ -203,24 +183,15 @@ fn test_task_dependency_chain() {
     // Verify dependency chain
     // First task (analysis) should have no dependencies
     let first_task = &decomposition.tasks[0];
-    assert!(
-        first_task.dependencies.is_empty(),
-        "Analysis task should have no dependencies"
-    );
+    assert!(first_task.dependencies.is_empty(), "Analysis task should have no dependencies");
 
     // Subsequent tasks should depend on previous tasks
     if decomposition.tasks.len() > 1 {
         let second_task = &decomposition.tasks[1];
-        assert!(
-            !second_task.dependencies.is_empty(),
-            "Implementation tasks should have dependencies"
-        );
+        assert!(!second_task.dependencies.is_empty(), "Implementation tasks should have dependencies");
     }
 
-    println!(
-        "✅ Task dependency chain test passed: {} tasks with proper dependencies",
-        decomposition.tasks.len()
-    );
+    println!("✅ Task dependency chain test passed: {} tasks with proper dependencies", decomposition.tasks.len());
 }
 
 #[test]
@@ -233,12 +204,8 @@ fn test_full_workflow_with_github_api() {
     let runtime = tokio::runtime::Runtime::new().unwrap();
     runtime.block_on(async {
         // Initialize GitHub client
-        let client = GitHubClient::new(
-            github_token.clone(),
-            "ShunsukeHayashi".to_string(),
-            "Miyabi".to_string(),
-        )
-        .expect("Failed to create GitHub client");
+        let client = GitHubClient::new(github_token.clone(), "ShunsukeHayashi".to_string(), "Miyabi".to_string())
+            .expect("Failed to create GitHub client");
 
         // Step 1: Create a test issue
         let issue_result = client
@@ -248,11 +215,7 @@ fn test_full_workflow_with_github_api() {
             )
             .await;
 
-        assert!(
-            issue_result.is_ok(),
-            "Failed to create test issue: {:?}",
-            issue_result.err()
-        );
+        assert!(issue_result.is_ok(), "Failed to create test issue: {:?}", issue_result.err());
         let issue = issue_result.unwrap();
         println!("✅ Step 1: Created test issue #{}", issue.number);
 
@@ -261,26 +224,16 @@ fn test_full_workflow_with_github_api() {
         let coordinator = CoordinatorAgent::new(config.clone());
 
         let decomposition_result = coordinator.decompose_issue(&issue).await;
-        assert!(
-            decomposition_result.is_ok(),
-            "Failed to decompose issue: {:?}",
-            decomposition_result.err()
-        );
+        assert!(decomposition_result.is_ok(), "Failed to decompose issue: {:?}", decomposition_result.err());
         let decomposition = decomposition_result.unwrap();
-        println!(
-            "✅ Step 2: CoordinatorAgent decomposed issue into {} tasks",
-            decomposition.tasks.len()
-        );
+        println!("✅ Step 2: CoordinatorAgent decomposed issue into {} tasks", decomposition.tasks.len());
 
         // Step 3: Verify CodeGenAgent task exists
         let has_codegen_task = decomposition
             .tasks
             .iter()
             .any(|t| t.assigned_agent == Some(AgentType::CodeGenAgent));
-        assert!(
-            has_codegen_task,
-            "Should have CodeGenAgent task in decomposition"
-        );
+        assert!(has_codegen_task, "Should have CodeGenAgent task in decomposition");
         println!("✅ Step 3: Verified CodeGenAgent task exists");
 
         // Step 4: Execute PRAgent (simulate)
@@ -297,18 +250,11 @@ fn test_full_workflow_with_github_api() {
 
         // Note: We don't actually create a PR in this test to avoid polluting the repo
         // Instead, we verify the agent can process the task
-        println!(
-            "✅ Step 4: PRAgent ready to create PR for task: {}",
-            impl_task.title
-        );
+        println!("✅ Step 4: PRAgent ready to create PR for task: {}", impl_task.title);
 
         // Step 5: Clean up - close the test issue
         let close_result = client.close_issue(issue.number).await;
-        assert!(
-            close_result.is_ok(),
-            "Failed to close test issue: {:?}",
-            close_result.err()
-        );
+        assert!(close_result.is_ok(), "Failed to close test issue: {:?}", close_result.err());
         println!("✅ Step 5: Closed test issue #{}", issue.number);
 
         println!("\n🎉 Full E2E workflow test completed successfully!");
@@ -330,18 +276,11 @@ fn test_dag_validation_no_cycles() {
     let decomposition = result.unwrap();
 
     // Verify DAG validation
-    assert!(
-        !decomposition.has_cycles,
-        "Generated DAG should never have cycles"
-    );
+    assert!(!decomposition.has_cycles, "Generated DAG should never have cycles");
 
     // Verify DAG structure
     let dag = &decomposition.dag;
-    assert_eq!(
-        dag.nodes.len(),
-        decomposition.tasks.len(),
-        "DAG should have one node per task"
-    );
+    assert_eq!(dag.nodes.len(), decomposition.tasks.len(), "DAG should have one node per task");
 
     println!("✅ DAG validation test passed: No cycles detected");
 }
@@ -373,14 +312,8 @@ fn test_agent_type_assignment() {
     }
 
     // Verify we have diverse agent assignments
-    assert!(
-        agent_counts.contains_key(&AgentType::IssueAgent),
-        "Should have IssueAgent for analysis"
-    );
-    assert!(
-        agent_counts.contains_key(&AgentType::CodeGenAgent),
-        "Should have CodeGenAgent for implementation"
-    );
+    assert!(agent_counts.contains_key(&AgentType::IssueAgent), "Should have IssueAgent for analysis");
+    assert!(agent_counts.contains_key(&AgentType::CodeGenAgent), "Should have CodeGenAgent for implementation");
 
     println!("✅ Agent type assignment test passed: {:?}", agent_counts);
 }
@@ -391,11 +324,7 @@ fn test_estimated_duration_calculation() {
     let config = create_test_config();
     let coordinator = CoordinatorAgent::new(config);
 
-    let issue = create_test_issue(
-        1003,
-        "Feature with time estimates",
-        "Multi-step feature requiring time estimation",
-    );
+    let issue = create_test_issue(1003, "Feature with time estimates", "Multi-step feature requiring time estimation");
 
     let runtime = tokio::runtime::Runtime::new().unwrap();
     let result = runtime.block_on(coordinator.decompose_issue(&issue));
@@ -404,27 +333,15 @@ fn test_estimated_duration_calculation() {
     let decomposition = result.unwrap();
 
     // Verify estimated total duration
-    assert!(
-        decomposition.estimated_total_duration > 0,
-        "Should have positive estimated duration"
-    );
+    assert!(decomposition.estimated_total_duration > 0, "Should have positive estimated duration");
 
     // Verify individual tasks have estimates
     for task in &decomposition.tasks {
-        assert!(
-            task.estimated_duration.is_some(),
-            "Each task should have estimated duration"
-        );
-        assert!(
-            task.estimated_duration.unwrap() > 0,
-            "Estimated duration should be positive"
-        );
+        assert!(task.estimated_duration.is_some(), "Each task should have estimated duration");
+        assert!(task.estimated_duration.unwrap() > 0, "Estimated duration should be positive");
     }
 
-    println!(
-        "✅ Duration estimation test passed: Total {} minutes",
-        decomposition.estimated_total_duration
-    );
+    println!("✅ Duration estimation test passed: Total {} minutes", decomposition.estimated_total_duration);
 }
 
 #[test]
@@ -435,11 +352,8 @@ fn test_workflow_recommendations() {
 
     // Create an issue that should trigger recommendations
     // (no test task, simple issue with < 5 tasks in critical path)
-    let issue = create_test_issue(
-        1004,
-        "Simple feature without tests",
-        "Feature implementation that needs test coverage",
-    );
+    let issue =
+        create_test_issue(1004, "Simple feature without tests", "Feature implementation that needs test coverage");
 
     let runtime = tokio::runtime::Runtime::new().unwrap();
     let result = runtime.block_on(coordinator.decompose_issue(&issue));
@@ -457,10 +371,7 @@ fn test_workflow_recommendations() {
     if !decomposition.recommendations.is_empty() {
         // If recommendations exist, verify they have content
         for recommendation in &decomposition.recommendations {
-            assert!(
-                !recommendation.is_empty(),
-                "Recommendations should not be empty"
-            );
+            assert!(!recommendation.is_empty(), "Recommendations should not be empty");
         }
         println!(
             "✅ Workflow recommendations test passed: {} recommendations generated",

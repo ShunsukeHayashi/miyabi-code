@@ -220,10 +220,7 @@ async fn test_jwt_validation_expired() {
 
     // 4. Attempt to validate - should fail due to expiration
     let result = jwt_manager.validate_token(&token);
-    assert!(
-        result.is_err(),
-        "Expected token to be expired but it was still valid"
-    );
+    assert!(result.is_err(), "Expected token to be expired but it was still valid");
 }
 
 #[tokio::test]
@@ -259,18 +256,14 @@ async fn test_jwt_refresh_token() {
     let jwt_manager = JwtManager::new(&config.jwt_secret, 10); // 10 seconds
 
     // 3. Create initial token
-    let token1 = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let token1 = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
     let claims1 = jwt_manager.validate_token(&token1).unwrap();
 
     // 4. Wait briefly
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
     // 5. Create refresh token (new token for same user)
-    let token2 = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let token2 = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
     let claims2 = jwt_manager.validate_token(&token2).unwrap();
 
     // 6. Verify new token has later iat (issued at) time
@@ -321,9 +314,7 @@ async fn test_session_creation() {
 
     // 2. Create JWT token (current session mechanism)
     let jwt_manager = JwtManager::new("test_secret", 3600);
-    let token = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
 
     // 3. Verify token can be validated (session is "active")
     let claims = jwt_manager.validate_token(&token).unwrap();
@@ -345,9 +336,7 @@ async fn test_session_retrieval() {
     // 1. Create user and session token
     let user = UserFixture::default(&db.pool).await;
     let jwt_manager = JwtManager::new("test_secret", 3600);
-    let token = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
 
     // 2. Retrieve session by validating token
     let claims = jwt_manager.validate_token(&token).unwrap();
@@ -377,9 +366,7 @@ async fn test_session_expiration() {
     // 1. Create user and expired session token
     let user = UserFixture::default(&db.pool).await;
     let jwt_manager = JwtManager::new("test_secret", -1); // Expired
-    let token = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
 
     // 2. Wait to ensure expiration
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
@@ -403,9 +390,7 @@ async fn test_session_logout() {
     // 1. Create active session
     let user = UserFixture::default(&db.pool).await;
     let jwt_manager = JwtManager::new("test_secret", 3600);
-    let token = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
 
     // Verify token is valid before logout
     assert!(jwt_manager.validate_token(&token).is_ok());
@@ -590,9 +575,7 @@ async fn test_full_auth_flow() {
     // 3. Generate JWT token (as OAuth callback would)
     let config = create_test_config();
     let jwt_manager = JwtManager::new(&config.jwt_secret, config.jwt_expiration);
-    let token = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
 
     // 4. Verify token is valid (simulates authenticated API call)
     let claims = jwt_manager.validate_token(&token).unwrap();
@@ -601,9 +584,7 @@ async fn test_full_auth_flow() {
 
     // 5. Simulate token refresh
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-    let refreshed_token = jwt_manager
-        .create_token(&user.id.to_string(), user.github_id)
-        .unwrap();
+    let refreshed_token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
     let refreshed_claims = jwt_manager.validate_token(&refreshed_token).unwrap();
 
     // Verify refreshed token has later iat

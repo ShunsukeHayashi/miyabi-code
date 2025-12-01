@@ -16,10 +16,7 @@ pub struct ConcurrencyController {
 impl ConcurrencyController {
     /// 新しい並列実行制御を作成
     pub fn new(max_concurrency: usize) -> Self {
-        Self {
-            max_concurrency,
-            semaphore: Arc::new(Semaphore::new(max_concurrency)),
-        }
+        Self { max_concurrency, semaphore: Arc::new(Semaphore::new(max_concurrency)) }
     }
 
     /// 最大並列数を取得
@@ -34,10 +31,7 @@ impl ConcurrencyController {
 
     /// 実行許可を取得（非同期）
     pub async fn acquire(&self) -> tokio::sync::SemaphorePermit<'_> {
-        self.semaphore
-            .acquire()
-            .await
-            .expect("Semaphore closed unexpectedly")
+        self.semaphore.acquire().await.expect("Semaphore closed unexpectedly")
     }
 
     /// 複数の実行許可を取得（非同期）

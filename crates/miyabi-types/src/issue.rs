@@ -757,12 +757,7 @@ mod tests {
 
     #[test]
     fn test_pr_state_roundtrip() {
-        let states = vec![
-            PRState::Draft,
-            PRState::Open,
-            PRState::Merged,
-            PRState::Closed,
-        ];
+        let states = vec![PRState::Draft, PRState::Open, PRState::Merged, PRState::Closed];
 
         for state in states {
             let json = serde_json::to_string(&state).unwrap();

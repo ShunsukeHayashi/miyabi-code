@@ -22,12 +22,7 @@ use tower::ServiceExt;
 
 /// Make a test request to a router
 #[allow(dead_code)]
-pub async fn make_request(
-    router: Router,
-    method: &str,
-    uri: &str,
-    body: Option<String>,
-) -> (StatusCode, String) {
+pub async fn make_request(router: Router, method: &str, uri: &str, body: Option<String>) -> (StatusCode, String) {
     let request = Request::builder().uri(uri).method(method);
 
     let request = if let Some(body_content) = body {
@@ -42,9 +37,7 @@ pub async fn make_request(
     let response = router.oneshot(request).await.unwrap();
     let status = response.status();
 
-    let body_bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
-        .await
-        .unwrap();
+    let body_bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
     let body_string = String::from_utf8(body_bytes.to_vec()).unwrap();
 
     (status, body_string)
@@ -69,12 +62,8 @@ pub fn create_test_jwt(user_id: i64, username: &str) -> String {
     };
 
     let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "test_secret_key".to_string());
-    encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .expect("Failed to create test JWT")
+    encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_bytes()))
+        .expect("Failed to create test JWT")
 }
 
 /// Create a test app configuration

@@ -108,10 +108,7 @@ impl OmegaFunction {
         let (_updated_world, quality) = self.theta_6.execute(pr, world).await?;
 
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
-        info!(
-            "Ω function completed in {}ms with quality Q={:.4}",
-            execution_time_ms, quality
-        );
+        info!("Ω function completed in {}ms with quality Q={:.4}", execution_time_ms, quality);
 
         // Construct result
         let result = SWMLResult::new(
@@ -195,10 +192,7 @@ impl UnderstandingPhase {
                 "Update documentation".to_string(),
             ],
             constraints: intent.constraints.clone(),
-            success_criteria: vec![
-                "All tests pass".to_string(),
-                "Code quality >= 0.80".to_string(),
-            ],
+            success_criteria: vec!["All tests pass".to_string(), "Code quality >= 0.80".to_string()],
         })
     }
 }
@@ -243,11 +237,7 @@ impl GenerationPhase {
         // TODO: Implement SELF-DISCOVER framework
         // For now, return empty code
 
-        Ok(GeneratedCode {
-            files: vec![],
-            tests: vec![],
-            documentation: vec![],
-        })
+        Ok(GeneratedCode { files: vec![], tests: vec![], documentation: vec![] })
     }
 }
 
@@ -298,11 +288,7 @@ impl AllocationPhase {
         // TODO: Implement DAG construction
         // For now, return empty graph
 
-        Ok(TaskGraph {
-            nodes: vec![],
-            edges: vec![],
-            levels: vec![],
-        })
+        Ok(TaskGraph { nodes: vec![], edges: vec![], levels: vec![] })
     }
 }
 
@@ -353,10 +339,7 @@ impl ExecutionPhase {
         // TODO: Implement parallel worktree execution
         // For now, return empty results
 
-        Ok(ExecutionResults {
-            task_results: vec![],
-            total_time_ms: 0,
-        })
+        Ok(ExecutionResults { task_results: vec![], total_time_ms: 0 })
     }
 }
 

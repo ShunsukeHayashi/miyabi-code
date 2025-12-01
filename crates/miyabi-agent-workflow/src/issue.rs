@@ -5,9 +5,7 @@
 
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
-use miyabi_types::agent::{
-    AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
-};
+use miyabi_types::agent::{AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, Issue, Task};
@@ -29,11 +27,7 @@ impl IssueAgent {
         tracing::info!("Analyzing issue #{}: {}", issue.number, issue.title);
 
         // Combine title and body for keyword analysis
-        let combined_text = format!(
-            "{} {}",
-            issue.title.to_lowercase(),
-            issue.body.to_lowercase()
-        );
+        let combined_text = format!("{} {}", issue.title.to_lowercase(), issue.body.to_lowercase());
 
         // 1. Determine issue type
         let issue_type = self.infer_issue_type(&combined_text, &issue.labels);
@@ -131,11 +125,7 @@ impl IssueAgent {
         }
 
         // Docs keywords
-        if text.contains("doc")
-            || text.contains("documentation")
-            || text.contains("readme")
-            || text.contains("guide")
-        {
+        if text.contains("doc") || text.contains("documentation") || text.contains("readme") || text.contains("guide") {
             return TaskType::Docs;
         }
 
@@ -145,11 +135,7 @@ impl IssueAgent {
         }
 
         // Deployment keywords
-        if text.contains("deploy")
-            || text.contains("release")
-            || text.contains("ci")
-            || text.contains("cd")
-        {
+        if text.contains("deploy") || text.contains("release") || text.contains("ci") || text.contains("cd") {
             return TaskType::Deployment;
         }
 
@@ -193,10 +179,7 @@ impl IssueAgent {
         }
 
         // Sev.5-Trivial: lowest priority
-        if text.contains("nice to have")
-            || text.contains("enhancement")
-            || text.contains("suggestion")
-        {
+        if text.contains("nice to have") || text.contains("enhancement") || text.contains("suggestion") {
             return Severity::Low; // Using Low as proxy for Trivial
         }
 
@@ -216,16 +199,12 @@ impl IssueAgent {
         }
 
         // High: affects major functionality
-        if text.contains("many users")
-            || text.contains("major feature")
-            || text.contains("main functionality")
-        {
+        if text.contains("many users") || text.contains("major feature") || text.contains("main functionality") {
             return ImpactLevel::High;
         }
 
         // Low: minimal impact
-        if text.contains("few users") || text.contains("cosmetic") || text.contains("documentation")
-        {
+        if text.contains("few users") || text.contains("cosmetic") || text.contains("documentation") {
             return ImpactLevel::Low;
         }
 
@@ -253,18 +232,14 @@ impl IssueAgent {
         };
 
         // Adjust based on complexity keywords
-        let multiplier =
-            if text.contains("large") || text.contains("major") || text.contains("complex") {
-                2.0
-            } else if text.contains("quick")
-                || text.contains("small")
-                || text.contains("minor")
-                || text.contains("simple")
-            {
-                0.5
-            } else {
-                1.0
-            };
+        let multiplier = if text.contains("large") || text.contains("major") || text.contains("complex") {
+            2.0
+        } else if text.contains("quick") || text.contains("small") || text.contains("minor") || text.contains("simple")
+        {
+            0.5
+        } else {
+            1.0
+        };
 
         (base_duration as f32 * multiplier) as u32
     }
@@ -287,12 +262,7 @@ impl IssueAgent {
     }
 
     /// Generate labels based on issue analysis
-    fn generate_labels(
-        &self,
-        issue_type: &TaskType,
-        severity: &Severity,
-        impact: &ImpactLevel,
-    ) -> Vec<String> {
+    fn generate_labels(&self, issue_type: &TaskType, severity: &Severity, impact: &ImpactLevel) -> Vec<String> {
         let mut labels = Vec::new();
 
         // Issue type label
@@ -355,9 +325,7 @@ impl BaseAgent for IssueAgent {
             .as_ref()
             .and_then(|m| m.get("issue_number"))
             .and_then(|v| v.as_u64())
-            .ok_or_else(|| {
-                MiyabiError::Validation("Task metadata missing issue_number".to_string())
-            })?;
+            .ok_or_else(|| MiyabiError::Validation("Task metadata missing issue_number".to_string()))?;
 
         // For now, create a mock issue from task data
         // In production, this would fetch from GitHub API

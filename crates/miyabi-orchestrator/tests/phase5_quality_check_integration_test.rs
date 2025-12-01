@@ -102,11 +102,7 @@ async fn test_phase5_quality_check_success() {
     let report = checker.run_checks().await.unwrap();
 
     // Clean project should have high scores
-    assert!(
-        report.score >= 80,
-        "Clean project should score >= 80, got {}",
-        report.score
-    );
+    assert!(report.score >= 80, "Clean project should score >= 80, got {}", report.score);
     assert!(report.passed, "Clean project should pass quality checks");
     assert!(
         report.issues.is_empty() || report.issues.iter().all(|i| i.score_impact == 0),
@@ -124,22 +120,10 @@ async fn test_phase5_quality_breakdown_structure() {
     let report = checker.run_checks().await.unwrap();
 
     // Verify breakdown structure
-    assert!(
-        report.breakdown.clippy_score <= 100,
-        "Clippy score should be valid (0-100)"
-    );
-    assert!(
-        report.breakdown.rustc_score <= 100,
-        "Rustc score should be valid (0-100)"
-    );
-    assert!(
-        report.breakdown.security_score <= 100,
-        "Security score should be valid (0-100)"
-    );
-    assert!(
-        report.breakdown.test_coverage_score <= 100,
-        "Coverage score should be valid (0-100)"
-    );
+    assert!(report.breakdown.clippy_score <= 100, "Clippy score should be valid (0-100)");
+    assert!(report.breakdown.rustc_score <= 100, "Rustc score should be valid (0-100)");
+    assert!(report.breakdown.security_score <= 100, "Security score should be valid (0-100)");
+    assert!(report.breakdown.test_coverage_score <= 100, "Coverage score should be valid (0-100)");
 }
 
 #[tokio::test]
@@ -155,26 +139,16 @@ async fn test_phase5_auto_fix_formatting_issues() {
 
     // Verify code is now formatted
     let formatted_code = fs::read_to_string(project_path.join("src/main.rs")).unwrap();
-    assert!(
-        formatted_code.contains("fn main()"),
-        "Code should be properly formatted"
-    );
-    assert!(
-        formatted_code.contains("fn test_basic()"),
-        "Test function should be properly formatted"
-    );
+    assert!(formatted_code.contains("fn main()"), "Code should be properly formatted");
+    assert!(formatted_code.contains("fn test_basic()"), "Test function should be properly formatted");
 }
 
 #[tokio::test]
 async fn test_phase5_weighted_scoring() {
     // Test weighted average calculation
     // Weights: clippy=30%, rustc=25%, security=30%, coverage=15%
-    let _breakdown = QualityBreakdown {
-        clippy_score: 100,
-        rustc_score: 80,
-        security_score: 90,
-        test_coverage_score: 70,
-    };
+    let _breakdown =
+        QualityBreakdown { clippy_score: 100, rustc_score: 80, security_score: 90, test_coverage_score: 70 };
 
     // Calculate expected score: (100*30 + 80*25 + 90*30 + 70*15) / 100
     // = (3000 + 2000 + 2700 + 1050) / 100
@@ -197,12 +171,7 @@ async fn test_phase5_score_threshold_validation() {
         passed: true,
         issues: vec![],
         recommendations: vec![],
-        breakdown: QualityBreakdown {
-            clippy_score: 85,
-            rustc_score: 85,
-            security_score: 85,
-            test_coverage_score: 85,
-        },
+        breakdown: QualityBreakdown { clippy_score: 85, rustc_score: 85, security_score: 85, test_coverage_score: 85 },
     };
     assert!(high_score.score >= 80, "High score should be >= 80");
     assert!(high_score.passed, "High score should pass");
@@ -213,21 +182,10 @@ async fn test_phase5_score_threshold_validation() {
         passed: false,
         issues: vec![],
         recommendations: vec![],
-        breakdown: QualityBreakdown {
-            clippy_score: 70,
-            rustc_score: 70,
-            security_score: 70,
-            test_coverage_score: 70,
-        },
+        breakdown: QualityBreakdown { clippy_score: 70, rustc_score: 70, security_score: 70, test_coverage_score: 70 },
     };
-    assert!(
-        marginal_score.score >= 60 && marginal_score.score < 80,
-        "Marginal score should be 60-79"
-    );
-    assert!(
-        !marginal_score.passed,
-        "Marginal score should not auto-pass"
-    );
+    assert!(marginal_score.score >= 60 && marginal_score.score < 80, "Marginal score should be 60-79");
+    assert!(!marginal_score.passed, "Marginal score should not auto-pass");
 
     // Score < 60: Fail immediately
     let low_score = QualityReport {
@@ -235,12 +193,7 @@ async fn test_phase5_score_threshold_validation() {
         passed: false,
         issues: vec![],
         recommendations: vec![],
-        breakdown: QualityBreakdown {
-            clippy_score: 50,
-            rustc_score: 50,
-            security_score: 50,
-            test_coverage_score: 50,
-        },
+        breakdown: QualityBreakdown { clippy_score: 50, rustc_score: 50, security_score: 50, test_coverage_score: 50 },
     };
     assert!(low_score.score < 60, "Low score should be < 60");
     assert!(!low_score.passed, "Low score should not pass");
@@ -256,10 +209,7 @@ async fn test_phase5_test_failure_impact() {
     let report = checker.run_checks().await.unwrap();
 
     // Test failures should impact score
-    assert!(
-        report.breakdown.test_coverage_score < 100,
-        "Test failures should reduce coverage score"
-    );
+    assert!(report.breakdown.test_coverage_score < 100, "Test failures should reduce coverage score");
     assert!(
         report.issues.iter().any(|i| i.message.contains("Test")),
         "Test failures should be reported in issues"
@@ -277,10 +227,7 @@ async fn test_phase5_recommendations_generation() {
 
     // Project with test failures should have recommendations
     if report.score < 90 {
-        assert!(
-            !report.recommendations.is_empty(),
-            "Should provide recommendations for scores < 90"
-        );
+        assert!(!report.recommendations.is_empty(), "Should provide recommendations for scores < 90");
     }
 }
 
@@ -298,10 +245,7 @@ async fn test_phase5_parallel_check_execution() {
 
     // Parallel execution should be faster than sequential
     // This is more of a smoke test to ensure it completes
-    assert!(
-        duration.as_secs() < 120,
-        "Quality checks should complete within 2 minutes"
-    );
+    assert!(duration.as_secs() < 120, "Quality checks should complete within 2 minutes");
 }
 
 #[tokio::test]
@@ -316,12 +260,8 @@ async fn test_phase5_dry_run_mode() {
 #[test]
 fn test_phase5_quality_breakdown_validation() {
     // Test that quality breakdown validation works correctly
-    let valid_breakdown = QualityBreakdown {
-        clippy_score: 90,
-        rustc_score: 85,
-        security_score: 95,
-        test_coverage_score: 80,
-    };
+    let valid_breakdown =
+        QualityBreakdown { clippy_score: 90, rustc_score: 85, security_score: 95, test_coverage_score: 80 };
     assert!(valid_breakdown.validate().is_ok());
 
     let invalid_breakdown = QualityBreakdown {
@@ -341,12 +281,7 @@ fn test_phase5_quality_report_validation() {
         passed: true,
         issues: vec![],
         recommendations: vec![],
-        breakdown: QualityBreakdown {
-            clippy_score: 85,
-            rustc_score: 85,
-            security_score: 85,
-            test_coverage_score: 85,
-        },
+        breakdown: QualityBreakdown { clippy_score: 85, rustc_score: 85, security_score: 85, test_coverage_score: 85 },
     };
     assert!(valid_report.validate().is_ok());
 
@@ -356,12 +291,7 @@ fn test_phase5_quality_report_validation() {
         passed: true,
         issues: vec![],
         recommendations: vec![],
-        breakdown: QualityBreakdown {
-            clippy_score: 85,
-            rustc_score: 85,
-            security_score: 85,
-            test_coverage_score: 85,
-        },
+        breakdown: QualityBreakdown { clippy_score: 85, rustc_score: 85, security_score: 85, test_coverage_score: 85 },
     };
     assert!(invalid_score.validate().is_err());
 
@@ -371,12 +301,7 @@ fn test_phase5_quality_report_validation() {
         passed: false, // Should be true when score >= 80
         issues: vec![],
         recommendations: vec![],
-        breakdown: QualityBreakdown {
-            clippy_score: 85,
-            rustc_score: 85,
-            security_score: 85,
-            test_coverage_score: 85,
-        },
+        breakdown: QualityBreakdown { clippy_score: 85, rustc_score: 85, security_score: 85, test_coverage_score: 85 },
     };
     assert!(inconsistent_passed.validate().is_err());
 }

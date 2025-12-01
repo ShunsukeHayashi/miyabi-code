@@ -40,9 +40,7 @@ pub struct WorktreePaths {
 impl WorktreePaths {
     /// Create a new helper anchored at the provided base path.
     pub fn new<P: AsRef<Path>>(base: P) -> Self {
-        Self {
-            base: normalize_path(base),
-        }
+        Self { base: normalize_path(base) }
     }
 
     /// Returns the normalized base directory.
@@ -57,9 +55,7 @@ impl WorktreePaths {
 
     /// Replaces the current base directory.
     pub fn with_base<P: AsRef<Path>>(&self, base: P) -> Self {
-        Self {
-            base: normalize_path(base),
-        }
+        Self { base: normalize_path(base) }
     }
 }
 

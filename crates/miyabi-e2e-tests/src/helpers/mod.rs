@@ -6,11 +6,7 @@ use std::time::Duration;
 use tokio::time::sleep;
 
 /// Create a test file with content
-pub async fn create_test_file(
-    path: &Path,
-    filename: &str,
-    content: &str,
-) -> E2EResult<std::path::PathBuf> {
+pub async fn create_test_file(path: &Path, filename: &str, content: &str) -> E2EResult<std::path::PathBuf> {
     let file_path = path.join(filename);
 
     // Create parent directories if they don't exist
@@ -33,11 +29,7 @@ pub async fn create_test_commit(path: &Path, message: &str) -> E2EResult<()> {
         .await?;
 
     if !output.status.success() {
-        return Err(format!(
-            "git add failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        )
-        .into());
+        return Err(format!("git add failed: {}", String::from_utf8_lossy(&output.stderr)).into());
     }
 
     // Commit
@@ -62,11 +54,7 @@ pub async fn create_test_commit(path: &Path, message: &str) -> E2EResult<()> {
 
 /// Assert that a file exists
 pub fn assert_file_exists<P: AsRef<Path>>(path: P) {
-    assert!(
-        path.as_ref().exists(),
-        "File does not exist: {:?}",
-        path.as_ref()
-    );
+    assert!(path.as_ref().exists(), "File does not exist: {:?}", path.as_ref());
 }
 
 /// Assert that a file contains specific content
@@ -82,11 +70,7 @@ pub async fn assert_file_contains<P: AsRef<Path>>(path: P, content: &str) -> E2E
 }
 
 /// Wait for a condition to be true with timeout
-pub async fn wait_for_condition<F>(
-    mut condition: F,
-    timeout: Duration,
-    check_interval: Duration,
-) -> E2EResult<()>
+pub async fn wait_for_condition<F>(mut condition: F, timeout: Duration, check_interval: Duration) -> E2EResult<()>
 where
     F: FnMut() -> bool,
 {
@@ -142,11 +126,7 @@ pub async fn run_git_command(path: &Path, args: &[&str]) -> E2EResult<String> {
         .await?;
 
     if !output.status.success() {
-        return Err(format!(
-            "git command failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        )
-        .into());
+        return Err(format!("git command failed: {}", String::from_utf8_lossy(&output.stderr)).into());
     }
 
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
@@ -213,12 +193,8 @@ mod tests {
             counter >= 3
         };
 
-        wait_for_condition(
-            condition,
-            Duration::from_secs(5),
-            Duration::from_millis(100),
-        )
-        .await
-        .unwrap();
+        wait_for_condition(condition, Duration::from_secs(5), Duration::from_millis(100))
+            .await
+            .unwrap();
     }
 }

@@ -81,8 +81,8 @@
 
 // Re-export from miyabi-agent-core (already extracted)
 pub use miyabi_agent_core::{
-    AgentHook, AuditLogHook, BaseAgent, EnvironmentCheckHook, HookedAgent, MetricsHook,
-    Orchestrated, OrchestrationEngine,
+    AgentHook, AuditLogHook, BaseAgent, EnvironmentCheckHook, HookedAgent, MetricsHook, Orchestrated,
+    OrchestrationEngine,
 };
 
 // Local modules
@@ -93,14 +93,11 @@ pub use hooks::StructuredLogHook;
 
 // Re-export config types
 pub use config::{
-    AgentConfig, AgentConfigManager, AgentDependencies, AgentInfo, AgentMetadata, AgentType,
-    SkillConfig,
+    AgentConfig, AgentConfigManager, AgentDependencies, AgentInfo, AgentMetadata, AgentType, SkillConfig,
 };
 
 // Re-export from specialized agent crates
-pub use miyabi_agent_coordinator::{
-    CoordinatorAgent, CoordinatorAgentWithLLM, ParallelExecutor, TaskDecomposition,
-};
+pub use miyabi_agent_coordinator::{CoordinatorAgent, CoordinatorAgentWithLLM, ParallelExecutor, TaskDecomposition};
 
 pub use miyabi_agent_codegen::CodeGenAgent;
 
@@ -109,9 +106,9 @@ pub use miyabi_agent_review::ReviewAgent;
 pub use miyabi_agent_workflow::{DeploymentAgent, IssueAgent, PRAgent};
 
 pub use miyabi_agent_business::{
-    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
-    MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
-    SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
+    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent, MarketResearchAgent,
+    MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent, SNSStrategyAgent, SalesAgent,
+    SelfAnalysisAgent, YouTubeAgent,
 };
 
 pub use miyabi_agent_integrations::{DiscordCommunityAgent, PotpieIntegration, RefresherAgent};

@@ -70,10 +70,7 @@ impl WorktreeManager {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new_with_discovery(
-        worktree_base_name: Option<&str>,
-        max_concurrency: usize,
-    ) -> Result<Self> {
+    pub fn new_with_discovery(worktree_base_name: Option<&str>, max_concurrency: usize) -> Result<Self> {
         // Discover Git repository root from current directory
         let repo_path = miyabi_core::find_git_root(None)?;
 
@@ -98,11 +95,7 @@ impl WorktreeManager {
     /// # Note
     /// Consider using `new_with_discovery()` instead, which automatically
     /// finds the Git repository root even when running from a subdirectory.
-    pub fn new(
-        repo_path: impl AsRef<Path>,
-        worktree_base: impl AsRef<Path>,
-        max_concurrency: usize,
-    ) -> Result<Self> {
+    pub fn new(repo_path: impl AsRef<Path>, worktree_base: impl AsRef<Path>, max_concurrency: usize) -> Result<Self> {
         let repo_path = repo_path.as_ref().to_path_buf();
         let worktree_base = normalize_path(worktree_base.as_ref());
         let worktree_paths = WorktreePaths::new(&worktree_base);
@@ -199,9 +192,9 @@ impl WorktreeManager {
             .map_err(|e| MiyabiError::Unknown(format!("Failed to acquire semaphore: {}", e)))?;
 
         let worktree_id = Uuid::new_v4().to_string();
-        let worktree_path =
-            self.worktree_paths
-                .join(format!("issue-{}-{}", issue_number, &worktree_id[..8]));
+        let worktree_path = self
+            .worktree_paths
+            .join(format!("issue-{}-{}", issue_number, &worktree_id[..8]));
         let branch_name = format!("feature/issue-{}", issue_number);
 
         // Record telemetry: CreateStart
@@ -215,11 +208,7 @@ impl WorktreeManager {
 
         let start_time = Instant::now();
 
-        tracing::info!(
-            "Creating worktree for issue #{} at {:?}",
-            issue_number,
-            worktree_path
-        );
+        tracing::info!("Creating worktree for issue #{} at {:?}", issue_number, worktree_path);
 
         // Perform all git2 operations in a scope to ensure repo is dropped before await
         {
@@ -252,10 +241,7 @@ impl WorktreeManager {
             let branch_exists = repo.find_branch(&branch_name, BranchType::Local).is_ok();
 
             if branch_exists {
-                tracing::warn!(
-                    "Branch {} already exists, using existing branch",
-                    branch_name
-                );
+                tracing::warn!("Branch {} already exists, using existing branch", branch_name);
             } else {
                 repo.branch(&branch_name, &head_commit, false)
                     .map_err(|e| MiyabiError::Git(format!("Failed to create branch: {}", e)))?;
@@ -275,10 +261,7 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!(
-                "Failed to create worktree: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Git(format!("Failed to create worktree: {}", stderr)));
         }
 
         let worktree_info = WorktreeInfo {
@@ -324,17 +307,16 @@ impl WorktreeManager {
     pub async fn remove_worktree(&self, worktree_id: &str) -> Result<()> {
         let worktree_info = {
             let worktrees = self.worktrees.lock().await;
-            worktrees.get(worktree_id).cloned().ok_or_else(|| {
-                MiyabiError::Unknown(format!("Worktree {} not found", worktree_id))
-            })?
+            worktrees
+                .get(worktree_id)
+                .cloned()
+                .ok_or_else(|| MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))?
         };
 
         // Record telemetry: CleanupStart
         {
             let mut telemetry = self.telemetry.lock().await;
-            telemetry.record(WorktreeEvent::CleanupStart {
-                worktree_id: worktree_id.to_string(),
-            });
+            telemetry.record(WorktreeEvent::CleanupStart { worktree_id: worktree_id.to_string() });
         }
 
         let start_time = Instant::now();
@@ -349,10 +331,7 @@ impl WorktreeManager {
                     "Current directory is inside worktree to be deleted. Changing to repository root first."
                 );
                 if let Err(e) = std::env::set_current_dir(&self.repo_path) {
-                    tracing::error!(
-                        "Failed to change directory to repository root: {}. This may cause issues.",
-                        e
-                    );
+                    tracing::error!("Failed to change directory to repository root: {}. This may cause issues.", e);
                     // Continue anyway - the git command uses current_dir() parameter
                 }
             }
@@ -360,10 +339,7 @@ impl WorktreeManager {
 
         // Check if worktree path exists
         if !worktree_info.path.exists() {
-            tracing::warn!(
-                "Worktree path does not exist: {:?}. It may have been already removed.",
-                worktree_info.path
-            );
+            tracing::warn!("Worktree path does not exist: {:?}. It may have been already removed.", worktree_info.path);
             // Continue to clean up tracking data
         } else {
             // Remove worktree using git command
@@ -376,9 +352,7 @@ impl WorktreeManager {
                 .current_dir(&self.repo_path)
                 .output()
                 .await
-                .map_err(|e| {
-                    MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e))
-                })?;
+                .map_err(|e| MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e)))?;
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
@@ -394,9 +368,7 @@ impl WorktreeManager {
             .current_dir(&self.repo_path)
             .output()
             .await
-            .map_err(|e| {
-                MiyabiError::Git(format!("Failed to execute git worktree prune: {}", e))
-            })?;
+            .map_err(|e| MiyabiError::Git(format!("Failed to execute git worktree prune: {}", e)))?;
 
         if !prune_output.status.success() {
             let stderr = String::from_utf8_lossy(&prune_output.stderr);
@@ -417,10 +389,7 @@ impl WorktreeManager {
                     .delete()
                     .map_err(|e| MiyabiError::Git(format!("Failed to delete branch: {}", e)))?;
             } else {
-                tracing::debug!(
-                    "Branch {} not found, skipping deletion",
-                    worktree_info.branch_name
-                );
+                tracing::debug!("Branch {} not found, skipping deletion", worktree_info.branch_name);
             }
         } // repo is dropped here, before the await point
 
@@ -448,9 +417,10 @@ impl WorktreeManager {
     pub async fn push_worktree(&self, worktree_id: &str) -> Result<()> {
         let worktree_info = {
             let worktrees = self.worktrees.lock().await;
-            worktrees.get(worktree_id).cloned().ok_or_else(|| {
-                MiyabiError::Unknown(format!("Worktree {} not found", worktree_id))
-            })?
+            worktrees
+                .get(worktree_id)
+                .cloned()
+                .ok_or_else(|| MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))?
         };
 
         tracing::info!("Pushing worktree branch {}", worktree_info.branch_name);
@@ -479,9 +449,10 @@ impl WorktreeManager {
     pub async fn merge_worktree(&self, worktree_id: &str) -> Result<()> {
         let worktree_info = {
             let worktrees = self.worktrees.lock().await;
-            worktrees.get(worktree_id).cloned().ok_or_else(|| {
-                MiyabiError::Unknown(format!("Worktree {} not found", worktree_id))
-            })?
+            worktrees
+                .get(worktree_id)
+                .cloned()
+                .ok_or_else(|| MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))?
         };
 
         let main_branch = {
@@ -490,11 +461,7 @@ impl WorktreeManager {
             self.get_main_branch(&repo)?
         };
 
-        tracing::info!(
-            "Merging branch {} into {}",
-            worktree_info.branch_name,
-            main_branch
-        );
+        tracing::info!("Merging branch {} into {}", worktree_info.branch_name, main_branch);
 
         // Checkout main branch
         let output = tokio::process::Command::new("git")
@@ -507,10 +474,7 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!(
-                "Failed to checkout main: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Git(format!("Failed to checkout main: {}", stderr)));
         }
 
         // Merge feature branch
@@ -540,10 +504,7 @@ impl WorktreeManager {
             info.status = status;
             Ok(())
         } else {
-            Err(MiyabiError::Unknown(format!(
-                "Worktree {} not found",
-                worktree_id
-            )))
+            Err(MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))
         }
     }
 
@@ -570,10 +531,7 @@ impl WorktreeManager {
             .values()
             .filter(|w| w.status == WorktreeStatus::Active)
             .count();
-        let idle = worktrees
-            .values()
-            .filter(|w| w.status == WorktreeStatus::Idle)
-            .count();
+        let idle = worktrees.values().filter(|w| w.status == WorktreeStatus::Idle).count();
         let completed = worktrees
             .values()
             .filter(|w| w.status == WorktreeStatus::Completed)

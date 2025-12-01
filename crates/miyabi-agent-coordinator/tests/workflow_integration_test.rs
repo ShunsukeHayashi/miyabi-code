@@ -49,18 +49,9 @@ async fn test_decompose_issue_creates_expected_tasks() {
 
     // CoordinatorAgent currently creates four canonical tasks (analysis, impl, test, review)
     assert_eq!(decomposition.tasks.len(), 4);
-    assert_eq!(
-        decomposition.tasks[0].assigned_agent,
-        Some(AgentType::IssueAgent)
-    );
-    assert_eq!(
-        decomposition.tasks[1].assigned_agent,
-        Some(AgentType::CodeGenAgent)
-    );
-    assert_eq!(
-        decomposition.tasks[3].assigned_agent,
-        Some(AgentType::ReviewAgent)
-    );
+    assert_eq!(decomposition.tasks[0].assigned_agent, Some(AgentType::IssueAgent));
+    assert_eq!(decomposition.tasks[1].assigned_agent, Some(AgentType::CodeGenAgent));
+    assert_eq!(decomposition.tasks[3].assigned_agent, Some(AgentType::ReviewAgent));
 
     // DAG should be acyclic and contain the same number of nodes as tasks
     assert!(!decomposition.dag.has_cycles());
@@ -107,15 +98,9 @@ mod workflow_tests {
         let state_path = temp_dir.path().to_str().unwrap();
 
         // Execute workflow
-        let result = coordinator
-            .execute_workflow(&workflow, Some(state_path))
-            .await;
+        let result = coordinator.execute_workflow(&workflow, Some(state_path)).await;
 
-        assert!(
-            result.is_ok(),
-            "Workflow execution failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Workflow execution failed: {:?}", result.err());
 
         let execution_state = result.unwrap();
 
@@ -152,15 +137,9 @@ mod workflow_tests {
         let state_path = temp_dir.path().to_str().unwrap();
 
         // Execute workflow
-        let result = coordinator
-            .execute_workflow(&workflow, Some(state_path))
-            .await;
+        let result = coordinator.execute_workflow(&workflow, Some(state_path)).await;
 
-        assert!(
-            result.is_ok(),
-            "Workflow execution failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Workflow execution failed: {:?}", result.err());
 
         let execution_state = result.unwrap();
 
@@ -185,9 +164,7 @@ mod workflow_tests {
         let state_path = temp_dir.path().to_str().unwrap();
 
         // Execute workflow
-        let result = coordinator
-            .execute_workflow(&workflow, Some(state_path))
-            .await;
+        let result = coordinator.execute_workflow(&workflow, Some(state_path)).await;
 
         assert!(result.is_ok());
 
@@ -213,17 +190,12 @@ mod workflow_tests {
         let coordinator = CoordinatorAgent::new(config);
 
         // Create simple workflow
-        let workflow =
-            WorkflowBuilder::new("default-path-test").step("task", AgentType::IssueAgent);
+        let workflow = WorkflowBuilder::new("default-path-test").step("task", AgentType::IssueAgent);
 
         // Execute without specifying state_path (uses default)
         let result = coordinator.execute_workflow(&workflow, None).await;
 
-        assert!(
-            result.is_ok(),
-            "Workflow execution failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Workflow execution failed: {:?}", result.err());
 
         let execution_state = result.unwrap();
         assert_eq!(execution_state.status, WorkflowStatus::Completed);
@@ -248,15 +220,9 @@ mod workflow_tests {
         let state_path = temp_dir.path().to_str().unwrap();
 
         // Execute workflow
-        let result = coordinator
-            .execute_workflow(&workflow, Some(state_path))
-            .await;
+        let result = coordinator.execute_workflow(&workflow, Some(state_path)).await;
 
-        assert!(
-            result.is_ok(),
-            "Workflow execution failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Workflow execution failed: {:?}", result.err());
 
         let execution_state = result.unwrap();
 
@@ -265,12 +231,8 @@ mod workflow_tests {
 
         // Verify that conditional branch chose one path
         // The placeholder always returns success=true, so "deploy" branch should be taken
-        assert!(execution_state
-            .completed_steps
-            .contains(&"step-0".to_string())); // prepare
-        assert!(execution_state
-            .completed_steps
-            .contains(&"step-1".to_string())); // quality-gate (conditional)
+        assert!(execution_state.completed_steps.contains(&"step-0".to_string())); // prepare
+        assert!(execution_state.completed_steps.contains(&"step-1".to_string())); // quality-gate (conditional)
 
         // Check that the chosen branch is recorded
         let branch_choice = execution_state
@@ -294,22 +256,8 @@ mod workflow_tests {
             .branch_on(
                 "quality-decision",
                 vec![
-                    (
-                        "high",
-                        Condition::FieldGreaterThan {
-                            field: "score".into(),
-                            value: 0.9,
-                        },
-                        "deploy",
-                    ),
-                    (
-                        "medium",
-                        Condition::FieldGreaterThan {
-                            field: "score".into(),
-                            value: 0.7,
-                        },
-                        "review",
-                    ),
+                    ("high", Condition::FieldGreaterThan { field: "score".into(), value: 0.9 }, "deploy"),
+                    ("medium", Condition::FieldGreaterThan { field: "score".into(), value: 0.7 }, "review"),
                     ("low", Condition::Always, "reject"),
                 ],
             )
@@ -322,15 +270,9 @@ mod workflow_tests {
         let state_path = temp_dir.path().to_str().unwrap();
 
         // Execute workflow
-        let result = coordinator
-            .execute_workflow(&workflow, Some(state_path))
-            .await;
+        let result = coordinator.execute_workflow(&workflow, Some(state_path)).await;
 
-        assert!(
-            result.is_ok(),
-            "Workflow execution failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Workflow execution failed: {:?}", result.err());
 
         let execution_state = result.unwrap();
 
@@ -338,14 +280,10 @@ mod workflow_tests {
         assert_eq!(execution_state.status, WorkflowStatus::Completed);
 
         // Verify analyze step completed
-        assert!(execution_state
-            .completed_steps
-            .contains(&"step-0".to_string()));
+        assert!(execution_state.completed_steps.contains(&"step-0".to_string()));
 
         // Verify conditional step completed
-        assert!(execution_state
-            .completed_steps
-            .contains(&"step-1".to_string()));
+        assert!(execution_state.completed_steps.contains(&"step-1".to_string()));
 
         // Check that the chosen branch is recorded
         let branch_choice = execution_state
@@ -361,9 +299,7 @@ mod workflow_tests {
             .expect("next_step id");
 
         // Verify that only the chosen branch was executed (reject path)
-        assert!(execution_state
-            .completed_steps
-            .contains(&next_step_id.to_string()));
+        assert!(execution_state.completed_steps.contains(&next_step_id.to_string()));
 
         let reject_result = execution_state
             .step_results
@@ -398,15 +334,9 @@ mod workflow_tests {
         let state_path = temp_dir.path().to_str().unwrap();
 
         // Execute workflow
-        let result = coordinator
-            .execute_workflow(&workflow, Some(state_path))
-            .await;
+        let result = coordinator.execute_workflow(&workflow, Some(state_path)).await;
 
-        assert!(
-            result.is_ok(),
-            "Workflow execution failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Workflow execution failed: {:?}", result.err());
 
         let execution_state = result.unwrap();
 
@@ -414,12 +344,8 @@ mod workflow_tests {
         assert_eq!(execution_state.status, WorkflowStatus::Completed);
 
         // Verify start and decision steps completed
-        assert!(execution_state
-            .completed_steps
-            .contains(&"step-0".to_string())); // start
-        assert!(execution_state
-            .completed_steps
-            .contains(&"step-1".to_string())); // decision
+        assert!(execution_state.completed_steps.contains(&"step-0".to_string())); // start
+        assert!(execution_state.completed_steps.contains(&"step-1".to_string())); // decision
 
         // This test workflow has sequential structure, so all 6 steps execute
         // The skipping behavior requires conditional branching metadata which

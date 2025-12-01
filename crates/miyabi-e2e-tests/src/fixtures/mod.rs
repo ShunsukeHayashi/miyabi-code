@@ -16,9 +16,7 @@ pub struct Fixtures {
 impl Fixtures {
     /// Create new fixtures
     pub fn new() -> Self {
-        Self {
-            sample_data: SampleData::new(),
-        }
+        Self { sample_data: SampleData::new() }
     }
 
     /// Get sample data
@@ -120,7 +118,8 @@ Estimated: 2 weeks"#
         Issue {
             number: 1003,
             title: "URGENT: Fix production API outage".to_string(),
-            body: "API endpoints returning 500 errors. Database connection pool exhausted. Immediate fix required.".to_string(),
+            body: "API endpoints returning 500 errors. Database connection pool exhausted. Immediate fix required."
+                .to_string(),
             state: IssueStateGithub::Open,
             labels: vec![],
             assignee: None,
@@ -135,8 +134,7 @@ Estimated: 2 weeks"#
         Issue {
             number: 1004,
             title: "Update API documentation".to_string(),
-            body: "Update API documentation to reflect recent changes in authentication endpoints."
-                .to_string(),
+            body: "Update API documentation to reflect recent changes in authentication endpoints.".to_string(),
             state: IssueStateGithub::Open,
             labels: vec![],
             assignee: None,
@@ -211,8 +209,7 @@ Estimated: 2 weeks"#
         Task {
             id: "task-test-004".to_string(),
             title: "Refactor database layer".to_string(),
-            description: "Refactor database layer for better maintainability and performance"
-                .to_string(),
+            description: "Refactor database layer for better maintainability and performance".to_string(),
             task_type: TaskType::Refactor,
             priority: 2,
             severity: None,

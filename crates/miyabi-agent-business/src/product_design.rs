@@ -7,8 +7,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -41,8 +40,8 @@ impl ProductDesignAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -65,16 +64,13 @@ Create a comprehensive product design as JSON with product architecture, user ex
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::ProductDesignAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::ProductDesignAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let product_design: ProductDesign = serde_json::from_str(&response).map_err(|e| {
@@ -230,10 +226,7 @@ impl BaseAgent for ProductDesignAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "ProductDesignAgent starting product design generation for task: {}",
-            task.id
-        );
+        tracing::info!("ProductDesignAgent starting product design generation for task: {}", task.id);
 
         // Generate product design using LLM
         let product_design = self.generate_product_design(task).await?;
@@ -269,10 +262,7 @@ impl BaseAgent for ProductDesignAgent {
             "content_types_count": product_design.content_strategy.blog_posts.len() + product_design.content_strategy.documentation.len() + product_design.content_strategy.video_content.len() + product_design.content_strategy.social_media.len()
         });
 
-        tracing::info!(
-            "ProductDesignAgent completed product design generation: {}",
-            summary
-        );
+        tracing::info!("ProductDesignAgent completed product design generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -287,40 +277,33 @@ impl BaseAgent for ProductDesignAgent {
 #[async_trait]
 impl A2AEnabled for ProductDesignAgent {
     fn agent_card(&self) -> A2AAgentCard {
-        AgentCardBuilder::new(
-            "ProductDesignAgent",
-            "Product design and technical specification agent",
-        )
-        .version("0.1.1")
-        .capability(AgentCapability {
-            id: "design_product".to_string(),
-            name: "Design Product".to_string(),
-            description: "Create UX design, system architecture, and technical specifications"
-                .to_string(),
-            input_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "concept": { "type": "string", "description": "Product concept" },
-                    "requirements": { "type": "string", "description": "Technical requirements" }
-                },
-                "required": ["concept"]
-            })),
-            output_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "user_experience": { "type": "object" },
-                    "system_architecture": { "type": "object" },
-                    "tech_stack": { "type": "object" }
-                }
-            })),
-        })
-        .build()
+        AgentCardBuilder::new("ProductDesignAgent", "Product design and technical specification agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "design_product".to_string(),
+                name: "Design Product".to_string(),
+                description: "Create UX design, system architecture, and technical specifications".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "concept": { "type": "string", "description": "Product concept" },
+                        "requirements": { "type": "string", "description": "Technical requirements" }
+                    },
+                    "required": ["concept"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "user_experience": { "type": "object" },
+                        "system_architecture": { "type": "object" },
+                        "tech_stack": { "type": "object" }
+                    }
+                })),
+            })
+            .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "design_product" => {
@@ -328,9 +311,7 @@ impl A2AEnabled for ProductDesignAgent {
                     .input
                     .get("concept")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing concept".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing concept".to_string()))?;
                 let requirements = task
                     .input
                     .get("requirements")
@@ -358,16 +339,10 @@ impl A2AEnabled for ProductDesignAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Product design failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Product design failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -385,7 +360,8 @@ mod tests {
         Task {
             id: "test-task-3".to_string(),
             title: "AI-Powered Analytics Dashboard".to_string(),
-            description: "A comprehensive analytics dashboard with AI-driven insights and real-time data visualization".to_string(),
+            description: "A comprehensive analytics dashboard with AI-driven insights and real-time data visualization"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -462,10 +438,7 @@ mod tests {
                 design_principles: vec!["Simplicity".to_string()],
             },
             technical_specifications: TechnicalSpecifications {
-                api_design: APIDesign {
-                    endpoints: vec!["GET /users".to_string()],
-                    authentication: "JWT".to_string(),
-                },
+                api_design: APIDesign { endpoints: vec!["GET /users".to_string()], authentication: "JWT".to_string() },
                 database_schema: DatabaseSchema {
                     tables: vec!["users".to_string()],
                     relationships: "One-to-many".to_string(),
@@ -532,10 +505,7 @@ mod tests {
                 design_principles: vec!["Simplicity".to_string()],
             },
             technical_specifications: TechnicalSpecifications {
-                api_design: APIDesign {
-                    endpoints: vec!["GET /users".to_string()],
-                    authentication: "JWT".to_string(),
-                },
+                api_design: APIDesign { endpoints: vec!["GET /users".to_string()], authentication: "JWT".to_string() },
                 database_schema: DatabaseSchema {
                     tables: vec!["users".to_string()],
                     relationships: "One-to-many".to_string(),
@@ -602,10 +572,7 @@ mod tests {
                 design_principles: vec!["Simplicity".to_string()],
             },
             technical_specifications: TechnicalSpecifications {
-                api_design: APIDesign {
-                    endpoints: vec!["GET /users".to_string()],
-                    authentication: "JWT".to_string(),
-                },
+                api_design: APIDesign { endpoints: vec!["GET /users".to_string()], authentication: "JWT".to_string() },
                 database_schema: DatabaseSchema {
                     tables: vec!["users".to_string()],
                     relationships: "One-to-many".to_string(),
@@ -672,10 +639,7 @@ mod tests {
                 design_principles: vec!["Simplicity".to_string()],
             },
             technical_specifications: TechnicalSpecifications {
-                api_design: APIDesign {
-                    endpoints: vec!["GET /users".to_string()],
-                    authentication: "JWT".to_string(),
-                },
+                api_design: APIDesign { endpoints: vec!["GET /users".to_string()], authentication: "JWT".to_string() },
                 database_schema: DatabaseSchema {
                     tables: vec!["users".to_string()],
                     relationships: "One-to-many".to_string(),
@@ -744,10 +708,7 @@ mod tests {
                 design_principles: vec!["Simplicity".to_string()],
             },
             technical_specifications: TechnicalSpecifications {
-                api_design: APIDesign {
-                    endpoints: vec!["GET /users".to_string()],
-                    authentication: "JWT".to_string(),
-                },
+                api_design: APIDesign { endpoints: vec!["GET /users".to_string()], authentication: "JWT".to_string() },
                 database_schema: DatabaseSchema {
                     tables: vec!["users".to_string()],
                     relationships: "One-to-many".to_string(),
@@ -773,10 +734,7 @@ mod tests {
                 },
             ],
             content_strategy: ContentStrategy {
-                blog_posts: vec![
-                    "Getting started".to_string(),
-                    "Advanced features".to_string(),
-                ],
+                blog_posts: vec!["Getting started".to_string(), "Advanced features".to_string()],
                 documentation: vec!["API docs".to_string(), "User guide".to_string()],
                 video_content: vec!["Demo video".to_string()],
                 social_media: vec!["Twitter".to_string()], // Changed from 2 to 1 to make total 6

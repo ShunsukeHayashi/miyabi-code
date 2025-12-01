@@ -35,12 +35,7 @@ pub struct ChatResponse {
 impl ChatResponse {
     /// Create a new chat response
     pub fn new(reply: String, sources: Vec<String>, figure: String) -> Self {
-        Self {
-            reply,
-            sources,
-            timestamp: chrono::Utc::now().to_rfc3339(),
-            figure,
-        }
+        Self { reply, sources, timestamp: chrono::Utc::now().to_rfc3339(), figure }
     }
 }
 
@@ -72,10 +67,7 @@ impl ErrorResponse {
 
     /// Create a gateway timeout error
     pub fn timeout() -> Self {
-        Self::new(
-            "Request timed out".to_string(),
-            "GATEWAY_TIMEOUT".to_string(),
-        )
+        Self::new("Request timed out".to_string(), "GATEWAY_TIMEOUT".to_string())
     }
 }
 

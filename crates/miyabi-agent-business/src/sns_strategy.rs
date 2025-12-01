@@ -8,8 +8,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -42,8 +41,8 @@ impl SNSStrategyAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -66,16 +65,13 @@ Generate detailed SNS strategy as JSON with platform strategies, community manag
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::SNSStrategyAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::SNSStrategyAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let sns_strategy: SNSStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -120,8 +116,8 @@ Generate detailed SNS strategy as JSON with platform strategies, community manag
 
     /// Generate SNS strategy summary for reporting
     fn generate_summary(&self, strategy: &SNSStrategy) -> String {
-        let total_campaigns = strategy.influencer_marketing.campaigns.len()
-            + strategy.social_media_advertising.campaigns.len();
+        let total_campaigns =
+            strategy.influencer_marketing.campaigns.len() + strategy.social_media_advertising.campaigns.len();
 
         format!(
             "SNS Strategy Generated: {} platforms, {} community strategies, {} total campaigns",
@@ -232,10 +228,7 @@ impl BaseAgent for SNSStrategyAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "SNSStrategyAgent starting SNS strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("SNSStrategyAgent starting SNS strategy generation for task: {}", task.id);
 
         // Generate SNS strategy using LLM
         let sns_strategy = self.generate_sns_strategy(task).await?;
@@ -263,8 +256,8 @@ impl BaseAgent for SNSStrategyAgent {
         };
 
         // Create result data
-        let total_campaigns = sns_strategy.influencer_marketing.campaigns.len()
-            + sns_strategy.social_media_advertising.campaigns.len();
+        let total_campaigns =
+            sns_strategy.influencer_marketing.campaigns.len() + sns_strategy.social_media_advertising.campaigns.len();
 
         let result_data = serde_json::json!({
             "sns_strategy": sns_strategy,
@@ -274,10 +267,7 @@ impl BaseAgent for SNSStrategyAgent {
             "total_campaigns_count": total_campaigns
         });
 
-        tracing::info!(
-            "SNSStrategyAgent completed SNS strategy generation: {}",
-            summary
-        );
+        tracing::info!("SNSStrategyAgent completed SNS strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -303,10 +293,7 @@ impl A2AEnabled for SNSStrategyAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "plan_sns" => {
@@ -314,9 +301,7 @@ impl A2AEnabled for SNSStrategyAgent {
                     .input
                     .get("brand")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing brand".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing brand".to_string()))?;
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: brand.to_string(),
@@ -339,16 +324,10 @@ impl A2AEnabled for SNSStrategyAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "SNS strategy failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("SNS strategy failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
     fn execution_mode(&self) -> ExecutionMode {
@@ -365,7 +344,9 @@ mod tests {
         Task {
             id: "test-task-10".to_string(),
             title: "AI-Powered Social Media Analytics Platform".to_string(),
-            description: "A comprehensive social media analytics platform with AI-driven insights and automated reporting".to_string(),
+            description:
+                "A comprehensive social media analytics platform with AI-driven insights and automated reporting"
+                    .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,

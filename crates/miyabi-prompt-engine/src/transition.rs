@@ -34,14 +34,8 @@ mod tests {
 
     #[test]
     fn test_transition_hints() {
-        assert_eq!(
-            TransitionType::Cut.to_prompt_hint(),
-            "Hard cut transition (instant change)"
-        );
-        assert_eq!(
-            TransitionType::FadeIn.to_prompt_hint(),
-            "Smooth fade-in transition from previous frame"
-        );
+        assert_eq!(TransitionType::Cut.to_prompt_hint(), "Hard cut transition (instant change)");
+        assert_eq!(TransitionType::FadeIn.to_prompt_hint(), "Smooth fade-in transition from previous frame");
     }
 
     #[test]

@@ -6,16 +6,13 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
 use miyabi_core::ExecutionMode;
 use miyabi_github::GitHubClient;
-use miyabi_types::agent::{
-    AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
-};
+use miyabi_types::agent::{AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, Issue, Task};
 use octocrab::params::State;
@@ -127,8 +124,8 @@ impl RefresherAgent {
     async fn fetch_all_issues(&self) -> Result<Vec<Issue>> {
         tracing::info!("Fetching all open issues from GitHub");
 
-        let github_token = std::env::var("GITHUB_TOKEN")
-            .map_err(|_| MiyabiError::Config("GITHUB_TOKEN not found".to_string()))?;
+        let github_token =
+            std::env::var("GITHUB_TOKEN").map_err(|_| MiyabiError::Config("GITHUB_TOKEN not found".to_string()))?;
 
         let repo_owner = self
             .config
@@ -189,10 +186,7 @@ impl RefresherAgent {
     }
 
     /// Check Phase 3 (miyabi-types) status
-    async fn check_phase3_status(
-        &self,
-        project_path: &Path,
-    ) -> Result<(String, bool, bool, u32, u32)> {
+    async fn check_phase3_status(&self, project_path: &Path) -> Result<(String, bool, bool, u32, u32)> {
         let output = tokio::process::Command::new("cargo")
             .arg("test")
             .arg("--package")
@@ -213,10 +207,7 @@ impl RefresherAgent {
     }
 
     /// Check Phase 4 (miyabi-cli) status
-    async fn check_phase4_status(
-        &self,
-        project_path: &Path,
-    ) -> Result<(String, bool, bool, u32, u32)> {
+    async fn check_phase4_status(&self, project_path: &Path) -> Result<(String, bool, bool, u32, u32)> {
         let output = tokio::process::Command::new("cargo")
             .arg("build")
             .arg("--bin")
@@ -251,20 +242,11 @@ impl RefresherAgent {
 
         let tests_passing = tests_failed == 0 && tests_passed > 0;
 
-        Ok((
-            "miyabi-cli".to_string(),
-            build_success,
-            tests_passing,
-            tests_passed,
-            tests_failed,
-        ))
+        Ok(("miyabi-cli".to_string(), build_success, tests_passing, tests_passed, tests_failed))
     }
 
     /// Check Phase 5 (miyabi-agents) status
-    async fn check_phase5_status(
-        &self,
-        project_path: &Path,
-    ) -> Result<(String, bool, bool, u32, u32)> {
+    async fn check_phase5_status(&self, project_path: &Path) -> Result<(String, bool, bool, u32, u32)> {
         let output = tokio::process::Command::new("cargo")
             .arg("test")
             .arg("--package")
@@ -281,13 +263,7 @@ impl RefresherAgent {
 
         let (passed, failed) = Self::parse_test_counts(&stdout);
 
-        Ok((
-            "miyabi-agents".to_string(),
-            success,
-            success,
-            passed,
-            failed,
-        ))
+        Ok(("miyabi-agents".to_string(), success, success, passed, failed))
     }
 
     /// Parse test counts from cargo test output
@@ -297,18 +273,10 @@ impl RefresherAgent {
 
         // Parse "test result: ok. X passed; Y failed"
         if let Some(line) = output.lines().find(|l| l.contains("test result:")) {
-            if let Some(passed_str) = line
-                .split("passed")
-                .next()
-                .and_then(|s| s.split_whitespace().last())
-            {
+            if let Some(passed_str) = line.split("passed").next().and_then(|s| s.split_whitespace().last()) {
                 passed = passed_str.parse().unwrap_or(0);
             }
-            if let Some(failed_str) = line
-                .split("failed")
-                .next()
-                .and_then(|s| s.split_whitespace().last())
-            {
+            if let Some(failed_str) = line.split("failed").next().and_then(|s| s.split_whitespace().last()) {
                 failed = failed_str.parse().unwrap_or(0);
             }
         }
@@ -390,12 +358,7 @@ impl RefresherAgent {
         // 1. Remove old state label
         // 2. Add new state label
         // 3. Add comment explaining the update
-        tracing::info!(
-            "Label update placeholder: Issue #{} - {:?} → {:?}",
-            _issue_number,
-            _from_state,
-            _to_state
-        );
+        tracing::info!("Label update placeholder: Issue #{} - {:?} → {:?}", _issue_number, _from_state, _to_state);
         Ok(())
     }
 }
@@ -403,63 +366,56 @@ impl RefresherAgent {
 #[async_trait]
 impl A2AEnabled for RefresherAgent {
     fn agent_card(&self) -> A2AAgentCard {
-        AgentCardBuilder::new(
-            "RefresherAgent",
-            "Issue status monitoring and auto-update agent",
-        )
-        .version("0.1.1")
-        .capability(AgentCapability {
-            id: "refresh_issues".to_string(),
-            name: "Refresh Issue States".to_string(),
-            description: "Fetch all issues and update state labels based on implementation status"
-                .to_string(),
-            input_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "phases": {
-                        "type": "array",
-                        "items": { "type": "string" },
-                        "description": "Phases to check (e.g., ['Phase 3', 'Phase 4'])"
+        AgentCardBuilder::new("RefresherAgent", "Issue status monitoring and auto-update agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "refresh_issues".to_string(),
+                name: "Refresh Issue States".to_string(),
+                description: "Fetch all issues and update state labels based on implementation status".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "phases": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Phases to check (e.g., ['Phase 3', 'Phase 4'])"
+                        }
                     }
-                }
-            })),
-            output_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "summary": { "type": "object" },
-                    "updates": { "type": "array" }
-                }
-            })),
-        })
-        .capability(AgentCapability {
-            id: "check_status".to_string(),
-            name: "Check Implementation Status".to_string(),
-            description: "Check build and test status for a specific phase".to_string(),
-            input_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "phase": { "type": "string", "description": "Phase to check (e.g., 'Phase 3')" }
-                },
-                "required": ["phase"]
-            })),
-            output_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "phase": { "type": "string" },
-                    "build_success": { "type": "boolean" },
-                    "tests_passing": { "type": "boolean" },
-                    "tests_passed": { "type": "integer" },
-                    "tests_failed": { "type": "integer" }
-                }
-            })),
-        })
-        .build()
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "summary": { "type": "object" },
+                        "updates": { "type": "array" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "check_status".to_string(),
+                name: "Check Implementation Status".to_string(),
+                description: "Check build and test status for a specific phase".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "phase": { "type": "string", "description": "Phase to check (e.g., 'Phase 3')" }
+                    },
+                    "required": ["phase"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "phase": { "type": "string" },
+                        "build_success": { "type": "boolean" },
+                        "tests_passing": { "type": "boolean" },
+                        "tests_passed": { "type": "integer" },
+                        "tests_failed": { "type": "integer" }
+                    }
+                })),
+            })
+            .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
@@ -468,13 +424,12 @@ impl A2AEnabled for RefresherAgent {
                     .input
                     .get("phase")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing phase".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing phase".to_string()))?;
 
-                let status = self.check_implementation_status(phase).await.map_err(|e| {
-                    A2AIntegrationError::TaskExecutionFailed(format!("Status check failed: {}", e))
-                })?;
+                let status = self
+                    .check_implementation_status(phase)
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Status check failed: {}", e)))?;
 
                 Ok(A2ATaskResult::Success {
                     output: serde_json::to_value(&status).unwrap_or_default(),
@@ -484,9 +439,10 @@ impl A2AEnabled for RefresherAgent {
             }
             "refresh_issues" => {
                 // Full refresh would use execute() which handles all phases
-                let issues = self.fetch_all_issues().await.map_err(|e| {
-                    A2AIntegrationError::TaskExecutionFailed(format!("Fetch issues failed: {}", e))
-                })?;
+                let issues = self
+                    .fetch_all_issues()
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Fetch issues failed: {}", e)))?;
 
                 let summary = self.generate_summary(&issues);
 
@@ -499,10 +455,7 @@ impl A2AEnabled for RefresherAgent {
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -579,10 +532,7 @@ impl BaseAgent for RefresherAgent {
         // Check for escalation
         let escalation = if updates.len() > 100 {
             let mut context = HashMap::new();
-            context.insert(
-                "updates_count".to_string(),
-                serde_json::json!(updates.len()),
-            );
+            context.insert("updates_count".to_string(), serde_json::json!(updates.len()));
 
             Some(EscalationInfo {
                 reason: format!("Large number of label updates detected: {}", updates.len()),
@@ -599,18 +549,9 @@ impl BaseAgent for RefresherAgent {
         let mut data = HashMap::new();
         data.insert("summary".to_string(), serde_json::to_value(&summary)?);
         data.insert("updates".to_string(), serde_json::to_value(&updates)?);
-        data.insert(
-            "phase3_status".to_string(),
-            serde_json::to_value(&phase3_status)?,
-        );
-        data.insert(
-            "phase4_status".to_string(),
-            serde_json::to_value(&phase4_status)?,
-        );
-        data.insert(
-            "phase5_status".to_string(),
-            serde_json::to_value(&phase5_status)?,
-        );
+        data.insert("phase3_status".to_string(), serde_json::to_value(&phase3_status)?);
+        data.insert("phase4_status".to_string(), serde_json::to_value(&phase4_status)?);
+        data.insert("phase5_status".to_string(), serde_json::to_value(&phase5_status)?);
 
         // Create metrics
         let metrics = AgentMetrics {
@@ -678,26 +619,11 @@ mod tests {
 
     #[test]
     fn test_issue_state_from_label() {
-        assert_eq!(
-            IssueState::from_label("📥 state:pending"),
-            Some(IssueState::Pending)
-        );
-        assert_eq!(
-            IssueState::from_label("🔍 state:analyzing"),
-            Some(IssueState::Analyzing)
-        );
-        assert_eq!(
-            IssueState::from_label("🏗️ state:implementing"),
-            Some(IssueState::Implementing)
-        );
-        assert_eq!(
-            IssueState::from_label("👀 state:reviewing"),
-            Some(IssueState::Reviewing)
-        );
-        assert_eq!(
-            IssueState::from_label("✅ state:done"),
-            Some(IssueState::Done)
-        );
+        assert_eq!(IssueState::from_label("📥 state:pending"), Some(IssueState::Pending));
+        assert_eq!(IssueState::from_label("🔍 state:analyzing"), Some(IssueState::Analyzing));
+        assert_eq!(IssueState::from_label("🏗️ state:implementing"), Some(IssueState::Implementing));
+        assert_eq!(IssueState::from_label("👀 state:reviewing"), Some(IssueState::Reviewing));
+        assert_eq!(IssueState::from_label("✅ state:done"), Some(IssueState::Done));
         assert_eq!(IssueState::from_label("unknown"), None);
     }
 
@@ -722,8 +648,7 @@ mod tests {
 
     #[test]
     fn test_parse_test_counts_with_failures() {
-        let output =
-            "test result: FAILED. 150 passed; 20 failed; 0 ignored; 0 measured; 0 filtered out";
+        let output = "test result: FAILED. 150 passed; 20 failed; 0 ignored; 0 measured; 0 filtered out";
         let (passed, failed) = RefresherAgent::parse_test_counts(output);
         assert_eq!(passed, 150);
         assert_eq!(failed, 20);
@@ -828,10 +753,7 @@ mod tests {
 
     #[test]
     fn test_issue_state_case_insensitive() {
-        assert_eq!(
-            IssueState::from_label("STATE:PENDING"),
-            Some(IssueState::Pending)
-        );
+        assert_eq!(IssueState::from_label("STATE:PENDING"), Some(IssueState::Pending));
         assert_eq!(IssueState::from_label("State:Done"), Some(IssueState::Done));
     }
 
@@ -1042,8 +964,7 @@ mod tests {
 
     #[test]
     fn test_parse_test_counts_mixed() {
-        let output =
-            "test result: FAILED. 120 passed; 30 failed; 5 ignored; 0 measured; 2 filtered out";
+        let output = "test result: FAILED. 120 passed; 30 failed; 5 ignored; 0 measured; 2 filtered out";
         let (passed, failed) = RefresherAgent::parse_test_counts(output);
         assert_eq!(passed, 120);
         assert_eq!(failed, 30);

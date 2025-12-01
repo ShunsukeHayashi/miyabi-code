@@ -16,9 +16,7 @@ pub struct CompositeStateManager {
 impl CompositeStateManager {
     /// Create new Composite State Manager
     pub fn new() -> Self {
-        Self {
-            state: Arc::new(RwLock::new(CompositeServiceState::default())),
-        }
+        Self { state: Arc::new(RwLock::new(CompositeServiceState::default())) }
     }
 
     /// Get current state

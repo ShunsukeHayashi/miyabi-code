@@ -9,8 +9,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -36,55 +35,35 @@ pub struct CodeGenAgent {
 
 impl CodeGenAgent {
     pub fn new(config: AgentConfig) -> Self {
-        Self {
-            config,
-            llm_provider: None,
-            claudable_client: None,
-        }
+        Self { config, llm_provider: None, claudable_client: None }
     }
 
     /// Create CodeGenAgent with Ollama integration
     pub fn new_with_ollama(config: AgentConfig) -> Result<Self> {
-        let llm_provider = GPTOSSProvider::new_mac_mini_tailscale().map_err(|e| {
-            MiyabiError::Unknown(format!("Failed to create Ollama provider: {}", e))
-        })?;
+        let llm_provider = GPTOSSProvider::new_mac_mini_tailscale()
+            .map_err(|e| MiyabiError::Unknown(format!("Failed to create Ollama provider: {}", e)))?;
 
-        Ok(Self {
-            config,
-            llm_provider: Some(llm_provider),
-            claudable_client: None,
-        })
+        Ok(Self { config, llm_provider: Some(llm_provider), claudable_client: None })
     }
 
     /// Create CodeGenAgent with Claudable integration
     pub fn new_with_claudable(config: AgentConfig) -> Result<Self> {
-        let claudable_url = std::env::var("CLAUDABLE_API_URL")
-            .unwrap_or_else(|_| "http://localhost:8080".to_string());
+        let claudable_url = std::env::var("CLAUDABLE_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
 
-        let claudable_client = ClaudableClient::new(claudable_url).map_err(|e| {
-            MiyabiError::Unknown(format!("Failed to create Claudable client: {}", e))
-        })?;
+        let claudable_client = ClaudableClient::new(claudable_url)
+            .map_err(|e| MiyabiError::Unknown(format!("Failed to create Claudable client: {}", e)))?;
 
-        Ok(Self {
-            config,
-            llm_provider: None,
-            claudable_client: Some(claudable_client),
-        })
+        Ok(Self { config, llm_provider: None, claudable_client: Some(claudable_client) })
     }
 
     /// Create CodeGenAgent with both Ollama and Claudable
     pub fn new_with_all(config: AgentConfig) -> Result<Self> {
         let llm_provider = GPTOSSProvider::new_mac_mini_tailscale().ok();
 
-        let claudable_url = std::env::var("CLAUDABLE_API_URL")
-            .unwrap_or_else(|_| "http://localhost:8080".to_string());
+        let claudable_url = std::env::var("CLAUDABLE_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
         let claudable_client = ClaudableClient::new(claudable_url).ok();
 
-        Ok(Self {
-            config,
-            llm_provider,
-            claudable_client,
-        })
+        Ok(Self { config, llm_provider, claudable_client })
     }
 
     /// Generate code using LLM
@@ -104,9 +83,7 @@ impl CodeGenAgent {
 
             Ok(response.text)
         } else {
-            Err(MiyabiError::Validation(
-                "LLM provider not configured".to_string(),
-            ))
+            Err(MiyabiError::Validation("LLM provider not configured".to_string()))
         }
     }
 
@@ -118,9 +95,10 @@ impl CodeGenAgent {
     ) -> Result<CodeGenerationResult> {
         tracing::info!("🎨 Frontend task detected, using Claudable for generation");
 
-        let claudable = self.claudable_client.as_ref().ok_or_else(|| {
-            MiyabiError::Validation("Claudable client not configured".to_string())
-        })?;
+        let claudable = self
+            .claudable_client
+            .as_ref()
+            .ok_or_else(|| MiyabiError::Validation("Claudable client not configured".to_string()))?;
 
         // Build request
         let description = frontend::extract_frontend_description(task);
@@ -135,11 +113,7 @@ impl CodeGenAgent {
         })?;
 
         tracing::info!("✅ Claudable generated project: {}", response.project_id);
-        tracing::debug!(
-            "Files: {}, Dependencies: {}",
-            response.files.len(),
-            response.dependencies.len()
-        );
+        tracing::debug!("Files: {}, Dependencies: {}", response.files.len(), response.dependencies.len());
 
         // If worktree provided, write files and build
         if let Some(worktree) = worktree_path {
@@ -150,11 +124,7 @@ impl CodeGenAgent {
                 .await
                 .map_err(|e| MiyabiError::Unknown(format!("Failed to write files: {}", e)))?;
 
-            tracing::info!(
-                "  📝 Wrote {} files ({} lines)",
-                summary.files_written,
-                summary.total_lines
-            );
+            tracing::info!("  📝 Wrote {} files ({} lines)", summary.files_written, summary.total_lines);
 
             // Install dependencies
             tracing::info!("  📦 Running npm install...");
@@ -183,11 +153,7 @@ impl CodeGenAgent {
             Ok(CodeGenerationResult {
                 files_created: response.files.iter().map(|f| f.path.clone()).collect(),
                 files_modified: vec![],
-                lines_added: response
-                    .files
-                    .iter()
-                    .map(|f| f.content.lines().count())
-                    .sum::<usize>() as u32,
+                lines_added: response.files.iter().map(|f| f.content.lines().count()).sum::<usize>() as u32,
                 lines_removed: 0,
                 tests_added: 0,
                 commit_sha: None,
@@ -196,37 +162,23 @@ impl CodeGenAgent {
     }
 
     /// Generate code based on task requirements
-    pub async fn generate_code(
-        &self,
-        task: &Task,
-        worktree_path: Option<&Path>,
-    ) -> Result<CodeGenerationResult> {
+    pub async fn generate_code(&self, task: &Task, worktree_path: Option<&Path>) -> Result<CodeGenerationResult> {
         tracing::info!("Generating code for task: {}", task.title);
 
         // NEW: Frontend task detection
         if frontend::is_frontend_task(task) && self.claudable_client.is_some() {
             tracing::info!("Frontend task detected, delegating to Claudable");
-            return self
-                .generate_frontend_with_claudable(task, worktree_path)
-                .await;
+            return self.generate_frontend_with_claudable(task, worktree_path).await;
         }
 
         // Validate task type
-        if !matches!(
-            task.task_type,
-            TaskType::Feature | TaskType::Bug | TaskType::Refactor
-        ) {
-            return Err(MiyabiError::Validation(format!(
-                "CodeGenAgent cannot handle task type: {:?}",
-                task.task_type
-            )));
+        if !matches!(task.task_type, TaskType::Feature | TaskType::Bug | TaskType::Refactor) {
+            return Err(MiyabiError::Validation(format!("CodeGenAgent cannot handle task type: {:?}", task.task_type)));
         }
 
         // If LLM provider is available, use it for code generation
         if self.llm_provider.is_some() {
-            return self
-                .generate_code_with_llm_provider(task, worktree_path)
-                .await;
+            return self.generate_code_with_llm_provider(task, worktree_path).await;
         }
 
         // If worktree is provided, execute Claude Code in it
@@ -246,23 +198,14 @@ impl CodeGenAgent {
         task: &Task,
         worktree_path: Option<&Path>,
     ) -> Result<CodeGenerationResult> {
-        tracing::info!(
-            "Generating code using LLM provider for task: {}",
-            task.title
-        );
+        tracing::info!("Generating code using LLM provider for task: {}", task.title);
 
         // Generate code using LLM
         let generated_code = self.generate_code_with_llm(task).await?;
 
         // If worktree is provided, write the generated code to files
         if let Some(worktree) = worktree_path {
-            worktree::write_generated_code_to_worktree(
-                worktree,
-                &self.config,
-                task,
-                &generated_code,
-            )
-            .await?;
+            worktree::write_generated_code_to_worktree(worktree, &self.config, task, &generated_code).await?;
 
             // Parse results from worktree
             worktree::parse_code_generation_results(worktree).await
@@ -295,9 +238,7 @@ impl CodeGenAgent {
         start_time: DateTime<Utc>,
         end_time: DateTime<Utc>,
     ) -> AgentMetrics {
-        let duration = end_time
-            .signed_duration_since(start_time)
-            .num_milliseconds();
+        let duration = end_time.signed_duration_since(start_time).num_milliseconds();
         let duration_ms = if duration < 0 { 0 } else { duration as u64 };
         let lines_changed = result.lines_added.saturating_add(result.lines_removed);
 
@@ -317,9 +258,7 @@ impl CodeGenAgent {
     /// Validate generated code
     fn validate_code(&self, result: &CodeGenerationResult) -> Result<()> {
         if result.files_created.is_empty() && result.files_modified.is_empty() {
-            return Err(MiyabiError::Validation(
-                "No files were created or modified".to_string(),
-            ));
+            return Err(MiyabiError::Validation("No files were created or modified".to_string()));
         }
 
         Ok(())
@@ -336,8 +275,7 @@ impl BaseAgent for CodeGenAgent {
         let start_time = Utc::now();
 
         // Get project root from config for TaskMetadata
-        let project_root =
-            std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+        let project_root = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
 
         // Update TaskMetadata: mark as started
         if let Ok(manager) = TaskMetadataManager::new(&project_root) {
@@ -484,24 +422,16 @@ impl A2AEnabled for CodeGenAgent {
             .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
             "generate_code" => {
                 // Build Task from input
-                let task_id = task.input["task_id"]
-                    .as_str()
-                    .unwrap_or("a2a-task")
-                    .to_string();
+                let task_id = task.input["task_id"].as_str().unwrap_or("a2a-task").to_string();
                 let title = task.input["title"]
                     .as_str()
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing title".to_string())
-                    })?
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?
                     .to_string();
                 let description = task.input["description"].as_str().unwrap_or("").to_string();
                 let task_type_str = task.input["task_type"].as_str().unwrap_or("Feature");
@@ -530,9 +460,7 @@ impl A2AEnabled for CodeGenAgent {
                 };
 
                 // Get worktree path if provided
-                let worktree_path = task.input["worktree_path"]
-                    .as_str()
-                    .map(std::path::PathBuf::from);
+                let worktree_path = task.input["worktree_path"].as_str().map(std::path::PathBuf::from);
 
                 // Generate code
                 let result = self
@@ -541,23 +469,17 @@ impl A2AEnabled for CodeGenAgent {
                     .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
 
                 Ok(A2ATaskResult::Success {
-                    output: serde_json::to_value(result)
-                        .map_err(A2AIntegrationError::SerializationError)?,
+                    output: serde_json::to_value(result).map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
             "generate_documentation" => {
-                let project_path = task.input["project_path"].as_str().ok_or_else(|| {
-                    A2AIntegrationError::TaskExecutionFailed("Missing project_path".to_string())
-                })?;
-                let code_result: CodeGenerationResult =
-                    serde_json::from_value(task.input["code_result"].clone()).map_err(|e| {
-                        A2AIntegrationError::TaskExecutionFailed(format!(
-                            "Invalid code_result: {}",
-                            e
-                        ))
-                    })?;
+                let project_path = task.input["project_path"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing project_path".to_string()))?;
+                let code_result: CodeGenerationResult = serde_json::from_value(task.input["code_result"].clone())
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid code_result: {}", e)))?;
 
                 let doc_result = self
                     .generate_documentation(Path::new(project_path), &code_result)
@@ -565,16 +487,12 @@ impl A2AEnabled for CodeGenAgent {
                     .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
 
                 Ok(A2ATaskResult::Success {
-                    output: serde_json::to_value(doc_result)
-                        .map_err(A2AIntegrationError::SerializationError)?,
+                    output: serde_json::to_value(doc_result).map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -757,11 +675,7 @@ mod tests {
         use miyabi_types::error::AgentError;
 
         // Test that AgentError includes proper context
-        let error = AgentError::new(
-            "Test error",
-            AgentType::CodeGenAgent,
-            Some("task-123".to_string()),
-        );
+        let error = AgentError::new("Test error", AgentType::CodeGenAgent, Some("task-123".to_string()));
 
         assert_eq!(error.agent_type, AgentType::CodeGenAgent);
         assert_eq!(error.task_id, Some("task-123".to_string()));

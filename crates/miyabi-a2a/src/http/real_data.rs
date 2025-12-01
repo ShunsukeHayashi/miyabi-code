@@ -4,8 +4,7 @@
 //! and compute live system metrics.
 
 use crate::http::routes::{
-    Agent, AgentCategory, AgentColor, AgentStatus, DagData, DagEdge, DagNode, SystemStatus,
-    TimelineEvent,
+    Agent, AgentCategory, AgentColor, AgentStatus, DagData, DagEdge, DagNode, SystemStatus, TimelineEvent,
 };
 use anyhow::{Context, Result};
 use miyabi_github::GitHubClient;
@@ -33,10 +32,7 @@ struct DataCache {
 
 impl DataCache {
     fn new() -> Arc<Mutex<Self>> {
-        Arc::new(Mutex::new(DataCache {
-            agents: None,
-            system_status: None,
-        }))
+        Arc::new(Mutex::new(DataCache { agents: None, system_status: None }))
     }
 
     fn get_agents(&self) -> Option<Vec<Agent>> {
@@ -52,10 +48,7 @@ impl DataCache {
     }
 
     fn set_agents(&mut self, data: Vec<Agent>, ttl: Duration) {
-        self.agents = Some(CachedData {
-            data,
-            expires_at: Instant::now() + ttl,
-        });
+        self.agents = Some(CachedData { data, expires_at: Instant::now() + ttl });
         debug!("Cached agents data with TTL: {:?}", ttl);
     }
 
@@ -72,10 +65,7 @@ impl DataCache {
     }
 
     fn set_system_status(&mut self, data: SystemStatus, ttl: Duration) {
-        self.system_status = Some(CachedData {
-            data,
-            expires_at: Instant::now() + ttl,
-        });
+        self.system_status = Some(CachedData { data, expires_at: Instant::now() + ttl });
         debug!("Cached system status with TTL: {:?}", ttl);
     }
 }
@@ -169,8 +159,7 @@ fn agent_label_to_key(label: &str) -> String {
 /// Internal implementation of fetch_real_agents
 async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
-    let owner =
-        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let owner = std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
     let repo = std::env::var("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
         .split('/')
@@ -181,10 +170,7 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     let client = GitHubClient::new(&token, &owner, &repo)?;
 
     // Fetch all open issues with agent labels
-    info!(
-        "🔍 Fetching issues from GitHub API (owner: {}, repo: {})",
-        owner, repo
-    );
+    info!("🔍 Fetching issues from GitHub API (owner: {}, repo: {})", owner, repo);
     let issues = client.list_issues(Some(State::Open), vec![]).await?;
     info!("📥 Fetched {} open issues from GitHub", issues.len());
 
@@ -197,17 +183,10 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     // Count tasks per agent from issues
     let mut agent_issue_count = 0;
     for issue in &issues {
-        let agent_labels: Vec<_> = issue
-            .labels
-            .iter()
-            .filter(|l| l.starts_with("🤖 agent:"))
-            .collect();
+        let agent_labels: Vec<_> = issue.labels.iter().filter(|l| l.starts_with("🤖 agent:")).collect();
         if !agent_labels.is_empty() {
             agent_issue_count += 1;
-            info!(
-                "📋 Issue #{}: {} (labels: {:?})",
-                issue.number, issue.title, issue.labels
-            );
+            info!("📋 Issue #{}: {} (labels: {:?})", issue.number, issue.title, issue.labels);
         }
 
         for label in &issue.labels {
@@ -220,20 +199,13 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
                     data.tasks += 1;
 
                     // Determine status from state labels
-                    if issue
-                        .labels
-                        .iter()
-                        .any(|l| l.contains("state:implementing"))
-                    {
+                    if issue.labels.iter().any(|l| l.contains("state:implementing")) {
                         data.status = AgentStatus::Working;
                     } else if issue.labels.iter().any(|l| l.contains("state:analyzing")) {
                         data.status = AgentStatus::Active;
                     }
                 } else {
-                    warn!(
-                        "⚠️ Unknown agent name: {} (mapped to: {})",
-                        agent_name, agent_key
-                    );
+                    warn!("⚠️ Unknown agent name: {} (mapped to: {})", agent_name, agent_key);
                 }
             }
         }
@@ -273,10 +245,7 @@ pub async fn fetch_real_system_status() -> Result<SystemStatus> {
 
     // Update cache on success
     if let Ok(ref status) = result {
-        cache
-            .lock()
-            .unwrap()
-            .set_system_status(status.clone(), CACHE_TTL);
+        cache.lock().unwrap().set_system_status(status.clone(), CACHE_TTL);
     } else {
         warn!("Failed to fetch system status after retries, checking for stale cache");
         // Return stale cache if available
@@ -292,8 +261,7 @@ pub async fn fetch_real_system_status() -> Result<SystemStatus> {
 /// Internal implementation of fetch_real_system_status
 async fn fetch_real_system_status_impl() -> Result<SystemStatus> {
     let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
-    let owner =
-        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let owner = std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
     let repo = std::env::var("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
         .split('/')
@@ -336,10 +304,7 @@ async fn fetch_real_system_status_impl() -> Result<SystemStatus> {
     let now = chrono::Utc::now();
     let day_ago = now - chrono::Duration::hours(24);
 
-    let recent_closed = closed_issues
-        .iter()
-        .filter(|i| i.updated_at > day_ago)
-        .count();
+    let recent_closed = closed_issues.iter().filter(|i| i.updated_at > day_ago).count();
 
     let task_throughput = (recent_closed as f64 / 24.0) * 100.0; // tasks per 100 hours
 
@@ -481,13 +446,7 @@ fn initialize_agents(map: &mut HashMap<String, AgentData>) {
     ] {
         map.insert(
             name.to_string(),
-            AgentData {
-                id,
-                category,
-                status: AgentStatus::Idle,
-                color: AgentColor::Analyst,
-                tasks: 0,
-            },
+            AgentData { id, category, status: AgentStatus::Idle, color: AgentColor::Analyst, tasks: 0 },
         );
     }
 
@@ -587,8 +546,7 @@ pub async fn fetch_real_events() -> Result<Vec<TimelineEvent>> {
 /// Internal implementation of fetch_real_events
 async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
     let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
-    let owner =
-        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let owner = std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
     let repo = std::env::var("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
         .split('/')
@@ -599,10 +557,7 @@ async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
     let client = GitHubClient::new(&token, &owner, &repo)?;
 
     // Fetch recent issues (last 50)
-    info!(
-        "🔍 Fetching issues for timeline events (owner: {}, repo: {})",
-        owner, repo
-    );
+    info!("🔍 Fetching issues for timeline events (owner: {}, repo: {})", owner, repo);
     let issues = client.list_issues(Some(State::All), vec![]).await?;
     info!("📥 Fetched {} issues from GitHub", issues.len());
 
@@ -643,11 +598,7 @@ async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
         }
 
         // Event 3: Status change (if implementing state)
-        if issue
-            .labels
-            .iter()
-            .any(|l| l.contains("state:implementing"))
-        {
+        if issue.labels.iter().any(|l| l.contains("state:implementing")) {
             events.push(TimelineEvent {
                 id: format!("issue-{}-implementing", issue.number),
                 event_type: "task_status".to_string(),
@@ -788,8 +739,7 @@ pub async fn fetch_real_workflow_dag() -> Result<DagData> {
 /// Internal implementation of fetch_real_workflow_dag
 async fn fetch_real_workflow_dag_impl() -> Result<DagData> {
     let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
-    let owner =
-        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let owner = std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
     let repo = std::env::var("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
         .split('/')
@@ -800,10 +750,7 @@ async fn fetch_real_workflow_dag_impl() -> Result<DagData> {
     let client = GitHubClient::new(&token, &owner, &repo)?;
 
     // Fetch recent open issues with agent labels
-    info!(
-        "🔍 Fetching issues for workflow DAG (owner: {}, repo: {})",
-        owner, repo
-    );
+    info!("🔍 Fetching issues for workflow DAG (owner: {}, repo: {})", owner, repo);
     let issues = client.list_issues(Some(State::Open), vec![]).await?;
     info!("📥 Fetched {} open issues from GitHub", issues.len());
 
@@ -898,11 +845,7 @@ async fn fetch_real_workflow_dag_impl() -> Result<DagData> {
         edges,
     };
 
-    info!(
-        "🔗 Generated DAG with {} nodes and {} edges",
-        dag_data.nodes.len(),
-        dag_data.edges.len()
-    );
+    info!("🔗 Generated DAG with {} nodes and {} edges", dag_data.nodes.len(), dag_data.edges.len());
 
     Ok(dag_data)
 }
@@ -974,26 +917,10 @@ pub fn create_sample_dag_public() -> DagData {
             },
         ],
         edges: vec![
-            DagEdge {
-                from: "task-a".to_string(),
-                to: "task-c".to_string(),
-                edge_type: "depends_on".to_string(),
-            },
-            DagEdge {
-                from: "task-b".to_string(),
-                to: "task-c".to_string(),
-                edge_type: "depends_on".to_string(),
-            },
-            DagEdge {
-                from: "task-c".to_string(),
-                to: "task-d".to_string(),
-                edge_type: "depends_on".to_string(),
-            },
-            DagEdge {
-                from: "task-d".to_string(),
-                to: "task-e".to_string(),
-                edge_type: "depends_on".to_string(),
-            },
+            DagEdge { from: "task-a".to_string(), to: "task-c".to_string(), edge_type: "depends_on".to_string() },
+            DagEdge { from: "task-b".to_string(), to: "task-c".to_string(), edge_type: "depends_on".to_string() },
+            DagEdge { from: "task-c".to_string(), to: "task-d".to_string(), edge_type: "depends_on".to_string() },
+            DagEdge { from: "task-d".to_string(), to: "task-e".to_string(), edge_type: "depends_on".to_string() },
         ],
     }
 }

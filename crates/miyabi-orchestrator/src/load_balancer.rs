@@ -24,10 +24,7 @@ impl LoadBalancer {
     /// * `ssh_config` - SSH configuration
     pub fn new(machines: Vec<Machine>, ssh_config: SshConfig) -> Self {
         info!("LoadBalancer initialized with {} machines", machines.len());
-        Self {
-            machines: Arc::new(RwLock::new(machines)),
-            executor: RemoteExecutor::new(ssh_config),
-        }
+        Self { machines: Arc::new(RwLock::new(machines)), executor: RemoteExecutor::new(ssh_config) }
     }
 
     /// Get machine with most available capacity
@@ -85,20 +82,13 @@ impl LoadBalancer {
                     other => other,
                 }
             })
-            .ok_or_else(|| {
-                SchedulerError::InvalidConfig(
-                    "No machines available for task assignment".to_string(),
-                )
-            })?;
+            .ok_or_else(|| SchedulerError::InvalidConfig("No machines available for task assignment".to_string()))?;
 
         // Increment session count
         machines[best_idx].increment_sessions();
         let machine = machines[best_idx].clone();
 
-        info!(
-            "Assigned task to {} ({}/{})",
-            machine.hostname, machine.running_sessions, machine.capacity
-        );
+        info!("Assigned task to {} ({}/{})", machine.hostname, machine.running_sessions, machine.capacity);
 
         Ok(machine)
     }
@@ -113,10 +103,7 @@ impl LoadBalancer {
 
         if let Some(machine) = machines.iter_mut().find(|m| m.hostname == machine_hostname) {
             machine.decrement_sessions();
-            debug!(
-                "Released task from {} ({}/{})",
-                machine.hostname, machine.running_sessions, machine.capacity
-            );
+            debug!("Released task from {} ({}/{})", machine.hostname, machine.running_sessions, machine.capacity);
         } else {
             warn!("Machine {} not found for task release", machine_hostname);
         }
@@ -125,11 +112,7 @@ impl LoadBalancer {
     /// Get all available machines (with capacity)
     pub async fn get_available_machines(&self) -> Vec<Machine> {
         let machines = self.machines.read().await;
-        machines
-            .iter()
-            .filter(|m| m.has_capacity())
-            .cloned()
-            .collect()
+        machines.iter().filter(|m| m.has_capacity()).cloned().collect()
     }
 
     /// Get all machines (regardless of capacity)
@@ -146,11 +129,7 @@ impl LoadBalancer {
         let mut machines = self.machines.write().await;
 
         for machine in machines.iter_mut() {
-            let is_connected = self
-                .executor
-                .test_connectivity(machine)
-                .await
-                .unwrap_or(false);
+            let is_connected = self.executor.test_connectivity(machine).await.unwrap_or(false);
 
             if is_connected {
                 if machine.status == MachineStatus::Offline {
@@ -302,10 +281,7 @@ mod tests {
         // Should fail when no capacity
         let result = lb.assign_task().await;
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            SchedulerError::InvalidConfig(_)
-        ));
+        assert!(matches!(result.unwrap_err(), SchedulerError::InvalidConfig(_)));
     }
 
     #[tokio::test]
@@ -383,9 +359,7 @@ mod tests {
         let mut handles = vec![];
         for _ in 0..3 {
             let lb_clone = Arc::clone(&lb);
-            let handle = tokio::spawn(async move {
-                lb_clone.assign_task().await
-            });
+            let handle = tokio::spawn(async move { lb_clone.assign_task().await });
             handles.push(handle);
         }
 

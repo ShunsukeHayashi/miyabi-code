@@ -53,10 +53,9 @@ impl UnifiedError for TelegramError {
 
     fn user_message(&self) -> String {
         match self {
-            Self::ApiError(msg) => format!(
-                "Telegram API returned an error: {}. Please check your bot configuration and try again.",
-                msg
-            ),
+            Self::ApiError(msg) => {
+                format!("Telegram API returned an error: {}. Please check your bot configuration and try again.", msg)
+            }
             Self::InvalidToken => {
                 "Invalid Telegram bot token. Please verify your bot token in the configuration.".to_string()
             }
@@ -64,10 +63,7 @@ impl UnifiedError for TelegramError {
                 "Missing environment variable: {}. Please set this variable in your .env file or environment.",
                 var
             ),
-            Self::Other(msg) => format!(
-                "Telegram bot error: {}. Please check logs for more details.",
-                msg
-            ),
+            Self::Other(msg) => format!("Telegram bot error: {}. Please check logs for more details.", msg),
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }

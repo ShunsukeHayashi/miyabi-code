@@ -87,10 +87,7 @@ impl App {
     }
 
     /// Main application loop
-    pub async fn run<B: Backend>(
-        &mut self,
-        terminal: &mut Terminal<B>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run<B: Backend>(&mut self, terminal: &mut Terminal<B>) -> Result<(), Box<dyn std::error::Error>> {
         let mut event_handler = EventHandler::new(Duration::from_millis(100));
 
         loop {

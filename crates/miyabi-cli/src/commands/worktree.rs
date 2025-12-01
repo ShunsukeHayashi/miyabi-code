@@ -63,19 +63,9 @@ impl WorktreeCommand {
         match &self.subcommand {
             WorktreeSubcommand::List => self.list_worktrees().await,
             WorktreeSubcommand::Status => self.show_status().await,
-            WorktreeSubcommand::Prune {
-                older_than,
-                dry_run,
-            } => self.prune_worktrees(*older_than, *dry_run).await,
+            WorktreeSubcommand::Prune { older_than, dry_run } => self.prune_worktrees(*older_than, *dry_run).await,
             WorktreeSubcommand::Remove { id } => self.remove_worktree(id).await,
-            WorktreeSubcommand::Scan {
-                orphaned,
-                stuck,
-                idle,
-                active,
-                corrupted,
-                json,
-            } => {
+            WorktreeSubcommand::Scan { orphaned, stuck, idle, active, corrupted, json } => {
                 self.scan_worktrees(*orphaned, *stuck, *idle, *active, *corrupted, *json)
                     .await
             }
@@ -160,10 +150,7 @@ impl WorktreeCommand {
         let worktrees = manager.list_worktrees().await;
         let cutoff_date = Utc::now() - Duration::days(older_than_days as i64);
 
-        let old_worktrees: Vec<_> = worktrees
-            .iter()
-            .filter(|wt| wt.created_at < cutoff_date)
-            .collect();
+        let old_worktrees: Vec<_> = worktrees.iter().filter(|wt| wt.created_at < cutoff_date).collect();
 
         if old_worktrees.is_empty() {
             println!("  ✅ No old worktrees found");
@@ -206,19 +193,10 @@ impl WorktreeCommand {
         }
 
         if dry_run {
-            println!(
-                "  {} Would remove {} worktree(s)",
-                "ℹ".blue(),
-                old_worktrees.len()
-            );
+            println!("  {} Would remove {} worktree(s)", "ℹ".blue(), old_worktrees.len());
             println!("  Run without --dry-run to actually remove them");
         } else {
-            println!(
-                "  {} Removed: {}, Failed: {}",
-                "📊".cyan(),
-                removed_count,
-                failed_count
-            );
+            println!("  {} Removed: {}, Failed: {}", "📊".cyan(), removed_count, failed_count);
 
             if removed_count > 0 {
                 // Run git worktree prune
@@ -259,14 +237,9 @@ impl WorktreeCommand {
         let worktree = worktrees
             .iter()
             .find(|wt| wt.id == id || wt.issue_number.to_string() == id)
-            .ok_or_else(|| {
-                crate::error::CliError::InvalidInput(format!("Worktree not found: {}", id))
-            })?;
+            .ok_or_else(|| crate::error::CliError::InvalidInput(format!("Worktree not found: {}", id)))?;
 
-        println!(
-            "  Issue #{}: {}",
-            worktree.issue_number, worktree.branch_name
-        );
+        println!("  Issue #{}: {}", worktree.issue_number, worktree.branch_name);
         println!("  Path: {}", worktree.path.to_string_lossy());
         println!();
 
@@ -303,8 +276,8 @@ impl WorktreeCommand {
 
         let repo_path = std::env::current_dir()?;
 
-        let state_manager = WorktreeStateManager::new(repo_path)
-            .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+        let state_manager =
+            WorktreeStateManager::new(repo_path).map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
 
         let worktrees = state_manager
             .scan_worktrees()
@@ -350,12 +323,7 @@ impl WorktreeCommand {
                 } else {
                     "N/A".to_string()
                 };
-                println!(
-                    "  ✅ {} [{}] ({} MB)",
-                    wt.path.display(),
-                    issue_str,
-                    disk_mb
-                );
+                println!("  ✅ {} [{}] ({} MB)", wt.path.display(), issue_str, disk_mb);
             }
             println!();
         }
@@ -378,12 +346,7 @@ impl WorktreeCommand {
                 } else {
                     "N/A".to_string()
                 };
-                println!(
-                    "  ⏸️  {} [{}] ({} MB)",
-                    wt.path.display(),
-                    issue_str,
-                    disk_mb
-                );
+                println!("  ⏸️  {} [{}] ({} MB)", wt.path.display(), issue_str, disk_mb);
                 println!("     Last accessed: {}", age_str.dimmed());
             }
             println!();
@@ -401,12 +364,7 @@ impl WorktreeCommand {
                 } else {
                     "N/A".to_string()
                 };
-                println!(
-                    "  ⚠️  {} [{}] ({} MB)",
-                    wt.path.display(),
-                    issue_str,
-                    disk_mb
-                );
+                println!("  ⚠️  {} [{}] ({} MB)", wt.path.display(), issue_str, disk_mb);
                 println!("     No activity for: {}", age_str.red());
             }
             println!();
@@ -414,11 +372,7 @@ impl WorktreeCommand {
 
         // Display Orphaned worktrees
         if !orphaned.is_empty() {
-            println!(
-                "{} ({}):",
-                "Orphaned Worktrees".red().bold(),
-                orphaned.len()
-            );
+            println!("{} ({}):", "Orphaned Worktrees".red().bold(), orphaned.len());
             for wt in &orphaned {
                 let disk_mb = wt.disk_usage / 1024 / 1024;
                 let issue_str = if let Some(issue) = wt.issue_number {
@@ -426,12 +380,7 @@ impl WorktreeCommand {
                 } else {
                     "N/A".to_string()
                 };
-                println!(
-                    "  ⚠️  {} [{}] ({} MB)",
-                    wt.path.display(),
-                    issue_str,
-                    disk_mb
-                );
+                println!("  ⚠️  {} [{}] ({} MB)", wt.path.display(), issue_str, disk_mb);
                 println!("     {}", "No corresponding task metadata".red());
             }
             println!();
@@ -439,11 +388,7 @@ impl WorktreeCommand {
 
         // Display Corrupted worktrees
         if !corrupted.is_empty() {
-            println!(
-                "{} ({}):",
-                "Corrupted Worktrees".red().bold(),
-                corrupted.len()
-            );
+            println!("{} ({}):", "Corrupted Worktrees".red().bold(), corrupted.len());
             for wt in &corrupted {
                 let disk_mb = wt.disk_usage / 1024 / 1024;
                 let issue_str = if let Some(issue) = wt.issue_number {
@@ -451,12 +396,7 @@ impl WorktreeCommand {
                 } else {
                     "N/A".to_string()
                 };
-                println!(
-                    "  ❌ {} [{}] ({} MB)",
-                    wt.path.display(),
-                    issue_str,
-                    disk_mb
-                );
+                println!("  ❌ {} [{}] ({} MB)", wt.path.display(), issue_str, disk_mb);
                 println!("     {}", "Git errors or missing files".red());
             }
             println!();
@@ -464,33 +404,20 @@ impl WorktreeCommand {
 
         // Summary
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        println!(
-            "Total: {} worktrees, {} MB",
-            worktrees.len(),
-            total_disk_usage / 1024 / 1024
-        );
+        println!("Total: {} worktrees, {} MB", worktrees.len(), total_disk_usage / 1024 / 1024);
         println!();
 
         // Recommendations
         if !orphaned.is_empty() || !stuck.is_empty() || !corrupted.is_empty() {
             println!("{}", "Recommendations:".cyan().bold());
             if !orphaned.is_empty() {
-                println!(
-                    "  - Cleanup orphaned worktrees: {}",
-                    "miyabi cleanup".yellow()
-                );
+                println!("  - Cleanup orphaned worktrees: {}", "miyabi cleanup".yellow());
             }
             if !stuck.is_empty() {
-                println!(
-                    "  - Review stuck worktrees: {}",
-                    "miyabi worktree list".yellow()
-                );
+                println!("  - Review stuck worktrees: {}", "miyabi worktree list".yellow());
             }
             if !corrupted.is_empty() {
-                println!(
-                    "  - Remove corrupted worktrees: {}",
-                    "miyabi cleanup --force".yellow()
-                );
+                println!("  - Remove corrupted worktrees: {}", "miyabi cleanup --force".yellow());
             }
             println!();
         }
@@ -512,8 +439,8 @@ impl WorktreeCommand {
         println!();
 
         let repo_path = std::env::current_dir()?;
-        let state_manager = WorktreeStateManager::new(repo_path)
-            .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+        let state_manager =
+            WorktreeStateManager::new(repo_path).map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
 
         let mut worktrees = state_manager
             .scan_worktrees()
@@ -584,13 +511,7 @@ impl WorktreeCommand {
                 .map(|n| format!("#{}", n))
                 .unwrap_or_else(|| "N/A".to_string());
 
-            println!(
-                "  {}. {} {} [{}]",
-                index + 1,
-                icon,
-                worktree.path.display(),
-                label
-            );
+            println!("  {}. {} {} [{}]", index + 1, icon, worktree.path.display(), label);
             println!("     Issue: {} | Branch: {}", issue, worktree.branch);
             println!("     Last accessed: {} | Disk: {} MB", last_access, disk_mb);
             println!(
@@ -660,10 +581,7 @@ mod tests {
         let cmd = WorktreeCommand::new(WorktreeSubcommand::List);
         assert!(matches!(cmd.subcommand, WorktreeSubcommand::List));
 
-        let cmd = WorktreeCommand::new(WorktreeSubcommand::Prune {
-            older_than: 7,
-            dry_run: true,
-        });
+        let cmd = WorktreeCommand::new(WorktreeSubcommand::Prune { older_than: 7, dry_run: true });
         assert!(matches!(cmd.subcommand, WorktreeSubcommand::Prune { .. }));
 
         let cmd = WorktreeCommand::new(WorktreeSubcommand::Scan {

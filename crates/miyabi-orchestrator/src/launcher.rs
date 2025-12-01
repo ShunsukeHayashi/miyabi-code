@@ -34,16 +34,8 @@ use tracing::{debug, info};
 /// # Ok(())
 /// # }
 /// ```
-pub async fn launch_claude_headless(
-    command: String,
-    cwd: PathBuf,
-    output_file: PathBuf,
-) -> Result<Child> {
-    info!(
-        "Launching Claude Code headless: command={}, cwd={}",
-        command,
-        cwd.display()
-    );
+pub async fn launch_claude_headless(command: String, cwd: PathBuf, output_file: PathBuf) -> Result<Child> {
+    info!("Launching Claude Code headless: command={}, cwd={}", command, cwd.display());
 
     // Ensure output directory exists
     if let Some(parent) = output_file.parent() {
@@ -72,9 +64,7 @@ pub async fn launch_claude_headless(
         .arg(&cwd)
         .arg("--no-human-in-loop")
         .current_dir(&cwd)
-        .stdout(Stdio::from(
-            output_std.try_clone().map_err(SchedulerError::Io)?,
-        ))
+        .stdout(Stdio::from(output_std.try_clone().map_err(SchedulerError::Io)?))
         .stderr(Stdio::from(output_std))
         .kill_on_drop(true)
         .spawn()
@@ -99,12 +89,7 @@ mod tests {
 
         tokio::fs::create_dir(&worktree_path).await.unwrap();
 
-        let result = launch_claude_headless(
-            "echo 'test'".to_string(),
-            worktree_path,
-            output_file.clone(),
-        )
-        .await;
+        let result = launch_claude_headless("echo 'test'".to_string(), worktree_path, output_file.clone()).await;
 
         // Should spawn successfully (or fail with SpawnFailed if claude not installed)
         match result {

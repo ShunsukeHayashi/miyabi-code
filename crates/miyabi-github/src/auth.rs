@@ -82,9 +82,7 @@ fn get_token_from_gh_cli() -> Result<String> {
         }
     }
 
-    Err(MiyabiError::Auth(
-        "gh CLI is available but not authenticated".to_string(),
-    ))
+    Err(MiyabiError::Auth("gh CLI is available but not authenticated".to_string()))
 }
 
 /// Get token from gh config file (~/.config/gh/hosts.yml)
@@ -117,9 +115,7 @@ fn get_token_from_gh_config() -> Result<String> {
         }
     }
 
-    Err(MiyabiError::Auth(
-        "No oauth_token found in gh config file".to_string(),
-    ))
+    Err(MiyabiError::Auth("No oauth_token found in gh config file".to_string()))
 }
 
 /// Validate that a token looks correct (starts with ghp_)
@@ -131,15 +127,11 @@ pub fn validate_token_format(token: &str) -> Result<()> {
     }
 
     if !token.starts_with("ghp_") && !token.starts_with("gho_") && !token.starts_with("ghs_") {
-        return Err(MiyabiError::Auth(
-            "Token does not start with expected prefix (ghp_, gho_, or ghs_)".to_string(),
-        ));
+        return Err(MiyabiError::Auth("Token does not start with expected prefix (ghp_, gho_, or ghs_)".to_string()));
     }
 
     if token.len() < 20 {
-        return Err(MiyabiError::Auth(
-            "Token is too short (expected at least 20 characters)".to_string(),
-        ));
+        return Err(MiyabiError::Auth("Token is too short (expected at least 20 characters)".to_string()));
     }
 
     Ok(())

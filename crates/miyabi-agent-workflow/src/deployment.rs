@@ -6,15 +6,12 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
 use miyabi_core::ExecutionMode;
-use miyabi_types::agent::{
-    AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
-};
+use miyabi_types::agent::{AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, Task};
 use serde::{Deserialize, Serialize};
@@ -85,12 +82,7 @@ impl DeploymentAgent {
 
         tracing::info!("Build completed in {}ms", duration_ms);
 
-        Ok(BuildResult {
-            success,
-            duration_ms,
-            stdout,
-            stderr,
-        })
+        Ok(BuildResult { success, duration_ms, stdout, stderr })
     }
 
     /// Execute test command (cargo test)
@@ -125,21 +117,9 @@ impl DeploymentAgent {
             )));
         }
 
-        tracing::info!(
-            "Tests completed: {} passed, {} failed in {}ms",
-            tests_passed,
-            tests_failed,
-            duration_ms
-        );
+        tracing::info!("Tests completed: {} passed, {} failed in {}ms", tests_passed, tests_failed, duration_ms);
 
-        Ok(TestResult {
-            success,
-            duration_ms,
-            tests_passed,
-            tests_failed,
-            stdout,
-            stderr,
-        })
+        Ok(TestResult { success, duration_ms, tests_passed, tests_failed, stdout, stderr })
     }
 
     /// Parse test output to extract test counts
@@ -149,18 +129,10 @@ impl DeploymentAgent {
 
         // Parse "test result: ok. X passed; Y failed"
         if let Some(line) = output.lines().find(|l| l.contains("test result:")) {
-            if let Some(passed_str) = line
-                .split("passed")
-                .next()
-                .and_then(|s| s.split_whitespace().last())
-            {
+            if let Some(passed_str) = line.split("passed").next().and_then(|s| s.split_whitespace().last()) {
                 passed = passed_str.parse().unwrap_or(0);
             }
-            if let Some(failed_str) = line
-                .split("failed")
-                .next()
-                .and_then(|s| s.split_whitespace().last())
-            {
+            if let Some(failed_str) = line.split("failed").next().and_then(|s| s.split_whitespace().last()) {
                 failed = failed_str.parse().unwrap_or(0);
             }
         }
@@ -218,20 +190,11 @@ impl DeploymentAgent {
             last_error.as_ref().unwrap_or(&"Unknown error".to_string())
         );
 
-        Ok(HealthCheckResult {
-            success: false,
-            attempts,
-            status_code: None,
-            error: last_error,
-        })
+        Ok(HealthCheckResult { success: false, attempts, status_code: None, error: last_error })
     }
 
     /// Deploy to environment (Firebase CLI integration)
-    async fn deploy(
-        &self,
-        environment: Environment,
-        project_path: &Path,
-    ) -> Result<DeploymentResult> {
+    async fn deploy(&self, environment: Environment, project_path: &Path) -> Result<DeploymentResult> {
         tracing::info!("Deploying to {:?}", environment);
 
         let start_time = std::time::Instant::now();
@@ -242,12 +205,9 @@ impl DeploymentAgent {
             Environment::Staging => &self.config.firebase_staging_project,
         };
 
-        let project_id = firebase_project.as_ref().ok_or_else(|| {
-            MiyabiError::Config(format!(
-                "Firebase project not configured for {:?}",
-                environment
-            ))
-        })?;
+        let project_id = firebase_project
+            .as_ref()
+            .ok_or_else(|| MiyabiError::Config(format!("Firebase project not configured for {:?}", environment)))?;
 
         tracing::info!("Deploying to Firebase project: {}", project_id);
 
@@ -263,9 +223,7 @@ impl DeploymentAgent {
             .stderr(Stdio::piped())
             .output()
             .await
-            .map_err(|e| {
-                MiyabiError::Unknown(format!("Failed to execute firebase deploy: {}", e))
-            })?;
+            .map_err(|e| MiyabiError::Unknown(format!("Failed to execute firebase deploy: {}", e)))?;
 
         let duration_ms = start_time.elapsed().as_millis() as u64;
         let success = output.status.success();
@@ -274,10 +232,7 @@ impl DeploymentAgent {
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
         if !success {
-            return Err(MiyabiError::Unknown(format!(
-                "Firebase deploy failed: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Unknown(format!("Firebase deploy failed: {}", stderr)));
         }
 
         // Extract deployment URL from output
@@ -286,13 +241,7 @@ impl DeploymentAgent {
 
         tracing::info!("Deploy completed in {}ms: {}", duration_ms, deployment_url);
 
-        Ok(DeploymentResult {
-            success,
-            duration_ms,
-            deployment_url,
-            stdout,
-            stderr,
-        })
+        Ok(DeploymentResult { success, duration_ms, deployment_url, stdout, stderr })
     }
 
     /// Extract Firebase deployment URL from deploy output
@@ -309,11 +258,7 @@ impl DeploymentAgent {
     }
 
     /// Rollback to previous version (placeholder)
-    async fn rollback(
-        &self,
-        _environment: Environment,
-        _project_path: &Path,
-    ) -> Result<RollbackResult> {
+    async fn rollback(&self, _environment: Environment, _project_path: &Path) -> Result<RollbackResult> {
         tracing::info!("Rolling back to previous version (placeholder)");
 
         // Placeholder: Git + deploy logic would go here
@@ -324,11 +269,7 @@ impl DeploymentAgent {
         // 4. deploy()
         // 5. health_check()
 
-        Ok(RollbackResult {
-            success: true,
-            previous_version: "v0.1.0".to_string(),
-            duration_ms: 0,
-        })
+        Ok(RollbackResult { success: true, previous_version: "v0.1.0".to_string(), duration_ms: 0 })
     }
 }
 
@@ -407,10 +348,7 @@ impl BaseAgent for DeploymentAgent {
         let escalation = if environment == Environment::Production && !health_result.success {
             let mut context = HashMap::new();
             context.insert("environment".to_string(), serde_json::json!("production"));
-            context.insert(
-                "health_check".to_string(),
-                serde_json::to_value(&health_result)?,
-            );
+            context.insert("health_check".to_string(), serde_json::to_value(&health_result)?);
 
             Some(EscalationInfo {
                 reason: "Production deployment health check failed".to_string(),
@@ -421,14 +359,8 @@ impl BaseAgent for DeploymentAgent {
             })
         } else if !build_result.success || !test_result.success {
             let mut context = HashMap::new();
-            context.insert(
-                "build_success".to_string(),
-                serde_json::json!(build_result.success),
-            );
-            context.insert(
-                "test_success".to_string(),
-                serde_json::json!(test_result.success),
-            );
+            context.insert("build_success".to_string(), serde_json::json!(build_result.success));
+            context.insert("test_success".to_string(), serde_json::json!(test_result.success));
 
             Some(EscalationInfo {
                 reason: "Build or test failed".to_string(),
@@ -443,20 +375,11 @@ impl BaseAgent for DeploymentAgent {
 
         // Construct result data
         let mut data = HashMap::new();
-        data.insert(
-            "environment".to_string(),
-            serde_json::to_value(environment)?,
-        );
+        data.insert("environment".to_string(), serde_json::to_value(environment)?);
         data.insert("build".to_string(), serde_json::to_value(&build_result)?);
         data.insert("tests".to_string(), serde_json::to_value(&test_result)?);
-        data.insert(
-            "deployment".to_string(),
-            serde_json::to_value(&deploy_result)?,
-        );
-        data.insert(
-            "health_check".to_string(),
-            serde_json::to_value(&health_result)?,
-        );
+        data.insert("deployment".to_string(), serde_json::to_value(&deploy_result)?);
+        data.insert("health_check".to_string(), serde_json::to_value(&health_result)?);
         if let Some(ref rollback) = rollback_result {
             data.insert("rollback".to_string(), serde_json::to_value(rollback)?);
         }
@@ -611,10 +534,7 @@ impl A2AEnabled for DeploymentAgent {
             .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
@@ -623,19 +543,14 @@ impl A2AEnabled for DeploymentAgent {
                     .input
                     .get("url")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing url".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing url".to_string()))?;
 
-                let retries = task
-                    .input
-                    .get("retries")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(5) as u32;
+                let retries = task.input.get("retries").and_then(|v| v.as_u64()).unwrap_or(5) as u32;
 
-                let result = self.health_check(url, retries).await.map_err(|e| {
-                    A2AIntegrationError::TaskExecutionFailed(format!("Health check failed: {}", e))
-                })?;
+                let result = self
+                    .health_check(url, retries)
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Health check failed: {}", e)))?;
 
                 Ok(A2ATaskResult::Success {
                     output: serde_json::to_value(&result).unwrap_or_default(),
@@ -655,16 +570,13 @@ impl A2AEnabled for DeploymentAgent {
                     _ => Environment::Staging,
                 };
 
-                let project_path = std::env::current_dir().map_err(|e| {
-                    A2AIntegrationError::TaskExecutionFailed(format!("Failed to get cwd: {}", e))
-                })?;
+                let project_path = std::env::current_dir()
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Failed to get cwd: {}", e)))?;
 
                 let result = self
                     .rollback(environment, &project_path)
                     .await
-                    .map_err(|e| {
-                        A2AIntegrationError::TaskExecutionFailed(format!("Rollback failed: {}", e))
-                    })?;
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Rollback failed: {}", e)))?;
 
                 Ok(A2ATaskResult::Success {
                     output: serde_json::to_value(&result).unwrap_or_default(),
@@ -675,14 +587,10 @@ impl A2AEnabled for DeploymentAgent {
             "deploy" => {
                 // Full deploy would use execute() which handles all phases
                 Err(A2AIntegrationError::TaskExecutionFailed(
-                    "Full deploy should use execute() method via standard agent interface"
-                        .to_string(),
+                    "Full deploy should use execute() method via standard agent interface".to_string(),
                 ))
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -733,8 +641,7 @@ mod tests {
 
     #[test]
     fn test_parse_test_output_with_failures() {
-        let output =
-            "test result: FAILED. 38 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out";
+        let output = "test result: FAILED. 38 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out";
         let (passed, failed) = DeploymentAgent::parse_test_output(output);
         assert_eq!(passed, 38);
         assert_eq!(failed, 4);
@@ -801,12 +708,7 @@ mod tests {
 
     #[test]
     fn test_health_check_result_serialization() {
-        let result = HealthCheckResult {
-            success: true,
-            attempts: 3,
-            status_code: Some(200),
-            error: None,
-        };
+        let result = HealthCheckResult { success: true, attempts: 3, status_code: Some(200), error: None };
 
         let json = serde_json::to_value(&result).unwrap();
         assert_eq!(json["success"], true);
@@ -866,9 +768,7 @@ mod tests {
         // Should fail due to missing Firebase configuration
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert!(error
-            .to_string()
-            .contains("Firebase project not configured"));
+        assert!(error.to_string().contains("Firebase project not configured"));
     }
 
     #[test]
@@ -920,11 +820,7 @@ mod tests {
 
     #[test]
     fn test_rollback_result_serialization() {
-        let result = RollbackResult {
-            success: true,
-            previous_version: "v1.2.2".to_string(),
-            duration_ms: 120000,
-        };
+        let result = RollbackResult { success: true, previous_version: "v1.2.2".to_string(), duration_ms: 120000 };
 
         let json = serde_json::to_value(&result).unwrap();
         assert_eq!(json["success"], true);

@@ -50,22 +50,14 @@ impl DAGOperations {
             }
 
             // Check if all dependencies are completed
-            let all_deps_completed = node
-                .dependencies
-                .iter()
-                .all(|dep_id| completed.contains(dep_id));
+            let all_deps_completed = node.dependencies.iter().all(|dep_id| completed.contains(dep_id));
 
             if all_deps_completed {
                 ready.push(node.id.clone());
             }
         }
 
-        debug!(
-            "Ready tasks: {} (completed: {}, total: {})",
-            ready.len(),
-            completed.len(),
-            self.dag.nodes.len()
-        );
+        debug!("Ready tasks: {} (completed: {}, total: {})", ready.len(), completed.len(), self.dag.nodes.len());
 
         ready
     }
@@ -101,11 +93,7 @@ impl DAGOperations {
     ///
     /// This is already computed in `dag.levels`, so we just return a flattened version
     pub fn topological_sort(&self) -> Vec<TaskId> {
-        self.dag
-            .levels
-            .iter()
-            .flat_map(|level| level.clone())
-            .collect()
+        self.dag.levels.iter().flat_map(|level| level.clone()).collect()
     }
 }
 
@@ -122,64 +110,32 @@ mod tests {
         //   task-3 (depends on task-1)
         //   task-4 (depends on task-2, task-3)
 
-        let task1 = Task::new(
-            "task-1".to_string(),
-            "Task 1".to_string(),
-            "First task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let task1 =
+            Task::new("task-1".to_string(), "Task 1".to_string(), "First task".to_string(), TaskType::Feature, 1)
+                .unwrap();
 
-        let mut task2 = Task::new(
-            "task-2".to_string(),
-            "Task 2".to_string(),
-            "Second task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let mut task2 =
+            Task::new("task-2".to_string(), "Task 2".to_string(), "Second task".to_string(), TaskType::Feature, 1)
+                .unwrap();
         task2.dependencies = vec!["task-1".to_string()];
 
-        let mut task3 = Task::new(
-            "task-3".to_string(),
-            "Task 3".to_string(),
-            "Third task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let mut task3 =
+            Task::new("task-3".to_string(), "Task 3".to_string(), "Third task".to_string(), TaskType::Feature, 1)
+                .unwrap();
         task3.dependencies = vec!["task-1".to_string()];
 
-        let mut task4 = Task::new(
-            "task-4".to_string(),
-            "Task 4".to_string(),
-            "Fourth task".to_string(),
-            TaskType::Feature,
-            1,
-        )
-        .unwrap();
+        let mut task4 =
+            Task::new("task-4".to_string(), "Task 4".to_string(), "Fourth task".to_string(), TaskType::Feature, 1)
+                .unwrap();
         task4.dependencies = vec!["task-2".to_string(), "task-3".to_string()];
 
         DAG {
             nodes: vec![task1, task2, task3, task4],
             edges: vec![
-                Edge {
-                    from: "task-1".to_string(),
-                    to: "task-2".to_string(),
-                },
-                Edge {
-                    from: "task-1".to_string(),
-                    to: "task-3".to_string(),
-                },
-                Edge {
-                    from: "task-2".to_string(),
-                    to: "task-4".to_string(),
-                },
-                Edge {
-                    from: "task-3".to_string(),
-                    to: "task-4".to_string(),
-                },
+                Edge { from: "task-1".to_string(), to: "task-2".to_string() },
+                Edge { from: "task-1".to_string(), to: "task-3".to_string() },
+                Edge { from: "task-2".to_string(), to: "task-4".to_string() },
+                Edge { from: "task-3".to_string(), to: "task-4".to_string() },
             ],
             levels: vec![
                 vec!["task-1".to_string()],

@@ -28,12 +28,7 @@ pub trait AgentHook: Send + Sync {
     }
 
     /// Called after the agent successfully executes the task.
-    async fn on_post_execute(
-        &self,
-        _agent: AgentType,
-        _task: &Task,
-        _result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, _agent: AgentType, _task: &Task, _result: &AgentResult) -> Result<()> {
         Ok(())
     }
 
@@ -52,10 +47,7 @@ pub struct HookedAgent<A: BaseAgent> {
 impl<A: BaseAgent> HookedAgent<A> {
     /// Create a new hooked agent.
     pub fn new(agent: A) -> Self {
-        Self {
-            agent,
-            hooks: Vec::new(),
-        }
+        Self { agent, hooks: Vec::new() }
     }
 
     /// Register a lifecycle hook.
@@ -123,9 +115,7 @@ pub struct EnvironmentCheckHook {
 
 impl EnvironmentCheckHook {
     pub fn new(vars: impl IntoIterator<Item = impl Into<String>>) -> Self {
-        Self {
-            required_vars: vars.into_iter().map(Into::into).collect(),
-        }
+        Self { required_vars: vars.into_iter().map(Into::into).collect() }
     }
 }
 
@@ -134,10 +124,7 @@ impl AgentHook for EnvironmentCheckHook {
     async fn on_pre_execute(&self, agent: AgentType, _task: &Task) -> Result<()> {
         for var in &self.required_vars {
             if std::env::var(var).is_err() {
-                let message = format!(
-                    "Required environment variable {} missing for agent {:?}",
-                    var, agent
-                );
+                let message = format!("Required environment variable {} missing for agent {:?}", var, agent);
                 return Err(MiyabiError::Config(message));
             }
         }
@@ -157,27 +144,12 @@ impl MetricsHook {
 #[async_trait]
 impl AgentHook for MetricsHook {
     async fn on_pre_execute(&self, agent: AgentType, task: &Task) -> Result<()> {
-        tracing::info!(
-            "Agent {:?} starting task {} with priority {:?}",
-            agent,
-            task.id,
-            task.priority
-        );
+        tracing::info!("Agent {:?} starting task {} with priority {:?}", agent, task.id, task.priority);
         Ok(())
     }
 
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        result: &AgentResult,
-    ) -> Result<()> {
-        tracing::info!(
-            "Agent {:?} completed task {} with status {:?}",
-            agent,
-            task.id,
-            result.status
-        );
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, result: &AgentResult) -> Result<()> {
+        tracing::info!("Agent {:?} completed task {} with status {:?}", agent, task.id, result.status);
         Ok(())
     }
 
@@ -254,9 +226,7 @@ impl AuditLogHook {
             .await
             .map_err(MiyabiError::Io)?;
 
-        file.write_all(entry.as_bytes())
-            .await
-            .map_err(MiyabiError::Io)?;
+        file.write_all(entry.as_bytes()).await.map_err(MiyabiError::Io)?;
         Ok(())
     }
 
@@ -305,10 +275,7 @@ impl AuditLogHook {
                     }
                 },
                 Err(e) => {
-                    return Err(MiyabiError::Unknown(format!(
-                        "Failed to initialize KnowledgeManager: {}",
-                        e
-                    )));
+                    return Err(MiyabiError::Unknown(format!("Failed to initialize KnowledgeManager: {}", e)));
                 }
             }
         }
@@ -321,21 +288,11 @@ impl AuditLogHook {
 impl AgentHook for AuditLogHook {
     async fn on_pre_execute(&self, agent: AgentType, task: &Task) -> Result<()> {
         let worktree_id = AuditLogHook::extract_worktree_id(task);
-        let entry = format!(
-            "\n### [{}] 🔄 Agent {:?} starting task {}\n",
-            Utc::now().to_rfc3339(),
-            agent,
-            task.id
-        );
+        let entry = format!("\n### [{}] 🔄 Agent {:?} starting task {}\n", Utc::now().to_rfc3339(), agent, task.id);
         self.append(&entry, worktree_id.as_deref()).await
     }
 
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, result: &AgentResult) -> Result<()> {
         let worktree_id = AuditLogHook::extract_worktree_id(task);
         let entry = format!(
             "\n### [{}] ✅ Agent {:?} completed task {}\nStatus: {:?}\n",
@@ -412,9 +369,7 @@ pub struct StructuredLogHook {
 
 impl StructuredLogHook {
     pub fn new<P: Into<PathBuf>>(log_dir: P) -> Self {
-        Self {
-            log_dir: log_dir.into(),
-        }
+        Self { log_dir: log_dir.into() }
     }
 
     /// Write structured JSON log entry.
@@ -439,12 +394,7 @@ impl StructuredLogHook {
 
 #[async_trait]
 impl AgentHook for StructuredLogHook {
-    async fn on_post_execute(
-        &self,
-        agent: AgentType,
-        task: &Task,
-        result: &AgentResult,
-    ) -> Result<()> {
+    async fn on_post_execute(&self, agent: AgentType, task: &Task, result: &AgentResult) -> Result<()> {
         let worktree_id = task
             .metadata
             .as_ref()
@@ -570,12 +520,7 @@ mod tests {
             Ok(())
         }
 
-        async fn on_post_execute(
-            &self,
-            _agent: AgentType,
-            _task: &Task,
-            _result: &AgentResult,
-        ) -> Result<()> {
+        async fn on_post_execute(&self, _agent: AgentType, _task: &Task, _result: &AgentResult) -> Result<()> {
             self.events.lock().unwrap().push("post");
             Ok(())
         }
@@ -640,10 +585,7 @@ mod tests {
         use std::collections::HashMap;
 
         let mut metadata = HashMap::new();
-        metadata.insert(
-            "worktree_id".to_string(),
-            serde_json::json!("abc123-worktree-1"),
-        );
+        metadata.insert("worktree_id".to_string(), serde_json::json!("abc123-worktree-1"));
 
         let task = Task {
             id: "test".into(),
@@ -662,10 +604,7 @@ mod tests {
             metadata: Some(metadata),
         };
 
-        assert_eq!(
-            AuditLogHook::extract_worktree_id(&task),
-            Some("abc123-worktree-1".to_string())
-        );
+        assert_eq!(AuditLogHook::extract_worktree_id(&task), Some("abc123-worktree-1".to_string()));
     }
 
     #[test]
@@ -727,9 +666,7 @@ mod tests {
         };
 
         // Execute pre-execute hook
-        hook.on_pre_execute(AgentType::CodeGenAgent, &task)
-            .await
-            .unwrap();
+        hook.on_pre_execute(AgentType::CodeGenAgent, &task).await.unwrap();
 
         // Verify worktree-specific log file was created
         let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
@@ -770,9 +707,7 @@ mod tests {
         };
 
         // Execute pre-execute hook
-        hook.on_pre_execute(AgentType::CodeGenAgent, &task)
-            .await
-            .unwrap();
+        hook.on_pre_execute(AgentType::CodeGenAgent, &task).await.unwrap();
 
         // Verify default log file was created (without worktree_id)
         let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
@@ -796,11 +731,7 @@ mod tests {
 
         // Create config with auto-indexing enabled
         let config = KnowledgeConfig {
-            auto_index: AutoIndexConfig {
-                enabled: true,
-                delay_seconds: 1,
-                retry_count: 2,
-            },
+            auto_index: AutoIndexConfig { enabled: true, delay_seconds: 1, retry_count: 2 },
             ..Default::default()
         };
 
@@ -841,11 +772,7 @@ mod tests {
 
         // Create config with auto-indexing disabled
         let config = KnowledgeConfig {
-            auto_index: AutoIndexConfig {
-                enabled: false,
-                delay_seconds: 0,
-                retry_count: 0,
-            },
+            auto_index: AutoIndexConfig { enabled: false, delay_seconds: 0, retry_count: 0 },
             ..Default::default()
         };
 
@@ -869,18 +796,11 @@ mod tests {
             metadata: None,
         };
 
-        let result = AgentResult {
-            status: ResultStatus::Success,
-            data: None,
-            error: None,
-            metrics: None,
-            escalation: None,
-        };
+        let result =
+            AgentResult { status: ResultStatus::Success, data: None, error: None, metrics: None, escalation: None };
 
         // Execute hook (should not trigger auto-indexing)
-        let hook_result = hook
-            .on_post_execute(AgentType::CodeGenAgent, &task, &result)
-            .await;
+        let hook_result = hook.on_post_execute(AgentType::CodeGenAgent, &task, &result).await;
 
         // Should succeed even if auto-indexing is disabled
         assert!(hook_result.is_ok());
@@ -994,9 +914,7 @@ mod tests {
         let error = MiyabiError::Validation("Test error message".to_string());
 
         // Execute error hook
-        hook.on_error(AgentType::ReviewAgent, &task, &error)
-            .await
-            .unwrap();
+        hook.on_error(AgentType::ReviewAgent, &task, &error).await.unwrap();
 
         // Find the generated JSON file
         let mut entries = fs::read_dir(&log_dir).await.unwrap();
@@ -1016,10 +934,7 @@ mod tests {
         assert_eq!(json["agent_type"], "ReviewAgent");
         assert_eq!(json["task_id"], "error-task");
         assert_eq!(json["status"], "Failed");
-        assert!(json["error"]
-            .as_str()
-            .unwrap()
-            .contains("Test error message"));
+        assert!(json["error"].as_str().unwrap().contains("Test error message"));
     }
 
     #[tokio::test]

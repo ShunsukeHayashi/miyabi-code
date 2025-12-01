@@ -12,11 +12,7 @@ use std::path::{Path, PathBuf};
 use tokio::time::Duration;
 
 /// Helper to create a test file in worktree
-async fn create_test_file(
-    path: &Path,
-    filename: &str,
-    content: &str,
-) -> Result<(), std::io::Error> {
+async fn create_test_file(path: &Path, filename: &str, content: &str) -> Result<(), std::io::Error> {
     let file_path = path.join(filename);
     tokio::fs::write(&file_path, content).await?;
     Ok(())
@@ -62,15 +58,12 @@ async fn commit_changes(path: &Path, message: &str) -> Result<(), Box<dyn std::e
 #[ignore] // Run manually: cargo test --package miyabi-worktree --test worktree_e2e -- --ignored
 async fn test_single_worktree_lifecycle() {
     // Initialize manager with auto-discovery
-    let manager = WorktreeManager::new_with_discovery(Some(".worktrees-test"), 3)
-        .expect("Failed to create WorktreeManager");
+    let manager =
+        WorktreeManager::new_with_discovery(Some(".worktrees-test"), 3).expect("Failed to create WorktreeManager");
 
     // Test 1: Create worktree
     println!("📝 Test 1: Creating worktree for issue #999");
-    let worktree = manager
-        .create_worktree(999)
-        .await
-        .expect("Failed to create worktree");
+    let worktree = manager.create_worktree(999).await.expect("Failed to create worktree");
 
     assert_eq!(worktree.issue_number, 999);
     assert_eq!(worktree.status, WorktreeStatus::Active);
@@ -126,10 +119,7 @@ async fn test_single_worktree_lifecycle() {
         .await
         .expect("Failed to remove worktree");
 
-    assert!(
-        !worktree.path.exists(),
-        "Worktree directory should be removed"
-    );
+    assert!(!worktree.path.exists(), "Worktree directory should be removed");
 
     let worktrees_after = manager.list_worktrees().await;
     assert_eq!(worktrees_after.len(), 0);
@@ -143,8 +133,8 @@ async fn test_single_worktree_lifecycle() {
 #[ignore] // Run manually: cargo test --package miyabi-worktree --test worktree_e2e -- --ignored
 async fn test_parallel_worktree_execution() {
     // Initialize manager with concurrency limit of 2
-    let manager = WorktreeManager::new_with_discovery(Some(".worktrees-test"), 2)
-        .expect("Failed to create WorktreeManager");
+    let manager =
+        WorktreeManager::new_with_discovery(Some(".worktrees-test"), 2).expect("Failed to create WorktreeManager");
 
     println!("📝 Creating 3 worktrees sequentially (max concurrency: 2)");
 
@@ -167,20 +157,13 @@ async fn test_parallel_worktree_execution() {
         tokio::time::sleep(Duration::from_millis(100)).await;
 
         // Create a unique file
-        create_test_file(
-            &worktree.path,
-            &format!("file-{}.txt", issue),
-            &format!("Content for issue #{}", issue),
-        )
-        .await
-        .expect("Failed to create file");
+        create_test_file(&worktree.path, &format!("file-{}.txt", issue), &format!("Content for issue #{}", issue))
+            .await
+            .expect("Failed to create file");
 
-        commit_changes(
-            &worktree.path,
-            &format!("feat: add file for issue #{}", issue),
-        )
-        .await
-        .expect("Failed to commit");
+        commit_changes(&worktree.path, &format!("feat: add file for issue #{}", issue))
+            .await
+            .expect("Failed to commit");
 
         manager
             .update_status(&worktree.id, WorktreeStatus::Completed)
@@ -198,10 +181,7 @@ async fn test_parallel_worktree_execution() {
     let stats = manager.stats().await;
     assert_eq!(stats.total, 3);
     assert_eq!(stats.completed, 3);
-    println!(
-        "✅ Stats verified: {} total, {} completed",
-        stats.total, stats.completed
-    );
+    println!("✅ Stats verified: {} total, {} completed", stats.total, stats.completed);
 
     // Cleanup all
     println!("\n📝 Cleaning up all worktrees");
@@ -219,8 +199,8 @@ async fn test_parallel_worktree_execution() {
 #[ignore] // Run manually: cargo test --package miyabi-worktree --test worktree_e2e -- --ignored
 async fn test_worktree_conflict_detection() {
     // Initialize manager
-    let manager = WorktreeManager::new_with_discovery(Some(".worktrees-test"), 2)
-        .expect("Failed to create WorktreeManager");
+    let manager =
+        WorktreeManager::new_with_discovery(Some(".worktrees-test"), 2).expect("Failed to create WorktreeManager");
 
     println!("📝 Testing conflict detection between worktrees");
 
@@ -262,10 +242,8 @@ async fn test_worktree_conflict_detection() {
     // This test demonstrates that worktrees allow independent work
     println!("\n📝 Verifying files are different in each worktree");
 
-    let content1 = fs::read_to_string(worktree1.path.join("README.md"))
-        .expect("Failed to read from worktree 1");
-    let content2 = fs::read_to_string(worktree2.path.join("README.md"))
-        .expect("Failed to read from worktree 2");
+    let content1 = fs::read_to_string(worktree1.path.join("README.md")).expect("Failed to read from worktree 1");
+    let content2 = fs::read_to_string(worktree2.path.join("README.md")).expect("Failed to read from worktree 2");
 
     assert_ne!(content1, content2, "Files should be different");
     assert!(content1.contains("2001"));
@@ -289,20 +267,13 @@ async fn test_worktree_error_handling() {
 
     // Test 1: Invalid repository path
     println!("\n📝 Test 1: Invalid repository path");
-    let invalid_result = WorktreeManager::new(
-        PathBuf::from("/nonexistent/path"),
-        PathBuf::from(".worktrees-test"),
-        3,
-    );
-    assert!(
-        invalid_result.is_err(),
-        "Should fail with invalid repo path"
-    );
+    let invalid_result = WorktreeManager::new(PathBuf::from("/nonexistent/path"), PathBuf::from(".worktrees-test"), 3);
+    assert!(invalid_result.is_err(), "Should fail with invalid repo path");
     println!("✅ Correctly rejected invalid repository path");
 
     // Test 2: Manager with valid repository
-    let manager = WorktreeManager::new_with_discovery(Some(".worktrees-test"), 2)
-        .expect("Failed to create WorktreeManager");
+    let manager =
+        WorktreeManager::new_with_discovery(Some(".worktrees-test"), 2).expect("Failed to create WorktreeManager");
 
     // Test 3: Get non-existent worktree
     println!("\n📝 Test 2: Get non-existent worktree");
@@ -312,9 +283,7 @@ async fn test_worktree_error_handling() {
 
     // Test 4: Update non-existent worktree status
     println!("\n📝 Test 3: Update non-existent worktree status");
-    let result = manager
-        .update_status("nonexistent-id", WorktreeStatus::Failed)
-        .await;
+    let result = manager.update_status("nonexistent-id", WorktreeStatus::Failed).await;
     assert!(result.is_err(), "Should fail for non-existent worktree");
     println!("✅ Correctly returned error when updating non-existent worktree");
 

@@ -55,12 +55,7 @@ impl ToolConfig {
 
     /// Create a tool configuration with custom config
     pub fn with_config(name: impl Into<String>, module: impl Into<String>, config: Value) -> Self {
-        Self {
-            name: name.into(),
-            module: module.into(),
-            enabled: true,
-            config,
-        }
+        Self { name: name.into(), module: module.into(), enabled: true, config }
     }
 
     /// Disable this tool
@@ -92,11 +87,7 @@ impl ToolConfig {
         self.config
             .get("allowed_commands")
             .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
     }
 
     /// Get blacklist patterns from config (for bash)
@@ -104,11 +95,7 @@ impl ToolConfig {
         self.config
             .get("blacklist_patterns")
             .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
     }
 
     /// Get a custom config value
@@ -124,48 +111,36 @@ impl ToolConfig {
 
         // Validate name is not empty
         if self.name.is_empty() {
-            return Err(ModeError::InvalidDefinition(
-                "Tool name cannot be empty".into(),
-            ));
+            return Err(ModeError::InvalidDefinition("Tool name cannot be empty".into()));
         }
 
         // Validate module is not empty
         if self.module.is_empty() {
-            return Err(ModeError::InvalidDefinition(
-                "Tool module cannot be empty".into(),
-            ));
+            return Err(ModeError::InvalidDefinition("Tool module cannot be empty".into()));
         }
 
         // Validate timeout if present
         if let Some(timeout) = self.timeout_ms() {
             if timeout == 0 {
-                return Err(ModeError::InvalidDefinition(
-                    "Tool timeout_ms must be greater than 0".into(),
-                ));
+                return Err(ModeError::InvalidDefinition("Tool timeout_ms must be greater than 0".into()));
             }
             if timeout > 600_000 {
                 // 10 minutes max
-                return Err(ModeError::InvalidDefinition(
-                    "Tool timeout_ms cannot exceed 600000 (10 minutes)".into(),
-                ));
+                return Err(ModeError::InvalidDefinition("Tool timeout_ms cannot exceed 600000 (10 minutes)".into()));
             }
         }
 
         // Validate max_file_size if present
         if let Some(size) = self.max_file_size() {
             if size == 0 {
-                return Err(ModeError::InvalidDefinition(
-                    "Tool max_file_size must be greater than 0".into(),
-                ));
+                return Err(ModeError::InvalidDefinition("Tool max_file_size must be greater than 0".into()));
             }
         }
 
         // Validate max_results if present
         if let Some(results) = self.max_results() {
             if results == 0 {
-                return Err(ModeError::InvalidDefinition(
-                    "Tool max_results must be greater than 0".into(),
-                ));
+                return Err(ModeError::InvalidDefinition("Tool max_results must be greater than 0".into()));
             }
         }
 

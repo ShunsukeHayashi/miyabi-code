@@ -58,15 +58,9 @@ async fn test_pool_concurrency_limit() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let config = PoolConfig {
-        max_concurrency: 2,
-        timeout_seconds: 30,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 2, timeout_seconds: 30, fail_fast: false, auto_cleanup: true };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     // Track maximum concurrent executions
     let concurrent_count = Arc::new(AtomicUsize::new(0));
@@ -88,12 +82,7 @@ async fn test_pool_concurrency_limit() {
                     // Update max if needed
                     let mut max = max_concurrent.load(Ordering::SeqCst);
                     while current > max {
-                        match max_concurrent.compare_exchange_weak(
-                            max,
-                            current,
-                            Ordering::SeqCst,
-                            Ordering::SeqCst,
-                        ) {
+                        match max_concurrent.compare_exchange_weak(max, current, Ordering::SeqCst, Ordering::SeqCst) {
                             Ok(_) => break,
                             Err(new_max) => max = new_max,
                         }
@@ -113,11 +102,7 @@ async fn test_pool_concurrency_limit() {
 
     // Verify concurrency was respected
     let max = max_concurrent.load(Ordering::SeqCst);
-    assert!(
-        max <= 2,
-        "Max concurrent executions {} exceeded limit 2",
-        max
-    );
+    assert!(max <= 2, "Max concurrent executions {} exceeded limit 2", max);
 
     // Verify all tasks completed
     assert_eq!(result.total_tasks, 4);
@@ -129,15 +114,9 @@ async fn test_pool_execution_success() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let config = PoolConfig {
-        max_concurrency: 3,
-        timeout_seconds: 30,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 3, timeout_seconds: 30, fail_fast: false, auto_cleanup: true };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![10, 11, 12];
 
@@ -167,15 +146,9 @@ async fn test_pool_execution_with_failures() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let config = PoolConfig {
-        max_concurrency: 2,
-        timeout_seconds: 30,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config = PoolConfig { max_concurrency: 2, timeout_seconds: 30, fail_fast: false, auto_cleanup: true };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![20, 21, 22];
 
@@ -183,9 +156,7 @@ async fn test_pool_execution_with_failures() {
         .execute_simple(issue_numbers, |_path, issue| async move {
             // Fail on issue #21
             if issue == 21 {
-                return Err(miyabi_types::error::MiyabiError::Unknown(
-                    "Simulated failure".to_string(),
-                ));
+                return Err(miyabi_types::error::MiyabiError::Unknown("Simulated failure".to_string()));
             }
             Ok(())
         })
@@ -212,8 +183,7 @@ async fn test_pool_timeout_handling() {
         auto_cleanup: true,
     };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     let issue_numbers = vec![30, 31];
 
@@ -245,8 +215,7 @@ async fn test_pool_stats() {
         auto_cleanup: false, // Don't cleanup to check stats
     };
 
-    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config)
-        .expect("Failed to create pool");
+    let pool = WorktreePool::new_with_path(&repo_path, &worktree_base, config).expect("Failed to create pool");
 
     // Get initial stats
     let stats_before = pool.stats().await;
@@ -274,15 +243,10 @@ async fn test_pool_with_different_concurrency_levels() {
     let worktree_base = repo_path.join(".worktrees");
 
     // Test with concurrency = 1 (sequential)
-    let config_seq = PoolConfig {
-        max_concurrency: 1,
-        timeout_seconds: 30,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config_seq = PoolConfig { max_concurrency: 1, timeout_seconds: 30, fail_fast: false, auto_cleanup: true };
 
-    let pool_seq = WorktreePool::new_with_path(&repo_path, &worktree_base, config_seq)
-        .expect("Failed to create sequential pool");
+    let pool_seq =
+        WorktreePool::new_with_path(&repo_path, &worktree_base, config_seq).expect("Failed to create sequential pool");
 
     let issue_numbers = vec![50, 51, 52];
     let result_seq = pool_seq
@@ -293,15 +257,10 @@ async fn test_pool_with_different_concurrency_levels() {
     assert_eq!(result_seq.success_count, 3);
 
     // Test with concurrency = 5 (high parallelism)
-    let config_par = PoolConfig {
-        max_concurrency: 5,
-        timeout_seconds: 30,
-        fail_fast: false,
-        auto_cleanup: true,
-    };
+    let config_par = PoolConfig { max_concurrency: 5, timeout_seconds: 30, fail_fast: false, auto_cleanup: true };
 
-    let pool_par = WorktreePool::new_with_path(&repo_path, &worktree_base, config_par)
-        .expect("Failed to create parallel pool");
+    let pool_par =
+        WorktreePool::new_with_path(&repo_path, &worktree_base, config_par).expect("Failed to create parallel pool");
 
     let result_par = pool_par
         .execute_simple(issue_numbers, |_path, _issue| async move { Ok(()) })
@@ -325,12 +284,7 @@ fn test_pool_config_default() {
 
 #[test]
 fn test_pool_config_custom() {
-    let config = PoolConfig {
-        max_concurrency: 10,
-        timeout_seconds: 300,
-        fail_fast: true,
-        auto_cleanup: false,
-    };
+    let config = PoolConfig { max_concurrency: 10, timeout_seconds: 300, fail_fast: true, auto_cleanup: false };
     assert_eq!(config.max_concurrency, 10);
     assert_eq!(config.timeout_seconds, 300);
     assert!(config.fail_fast);

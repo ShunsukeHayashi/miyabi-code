@@ -78,9 +78,7 @@ impl SWEBenchDataset {
             .cloned()
             .collect();
 
-        Self {
-            instances: filtered,
-        }
+        Self { instances: filtered }
     }
 
     /// Filters instances by programming language
@@ -92,9 +90,7 @@ impl SWEBenchDataset {
             .cloned()
             .collect();
 
-        Self {
-            instances: filtered,
-        }
+        Self { instances: filtered }
     }
 
     /// Filters instances by repository
@@ -106,9 +102,7 @@ impl SWEBenchDataset {
             .cloned()
             .collect();
 
-        Self {
-            instances: filtered,
-        }
+        Self { instances: filtered }
     }
 
     /// Returns a sample of n instances

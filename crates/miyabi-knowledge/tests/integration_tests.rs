@@ -7,8 +7,7 @@
 
 use chrono::Utc;
 use miyabi_knowledge::{
-    KnowledgeConfig, KnowledgeEntry, KnowledgeManager, KnowledgeMetadata, RetentionManager,
-    RetentionPolicy,
+    KnowledgeConfig, KnowledgeEntry, KnowledgeManager, KnowledgeMetadata, RetentionManager, RetentionPolicy,
 };
 use std::time::Duration;
 use tokio::time::sleep;
@@ -56,9 +55,7 @@ fn create_test_entry(_id: &str, content: &str, agent: &str, issue: u32) -> Knowl
 async fn test_full_flow_index_search_cleanup() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!(
-            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
-        );
+        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
         return;
     }
 
@@ -74,36 +71,15 @@ async fn test_full_flow_index_search_cleanup() {
 
     // Create test entries
     let entries = vec![
-        create_test_entry(
-            "entry1",
-            "Implemented auto-indexing for miyabi-knowledge",
-            "CodeGenAgent",
-            421,
-        ),
-        create_test_entry(
-            "entry2",
-            "Added incremental indexing with hash-based deduplication",
-            "CodeGenAgent",
-            421,
-        ),
-        create_test_entry(
-            "entry3",
-            "Fixed cargo build error in miyabi-cli",
-            "ReviewAgent",
-            500,
-        ),
+        create_test_entry("entry1", "Implemented auto-indexing for miyabi-knowledge", "CodeGenAgent", 421),
+        create_test_entry("entry2", "Added incremental indexing with hash-based deduplication", "CodeGenAgent", 421),
+        create_test_entry("entry3", "Fixed cargo build error in miyabi-cli", "ReviewAgent", 500),
     ];
 
     // Index entries
-    let stats = manager
-        .index_batch(&entries)
-        .await
-        .expect("Failed to index entries");
+    let stats = manager.index_batch(&entries).await.expect("Failed to index entries");
 
-    println!(
-        "✅ Step 2: Indexed {} entries ({} success, {} failed)",
-        stats.total, stats.success, stats.failed
-    );
+    println!("✅ Step 2: Indexed {} entries ({} success, {} failed)", stats.total, stats.success, stats.failed);
     assert_eq!(stats.success, 3);
     assert_eq!(stats.failed, 0);
 
@@ -111,31 +87,19 @@ async fn test_full_flow_index_search_cleanup() {
     sleep(Duration::from_millis(500)).await;
 
     // Search for entries
-    let results = manager
-        .search("auto-indexing")
-        .await
-        .expect("Failed to search");
+    let results = manager.search("auto-indexing").await.expect("Failed to search");
 
     println!("✅ Step 3: Search returned {} results", results.len());
-    assert!(
-        !results.is_empty(),
-        "Search should return at least one result"
-    );
+    assert!(!results.is_empty(), "Search should return at least one result");
     assert!(results[0].content.contains("auto-indexing"));
 
     // Test filtered search
     let results_filtered = manager
-        .search_filtered(
-            "indexing",
-            miyabi_knowledge::SearchFilter::new().with_issue_number(421),
-        )
+        .search_filtered("indexing", miyabi_knowledge::SearchFilter::new().with_issue_number(421))
         .await
         .expect("Failed to filtered search");
 
-    println!(
-        "✅ Step 4: Filtered search (issue #421) returned {} results",
-        results_filtered.len()
-    );
+    println!("✅ Step 4: Filtered search (issue #421) returned {} results", results_filtered.len());
     assert_eq!(results_filtered.len(), 2); // entry1 and entry2
 
     // Test cleanup (retention)
@@ -168,9 +132,7 @@ async fn test_full_flow_index_search_cleanup() {
 async fn test_parallel_execution_10_agents() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!(
-            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
-        );
+        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
         return;
     }
 
@@ -203,15 +165,9 @@ async fn test_parallel_execution_10_agents() {
                 })
                 .collect();
 
-            let stats = manager
-                .index_batch(&entries)
-                .await
-                .expect("Failed to index entries");
+            let stats = manager.index_batch(&entries).await.expect("Failed to index entries");
 
-            println!(
-                "  ✅ {} indexed {} entries ({} success)",
-                agent_name, stats.total, stats.success
-            );
+            println!("  ✅ {} indexed {} entries ({} success)", agent_name, stats.total, stats.success);
 
             (agent_name, stats.success)
         });
@@ -229,10 +185,7 @@ async fn test_parallel_execution_10_agents() {
         total_indexed += success_count;
     }
 
-    println!(
-        "\n✅ All 10 agents completed successfully. Total indexed: {} entries",
-        total_indexed
-    );
+    println!("\n✅ All 10 agents completed successfully. Total indexed: {} entries", total_indexed);
     assert_eq!(total_indexed, 50); // 10 agents × 5 entries = 50
 
     // Verify we can search across all entries
@@ -242,16 +195,10 @@ async fn test_parallel_execution_10_agents() {
 
     sleep(Duration::from_millis(500)).await;
 
-    let results = manager
-        .search("processed task")
-        .await
-        .expect("Failed to search");
+    let results = manager.search("processed task").await.expect("Failed to search");
 
     println!("✅ Search found {} results from all agents", results.len());
-    assert!(
-        results.len() >= 10,
-        "Should find results from multiple agents"
-    );
+    assert!(results.len() >= 10, "Should find results from multiple agents");
 
     println!("\n🎉 Parallel execution test passed!");
 }
@@ -261,9 +208,7 @@ async fn test_parallel_execution_10_agents() {
 async fn test_incremental_indexing_with_cache() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!(
-            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
-        );
+        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
         return;
     }
 
@@ -281,10 +226,7 @@ async fn test_incremental_indexing_with_cache() {
     ];
 
     // First indexing
-    let stats1 = manager
-        .index_batch(&entries)
-        .await
-        .expect("Failed to index entries");
+    let stats1 = manager.index_batch(&entries).await.expect("Failed to index entries");
 
     println!("✅ First indexing: {} success", stats1.success);
     assert_eq!(stats1.success, 2);
@@ -302,9 +244,7 @@ async fn test_incremental_indexing_with_cache() {
 async fn test_retention_policy_cleanup() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!(
-            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
-        );
+        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
         return;
     }
 
@@ -323,10 +263,7 @@ async fn test_retention_policy_cleanup() {
         200,
     )];
 
-    manager
-        .index_batch(&entries)
-        .await
-        .expect("Failed to index");
+    manager.index_batch(&entries).await.expect("Failed to index");
 
     println!("✅ Indexed test entries");
 
@@ -347,10 +284,7 @@ async fn test_retention_policy_cleanup() {
         .await
         .expect("Failed to dry-run cleanup");
 
-    println!(
-        "✅ Dry-run: would delete {}, retain {}",
-        dry_run_stats.deleted, dry_run_stats.retained
-    );
+    println!("✅ Dry-run: would delete {}, retain {}", dry_run_stats.deleted, dry_run_stats.retained);
 
     // Actual cleanup
     let cleanup_stats = retention
@@ -358,10 +292,7 @@ async fn test_retention_policy_cleanup() {
         .await
         .expect("Failed to cleanup");
 
-    println!(
-        "✅ Cleanup: deleted {}, retained {}",
-        cleanup_stats.deleted, cleanup_stats.retained
-    );
+    println!("✅ Cleanup: deleted {}, retained {}", cleanup_stats.deleted, cleanup_stats.retained);
 
     println!("\n🎉 Retention policy test passed!");
 }

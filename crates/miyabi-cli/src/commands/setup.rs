@@ -66,11 +66,7 @@ impl SetupCommand {
         println!("{}", "🎉 Setup complete!".green().bold());
         println!();
         println!("You can now run:");
-        println!(
-            "  {} {}",
-            "miyabi agent coordinator --issue".dimmed(),
-            "<issue-number>".yellow()
-        );
+        println!("  {} {}", "miyabi agent coordinator --issue".dimmed(), "<issue-number>".yellow());
         println!("  {} {}", "miyabi status".dimmed(), "".dimmed());
         println!();
 
@@ -80,15 +76,11 @@ impl SetupCommand {
     fn check_github_auth(&self) -> Result<()> {
         // Check if gh CLI is installed
         let gh_version = Command::new("gh").arg("--version").output().map_err(|_| {
-            CliError::GitConfig(
-                "gh CLI not found. Please install GitHub CLI: https://cli.github.com/".to_string(),
-            )
+            CliError::GitConfig("gh CLI not found. Please install GitHub CLI: https://cli.github.com/".to_string())
         })?;
 
         if !gh_version.status.success() {
-            return Err(CliError::GitConfig(
-                "gh CLI not working properly".to_string(),
-            ));
+            return Err(CliError::GitConfig("gh CLI not working properly".to_string()));
         }
 
         // Check authentication status
@@ -114,14 +106,10 @@ impl SetupCommand {
                     let login_result = Command::new("gh")
                         .args(["auth", "login"])
                         .status()
-                        .map_err(|e| {
-                            CliError::GitConfig(format!("Failed to run gh auth login: {}", e))
-                        })?;
+                        .map_err(|e| CliError::GitConfig(format!("Failed to run gh auth login: {}", e)))?;
 
                     if !login_result.success() {
-                        return Err(CliError::GitConfig(
-                            "GitHub authentication failed".to_string(),
-                        ));
+                        return Err(CliError::GitConfig("GitHub authentication failed".to_string()));
                     }
                 } else {
                     return Err(CliError::GitConfig(
@@ -129,9 +117,7 @@ impl SetupCommand {
                     ));
                 }
             } else {
-                return Err(CliError::GitConfig(
-                    "GitHub authentication is required. Run: gh auth login".to_string(),
-                ));
+                return Err(CliError::GitConfig("GitHub authentication is required. Run: gh auth login".to_string()));
             }
         }
 
@@ -147,7 +133,8 @@ impl SetupCommand {
 
         if !output.status.success() {
             return Err(CliError::GitConfig(
-                "Not a git repository. Please initialize git first:\n  git init\n  git remote add origin <url>".to_string(),
+                "Not a git repository. Please initialize git first:\n  git init\n  git remote add origin <url>"
+                    .to_string(),
             ));
         }
 
@@ -181,10 +168,7 @@ impl SetupCommand {
             }
         }
 
-        Err(CliError::GitConfig(format!(
-            "Could not parse GitHub owner/repo from remote URL: {}",
-            remote_url
-        )))
+        Err(CliError::GitConfig(format!("Could not parse GitHub owner/repo from remote URL: {}", remote_url)))
     }
 
     fn create_env_file(&self, owner: &str, repo: &str) -> Result<()> {
@@ -262,8 +246,7 @@ WORKTREE_BASE_DIR={}
             worktree_base.to_string_lossy()
         );
 
-        fs::write(env_path, content)
-            .map_err(|e| CliError::GitConfig(format!("Failed to write .env: {}", e)))?;
+        fs::write(env_path, content).map_err(|e| CliError::GitConfig(format!("Failed to write .env: {}", e)))?;
 
         println!("  ✅ Created .env");
         Ok(())
@@ -306,8 +289,7 @@ cli:
             owner, repo
         );
 
-        fs::write(yml_path, content)
-            .map_err(|e| CliError::GitConfig(format!("Failed to write .miyabi.yml: {}", e)))?;
+        fs::write(yml_path, content).map_err(|e| CliError::GitConfig(format!("Failed to write .miyabi.yml: {}", e)))?;
 
         println!("  ✅ Created .miyabi.yml");
         Ok(())
@@ -323,9 +305,8 @@ cli:
         ];
 
         for dir in dirs {
-            fs::create_dir_all(&dir).map_err(|e| {
-                CliError::GitConfig(format!("Failed to create {}: {}", dir.to_string_lossy(), e))
-            })?;
+            fs::create_dir_all(&dir)
+                .map_err(|e| CliError::GitConfig(format!("Failed to create {}: {}", dir.to_string_lossy(), e)))?;
             println!("  ✅ Created {}", dir.to_string_lossy());
         }
 
@@ -379,10 +360,7 @@ cli:
 
         for dir in required_dirs {
             if !dir.exists() {
-                return Err(CliError::GitConfig(format!(
-                    "Missing directory: {}",
-                    dir.to_string_lossy()
-                )));
+                return Err(CliError::GitConfig(format!("Missing directory: {}", dir.to_string_lossy())));
             }
         }
 

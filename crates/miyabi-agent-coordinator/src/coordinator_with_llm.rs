@@ -7,10 +7,7 @@ use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
 use miyabi_github::GitHubClient;
-use miyabi_llm::{
-    GPTOSSProvider, HybridRouter, LLMProvider, LLMRequest, LlmClient, Message, ReasoningEffort,
-    Role,
-};
+use miyabi_llm::{GPTOSSProvider, HybridRouter, LLMProvider, LLMRequest, LlmClient, Message, ReasoningEffort, Role};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskDecomposition, TaskType};
@@ -31,14 +28,8 @@ impl HybridRouterAdapter {
 
 #[async_trait]
 impl LLMProvider for HybridRouterAdapter {
-    async fn generate(
-        &self,
-        request: &LLMRequest,
-    ) -> miyabi_llm::error::Result<miyabi_llm::types::LLMResponse> {
-        let msg = Message {
-            role: Role::User,
-            content: request.prompt.clone(),
-        };
+    async fn generate(&self, request: &LLMRequest) -> miyabi_llm::error::Result<miyabi_llm::types::LLMResponse> {
+        let msg = Message { role: Role::User, content: request.prompt.clone() };
         let response = self.router.chat(vec![msg]).await?;
 
         Ok(miyabi_llm::types::LLMResponse {
@@ -105,11 +96,7 @@ impl CoordinatorAgentWithLLM {
         // Try to initialize LLM provider (Mac mini Ollama)
         let llm_provider = Self::initialize_llm_provider();
 
-        Self {
-            config,
-            base_coordinator,
-            llm_provider,
-        }
+        Self { config, base_coordinator, llm_provider }
     }
 
     /// Initialize LLM provider (with environment-based fallback chain)
@@ -135,10 +122,7 @@ impl CoordinatorAgentWithLLM {
                 return Some(Box::new(adapter) as Box<dyn LLMProvider>);
             }
             Err(err) => {
-                tracing::warn!(
-                    "HybridRouter initialization failed: {}. Trying GPT-OSS fallback...",
-                    err
-                );
+                tracing::warn!("HybridRouter initialization failed: {}. Trying GPT-OSS fallback...", err);
             }
         }
 
@@ -161,11 +145,7 @@ impl CoordinatorAgentWithLLM {
 
     /// Decompose an Issue into Tasks using LLM
     pub async fn decompose_issue_with_llm(&self, issue: &Issue) -> Result<TaskDecomposition> {
-        tracing::info!(
-            "Decomposing issue #{} with LLM: {}",
-            issue.number,
-            issue.title
-        );
+        tracing::info!("Decomposing issue #{} with LLM: {}", issue.number, issue.title);
 
         // If LLM is not available, fall back to base coordinator
         let decomposition = match &self.llm_provider {
@@ -197,8 +177,7 @@ impl CoordinatorAgentWithLLM {
                         }
 
                         // Calculate total estimated duration
-                        let estimated_total_duration =
-                            tasks.iter().filter_map(|t| t.estimated_duration).sum();
+                        let estimated_total_duration = tasks.iter().filter_map(|t| t.estimated_duration).sum();
 
                         // Generate recommendations
                         let recommendations = self.generate_recommendations(&tasks, &dag);
@@ -213,10 +192,7 @@ impl CoordinatorAgentWithLLM {
                         }
                     }
                     Err(err) => {
-                        tracing::warn!(
-                            "LLM generation failed: {}. Falling back to rule-based task decomposition",
-                            err
-                        );
+                        tracing::warn!("LLM generation failed: {}. Falling back to rule-based task decomposition", err);
                         self.base_coordinator.decompose_issue(issue).await?
                     }
                 }
@@ -259,11 +235,7 @@ impl CoordinatorAgentWithLLM {
         // Write content
         fs::write(&file_path, content)?;
 
-        tracing::info!(
-            "✅ Plans.md written: {} ({} bytes)",
-            file_path.display(),
-            content.len()
-        );
+        tracing::info!("✅ Plans.md written: {} ({} bytes)", file_path.display(), content.len());
 
         // Also create a symlink to latest version: Plans-latest.md
         let latest_link = plans_dir.join("Plans-latest.md");
@@ -390,19 +362,14 @@ Now, decompose this issue into tasks:"#,
 
         // Parse JSON
         let response_json: serde_json::Value = serde_json::from_str(json_text).map_err(|e| {
-            MiyabiError::Validation(format!(
-                "Failed to parse LLM response as JSON: {}. Response: {}",
-                e, json_text
-            ))
+            MiyabiError::Validation(format!("Failed to parse LLM response as JSON: {}. Response: {}", e, json_text))
         })?;
 
         // Extract tasks array
         let tasks_array = response_json
             .get("tasks")
             .and_then(|t| t.as_array())
-            .ok_or_else(|| {
-                MiyabiError::Validation("LLM response missing 'tasks' array".to_string())
-            })?;
+            .ok_or_else(|| MiyabiError::Validation("LLM response missing 'tasks' array".to_string()))?;
 
         // Convert JSON tasks to Task structs
         let mut tasks = Vec::new();
@@ -415,12 +382,7 @@ Now, decompose this issue into tasks:"#,
     }
 
     /// Parse a single task from JSON
-    fn parse_task_json(
-        &self,
-        task_json: &serde_json::Value,
-        issue: &Issue,
-        index: usize,
-    ) -> Result<Task> {
+    fn parse_task_json(&self, task_json: &serde_json::Value, issue: &Issue, index: usize) -> Result<Task> {
         let id = task_json
             .get("id")
             .and_then(|v| v.as_str())
@@ -439,16 +401,10 @@ Now, decompose this issue into tasks:"#,
             .unwrap_or("")
             .to_string();
 
-        let task_type_str = task_json
-            .get("task_type")
-            .and_then(|v| v.as_str())
-            .unwrap_or("Feature");
+        let task_type_str = task_json.get("task_type").and_then(|v| v.as_str()).unwrap_or("Feature");
         let task_type = self.parse_task_type(task_type_str);
 
-        let priority = task_json
-            .get("priority")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(1) as u8;
+        let priority = task_json.get("priority").and_then(|v| v.as_u64()).unwrap_or(1) as u8;
 
         let assigned_agent_str = task_json
             .get("assigned_agent")
@@ -459,12 +415,7 @@ Now, decompose this issue into tasks:"#,
         let dependencies = task_json
             .get("dependencies")
             .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str())
-                    .map(|s| s.to_string())
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(|s| s.to_string()).collect())
             .unwrap_or_default();
 
         let estimated_duration = task_json
@@ -486,10 +437,7 @@ Now, decompose this issue into tasks:"#,
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         })
     }
 
@@ -519,20 +467,14 @@ Now, decompose this issue into tasks:"#,
     }
 
     /// Generate recommendations based on task analysis
-    fn generate_recommendations(
-        &self,
-        tasks: &[Task],
-        dag: &miyabi_types::workflow::DAG,
-    ) -> Vec<String> {
+    fn generate_recommendations(&self, tasks: &[Task], dag: &miyabi_types::workflow::DAG) -> Vec<String> {
         let mut recommendations = Vec::new();
 
         // Check for long critical path
         let critical_path = dag.critical_path();
         if critical_path.len() > 5 {
-            recommendations.push(format!(
-                "Critical path has {} tasks - consider parallelizing more work",
-                critical_path.len()
-            ));
+            recommendations
+                .push(format!("Critical path has {} tasks - consider parallelizing more work", critical_path.len()));
         }
 
         // Check for missing tests
@@ -550,10 +492,7 @@ Now, decompose this issue into tasks:"#,
         // Check for tasks without agents
         let unassigned_tasks = tasks.iter().filter(|t| t.assigned_agent.is_none()).count();
         if unassigned_tasks > 0 {
-            recommendations.push(format!(
-                "{} task(s) are unassigned - assign agents for execution",
-                unassigned_tasks
-            ));
+            recommendations.push(format!("{} task(s) are unassigned - assign agents for execution", unassigned_tasks));
         }
 
         recommendations
@@ -575,9 +514,7 @@ impl BaseAgent for CoordinatorAgentWithLLM {
             .as_ref()
             .and_then(|m| m.get("issue_number"))
             .and_then(|v| v.as_u64())
-            .ok_or_else(|| {
-                MiyabiError::Validation("Task metadata missing issue_number".to_string())
-            })?;
+            .ok_or_else(|| MiyabiError::Validation("Task metadata missing issue_number".to_string()))?;
 
         // Fetch issue from GitHub
         let owner = self
@@ -706,18 +643,9 @@ mod tests {
         let agent = CoordinatorAgentWithLLM::new(config);
 
         assert_eq!(agent.parse_agent_type("IssueAgent"), AgentType::IssueAgent);
-        assert_eq!(
-            agent.parse_agent_type("CodeGenAgent"),
-            AgentType::CodeGenAgent
-        );
-        assert_eq!(
-            agent.parse_agent_type("ReviewAgent"),
-            AgentType::ReviewAgent
-        );
-        assert_eq!(
-            agent.parse_agent_type("DeploymentAgent"),
-            AgentType::DeploymentAgent
-        );
+        assert_eq!(agent.parse_agent_type("CodeGenAgent"), AgentType::CodeGenAgent);
+        assert_eq!(agent.parse_agent_type("ReviewAgent"), AgentType::ReviewAgent);
+        assert_eq!(agent.parse_agent_type("DeploymentAgent"), AgentType::DeploymentAgent);
         assert_eq!(agent.parse_agent_type("PRAgent"), AgentType::PRAgent);
         assert_eq!(agent.parse_agent_type("Unknown"), AgentType::CodeGenAgent);
     }
@@ -786,10 +714,7 @@ mod tests {
         let _ = fs::remove_dir_all(&test_dir);
 
         // Write plans
-        agent
-            .write_plans_with_history(issue_number, content)
-            .await
-            .unwrap();
+        agent.write_plans_with_history(issue_number, content).await.unwrap();
 
         // Verify directory exists
         assert!(test_dir.exists());
@@ -840,9 +765,7 @@ mod tests {
 }
 ```"#;
 
-        let tasks = agent
-            .parse_llm_response(llm_response_with_markdown, &issue)
-            .unwrap();
+        let tasks = agent.parse_llm_response(llm_response_with_markdown, &issue).unwrap();
 
         assert_eq!(tasks.len(), 1);
         assert_eq!(tasks[0].id, "task-123-analysis");

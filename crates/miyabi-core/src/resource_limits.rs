@@ -62,11 +62,7 @@ impl HardwareLimits {
         let total_disk_bytes: u64 = disks.iter().map(|disk| disk.total_space()).sum();
         let total_disk_gb = (total_disk_bytes / (1024 * 1024 * 1024)) as usize;
 
-        let limits = Self {
-            total_memory_gb,
-            total_cpu_cores,
-            total_disk_gb,
-        };
+        let limits = Self { total_memory_gb, total_cpu_cores, total_disk_gb };
 
         info!(
             memory_gb = limits.total_memory_gb,
@@ -80,11 +76,7 @@ impl HardwareLimits {
 
     /// Creates HardwareLimits with custom values (for testing)
     pub fn custom(memory_gb: usize, cpu_cores: usize, disk_gb: usize) -> Self {
-        Self {
-            total_memory_gb: memory_gb,
-            total_cpu_cores: cpu_cores,
-            total_disk_gb: disk_gb,
-        }
+        Self { total_memory_gb: memory_gb, total_cpu_cores: cpu_cores, total_disk_gb: disk_gb }
     }
 
     /// Calculates maximum number of concurrent worktrees based on per-worktree limits
@@ -113,8 +105,7 @@ impl HardwareLimits {
     /// assert_eq!(max_concurrent, 4); // min(32/2, 8/2, 500/5) = min(16, 4, 100) = 4
     /// ```
     pub fn max_concurrent_worktrees(&self, per_worktree: &PerWorktreeLimits) -> usize {
-        if per_worktree.memory_gb == 0 || per_worktree.cpu_threads == 0 || per_worktree.disk_gb == 0
-        {
+        if per_worktree.memory_gb == 0 || per_worktree.cpu_threads == 0 || per_worktree.disk_gb == 0 {
             warn!("Invalid per-worktree limits (contains zero) - returning 1");
             return 1;
         }
@@ -145,8 +136,7 @@ impl HardwareLimits {
 
     /// Gets the bottleneck resource (which resource limits concurrency)
     pub fn bottleneck_resource(&self, per_worktree: &PerWorktreeLimits) -> ResourceType {
-        if per_worktree.memory_gb == 0 || per_worktree.cpu_threads == 0 || per_worktree.disk_gb == 0
-        {
+        if per_worktree.memory_gb == 0 || per_worktree.cpu_threads == 0 || per_worktree.disk_gb == 0 {
             return ResourceType::Unknown;
         }
 
@@ -178,40 +168,24 @@ pub struct PerWorktreeLimits {
 impl Default for PerWorktreeLimits {
     /// Default limits: 2GB RAM, 2 CPU threads, 5GB disk
     fn default() -> Self {
-        Self {
-            memory_gb: 2,
-            cpu_threads: 2,
-            disk_gb: 5,
-        }
+        Self { memory_gb: 2, cpu_threads: 2, disk_gb: 5 }
     }
 }
 
 impl PerWorktreeLimits {
     /// Creates conservative limits (minimal resource usage)
     pub fn conservative() -> Self {
-        Self {
-            memory_gb: 1,
-            cpu_threads: 1,
-            disk_gb: 2,
-        }
+        Self { memory_gb: 1, cpu_threads: 1, disk_gb: 2 }
     }
 
     /// Creates aggressive limits (high resource usage)
     pub fn aggressive() -> Self {
-        Self {
-            memory_gb: 4,
-            cpu_threads: 4,
-            disk_gb: 10,
-        }
+        Self { memory_gb: 4, cpu_threads: 4, disk_gb: 10 }
     }
 
     /// Creates custom limits
     pub fn custom(memory_gb: usize, cpu_threads: usize, disk_gb: usize) -> Self {
-        Self {
-            memory_gb,
-            cpu_threads,
-            disk_gb,
-        }
+        Self { memory_gb, cpu_threads, disk_gb }
     }
 }
 
@@ -259,10 +233,7 @@ mod tests {
 
         let limits = result.unwrap();
         assert!(limits.total_memory_gb > 0, "Should detect non-zero memory");
-        assert!(
-            limits.total_cpu_cores > 0,
-            "Should detect non-zero CPU cores"
-        );
+        assert!(limits.total_cpu_cores > 0, "Should detect non-zero CPU cores");
         // Note: disk_gb might be 0 on some systems, so we don't assert it
     }
 

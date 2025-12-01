@@ -41,12 +41,7 @@ pub struct LLMRequest {
 impl LLMRequest {
     /// Create a new request with default values
     pub fn new(prompt: impl Into<String>) -> Self {
-        Self {
-            prompt: prompt.into(),
-            temperature: 0.2,
-            max_tokens: 4096,
-            reasoning_effort: ReasoningEffort::Medium,
-        }
+        Self { prompt: prompt.into(), temperature: 0.2, max_tokens: 4096, reasoning_effort: ReasoningEffort::Medium }
     }
 
     /// Set temperature
@@ -113,42 +108,22 @@ pub struct ChatMessage {
 impl ChatMessage {
     /// Create a system message
     pub fn system(content: impl Into<String>) -> Self {
-        Self {
-            role: ChatRole::System,
-            content: content.into(),
-            function_call: None,
-            name: None,
-        }
+        Self { role: ChatRole::System, content: content.into(), function_call: None, name: None }
     }
 
     /// Create a user message
     pub fn user(content: impl Into<String>) -> Self {
-        Self {
-            role: ChatRole::User,
-            content: content.into(),
-            function_call: None,
-            name: None,
-        }
+        Self { role: ChatRole::User, content: content.into(), function_call: None, name: None }
     }
 
     /// Create an assistant message
     pub fn assistant(content: impl Into<String>) -> Self {
-        Self {
-            role: ChatRole::Assistant,
-            content: content.into(),
-            function_call: None,
-            name: None,
-        }
+        Self { role: ChatRole::Assistant, content: content.into(), function_call: None, name: None }
     }
 
     /// Create a function result message
     pub fn function(name: impl Into<String>, content: impl Into<String>) -> Self {
-        Self {
-            role: ChatRole::Function,
-            content: content.into(),
-            function_call: None,
-            name: Some(name.into()),
-        }
+        Self { role: ChatRole::Function, content: content.into(), function_call: None, name: Some(name.into()) }
     }
 }
 
@@ -187,11 +162,7 @@ pub struct FunctionParameter {
 impl FunctionParameter {
     /// Create a new function parameter schema
     pub fn new(properties: serde_json::Value, required: Vec<String>) -> Self {
-        Self {
-            param_type: "object".to_string(),
-            properties,
-            required,
-        }
+        Self { param_type: "object".to_string(), properties, required }
     }
 }
 

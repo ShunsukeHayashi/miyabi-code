@@ -187,10 +187,7 @@ mod tests {
     #[test]
     fn test_project_exists_error() {
         let error = CliError::ProjectExists("my-project".to_string());
-        assert_eq!(
-            error.to_string(),
-            "Project directory already exists: my-project"
-        );
+        assert_eq!(error.to_string(), "Project directory already exists: my-project");
     }
 
     #[test]
@@ -208,19 +205,13 @@ mod tests {
     #[test]
     fn test_missing_issue_number_error() {
         let error = CliError::MissingIssueNumber;
-        assert_eq!(
-            error.to_string(),
-            "Issue number required for agent execution"
-        );
+        assert_eq!(error.to_string(), "Issue number required for agent execution");
     }
 
     #[test]
     fn test_git_config_error() {
         let error = CliError::GitConfig("remote not found".to_string());
-        assert_eq!(
-            error.to_string(),
-            "Git configuration error: remote not found"
-        );
+        assert_eq!(error.to_string(), "Git configuration error: remote not found");
     }
 
     #[test]

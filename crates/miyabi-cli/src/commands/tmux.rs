@@ -71,17 +71,11 @@ impl TmuxCommand {
     /// Execute the tmux command
     pub async fn execute(&self) -> Result<()> {
         match self {
-            TmuxCommand::Optimize { r#for, session } => {
-                optimize_layout(*r#for, session.clone()).await
-            }
+            TmuxCommand::Optimize { r#for, session } => optimize_layout(*r#for, session.clone()).await,
             TmuxCommand::List => list_layouts().await,
             TmuxCommand::Status => show_status().await,
-            TmuxCommand::Apply { layout, session } => {
-                apply_layout(layout.clone(), session.clone()).await
-            }
-            TmuxCommand::Save { output, session } => {
-                save_layout(output.clone(), session.clone()).await
-            }
+            TmuxCommand::Apply { layout, session } => apply_layout(layout.clone(), session.clone()).await,
+            TmuxCommand::Save { output, session } => save_layout(output.clone(), session.clone()).await,
             TmuxCommand::Reset { session } => reset_layout(session.clone()).await,
         }
     }
@@ -118,23 +112,15 @@ async fn optimize_layout(task_type: TaskType, session: Option<String>) -> Result
     println!();
 
     if !check_tmux()? {
-        println!(
-            "  {} tmux is not running. Start a session first:",
-            "⚠️".yellow()
-        );
+        println!("  {} tmux is not running. Start a session first:", "⚠️".yellow());
         println!("    {}", "tmux new-session -s miyabi".dimmed());
         return Ok(());
     }
 
-    let session_name =
-        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
     let layout = get_layout_for_task(task_type);
 
-    println!(
-        "  {} Optimizing for: {}",
-        "📋".green(),
-        format!("{:?}", task_type).bold()
-    );
+    println!("  {} Optimizing for: {}", "📋".green(), format!("{:?}", task_type).bold());
     println!("  {} Session: {}", "📺".blue(), session_name);
     println!("  {} Layout: {}", "🔧".yellow(), layout.description);
     println!();
@@ -146,12 +132,7 @@ async fn optimize_layout(task_type: TaskType, session: Option<String>) -> Result
     println!();
     println!("{}", "💡 Windows created:".cyan());
     for (i, window) in layout.windows.iter().enumerate() {
-        println!(
-            "  {}. {} - {}",
-            i + 1,
-            window.name.bold(),
-            window.description
-        );
+        println!("  {}. {} - {}", i + 1, window.name.bold(), window.description);
     }
 
     Ok(())
@@ -464,12 +445,7 @@ fn apply_task_layout(session: &str, _task_type: TaskType, layout: &TaskLayout) -
         if i == 0 {
             // Rename the first window
             Command::new("tmux")
-                .args([
-                    "rename-window",
-                    "-t",
-                    &format!("{}:0", session),
-                    window.name,
-                ])
+                .args(["rename-window", "-t", &format!("{}:0", session), window.name])
                 .output()
                 .map_err(|e| CliError::ExecutionError(format!("Failed to rename window: {}", e)))?;
 
@@ -589,27 +565,11 @@ async fn list_layouts() -> Result<()> {
     println!();
 
     let layouts = vec![
-        (
-            "coding",
-            "Editor + Test + Log (3-pane vertical)",
-            "Development workflow",
-        ),
-        (
-            "monitoring",
-            "Multi-coordinator status display",
-            "System monitoring",
-        ),
+        ("coding", "Editor + Test + Log (3-pane vertical)", "Development workflow"),
+        ("monitoring", "Multi-coordinator status display", "System monitoring"),
         ("debugging", "Log-focused 3-way split", "Bug investigation"),
-        (
-            "coordination",
-            "All coordinators parallel view",
-            "Multi-agent orchestration",
-        ),
-        (
-            "review",
-            "Code diff + PR comments view",
-            "Code review workflow",
-        ),
+        ("coordination", "All coordinators parallel view", "Multi-agent orchestration"),
+        ("review", "Code diff + PR comments view", "Code review workflow"),
         ("agent", "Multi-agent dashboard", "Agent management"),
     ];
 
@@ -685,14 +645,10 @@ async fn apply_layout(layout_path: PathBuf, session: Option<String>) -> Result<(
     println!();
 
     if !layout_path.exists() {
-        return Err(CliError::NotFound(format!(
-            "Layout file not found: {}",
-            layout_path.display()
-        )));
+        return Err(CliError::NotFound(format!("Layout file not found: {}", layout_path.display())));
     }
 
-    let session_name =
-        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
 
     // Source the layout file (tmux conf format)
     let output = Command::new("tmux")
@@ -701,11 +657,7 @@ async fn apply_layout(layout_path: PathBuf, session: Option<String>) -> Result<(
         .map_err(|e| CliError::ExecutionError(format!("Failed to apply layout: {}", e)))?;
 
     if output.status.success() {
-        println!(
-            "  {} Layout applied from: {}",
-            "✅".green(),
-            layout_path.display()
-        );
+        println!("  {} Layout applied from: {}", "✅".green(), layout_path.display());
         println!("  {} Session: {}", "📺".blue(), session_name);
     } else {
         println!("  {} Failed to apply layout", "❌".red());
@@ -722,8 +674,7 @@ async fn save_layout(output_path: PathBuf, session: Option<String>) -> Result<()
     println!("{}", "💾 Saving Layout".cyan().bold());
     println!();
 
-    let session_name =
-        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
 
     // Get window list
     let windows = Command::new("tmux")
@@ -757,14 +708,9 @@ async fn save_layout(output_path: PathBuf, session: Option<String>) -> Result<()
         }
     }
 
-    std::fs::write(&output_path, layout_content)
-        .map_err(|e| CliError::ExecutionError(format!("IO error: {}", e)))?;
+    std::fs::write(&output_path, layout_content).map_err(|e| CliError::ExecutionError(format!("IO error: {}", e)))?;
 
-    println!(
-        "  {} Layout saved to: {}",
-        "✅".green(),
-        output_path.display()
-    );
+    println!("  {} Layout saved to: {}", "✅".green(), output_path.display());
     println!();
 
     Ok(())
@@ -776,8 +722,7 @@ async fn reset_layout(session: Option<String>) -> Result<()> {
     println!("{}", "🔄 Resetting Layout".cyan().bold());
     println!();
 
-    let session_name =
-        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
 
     // Apply even-horizontal layout to all windows
     let output = Command::new("tmux")
@@ -797,11 +742,7 @@ async fn reset_layout(session: Option<String>) -> Result<()> {
             .ok();
     }
 
-    println!(
-        "  {} Layout reset for session: {}",
-        "✅".green(),
-        session_name
-    );
+    println!("  {} Layout reset for session: {}", "✅".green(), session_name);
     println!();
 
     Ok(())

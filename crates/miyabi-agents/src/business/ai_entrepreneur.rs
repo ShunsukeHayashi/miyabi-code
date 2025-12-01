@@ -28,9 +28,8 @@ impl AIEntrepreneurAgent {
     /// Generate comprehensive business plan using LLM
     async fn generate_business_plan(&self, task: &Task) -> Result<BusinessPlan> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
-            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
-        })?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);
@@ -52,16 +51,13 @@ Generate a complete business plan as JSON with phases, market analysis, financia
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::AIEntrepreneurAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::AIEntrepreneurAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let business_plan: BusinessPlan = serde_json::from_str(&response).map_err(|e| {
@@ -110,8 +106,7 @@ Generate a complete business plan as JSON with phases, market analysis, financia
             "Business Plan Generated: {} phases, ${} total budget, {}% growth projection",
             plan.phases.len(),
             plan.phases.iter().map(|p| p.budget).sum::<u32>(),
-            ((plan.financial_projections.year_3.revenue as f64
-                / plan.financial_projections.year_1.revenue as f64
+            ((plan.financial_projections.year_3.revenue as f64 / plan.financial_projections.year_1.revenue as f64
                 - 1.0)
                 * 100.0) as u32
         )
@@ -194,10 +189,7 @@ impl BaseAgent for AIEntrepreneurAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "AIEntrepreneurAgent starting business plan generation for task: {}",
-            task.id
-        );
+        tracing::info!("AIEntrepreneurAgent starting business plan generation for task: {}", task.id);
 
         // Generate business plan using LLM
         let business_plan = self.generate_business_plan(task).await?;
@@ -233,10 +225,7 @@ impl BaseAgent for AIEntrepreneurAgent {
             "growth_projection": ((business_plan.financial_projections.year_3.revenue as f64 / business_plan.financial_projections.year_1.revenue as f64 - 1.0) * 100.0) as u32
         });
 
-        tracing::info!(
-            "AIEntrepreneurAgent completed business plan generation: {}",
-            summary
-        );
+        tracing::info!("AIEntrepreneurAgent completed business plan generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -257,9 +246,8 @@ mod tests {
         Task {
             id: "test-task-1".to_string(),
             title: "AI-Powered Project Management Tool".to_string(),
-            description:
-                "A comprehensive project management solution with AI-driven insights and automation"
-                    .to_string(),
+            description: "A comprehensive project management solution with AI-driven insights and automation"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -326,21 +314,9 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -382,21 +358,9 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -446,21 +410,9 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -515,16 +467,8 @@ mod tests {
                     expenses: 80000,
                     profit: -80000,
                 },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
-                year_3: FinancialYear {
-                    revenue: 400000,
-                    expenses: 200000,
-                    profit: 200000,
-                },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
+                year_3: FinancialYear { revenue: 400000, expenses: 200000, profit: 200000 },
             },
             funding_strategy: FundingStrategy {
                 seed_round: FundingRound {
@@ -585,16 +529,8 @@ mod tests {
                 competitive_advantage: "Unique advantage".to_string(),
             },
             financial_projections: FinancialProjections {
-                year_1: FinancialYear {
-                    revenue: 100000,
-                    expenses: 80000,
-                    profit: 20000,
-                },
-                year_2: FinancialYear {
-                    revenue: 200000,
-                    expenses: 120000,
-                    profit: 80000,
-                },
+                year_1: FinancialYear { revenue: 100000, expenses: 80000, profit: 20000 },
+                year_2: FinancialYear { revenue: 200000, expenses: 120000, profit: 80000 },
                 year_3: FinancialYear {
                     revenue: 400000, // 4x growth from year 1
                     expenses: 200000,

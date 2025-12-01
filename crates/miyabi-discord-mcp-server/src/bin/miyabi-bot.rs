@@ -64,8 +64,8 @@ impl MiyabiBot {
             .resource_types(ResourceType::MESSAGE | ResourceType::USER | ResourceType::CHANNEL)
             .build();
 
-        let progress_reporter = progress_channel_id
-            .map(|channel_id| Arc::new(ProgressReporter::new(Arc::clone(&http), channel_id)));
+        let progress_reporter =
+            progress_channel_id.map(|channel_id| Arc::new(ProgressReporter::new(Arc::clone(&http), channel_id)));
 
         // Basic profanity word list (Japanese + English)
         let profanity_words = vec![
@@ -102,11 +102,10 @@ impl MiyabiBot {
         let mut rate_limits = self.rate_limits.lock().await;
         let now = Instant::now();
 
-        let entry = rate_limits.entry(user_id).or_insert(RateLimitEntry {
-            message_count: 0,
-            last_reset: now,
-            warnings: 0,
-        });
+        let entry =
+            rate_limits
+                .entry(user_id)
+                .or_insert(RateLimitEntry { message_count: 0, last_reset: now, warnings: 0 });
 
         // Reset counter if window expired
         if now.duration_since(entry.last_reset) > RATE_LIMIT_WINDOW {
@@ -128,10 +127,7 @@ impl MiyabiBot {
     }
 
     /// Handle rate limit violation
-    async fn handle_rate_limit_violation(
-        &self,
-        msg: &Message,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_rate_limit_violation(&self, msg: &Message) -> Result<(), Box<dyn std::error::Error>> {
         // Get warning count
         let mut rate_limits = self.rate_limits.lock().await;
         let entry = rate_limits.get_mut(&msg.author.id).unwrap();
@@ -151,9 +147,9 @@ impl MiyabiBot {
                 .http
                 .create_message(msg.channel_id)
                 .content(&format!(
-                "⚠️ {}さん、メッセージを送信するペースが速すぎます。\n少しゆっくりお願いします。",
-                msg.author.name
-            ))
+                    "⚠️ {}さん、メッセージを送信するペースが速すぎます。\n少しゆっくりお願いします。",
+                    msg.author.name
+                ))
                 .await;
 
             // Report to progress channel
@@ -176,10 +172,7 @@ impl MiyabiBot {
     }
 
     /// Handle profanity violation
-    async fn handle_profanity_violation(
-        &self,
-        msg: &Message,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_profanity_violation(&self, msg: &Message) -> Result<(), Box<dyn std::error::Error>> {
         info!("🚫 Profanity detected from user {}", msg.author.name);
 
         // Delete the message
@@ -201,10 +194,7 @@ impl MiyabiBot {
         // Report to progress channel
         if let Some(ref reporter) = self.progress_reporter {
             let _ = reporter
-                .report_error(
-                    "Profanity Violation",
-                    &format!("User {} posted profane content", msg.author.name),
-                )
+                .report_error("Profanity Violation", &format!("User {} posted profane content", msg.author.name))
                 .await;
         }
 
@@ -237,9 +227,7 @@ impl MiyabiBot {
         // 1. Check for command prefix (!miyabi)
         if content.starts_with(&self.command_prefix) {
             // Parse command
-            let args: Vec<&str> = content[self.command_prefix.len()..]
-                .split_whitespace()
-                .collect();
+            let args: Vec<&str> = content[self.command_prefix.len()..].split_whitespace().collect();
 
             if args.is_empty() {
                 return Ok(());
@@ -285,11 +273,7 @@ impl MiyabiBot {
     }
 
     /// Handle natural language messages
-    async fn handle_natural_message(
-        &self,
-        msg: &Message,
-        content: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_natural_message(&self, msg: &Message, content: &str) -> Result<(), Box<dyn std::error::Error>> {
         let content_lower = content.to_lowercase();
 
         // Greeting
@@ -300,17 +284,13 @@ impl MiyabiBot {
             // Twilight v0.16: call .await? at the end of the builder chain
             self.http
                 .create_message(msg.channel_id)
-                .content(
-                    "🌸 こんにちは！Miyabiちゃんだよ！\n何か手伝えることがあったら教えてね！✨",
-                )
+                .content("🌸 こんにちは！Miyabiちゃんだよ！\n何か手伝えることがあったら教えてね！✨")
                 .await?;
             return Ok(());
         }
 
         // Help/Guide request
-        if content_lower.contains("教えて")
-            || content_lower.contains("おしえて")
-            || content_lower.contains("help")
+        if content_lower.contains("教えて") || content_lower.contains("おしえて") || content_lower.contains("help")
         {
             // Twilight v0.16: call .await? at the end of the builder chain
             self.http
@@ -388,10 +368,7 @@ impl MiyabiBot {
 
 質問があれば、<#help-general> で聞いてね！✨";
 
-        self.http
-            .create_message(msg.channel_id)
-            .content(help_text)
-            .await?;
+        self.http.create_message(msg.channel_id).content(help_text).await?;
 
         Ok(())
     }
@@ -425,20 +402,13 @@ impl MiyabiBot {
 
 🎉 All systems operational!";
 
-        self.http
-            .create_message(msg.channel_id)
-            .content(status_text)
-            .await?;
+        self.http.create_message(msg.channel_id).content(status_text).await?;
 
         Ok(())
     }
 
     /// !miyabi agent <subcommand>
-    async fn cmd_agent(
-        &self,
-        msg: &Message,
-        args: &[&str],
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn cmd_agent(&self, msg: &Message, args: &[&str]) -> Result<(), Box<dyn std::error::Error>> {
         if args.is_empty() {
             self.http
                 .create_message(msg.channel_id)
@@ -464,10 +434,7 @@ impl MiyabiBot {
 **実行方法**: `!miyabi agent run <agent-name>`
 例: `!miyabi agent run つくるん`";
 
-                self.http
-                    .create_message(msg.channel_id)
-                    .content(agent_list)
-                    .await?;
+                self.http.create_message(msg.channel_id).content(agent_list).await?;
             }
             "run" => {
                 if args.len() < 2 {
@@ -487,10 +454,7 @@ impl MiyabiBot {
                     agent_name
                 );
 
-                self.http
-                    .create_message(msg.channel_id)
-                    .content(&response)
-                    .await?;
+                self.http.create_message(msg.channel_id).content(&response).await?;
 
                 // Report agent execution start
                 if let Some(ref reporter) = self.progress_reporter {
@@ -508,12 +472,7 @@ impl MiyabiBot {
                 // Report agent execution completion
                 if let Some(ref reporter) = self.progress_reporter {
                     if let Err(e) = reporter
-                        .report_agent_complete(
-                            agent_name,
-                            None,
-                            true,
-                            "Agent実行が完了しました（デモ）",
-                        )
+                        .report_agent_complete(agent_name, None, true, "Agent実行が完了しました（デモ）")
                         .await
                     {
                         error!("Failed to report agent complete: {}", e);
@@ -532,11 +491,7 @@ impl MiyabiBot {
     }
 
     /// !miyabi issue <subcommand>
-    async fn cmd_issue(
-        &self,
-        msg: &Message,
-        args: &[&str],
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn cmd_issue(&self, msg: &Message, args: &[&str]) -> Result<(), Box<dyn std::error::Error>> {
         if args.is_empty() {
             self.http
                 .create_message(msg.channel_id)
@@ -650,7 +605,10 @@ impl MiyabiBot {
                         error!("Failed to create GitHub Issue: {}", e);
                         self.http
                             .create_message(msg.channel_id)
-                            .content(&format!("❌ GitHub Issueの作成に失敗しました: {}\n\n💡 GitHubトークンの権限を確認してね！", e))
+                            .content(&format!(
+                                "❌ GitHub Issueの作成に失敗しました: {}\n\n💡 GitHubトークンの権限を確認してね！",
+                                e
+                            ))
                             .await?;
                         return Ok(());
                     }
@@ -661,11 +619,7 @@ impl MiyabiBot {
                 // Apply labels (separate API call)
                 let labels = feedback.suggest_labels();
                 if !labels.is_empty() {
-                    match github
-                        .issues(owner, repo)
-                        .add_labels(issue.number, &labels)
-                        .await
-                    {
+                    match github.issues(owner, repo).add_labels(issue.number, &labels).await {
                         Ok(_) => {
                             info!("Applied labels to Issue #{}: {:?}", issue.number, labels);
                         }
@@ -736,20 +690,11 @@ impl MiyabiBot {
     }
 
     /// Unknown command
-    async fn cmd_unknown(
-        &self,
-        msg: &Message,
-        command: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let response = format!(
-            "❓ 「{}」は知らないコマンドだよ。\n`!miyabi help` で使えるコマンドを確認してね！",
-            command
-        );
+    async fn cmd_unknown(&self, msg: &Message, command: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let response =
+            format!("❓ 「{}」は知らないコマンドだよ。\n`!miyabi help` で使えるコマンドを確認してね！", command);
 
-        self.http
-            .create_message(msg.channel_id)
-            .content(&response)
-            .await?;
+        self.http.create_message(msg.channel_id).content(&response).await?;
 
         Ok(())
     }
@@ -762,9 +707,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize logging
     tracing_subscriber::fmt()
-        .with_env_filter(
-            env::var("RUST_LOG").unwrap_or_else(|_| "miyabi_discord_mcp_server=info".to_string()),
-        )
+        .with_env_filter(env::var("RUST_LOG").unwrap_or_else(|_| "miyabi_discord_mcp_server=info".to_string()))
         .init();
 
     // Get token
@@ -777,28 +720,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("Invalid GUILD_ID");
 
     // Get progress channel ID (optional)
-    let progress_channel_id = env::var("PROGRESS_CHANNEL_ID")
-        .ok()
-        .and_then(|id| id.parse().ok());
+    let progress_channel_id = env::var("PROGRESS_CHANNEL_ID").ok().and_then(|id| id.parse().ok());
 
     // Get introductions channel ID (optional)
-    let introductions_channel_id = env::var("INTRODUCTIONS_CHANNEL_ID")
-        .ok()
-        .and_then(|id| id.parse().ok());
+    let introductions_channel_id = env::var("INTRODUCTIONS_CHANNEL_ID").ok().and_then(|id| id.parse().ok());
 
     // Create HTTP client
     let http = Arc::new(HttpClient::new(token.clone()));
 
     // Get GitHub token (optional)
-    let github = env::var("GITHUB_TOKEN").ok().map(|token| {
-        match Octocrab::builder().personal_token(token).build() {
+    let github = env::var("GITHUB_TOKEN")
+        .ok()
+        .map(|token| match Octocrab::builder().personal_token(token).build() {
             Ok(client) => Arc::new(client),
             Err(e) => {
                 error!("Failed to create GitHub client: {}", e);
                 panic!("Failed to create GitHub client");
             }
-        }
-    });
+        });
 
     // Parse GitHub repository (optional)
     let github_repo = env::var("GITHUB_REPO").ok().and_then(|repo| {
@@ -834,10 +773,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("🎉 Miyabi Discord Bot starting...");
 
     // Configure intents (added GUILD_MEMBERS for member join events)
-    let intents = Intents::GUILD_MESSAGES
-        | Intents::MESSAGE_CONTENT
-        | Intents::GUILDS
-        | Intents::GUILD_MEMBERS;
+    let intents = Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT | Intents::GUILDS | Intents::GUILD_MEMBERS;
 
     // Create shard
     let mut shard = Shard::new(ShardId::ONE, token, intents);
@@ -878,10 +814,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Process individual event
-async fn process_event(
-    bot: Arc<MiyabiBot>,
-    event: Event,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn process_event(bot: Arc<MiyabiBot>, event: Event) -> Result<(), Box<dyn std::error::Error>> {
     match event {
         Event::Ready(_) => {
             info!("🎊 Miyabi Discord Bot is ready!");
@@ -966,12 +899,7 @@ async fn process_event(
                 );
 
                 // Twilight v0.16: call .await first to get Result
-                match bot
-                    .http
-                    .create_message(intro_channel_id)
-                    .content(&announcement)
-                    .await
-                {
+                match bot.http.create_message(intro_channel_id).content(&announcement).await {
                     Ok(_) => {
                         info!("Successfully posted to introductions channel");
                     }

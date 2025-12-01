@@ -172,9 +172,7 @@ pub struct ApiResponse<T> {
 impl InlineKeyboard {
     /// Create a new inline keyboard with rows
     pub fn new(rows: Vec<Vec<InlineKeyboardButton>>) -> Self {
-        Self {
-            inline_keyboard: rows,
-        }
+        Self { inline_keyboard: rows }
     }
 
     /// Create a simple keyboard with one row
@@ -186,19 +184,11 @@ impl InlineKeyboard {
 impl InlineKeyboardButton {
     /// Create a button with callback data
     pub fn callback(text: impl Into<String>, data: impl Into<String>) -> Self {
-        Self {
-            text: text.into(),
-            callback_data: Some(data.into()),
-            url: None,
-        }
+        Self { text: text.into(), callback_data: Some(data.into()), url: None }
     }
 
     /// Create a button with URL
     pub fn url(text: impl Into<String>, url: impl Into<String>) -> Self {
-        Self {
-            text: text.into(),
-            callback_data: None,
-            url: Some(url.into()),
-        }
+        Self { text: text.into(), callback_data: None, url: Some(url.into()) }
     }
 }

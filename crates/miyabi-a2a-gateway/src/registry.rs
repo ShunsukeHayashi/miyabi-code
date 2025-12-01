@@ -14,10 +14,7 @@ pub struct AgentRegistry {
 impl AgentRegistry {
     /// Create a new registry
     pub fn new() -> Self {
-        Self {
-            agents: RwLock::new(HashMap::new()),
-            name_index: RwLock::new(HashMap::new()),
-        }
+        Self { agents: RwLock::new(HashMap::new()), name_index: RwLock::new(HashMap::new()) }
     }
 
     /// Register a new agent

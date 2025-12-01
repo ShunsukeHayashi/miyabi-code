@@ -6,8 +6,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -63,11 +62,7 @@ impl ReviewAgent {
 
         tracing::info!("Clippy found {} warnings, score: {}", warning_count, score);
 
-        Ok(ClippyResult {
-            score,
-            warnings,
-            passed: output.status.success(),
-        })
+        Ok(ClippyResult { score, warnings, passed: output.status.success() })
     }
 
     /// Parse clippy JSON output
@@ -82,9 +77,7 @@ impl ReviewAgent {
             // Try to parse as JSON
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(line) {
                 if let Some(message) = json.get("message") {
-                    if let (Some(msg_text), Some(level)) =
-                        (message.get("message"), message.get("level"))
-                    {
+                    if let (Some(msg_text), Some(level)) = (message.get("message"), message.get("level")) {
                         if level.as_str() == Some("warning") || level.as_str() == Some("error") {
                             warnings.push(ClippyWarning {
                                 message: msg_text.as_str().unwrap_or("").to_string(),
@@ -145,11 +138,7 @@ impl ReviewAgent {
 
         tracing::info!("rustc found {} errors, score: {}", error_count, score);
 
-        Ok(RustcResult {
-            score,
-            errors,
-            passed: output.status.success(),
-        })
+        Ok(RustcResult { score, errors, passed: output.status.success() })
     }
 
     /// Parse rustc JSON output
@@ -163,9 +152,7 @@ impl ReviewAgent {
 
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(line) {
                 if let Some(message) = json.get("message") {
-                    if let (Some(msg_text), Some(level)) =
-                        (message.get("message"), message.get("level"))
-                    {
+                    if let (Some(msg_text), Some(level)) = (message.get("message"), message.get("level")) {
                         if level.as_str() == Some("error") {
                             errors.push(RustcError {
                                 message: msg_text.as_str().unwrap_or("").to_string(),
@@ -235,11 +222,7 @@ impl ReviewAgent {
         // For now, return placeholder score
         tracing::info!("Coverage calculation (placeholder - tarpaulin not integrated yet)");
 
-        Ok(CoverageResult {
-            score: 80,
-            coverage_percent: 80.0,
-            passed: true,
-        })
+        Ok(CoverageResult { score: 80, coverage_percent: 80.0, passed: true })
     }
 
     /// Generate quality report from analysis results
@@ -301,34 +284,19 @@ impl ReviewAgent {
             recommendations.push("Increase test coverage to at least 80%".to_string());
         }
 
-        QualityReport {
-            score,
-            passed: score >= 80,
-            issues,
-            recommendations,
-            breakdown,
-        }
+        QualityReport { score, passed: score >= 80, issues, recommendations, breakdown }
     }
 
     /// Perform code review
     pub async fn review_code(&self, task: &Task) -> Result<ReviewResult> {
         // Validate task type
-        if !matches!(
-            task.task_type,
-            TaskType::Feature | TaskType::Bug | TaskType::Refactor
-        ) {
-            return Err(MiyabiError::Validation(format!(
-                "ReviewAgent cannot handle task type: {:?}",
-                task.task_type
-            )));
+        if !matches!(task.task_type, TaskType::Feature | TaskType::Bug | TaskType::Refactor) {
+            return Err(MiyabiError::Validation(format!("ReviewAgent cannot handle task type: {:?}", task.task_type)));
         }
 
         // Get current directory as review path
         let review_path = std::env::current_dir().map_err(|e| {
-            MiyabiError::Io(std::io::Error::new(
-                e.kind(),
-                format!("Failed to get current directory: {}", e),
-            ))
+            MiyabiError::Io(std::io::Error::new(e.kind(), format!("Failed to get current directory: {}", e)))
         })?;
 
         tracing::info!("Reviewing code at {:?}", review_path);
@@ -340,12 +308,8 @@ impl ReviewAgent {
         let coverage_result = self.calculate_coverage(&review_path).await?;
 
         // Generate quality report
-        let quality_report = self.generate_quality_report(
-            clippy_result,
-            rustc_result,
-            security_result,
-            coverage_result,
-        );
+        let quality_report =
+            self.generate_quality_report(clippy_result, rustc_result, security_result, coverage_result);
 
         // Determine if approved
         let approved = quality_report.meets_threshold();
@@ -377,13 +341,7 @@ impl ReviewAgent {
             })
             .collect();
 
-        Ok(ReviewResult {
-            quality_report,
-            approved,
-            escalation_required,
-            escalation_target,
-            comments,
-        })
+        Ok(ReviewResult { quality_report, approved, escalation_required, escalation_target, comments })
     }
 }
 
@@ -410,9 +368,7 @@ impl BaseAgent for ReviewAgent {
             quality_score: Some(review_result.quality_report.score),
             lines_changed: None,
             tests_added: None,
-            coverage_percent: Some(
-                review_result.quality_report.breakdown.test_coverage_score as f32,
-            ),
+            coverage_percent: Some(review_result.quality_report.breakdown.test_coverage_score as f32),
             errors_found: Some(review_result.quality_report.issues.len() as u32),
             timestamp: end_time,
         };
@@ -425,13 +381,8 @@ impl BaseAgent for ReviewAgent {
             }
 
             Some(EscalationInfo {
-                reason: format!(
-                    "Quality score {} is below threshold",
-                    review_result.quality_report.score
-                ),
-                target: review_result
-                    .escalation_target
-                    .unwrap_or(EscalationTarget::TechLead),
+                reason: format!("Quality score {} is below threshold", review_result.quality_report.score),
+                target: review_result.escalation_target.unwrap_or(EscalationTarget::TechLead),
                 severity: Severity::High,
                 context,
                 timestamp: end_time,
@@ -503,16 +454,9 @@ fn format_vulnerability(vuln: &Vulnerability) -> String {
         VulnerabilitySeverity::None => "INFO",
     };
 
-    let cve_str = vuln
-        .cve
-        .as_ref()
-        .map(|c| format!(" ({})", c))
-        .unwrap_or_default();
+    let cve_str = vuln.cve.as_ref().map(|c| format!(" ({})", c)).unwrap_or_default();
 
-    format!(
-        "[{}] {} - {}{} - Package: {}",
-        severity_str, vuln.id, vuln.title, cve_str, vuln.package
-    )
+    format!("[{}] {} - {}{} - Package: {}", severity_str, vuln.id, vuln.title, cve_str, vuln.package)
 }
 
 /// Security audit result
@@ -596,23 +540,15 @@ impl A2AEnabled for ReviewAgent {
             .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
             "review_code" => {
-                let task_id = task.input["task_id"]
-                    .as_str()
-                    .unwrap_or("a2a-review")
-                    .to_string();
+                let task_id = task.input["task_id"].as_str().unwrap_or("a2a-review").to_string();
                 let title = task.input["title"]
                     .as_str()
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing title".to_string())
-                    })?
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?
                     .to_string();
                 let description = task.input["description"].as_str().unwrap_or("").to_string();
                 let task_type_str = task.input["task_type"].as_str().unwrap_or("Feature");
@@ -646,16 +582,15 @@ impl A2AEnabled for ReviewAgent {
                     .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
 
                 Ok(A2ATaskResult::Success {
-                    output: serde_json::to_value(result)
-                        .map_err(A2AIntegrationError::SerializationError)?,
+                    output: serde_json::to_value(result).map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
             "security_audit" => {
-                let path = task.input["path"].as_str().ok_or_else(|| {
-                    A2AIntegrationError::TaskExecutionFailed("Missing path".to_string())
-                })?;
+                let path = task.input["path"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing path".to_string()))?;
 
                 let result = self
                     .run_security_audit(Path::new(path))
@@ -663,16 +598,12 @@ impl A2AEnabled for ReviewAgent {
                     .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
 
                 Ok(A2ATaskResult::Success {
-                    output: serde_json::to_value(result)
-                        .map_err(A2AIntegrationError::SerializationError)?,
+                    output: serde_json::to_value(result).map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -738,29 +669,13 @@ mod tests {
         let config = create_test_config();
         let agent = ReviewAgent::new(config);
 
-        let clippy = ClippyResult {
-            score: 90,
-            warnings: vec![],
-            passed: true,
-        };
+        let clippy = ClippyResult { score: 90, warnings: vec![], passed: true };
 
-        let rustc = RustcResult {
-            score: 100,
-            errors: vec![],
-            passed: true,
-        };
+        let rustc = RustcResult { score: 100, errors: vec![], passed: true };
 
-        let security = SecurityResult {
-            score: 100,
-            vulnerabilities: vec![],
-            passed: true,
-        };
+        let security = SecurityResult { score: 100, vulnerabilities: vec![], passed: true };
 
-        let coverage = CoverageResult {
-            score: 80,
-            coverage_percent: 80.0,
-            passed: true,
-        };
+        let coverage = CoverageResult { score: 80, coverage_percent: 80.0, passed: true };
 
         let report = agent.generate_quality_report(clippy, rustc, security, coverage);
 
@@ -918,32 +833,18 @@ mod tests {
         let config = create_test_config();
         let agent = ReviewAgent::new(config);
 
-        let clippy = ClippyResult {
-            score: 100,
-            warnings: vec![],
-            passed: true,
-        };
+        let clippy = ClippyResult { score: 100, warnings: vec![], passed: true };
 
-        let rustc = RustcResult {
-            score: 100,
-            errors: vec![],
-            passed: true,
-        };
+        let rustc = RustcResult { score: 100, errors: vec![], passed: true };
 
         // Simulate security vulnerabilities found
         let security = SecurityResult {
             score: 70, // Reduced score due to vulnerabilities
-            vulnerabilities: vec![
-                "[HIGH] RUSTSEC-2021-0001 - Test vulnerability - Package: test-pkg".to_string(),
-            ],
+            vulnerabilities: vec!["[HIGH] RUSTSEC-2021-0001 - Test vulnerability - Package: test-pkg".to_string()],
             passed: false, // Failed due to high severity vulnerability
         };
 
-        let coverage = CoverageResult {
-            score: 80,
-            coverage_percent: 80.0,
-            passed: true,
-        };
+        let coverage = CoverageResult { score: 80, coverage_percent: 80.0, passed: true };
 
         let report = agent.generate_quality_report(clippy, rustc, security, coverage);
 
@@ -957,17 +858,9 @@ mod tests {
         let config = create_test_config();
         let agent = ReviewAgent::new(config);
 
-        let clippy = ClippyResult {
-            score: 100,
-            warnings: vec![],
-            passed: true,
-        };
+        let clippy = ClippyResult { score: 100, warnings: vec![], passed: true };
 
-        let rustc = RustcResult {
-            score: 100,
-            errors: vec![],
-            passed: true,
-        };
+        let rustc = RustcResult { score: 100, errors: vec![], passed: true };
 
         // Critical security issues
         let security = SecurityResult {
@@ -979,11 +872,7 @@ mod tests {
             passed: false,
         };
 
-        let coverage = CoverageResult {
-            score: 80,
-            coverage_percent: 80.0,
-            passed: true,
-        };
+        let coverage = CoverageResult { score: 80, coverage_percent: 80.0, passed: true };
 
         let report = agent.generate_quality_report(clippy, rustc, security, coverage);
 

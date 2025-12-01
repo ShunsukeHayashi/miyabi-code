@@ -102,8 +102,7 @@ Identify top 3 competitors and market opportunities."#
     let messages = vec![
         Message {
             role: Role::System,
-            content:
-                r#"You are a code generation AI agent. Generate high-quality, production-ready code.
+            content: r#"You are a code generation AI agent. Generate high-quality, production-ready code.
 
 Always respond in this JSON format:
 {
@@ -112,7 +111,7 @@ Always respond in this JSON format:
   "explanation": "brief explanation",
   "tests_included": true/false
 }"#
-                .to_string(),
+            .to_string(),
         },
         Message {
             role: Role::User,

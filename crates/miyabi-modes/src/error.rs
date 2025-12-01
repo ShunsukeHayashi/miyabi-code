@@ -55,34 +55,23 @@ impl UnifiedError for ModeError {
 
     fn user_message(&self) -> String {
         match self {
-            Self::ModeNotFound(name) => format!(
-                "Mode '{}' was not found. Please check the mode name and ensure it has been registered.",
-                name
-            ),
-            Self::DuplicateSlug(slug) => format!(
-                "A mode with slug '{}' already exists. Please use a different slug for your mode.",
-                slug
-            ),
-            Self::InvalidDefinition(msg) => format!(
-                "Invalid mode definition: {}. Please check your mode configuration.",
-                msg
-            ),
-            Self::YamlError(e) => format!(
-                "Failed to parse YAML configuration: {}. Please check your YAML syntax.",
-                e
-            ),
-            Self::InvalidRegex(e) => format!(
-                "Invalid file pattern regex: {}. Please check your regex syntax.",
-                e
-            ),
-            Self::ValidationFailed(msg) => format!(
-                "Mode validation failed: {}. Please review your mode configuration.",
-                msg
-            ),
-            Self::MissingField(field) => format!(
-                "Required field '{}' is missing from mode configuration. Please add this field.",
-                field
-            ),
+            Self::ModeNotFound(name) => {
+                format!("Mode '{}' was not found. Please check the mode name and ensure it has been registered.", name)
+            }
+            Self::DuplicateSlug(slug) => {
+                format!("A mode with slug '{}' already exists. Please use a different slug for your mode.", slug)
+            }
+            Self::InvalidDefinition(msg) => {
+                format!("Invalid mode definition: {}. Please check your mode configuration.", msg)
+            }
+            Self::YamlError(e) => format!("Failed to parse YAML configuration: {}. Please check your YAML syntax.", e),
+            Self::InvalidRegex(e) => format!("Invalid file pattern regex: {}. Please check your regex syntax.", e),
+            Self::ValidationFailed(msg) => {
+                format!("Mode validation failed: {}. Please review your mode configuration.", msg)
+            }
+            Self::MissingField(field) => {
+                format!("Required field '{}' is missing from mode configuration. Please add this field.", field)
+            }
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }

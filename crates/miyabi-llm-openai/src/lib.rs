@@ -31,12 +31,12 @@ mod types;
 
 pub use client::OpenAIClient;
 pub use types::{
-    OpenAIChoice, OpenAIFunction, OpenAIFunctionCall, OpenAIMessage, OpenAIResponse,
-    OpenAIResponseMessage, OpenAITool, OpenAIToolCall, OpenAIUsage,
+    OpenAIChoice, OpenAIFunction, OpenAIFunctionCall, OpenAIMessage, OpenAIResponse, OpenAIResponseMessage, OpenAITool,
+    OpenAIToolCall, OpenAIUsage,
 };
 
 // Re-export core types for convenience
 pub use miyabi_llm_core::{
-    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamEvent, StreamResponse,
-    ToolCall, ToolCallResponse, ToolDefinition,
+    LlmClient, LlmError, LlmStreamingClient, Message, Result, Role, StreamEvent, StreamResponse, ToolCall,
+    ToolCallResponse, ToolDefinition,
 };

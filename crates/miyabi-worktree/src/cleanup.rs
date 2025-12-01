@@ -84,10 +84,7 @@ pub struct WorktreeCleanupManager {
 impl WorktreeCleanupManager {
     /// Create a new cleanup manager
     pub fn new(state_manager: WorktreeStateManager, policy: WorktreeCleanupPolicy) -> Self {
-        Self {
-            state_manager,
-            policy,
-        }
+        Self { state_manager, policy }
     }
 
     /// Create a cleanup manager with default policy
@@ -102,22 +99,20 @@ impl WorktreeCleanupManager {
         // Get all worktrees
         let worktrees = self.state_manager.scan_worktrees()?;
 
-        tracing::info!(
-            "Starting worktree cleanup scan (found {} worktrees)",
-            worktrees.len()
-        );
+        tracing::info!("Starting worktree cleanup scan (found {} worktrees)", worktrees.len());
 
         // Clean up orphaned worktrees
-        for worktree in worktrees.iter().filter(|w| {
-            w.status == WorktreeStatusDetailed::Orphaned && self.should_clean_orphaned(w)
-        }) {
+        for worktree in worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Orphaned && self.should_clean_orphaned(w))
+        {
             match self.cleanup_single(&mut report, worktree, "orphaned").await {
                 Ok(_) => report.orphaned_cleaned += 1,
-                Err(e) => report.errors.push(format!(
-                    "Failed to clean orphaned worktree {}: {}",
-                    worktree.path.display(),
-                    e
-                )),
+                Err(e) => {
+                    report
+                        .errors
+                        .push(format!("Failed to clean orphaned worktree {}: {}", worktree.path.display(), e))
+                }
             }
         }
 
@@ -128,26 +123,23 @@ impl WorktreeCleanupManager {
         {
             match self.cleanup_single(&mut report, worktree, "idle").await {
                 Ok(_) => report.idle_cleaned += 1,
-                Err(e) => report.errors.push(format!(
-                    "Failed to clean idle worktree {}: {}",
-                    worktree.path.display(),
-                    e
-                )),
+                Err(e) => {
+                    report
+                        .errors
+                        .push(format!("Failed to clean idle worktree {}: {}", worktree.path.display(), e))
+                }
             }
         }
 
         // Clean up stuck worktrees
-        for worktree in worktrees
-            .iter()
-            .filter(|w| w.status == WorktreeStatusDetailed::Stuck)
-        {
+        for worktree in worktrees.iter().filter(|w| w.status == WorktreeStatusDetailed::Stuck) {
             match self.cleanup_single(&mut report, worktree, "stuck").await {
                 Ok(_) => report.stuck_cleaned += 1,
-                Err(e) => report.errors.push(format!(
-                    "Failed to clean stuck worktree {}: {}",
-                    worktree.path.display(),
-                    e
-                )),
+                Err(e) => {
+                    report
+                        .errors
+                        .push(format!("Failed to clean stuck worktree {}: {}", worktree.path.display(), e))
+                }
             }
         }
 
@@ -197,10 +189,7 @@ impl WorktreeCleanupManager {
             match self.run_cleanup().await {
                 Ok(report) => {
                     if report.total_cleaned() > 0 {
-                        tracing::info!(
-                            "Periodic cleanup: {} worktrees cleaned",
-                            report.total_cleaned()
-                        );
+                        tracing::info!("Periodic cleanup: {} worktrees cleaned", report.total_cleaned());
                     }
                 }
                 Err(e) => {
@@ -211,12 +200,7 @@ impl WorktreeCleanupManager {
     }
 
     /// Clean up a single worktree
-    async fn cleanup_single(
-        &self,
-        report: &mut CleanupReport,
-        worktree: &WorktreeState,
-        reason: &str,
-    ) -> Result<()> {
+    async fn cleanup_single(&self, report: &mut CleanupReport, worktree: &WorktreeState, reason: &str) -> Result<()> {
         tracing::info!(
             "Cleaning up {} worktree: {} (issue: {:?})",
             reason,

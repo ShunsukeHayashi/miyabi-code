@@ -55,11 +55,7 @@ impl ApprovalGate {
         let store = self.store.write().await;
         store.save(&state)?;
 
-        tracing::info!(
-            "Created approval {} for workflow (gate: {})",
-            approval_id,
-            self.gate_id
-        );
+        tracing::info!("Created approval {} for workflow (gate: {})", approval_id, self.gate_id);
 
         Ok(approval_id)
     }
@@ -82,10 +78,7 @@ impl ApprovalGate {
 
         // Validate state
         if state.is_completed() {
-            return Err(ApprovalError::AlreadyCompleted(format!(
-                "{:?}",
-                state.status
-            )));
+            return Err(ApprovalError::AlreadyCompleted(format!("{:?}", state.status)));
         }
 
         if !state.is_approver_authorized(&approver) {
@@ -97,24 +90,15 @@ impl ApprovalGate {
         }
 
         // Add approval response
-        let response = ApprovalResponse {
-            approver: approver.clone(),
-            approved: true,
-            comment,
-            responded_at: Utc::now(),
-        };
+        let response =
+            ApprovalResponse { approver: approver.clone(), approved: true, comment, responded_at: Utc::now() };
 
         state.add_response(response);
 
         // Save updated state
         store.save(&state)?;
 
-        tracing::info!(
-            "Approval {} approved by {} (status: {:?})",
-            approval_id,
-            approver,
-            state.status
-        );
+        tracing::info!("Approval {} approved by {} (status: {:?})", approval_id, approver, state.status);
 
         Ok(state)
     }
@@ -137,10 +121,7 @@ impl ApprovalGate {
 
         // Validate state
         if state.is_completed() {
-            return Err(ApprovalError::AlreadyCompleted(format!(
-                "{:?}",
-                state.status
-            )));
+            return Err(ApprovalError::AlreadyCompleted(format!("{:?}", state.status)));
         }
 
         if !state.is_approver_authorized(&approver) {
@@ -152,24 +133,15 @@ impl ApprovalGate {
         }
 
         // Add rejection response
-        let response = ApprovalResponse {
-            approver: approver.clone(),
-            approved: false,
-            comment: reason,
-            responded_at: Utc::now(),
-        };
+        let response =
+            ApprovalResponse { approver: approver.clone(), approved: false, comment: reason, responded_at: Utc::now() };
 
         state.add_response(response);
 
         // Save updated state
         store.save(&state)?;
 
-        tracing::info!(
-            "Approval {} rejected by {} (status: {:?})",
-            approval_id,
-            approver,
-            state.status
-        );
+        tracing::info!("Approval {} rejected by {} (status: {:?})", approval_id, approver, state.status);
 
         Ok(state)
     }
@@ -185,10 +157,7 @@ impl ApprovalGate {
         let store = self.store.read().await;
         let all_pending = store.list_pending()?;
 
-        Ok(all_pending
-            .into_iter()
-            .filter(|s| s.gate_id == self.gate_id)
-            .collect())
+        Ok(all_pending.into_iter().filter(|s| s.gate_id == self.gate_id).collect())
     }
 
     /// List pending approvals for a specific approver
@@ -196,10 +165,7 @@ impl ApprovalGate {
         let store = self.store.read().await;
         let all_pending = store.list_pending_for_approver(approver)?;
 
-        Ok(all_pending
-            .into_iter()
-            .filter(|s| s.gate_id == self.gate_id)
-            .collect())
+        Ok(all_pending.into_iter().filter(|s| s.gate_id == self.gate_id).collect())
     }
 
     /// Check and update timed out approvals
@@ -212,10 +178,7 @@ impl ApprovalGate {
             store.save(state)?;
         }
 
-        Ok(timed_out
-            .into_iter()
-            .filter(|s| s.gate_id == self.gate_id)
-            .collect())
+        Ok(timed_out.into_iter().filter(|s| s.gate_id == self.gate_id).collect())
     }
 }
 

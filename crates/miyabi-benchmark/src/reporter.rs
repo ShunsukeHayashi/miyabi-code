@@ -17,16 +17,8 @@ pub struct EvaluationReporter {
 
 impl EvaluationReporter {
     /// Creates a new reporter with evaluation results
-    pub fn new(
-        results: Vec<EvaluationResult>,
-        instances: Vec<SWEBenchInstance>,
-        model_name: String,
-    ) -> Self {
-        Self {
-            results,
-            instances,
-            model_name,
-        }
+    pub fn new(results: Vec<EvaluationResult>, instances: Vec<SWEBenchInstance>, model_name: String) -> Self {
+        Self { results, instances, model_name }
     }
 
     /// Generates a benchmark summary
@@ -44,8 +36,7 @@ impl EvaluationReporter {
     pub fn save_json(&self, output_path: &Path) -> Result<()> {
         info!("Saving evaluation results to JSON: {:?}", output_path);
 
-        let json =
-            serde_json::to_string_pretty(&self.results).context("Failed to serialize results")?;
+        let json = serde_json::to_string_pretty(&self.results).context("Failed to serialize results")?;
 
         fs::write(output_path, json).context("Failed to write JSON file")?;
 
@@ -61,45 +52,23 @@ impl EvaluationReporter {
 
         // Header
         md.push_str("# SWE-bench Pro Evaluation Report\n\n");
-        md.push_str(&format!(
-            "**Date**: {}\n\n",
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S")
-        ));
+        md.push_str(&format!("**Date**: {}\n\n", chrono::Local::now().format("%Y-%m-%d %H:%M:%S")));
         md.push_str(&format!("**Model**: {}\n", summary.model));
         md.push_str(&format!("**Dataset**: {}\n", summary.dataset));
         md.push_str(&format!("**Split**: {}\n\n", summary.split));
 
         // Summary statistics
         md.push_str("## Summary\n\n");
-        md.push_str(&format!(
-            "- **Total Instances**: {}\n",
-            summary.total_instances
-        ));
-        md.push_str(&format!(
-            "- **Resolved**: {} ({:.2}%)\n",
-            summary.resolved_count,
-            summary.resolve_rate * 100.0
-        ));
-        md.push_str(&format!(
-            "- **Failed**: {}\n",
-            summary.total_instances - summary.resolved_count
-        ));
+        md.push_str(&format!("- **Total Instances**: {}\n", summary.total_instances));
+        md.push_str(&format!("- **Resolved**: {} ({:.2}%)\n", summary.resolved_count, summary.resolve_rate * 100.0));
+        md.push_str(&format!("- **Failed**: {}\n", summary.total_instances - summary.resolved_count));
         md.push_str(&format!("- **Errors**: {}\n", summary.errors));
-        md.push_str(&format!(
-            "- **Average Execution Time**: {:.2}s\n\n",
-            summary.avg_execution_time
-        ));
+        md.push_str(&format!("- **Average Execution Time**: {:.2}s\n\n", summary.avg_execution_time));
 
         // Test statistics
         md.push_str("## Test Results\n\n");
-        md.push_str(&format!(
-            "- **fail_to_pass**: {} tests passed\n",
-            summary.fail_to_pass_total
-        ));
-        md.push_str(&format!(
-            "- **pass_to_pass**: {} tests passed\n\n",
-            summary.pass_to_pass_total
-        ));
+        md.push_str(&format!("- **fail_to_pass**: {} tests passed\n", summary.fail_to_pass_total));
+        md.push_str(&format!("- **pass_to_pass**: {} tests passed\n\n", summary.pass_to_pass_total));
 
         // Language breakdown
         if !summary.by_language.is_empty() {
@@ -165,10 +134,7 @@ impl EvaluationReporter {
                 if let Some(error) = &result.error {
                     md.push_str(&format!("**Error**: {}\n\n", error));
                 }
-                md.push_str(&format!(
-                    "- fail_to_pass: {}/{}\n",
-                    result.fail_to_pass_count, result.fail_to_pass_total
-                ));
+                md.push_str(&format!("- fail_to_pass: {}/{}\n", result.fail_to_pass_count, result.fail_to_pass_total));
                 md.push_str(&format!(
                     "- pass_to_pass: {}/{}\n\n",
                     result.pass_to_pass_count, result.pass_to_pass_total

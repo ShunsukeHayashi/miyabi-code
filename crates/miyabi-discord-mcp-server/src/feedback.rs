@@ -230,12 +230,7 @@ mod tests {
             author_id: "123".to_string(),
             content: "test feedback".to_string(),
             message_url: "https://discord.com/...".to_string(),
-            reactions: FeedbackReactions {
-                upvotes: 3,
-                bug_reports: 2,
-                feature_requests: 0,
-                high_priority: 0,
-            },
+            reactions: FeedbackReactions { upvotes: 3, bug_reports: 2, feature_requests: 0, high_priority: 0 },
             feedback_type: FeedbackType::Bug,
         };
 

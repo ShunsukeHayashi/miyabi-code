@@ -60,13 +60,7 @@ pub struct ManagedSession {
 
 impl ManagedSession {
     /// 新しいセッションを作成
-    pub fn new(
-        id: Uuid,
-        agent_name: &str,
-        purpose: &str,
-        context: SessionContext,
-        child: Option<Child>,
-    ) -> Self {
+    pub fn new(id: Uuid, agent_name: &str, purpose: &str, context: SessionContext, child: Option<Child>) -> Self {
         Self {
             id,
             agent_name: agent_name.to_string(),
@@ -122,21 +116,10 @@ pub struct SessionContext {
 /// Agent実行結果
 #[derive(Debug, Clone)]
 pub enum AgentResult {
-    IssueAnalysis {
-        complexity: f64,
-        estimated_duration: u64,
-    },
-    TaskDecomposition {
-        tasks: Vec<String>,
-    },
-    CodeGeneration {
-        confidence: f64,
-        successful_worlds: usize,
-    },
-    Review {
-        quality_score: f64,
-        issues_found: usize,
-    },
+    IssueAnalysis { complexity: f64, estimated_duration: u64 },
+    TaskDecomposition { tasks: Vec<String> },
+    CodeGeneration { confidence: f64, successful_worlds: usize },
+    Review { quality_score: f64, issues_found: usize },
 }
 
 /// セッション状態

@@ -118,21 +118,15 @@ impl ServerConfig {
         };
 
         let github_token = args.github_token.ok_or_else(|| {
-            ServerError::Config(
-                "GITHUB_TOKEN is required (via --github-token or env var)".to_string(),
-            )
+            ServerError::Config("GITHUB_TOKEN is required (via --github-token or env var)".to_string())
         })?;
 
         let repo_owner = args.repo_owner.ok_or_else(|| {
-            ServerError::Config(
-                "MIYABI_REPO_OWNER is required (via --repo-owner or env var)".to_string(),
-            )
+            ServerError::Config("MIYABI_REPO_OWNER is required (via --repo-owner or env var)".to_string())
         })?;
 
         let repo_name = args.repo_name.ok_or_else(|| {
-            ServerError::Config(
-                "MIYABI_REPO_NAME is required (via --repo-name or env var)".to_string(),
-            )
+            ServerError::Config("MIYABI_REPO_NAME is required (via --repo-name or env var)".to_string())
         })?;
 
         let working_dir = args

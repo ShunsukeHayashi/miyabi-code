@@ -7,8 +7,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -41,8 +40,8 @@ impl SelfAnalysisAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -65,16 +64,13 @@ Generate detailed self-analysis as JSON with SWOT analysis, skills assessment, c
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::SelfAnalysisAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::SelfAnalysisAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let self_analysis: SelfAnalysis = serde_json::from_str(&response).map_err(|e| {
@@ -191,10 +187,7 @@ impl BaseAgent for SelfAnalysisAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "SelfAnalysisAgent starting self-analysis generation for task: {}",
-            task.id
-        );
+        tracing::info!("SelfAnalysisAgent starting self-analysis generation for task: {}", task.id);
 
         // Generate self-analysis using LLM
         let self_analysis = self.generate_self_analysis(task).await?;
@@ -230,10 +223,7 @@ impl BaseAgent for SelfAnalysisAgent {
             "recommendations_count": self_analysis.strategic_recommendations.len()
         });
 
-        tracing::info!(
-            "SelfAnalysisAgent completed self-analysis generation: {}",
-            summary
-        );
+        tracing::info!("SelfAnalysisAgent completed self-analysis generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -291,10 +281,7 @@ impl A2AEnabled for SelfAnalysisAgent {
         .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
@@ -303,9 +290,7 @@ impl A2AEnabled for SelfAnalysisAgent {
                     .input
                     .get("profile")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing profile".to_string())
-                    })?;
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing profile".to_string()))?;
 
                 let business_goals = task
                     .input
@@ -338,16 +323,10 @@ impl A2AEnabled for SelfAnalysisAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Self-analysis failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Self-analysis failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -574,10 +553,7 @@ mod tests {
 
         let analysis = SelfAnalysis {
             swot_analysis: SWOTAnalysis {
-                strengths: vec![
-                    "Technical expertise".to_string(),
-                    "Problem solving".to_string(),
-                ],
+                strengths: vec!["Technical expertise".to_string(), "Problem solving".to_string()],
                 weaknesses: vec!["Business development".to_string()],
                 opportunities: vec!["Market demand".to_string()],
                 threats: vec!["Competition".to_string()],

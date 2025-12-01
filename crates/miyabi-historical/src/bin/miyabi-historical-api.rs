@@ -34,10 +34,7 @@ async fn main() -> anyhow::Result<()> {
     info!("✅ Application state initialized");
 
     // Configure CORS
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    let cors = CorsLayer::new().allow_origin(Any).allow_methods(Any).allow_headers(Any);
 
     // Build router
     let app = Router::new()
@@ -47,10 +44,7 @@ async fn main() -> anyhow::Result<()> {
         .with_state(app_state);
 
     // Server configuration
-    let port = std::env::var("PORT")
-        .ok()
-        .and_then(|p| p.parse().ok())
-        .unwrap_or(3000);
+    let port = std::env::var("PORT").ok().and_then(|p| p.parse().ok()).unwrap_or(3000);
 
     let addr = format!("0.0.0.0:{}", port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
@@ -66,9 +60,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Example request:");
     info!(r#"  curl -X POST http://{}/api/chat \"#, addr);
     info!(r#"    -H "Content-Type: application/json" \"#);
-    info!(
-        r#"    -d '{{"figure": "oda_nobunaga", "message": "経営戦略について教えて", "user_id": "test_user"}}'"#
-    );
+    info!(r#"    -d '{{"figure": "oda_nobunaga", "message": "経営戦略について教えて", "user_id": "test_user"}}'"#);
     info!("");
 
     // Start server

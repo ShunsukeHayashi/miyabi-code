@@ -22,10 +22,7 @@ impl SessionStorage {
 
         // ファイルが存在しない場合は空のデータベースを作成
         if !file_path.exists() {
-            let empty_db = SessionDatabase {
-                sessions: vec![],
-                version: 1,
-            };
+            let empty_db = SessionDatabase { sessions: vec![], version: 1 };
             let json = serde_json::to_string_pretty(&empty_db)?;
             fs::write(&file_path, json).await?;
         }
@@ -68,9 +65,8 @@ impl SessionStorage {
         let mut contents = String::new();
         file.read_to_string(&mut contents).await?;
 
-        serde_json::from_str(&contents).map_err(|e| {
-            SessionError::StorageError(format!("Failed to parse sessions.json: {}", e))
-        })
+        serde_json::from_str(&contents)
+            .map_err(|e| SessionError::StorageError(format!("Failed to parse sessions.json: {}", e)))
     }
 
     /// データベース全体を保存

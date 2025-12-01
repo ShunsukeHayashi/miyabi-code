@@ -10,10 +10,7 @@ mod serde_path {
     use serde::{Deserialize, Deserializer, Serializer};
     use std::path::{Path, PathBuf};
 
-    pub fn serialize_option<S>(
-        value: &Option<PathBuf>,
-        serializer: S,
-    ) -> std::result::Result<S::Ok, S::Error>
+    pub fn serialize_option<S>(value: &Option<PathBuf>, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -23,9 +20,7 @@ mod serde_path {
         }
     }
 
-    pub fn deserialize_option<'de, D>(
-        deserializer: D,
-    ) -> std::result::Result<Option<PathBuf>, D::Error>
+    pub fn deserialize_option<'de, D>(deserializer: D) -> std::result::Result<Option<PathBuf>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -198,9 +193,7 @@ impl std::str::FromStr for AgentType {
             "sales" | "salesagent" => Ok(AgentType::SalesAgent),
             "crm" | "crmagent" => Ok(AgentType::CRMAgent),
             "analytics" | "analyticsagent" => Ok(AgentType::AnalyticsAgent),
-            "jonathan-ive-design" | "jonathanivedesignagent" => {
-                Ok(AgentType::JonathanIveDesignAgent)
-            }
+            "jonathan-ive-design" | "jonathanivedesignagent" => Ok(AgentType::JonathanIveDesignAgent),
 
             // Community Agents
             "discord-community" | "discordcommunity" => Ok(AgentType::DiscordCommunity),
@@ -439,11 +432,9 @@ impl AgentConfig {
 
         // Validate worktree_base_path if use_worktree is enabled
         if self.use_worktree && self.worktree_base_path.is_none() {
-            return Err(
-                "Worktree base path is required when use_worktree is enabled. \
+            return Err("Worktree base path is required when use_worktree is enabled. \
                 Hint: Set worktree_base_path to '.worktrees' or absolute path"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         // Validate URL formats if provided
@@ -803,11 +794,7 @@ mod tests {
 
     #[test]
     fn test_result_status_roundtrip() {
-        let statuses = vec![
-            ResultStatus::Success,
-            ResultStatus::Failed,
-            ResultStatus::Escalated,
-        ];
+        let statuses = vec![ResultStatus::Success, ResultStatus::Failed, ResultStatus::Escalated];
 
         for status in statuses {
             let json = serde_json::to_string(&status).unwrap();
@@ -822,13 +809,8 @@ mod tests {
 
     #[test]
     fn test_agent_result_serialization_minimal() {
-        let result = AgentResult {
-            status: ResultStatus::Success,
-            data: None,
-            error: None,
-            metrics: None,
-            escalation: None,
-        };
+        let result =
+            AgentResult { status: ResultStatus::Success, data: None, error: None, metrics: None, escalation: None };
 
         let json = serde_json::to_string(&result).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -957,10 +939,7 @@ mod tests {
     #[test]
     fn test_escalation_info_serialization() {
         let mut context = HashMap::new();
-        context.insert(
-            "issue_url".to_string(),
-            serde_json::json!("https://github.com/user/repo/issues/123"),
-        );
+        context.insert("issue_url".to_string(), serde_json::json!("https://github.com/user/repo/issues/123"));
 
         let escalation = EscalationInfo {
             reason: "Security vulnerability detected".to_string(),

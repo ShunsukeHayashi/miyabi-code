@@ -18,10 +18,7 @@ pub struct ChunkConfig {
 
 impl Default for ChunkConfig {
     fn default() -> Self {
-        Self {
-            chunk_size: 512,
-            overlap: 50,
-        }
+        Self { chunk_size: 512, overlap: 50 }
     }
 }
 
@@ -39,10 +36,7 @@ impl TextEmbedder {
     /// * `config` - Chunking configuration
     /// * `embedding_dim` - Dimension of embedding vectors (default: 384 for sentence-transformers)
     pub fn new(config: ChunkConfig, embedding_dim: usize) -> Self {
-        Self {
-            config,
-            embedding_dim,
-        }
+        Self { config, embedding_dim }
     }
 
     /// Get the embedding dimension
@@ -165,11 +159,7 @@ mod tests {
     #[tokio::test]
     async fn test_embed_batch() {
         let embedder = TextEmbedder::default();
-        let texts = vec![
-            "織田信長".to_string(),
-            "豊臣秀吉".to_string(),
-            "徳川家康".to_string(),
-        ];
+        let texts = vec!["織田信長".to_string(), "豊臣秀吉".to_string(), "徳川家康".to_string()];
 
         let embeddings = embedder.embed_batch(&texts).await.unwrap();
 

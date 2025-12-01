@@ -195,12 +195,7 @@ impl AgentError {
     /// * `agent_type` - Type of agent that encountered the error
     /// * `task_id` - Optional task ID if error occurred during task execution
     pub fn new(message: impl Into<String>, agent_type: AgentType, task_id: Option<String>) -> Self {
-        Self {
-            message: message.into(),
-            agent_type,
-            task_id,
-            cause: None,
-        }
+        Self { message: message.into(), agent_type, task_id, cause: None }
     }
 
     /// Creates a new `AgentError` with an underlying cause for error chaining
@@ -217,12 +212,7 @@ impl AgentError {
         task_id: Option<String>,
         cause: impl Into<Box<dyn std::error::Error + Send + Sync>>,
     ) -> Self {
-        Self {
-            message: message.into(),
-            agent_type,
-            task_id,
-            cause: Some(cause.into()),
-        }
+        Self { message: message.into(), agent_type, task_id, cause: Some(cause.into()) }
     }
 }
 
@@ -258,12 +248,7 @@ impl EscalationError {
         severity: Severity,
         context: serde_json::Value,
     ) -> Self {
-        Self {
-            message: message.into(),
-            target,
-            severity,
-            context,
-        }
+        Self { message: message.into(), target, severity, context }
     }
 }
 
@@ -320,51 +305,33 @@ impl UnifiedError for MiyabiError {
 
     fn user_message(&self) -> String {
         match self {
-            Self::Agent(e) => format!(
-                "An agent failed to complete its task: {} (Agent: {:?})",
-                e.message, e.agent_type
-            ),
+            Self::Agent(e) => {
+                format!("An agent failed to complete its task: {} (Agent: {:?})", e.message, e.agent_type)
+            }
             Self::Escalation(e) => format!(
                 "This issue requires human intervention ({}). Target: {:?}, Severity: {:?}",
                 e.message, e.target, e.severity
             ),
-            Self::CircularDependency(e) => format!(
-                "Tasks have circular dependencies that prevent execution: {}",
-                e.cycle.join(" → ")
-            ),
+            Self::CircularDependency(e) => {
+                format!("Tasks have circular dependencies that prevent execution: {}", e.cycle.join(" → "))
+            }
             Self::Io(e) => {
-                format!(
-                    "A file operation failed: {}. Please check file paths and permissions.",
-                    e
-                )
+                format!("A file operation failed: {}. Please check file paths and permissions.", e)
             }
             Self::Json(e) => {
-                format!(
-                    "Failed to process JSON data: {}. Please check the data format.",
-                    e
-                )
+                format!("Failed to process JSON data: {}. Please check the data format.", e)
             }
             Self::Http(msg) => {
-                format!(
-                    "A network request failed: {}. Please check your internet connection.",
-                    msg
-                )
+                format!("A network request failed: {}. Please check your internet connection.", msg)
             }
-            Self::GitHub(msg) => format!(
-                "GitHub API request failed: {}. Please check your token and permissions.",
-                msg
-            ),
+            Self::GitHub(msg) => {
+                format!("GitHub API request failed: {}. Please check your token and permissions.", msg)
+            }
             Self::Git(msg) => {
-                format!(
-                    "Git operation failed: {}. Please check your repository state.",
-                    msg
-                )
+                format!("Git operation failed: {}. Please check your repository state.", msg)
             }
             Self::Auth(msg) => {
-                format!(
-                    "Authentication failed: {}. Please check your credentials.",
-                    msg
-                )
+                format!("Authentication failed: {}. Please check your credentials.", msg)
             }
             Self::Config(msg) => {
                 format!("Configuration error: {}. Please check your settings.", msg)
@@ -372,27 +339,17 @@ impl UnifiedError for MiyabiError {
             Self::Validation(msg) => {
                 format!("Input validation failed: {}. Please check your input.", msg)
             }
-            Self::Timeout(ms) => format!(
-                "Operation timed out after {}ms. Please try again or increase the timeout.",
-                ms
-            ),
+            Self::Timeout(ms) => {
+                format!("Operation timed out after {}ms. Please try again or increase the timeout.", ms)
+            }
             Self::ToolError(msg) => {
-                format!(
-                    "Tool execution failed: {}. Please check the tool configuration.",
-                    msg
-                )
+                format!("Tool execution failed: {}. Please check the tool configuration.", msg)
             }
             Self::PermissionDenied(msg) => {
-                format!(
-                    "Permission denied: {}. Please check file or API permissions.",
-                    msg
-                )
+                format!("Permission denied: {}. Please check file or API permissions.", msg)
             }
             Self::Unknown(msg) => {
-                format!(
-                    "An unexpected error occurred: {}. Please report this issue.",
-                    msg
-                )
+                format!("An unexpected error occurred: {}. Please report this issue.", msg)
             }
         }
     }
@@ -417,22 +374,14 @@ mod tests {
 
     #[test]
     fn test_miyabi_error_agent_variant() {
-        let agent_error = AgentError::new(
-            "Test error",
-            AgentType::CodeGenAgent,
-            Some("task-1".to_string()),
-        );
+        let agent_error = AgentError::new("Test error", AgentType::CodeGenAgent, Some("task-1".to_string()));
         let miyabi_error = MiyabiError::Agent(agent_error);
         assert!(miyabi_error.to_string().contains("Agent error"));
     }
 
     #[test]
     fn test_miyabi_error_from_agent_error() {
-        let agent_error = AgentError::new(
-            "Test error",
-            AgentType::ReviewAgent,
-            Some("task-2".to_string()),
-        );
+        let agent_error = AgentError::new("Test error", AgentType::ReviewAgent, Some("task-2".to_string()));
         let miyabi_error: MiyabiError = agent_error.into();
         assert!(matches!(miyabi_error, MiyabiError::Agent(_)));
     }
@@ -451,20 +400,15 @@ mod tests {
 
     #[test]
     fn test_miyabi_error_from_escalation_error() {
-        let escalation_error = EscalationError::new(
-            "Security issue",
-            EscalationTarget::CISO,
-            Severity::Critical,
-            serde_json::json!({}),
-        );
+        let escalation_error =
+            EscalationError::new("Security issue", EscalationTarget::CISO, Severity::Critical, serde_json::json!({}));
         let miyabi_error: MiyabiError = escalation_error.into();
         assert!(matches!(miyabi_error, MiyabiError::Escalation(_)));
     }
 
     #[test]
     fn test_miyabi_error_circular_dependency_variant() {
-        let cycle_error =
-            CircularDependencyError::new(vec!["A".to_string(), "B".to_string(), "A".to_string()]);
+        let cycle_error = CircularDependencyError::new(vec!["A".to_string(), "B".to_string(), "A".to_string()]);
         let miyabi_error = MiyabiError::CircularDependency(cycle_error);
         assert!(miyabi_error.to_string().contains("Circular dependency"));
     }
@@ -561,11 +505,7 @@ mod tests {
 
     #[test]
     fn test_agent_error_creation() {
-        let error = AgentError::new(
-            "Failed to generate code",
-            AgentType::CodeGenAgent,
-            Some("task-123".to_string()),
-        );
+        let error = AgentError::new("Failed to generate code", AgentType::CodeGenAgent, Some("task-123".to_string()));
         assert_eq!(error.message, "Failed to generate code");
         assert_eq!(error.agent_type, AgentType::CodeGenAgent);
         assert_eq!(error.task_id, Some("task-123".to_string()));
@@ -594,11 +534,7 @@ mod tests {
 
     #[test]
     fn test_agent_error_display() {
-        let error = AgentError::new(
-            "Test message",
-            AgentType::IssueAgent,
-            Some("task-789".to_string()),
-        );
+        let error = AgentError::new("Test message", AgentType::IssueAgent, Some("task-789".to_string()));
         let display = error.to_string();
         assert!(display.contains("IssueAgent"));
         assert!(display.contains("Test message"));
@@ -614,8 +550,7 @@ mod tests {
     #[test]
     fn test_agent_error_source_trait() {
         let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "File not found");
-        let error =
-            AgentError::with_cause("Wrapper error", AgentType::CodeGenAgent, None, io_error);
+        let error = AgentError::with_cause("Wrapper error", AgentType::CodeGenAgent, None, io_error);
 
         use std::error::Error;
         assert!(error.source().is_some());
@@ -665,8 +600,7 @@ mod tests {
         ];
 
         for target in targets {
-            let error =
-                EscalationError::new("Test", target, Severity::Medium, serde_json::json!({}));
+            let error = EscalationError::new("Test", target, Severity::Medium, serde_json::json!({}));
             assert_eq!(error.target, target);
         }
     }
@@ -682,24 +616,14 @@ mod tests {
         ];
 
         for severity in severities {
-            let error = EscalationError::new(
-                "Test",
-                EscalationTarget::TechLead,
-                severity,
-                serde_json::json!({}),
-            );
+            let error = EscalationError::new("Test", EscalationTarget::TechLead, severity, serde_json::json!({}));
             assert_eq!(error.severity, severity);
         }
     }
 
     #[test]
     fn test_escalation_error_into_miyabi_error() {
-        let error = EscalationError::new(
-            "Test",
-            EscalationTarget::PO,
-            Severity::Low,
-            serde_json::json!({}),
-        );
+        let error = EscalationError::new("Test", EscalationTarget::PO, Severity::Low, serde_json::json!({}));
         let miyabi_error: MiyabiError = error.into();
         assert!(matches!(miyabi_error, MiyabiError::Escalation(_)));
     }
@@ -710,11 +634,7 @@ mod tests {
 
     #[test]
     fn test_circular_dependency_error() {
-        let cycle = vec![
-            "task-1".to_string(),
-            "task-2".to_string(),
-            "task-1".to_string(),
-        ];
+        let cycle = vec!["task-1".to_string(), "task-2".to_string(), "task-1".to_string()];
         let error = CircularDependencyError::new(cycle.clone());
         assert_eq!(error.cycle, cycle);
         assert!(error.to_string().contains("task-1 -> task-2 -> task-1"));
@@ -743,11 +663,7 @@ mod tests {
 
     #[test]
     fn test_circular_dependency_error_display() {
-        let cycle = vec![
-            "task-A".to_string(),
-            "task-B".to_string(),
-            "task-A".to_string(),
-        ];
+        let cycle = vec!["task-A".to_string(), "task-B".to_string(), "task-A".to_string()];
         let error = CircularDependencyError::new(cycle);
         let display = error.to_string();
         assert!(display.contains("Circular dependency detected"));
@@ -757,8 +673,7 @@ mod tests {
 
     #[test]
     fn test_circular_dependency_error_into_miyabi_error() {
-        let error =
-            CircularDependencyError::new(vec!["1".to_string(), "2".to_string(), "1".to_string()]);
+        let error = CircularDependencyError::new(vec!["1".to_string(), "2".to_string(), "1".to_string()]);
         let miyabi_error: MiyabiError = error.into();
         assert!(matches!(miyabi_error, MiyabiError::CircularDependency(_)));
     }
@@ -819,8 +734,7 @@ mod tests {
         use std::error::Error;
 
         let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "Original error");
-        let agent_error =
-            AgentError::with_cause("Wrapped error", AgentType::DeploymentAgent, None, io_error);
+        let agent_error = AgentError::with_cause("Wrapped error", AgentType::DeploymentAgent, None, io_error);
 
         let source = agent_error.source();
         assert!(source.is_some());

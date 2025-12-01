@@ -70,9 +70,7 @@ pub use funnel_design::FunnelDesignAgent;
 pub use jonathan_ive_design::JonathanIveDesignAgent;
 pub use market_research::MarketResearchAgent;
 pub use marketing::MarketingAgent;
-pub use persistence::{
-    AgentExecutionResult, ExecutionResultBuilder, ExecutionStatus, PersistableAgent,
-};
+pub use persistence::{AgentExecutionResult, ExecutionResultBuilder, ExecutionStatus, PersistableAgent};
 pub use persona::PersonaAgent;
 pub use product_concept::ProductConceptAgent;
 pub use product_design::ProductDesignAgent;

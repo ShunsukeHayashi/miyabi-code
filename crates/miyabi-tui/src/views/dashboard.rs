@@ -81,11 +81,7 @@ impl AgentDashboard {
         let mut selected = ListState::default();
         selected.select(Some(0));
 
-        Self {
-            agents,
-            selected,
-            logs: vec!["Dashboard initialized".to_string()],
-        }
+        Self { agents, selected, logs: vec!["Dashboard initialized".to_string()] }
     }
 
     pub fn update(&mut self) {
@@ -142,14 +138,8 @@ impl AgentDashboard {
                     _ => Color::Yellow,
                 };
                 ListItem::new(Line::from(vec![
-                    Span::styled(
-                        format!("{:<20}", agent.name),
-                        Style::default().fg(Color::Cyan),
-                    ),
-                    Span::styled(
-                        format!(" {} ", agent.status),
-                        Style::default().fg(status_color),
-                    ),
+                    Span::styled(format!("{:<20}", agent.name), Style::default().fg(Color::Cyan)),
+                    Span::styled(format!(" {} ", agent.status), Style::default().fg(status_color)),
                 ]))
             })
             .collect();
@@ -161,11 +151,7 @@ impl AgentDashboard {
                     .title(" Agents (21) ")
                     .title_style(Style::default().fg(Color::Yellow)),
             )
-            .highlight_style(
-                Style::default()
-                    .bg(Color::DarkGray)
-                    .add_modifier(Modifier::BOLD),
-            )
+            .highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
             .highlight_symbol(">> ");
 
         f.render_stateful_widget(list, chunks[0], &mut self.selected.clone());
@@ -193,11 +179,7 @@ impl AgentDashboard {
                         Span::styled(&agent.last_update, Style::default().fg(Color::Yellow)),
                     ]),
                 ])
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .title(" Agent Details "),
-                );
+                .block(Block::default().borders(Borders::ALL).title(" Agent Details "));
                 f.render_widget(details, right_chunks[0]);
 
                 // Progress gauge

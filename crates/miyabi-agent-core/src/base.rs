@@ -48,11 +48,7 @@ impl<T: BaseAgent> super::orchestration::Orchestrated for T {
         Ok(())
     }
 
-    async fn post_execute(
-        &self,
-        task: &Task,
-        result: &AgentResult,
-    ) -> std::result::Result<(), MiyabiError> {
+    async fn post_execute(&self, task: &Task, result: &AgentResult) -> std::result::Result<(), MiyabiError> {
         tracing::debug!(
             agent_type = ?self.agent_type(),
             task_id = %task.id,

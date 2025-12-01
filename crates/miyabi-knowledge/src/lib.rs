@@ -70,9 +70,7 @@ pub mod potpie;
 #[cfg(feature = "server")]
 pub mod server;
 
-pub use ast_context::{
-    AstError, CodeSymbol, FileContext, FileContextTracker, SymbolKind, Visibility,
-};
+pub use ast_context::{AstError, CodeSymbol, FileContext, FileContextTracker, SymbolKind, Visibility};
 pub use cache::IndexCache;
 pub use collector::{KnowledgeCollector, LogCollector};
 pub use config::{AutoIndexConfig, KnowledgeConfig};
@@ -87,9 +85,7 @@ pub use prompt_augmenter::{
 };
 pub use retention::{CleanupStats, RetentionManager, RetentionPolicy};
 pub use searcher::{KnowledgeSearcher, QdrantSearcher, SearchFilter};
-pub use types::{
-    IndexStats, KnowledgeEntry, KnowledgeId, KnowledgeMetadata, KnowledgeResult, WorkspaceInfo,
-};
+pub use types::{IndexStats, KnowledgeEntry, KnowledgeId, KnowledgeMetadata, KnowledgeResult, WorkspaceInfo};
 
 use std::path::Path;
 
@@ -123,12 +119,7 @@ impl KnowledgeManager {
         let indexer = Box::new(QdrantIndexer::new(config.clone()).await?);
         let searcher = Box::new(QdrantSearcher::new(config.clone()).await?);
 
-        Ok(Self {
-            _config: config,
-            collector,
-            indexer,
-            searcher,
-        })
+        Ok(Self { _config: config, collector, indexer, searcher })
     }
 
     /// ログディレクトリから収集
@@ -196,20 +187,12 @@ impl KnowledgeManager {
     }
 
     /// フィルタ付き検索
-    pub async fn search_filtered(
-        &self,
-        query: &str,
-        filter: SearchFilter,
-    ) -> Result<Vec<KnowledgeResult>> {
+    pub async fn search_filtered(&self, query: &str, filter: SearchFilter) -> Result<Vec<KnowledgeResult>> {
         self.searcher.search_filtered(query, filter).await
     }
 
     /// 類似エントリ検索
-    pub async fn find_similar(
-        &self,
-        entry_id: &KnowledgeId,
-        limit: usize,
-    ) -> Result<Vec<KnowledgeResult>> {
+    pub async fn find_similar(&self, entry_id: &KnowledgeId, limit: usize) -> Result<Vec<KnowledgeResult>> {
         self.searcher.find_similar(entry_id, limit).await
     }
 }

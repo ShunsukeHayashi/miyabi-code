@@ -13,9 +13,7 @@ pub struct ModeLoader {
 impl ModeLoader {
     /// Create a new mode loader for the given project root
     pub fn new(project_root: &Path) -> Self {
-        Self {
-            modes_dir: project_root.join(".miyabi/modes"),
-        }
+        Self { modes_dir: project_root.join(".miyabi/modes") }
     }
 
     /// Load all modes (system + custom)
@@ -45,9 +43,7 @@ impl ModeLoader {
         }
 
         if modes.is_empty() {
-            return Err(ModeError::InvalidDefinition(
-                "No modes loaded. Check .miyabi/modes directory.".into(),
-            ));
+            return Err(ModeError::InvalidDefinition("No modes loaded. Check .miyabi/modes directory.".into()));
         }
 
         Ok(modes)

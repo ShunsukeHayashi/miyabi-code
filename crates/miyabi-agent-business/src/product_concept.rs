@@ -7,8 +7,7 @@
 use async_trait::async_trait;
 use miyabi_agent_core::{
     a2a_integration::{
-        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
-        AgentCardBuilder,
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
     },
     BaseAgent,
 };
@@ -41,8 +40,8 @@ impl ProductConceptAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY")
-                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
+                let groq_key =
+                    env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;
@@ -65,16 +64,13 @@ Create a comprehensive product concept as JSON with value proposition, target cu
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::ProductConceptAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::ProductConceptAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let product_concept: ProductConcept = serde_json::from_str(&response).map_err(|e| {
@@ -195,10 +191,7 @@ impl BaseAgent for ProductConceptAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "ProductConceptAgent starting product concept generation for task: {}",
-            task.id
-        );
+        tracing::info!("ProductConceptAgent starting product concept generation for task: {}", task.id);
 
         // Generate product concept using LLM
         let product_concept = self.generate_product_concept(task).await?;
@@ -234,10 +227,7 @@ impl BaseAgent for ProductConceptAgent {
             "target_segments_count": if product_concept.target_customers.secondary.is_some() { 2 } else { 1 }
         });
 
-        tracing::info!(
-            "ProductConceptAgent completed product concept generation: {}",
-            summary
-        );
+        tracing::info!("ProductConceptAgent completed product concept generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -252,39 +242,33 @@ impl BaseAgent for ProductConceptAgent {
 #[async_trait]
 impl A2AEnabled for ProductConceptAgent {
     fn agent_card(&self) -> A2AAgentCard {
-        AgentCardBuilder::new(
-            "ProductConceptAgent",
-            "Product concept and MVP design agent",
-        )
-        .version("0.1.1")
-        .capability(AgentCapability {
-            id: "design_concept".to_string(),
-            name: "Design Product Concept".to_string(),
-            description: "Define MVP, business model canvas, and product-market fit".to_string(),
-            input_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "idea": { "type": "string", "description": "Business idea" },
-                    "market": { "type": "string", "description": "Target market" }
-                },
-                "required": ["idea"]
-            })),
-            output_schema: Some(json!({
-                "type": "object",
-                "properties": {
-                    "value_proposition": { "type": "object" },
-                    "mvp_features": { "type": "array" },
-                    "business_model": { "type": "object" }
-                }
-            })),
-        })
-        .build()
+        AgentCardBuilder::new("ProductConceptAgent", "Product concept and MVP design agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "design_concept".to_string(),
+                name: "Design Product Concept".to_string(),
+                description: "Define MVP, business model canvas, and product-market fit".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "idea": { "type": "string", "description": "Business idea" },
+                        "market": { "type": "string", "description": "Target market" }
+                    },
+                    "required": ["idea"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "value_proposition": { "type": "object" },
+                        "mvp_features": { "type": "array" },
+                        "business_model": { "type": "object" }
+                    }
+                })),
+            })
+            .build()
     }
 
-    async fn handle_a2a_task(
-        &self,
-        task: A2ATask,
-    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "design_concept" => {
@@ -292,14 +276,8 @@ impl A2AEnabled for ProductConceptAgent {
                     .input
                     .get("idea")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string())
-                    })?;
-                let market = task
-                    .input
-                    .get("market")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("SaaS");
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string()))?;
+                let market = task.input.get("market").and_then(|v| v.as_str()).unwrap_or("SaaS");
                 let internal_task = Task {
                     id: task.id.clone(),
                     title: idea.to_string(),
@@ -322,16 +300,10 @@ impl A2AEnabled for ProductConceptAgent {
                         artifacts: vec![],
                         execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                        "Product concept failed: {}",
-                        e
-                    ))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Product concept failed: {}", e))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
-                "Unknown capability: {}",
-                task.capability
-            ))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
         }
     }
 
@@ -349,7 +321,8 @@ mod tests {
         Task {
             id: "test-task-2".to_string(),
             title: "AI-Powered Task Management Platform".to_string(),
-            description: "A comprehensive task management solution with AI-driven prioritization and automation".to_string(),
+            description: "A comprehensive task management solution with AI-driven prioritization and automation"
+                .to_string(),
             task_type: TaskType::Feature,
             priority: 1,
             severity: None,
@@ -443,10 +416,7 @@ mod tests {
 
         let invalid_concept = ProductConcept {
             value_proposition: "".to_string(), // Empty value proposition should fail validation
-            target_customers: TargetCustomers {
-                primary: "Primary segment".to_string(),
-                secondary: None,
-            },
+            target_customers: TargetCustomers { primary: "Primary segment".to_string(), secondary: None },
             problem_solution_fit: "Solves the problem".to_string(),
             business_model_canvas: BusinessModelCanvas {
                 key_partners: vec!["Partner 1".to_string()],
@@ -487,10 +457,7 @@ mod tests {
 
         let invalid_concept = ProductConcept {
             value_proposition: "Clear value proposition".to_string(),
-            target_customers: TargetCustomers {
-                primary: "Primary segment".to_string(),
-                secondary: None,
-            },
+            target_customers: TargetCustomers { primary: "Primary segment".to_string(), secondary: None },
             problem_solution_fit: "Solves the problem".to_string(),
             business_model_canvas: BusinessModelCanvas {
                 key_partners: vec!["Partner 1".to_string()],
@@ -526,10 +493,7 @@ mod tests {
 
         let invalid_concept = ProductConcept {
             value_proposition: "Clear value proposition".to_string(),
-            target_customers: TargetCustomers {
-                primary: "Primary segment".to_string(),
-                secondary: None,
-            },
+            target_customers: TargetCustomers { primary: "Primary segment".to_string(), secondary: None },
             problem_solution_fit: "Solves the problem".to_string(),
             business_model_canvas: BusinessModelCanvas {
                 key_partners: vec!["Partner 1".to_string()],

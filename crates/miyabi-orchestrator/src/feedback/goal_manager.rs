@@ -54,9 +54,7 @@ pub struct GoalManager {
 impl GoalManager {
     /// Create a new goal manager
     pub fn new() -> Self {
-        Self {
-            goals: HashMap::new(),
-        }
+        Self { goals: HashMap::new() }
     }
 
     /// Create and register a new goal
@@ -142,12 +140,7 @@ impl GoalManager {
     }
 
     /// Add or update goal criterion
-    pub fn set_criterion(
-        &mut self,
-        id: &str,
-        key: impl Into<String>,
-        value: f64,
-    ) -> LoopResult<()> {
+    pub fn set_criterion(&mut self, id: &str, key: impl Into<String>, value: f64) -> LoopResult<()> {
         let goal = self.get_goal_mut(id)?;
         goal.criteria.insert(key.into(), value);
         Ok(())
@@ -162,10 +155,7 @@ impl GoalManager {
 
     /// Get all active goals
     pub fn active_goals(&self) -> Vec<&Goal> {
-        self.goals
-            .values()
-            .filter(|g| g.status == GoalStatus::Active)
-            .collect()
+        self.goals.values().filter(|g| g.status == GoalStatus::Active).collect()
     }
 
     /// Get goal count by status

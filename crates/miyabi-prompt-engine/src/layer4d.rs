@@ -78,17 +78,9 @@ impl Layer4D {
 impl Default for Layer4D {
     fn default() -> Self {
         Self {
-            spatial: SpatialLayers {
-                foreground: None,
-                midground: None,
-                background: None,
-            },
+            spatial: SpatialLayers { foreground: None, midground: None, background: None },
             temporal: TemporalLayer::Present,
-            effects: EffectLayers {
-                vfx: vec![],
-                lighting: vec![],
-                post_processing: vec![],
-            },
+            effects: EffectLayers { vfx: vec![], lighting: vec![], post_processing: vec![] },
         }
     }
 }

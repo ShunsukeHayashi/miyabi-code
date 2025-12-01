@@ -25,11 +25,7 @@ fn test_simple_branch() {
         .expect("Decision node not found");
 
     // Should have 2 edges from decision node (one to each branch)
-    let edges_from_decision: Vec<_> = dag
-        .edges
-        .iter()
-        .filter(|e| e.from == decision_node.id)
-        .collect();
+    let edges_from_decision: Vec<_> = dag.edges.iter().filter(|e| e.from == decision_node.id).collect();
 
     assert_eq!(edges_from_decision.len(), 2);
 
@@ -48,18 +44,12 @@ fn test_branch_on_with_multiple_conditions() {
             vec![
                 (
                     "high",
-                    Condition::FieldGreaterThan {
-                        field: "quality_score".to_string(),
-                        value: 0.9,
-                    },
+                    Condition::FieldGreaterThan { field: "quality_score".to_string(), value: 0.9 },
                     "fast-deploy",
                 ),
                 (
                     "medium",
-                    Condition::FieldGreaterThan {
-                        field: "quality_score".to_string(),
-                        value: 0.7,
-                    },
+                    Condition::FieldGreaterThan { field: "quality_score".to_string(), value: 0.7 },
                     "manual-review",
                 ),
                 ("low", Condition::Always, "reject"),
@@ -82,21 +72,14 @@ fn test_branch_on_with_multiple_conditions() {
         .expect("Route node not found");
 
     // Should have 3 edges from route node
-    let edges_from_route: Vec<_> = dag
-        .edges
-        .iter()
-        .filter(|e| e.from == route_node.id)
-        .collect();
+    let edges_from_route: Vec<_> = dag.edges.iter().filter(|e| e.from == route_node.id).collect();
 
     assert_eq!(edges_from_route.len(), 3);
 }
 
 #[test]
 fn test_condition_evaluation_field_equals() {
-    let cond = Condition::FieldEquals {
-        field: "status".to_string(),
-        value: json!("passed"),
-    };
+    let cond = Condition::FieldEquals { field: "status".to_string(), value: json!("passed") };
 
     let context_pass = json!({ "status": "passed" });
     let context_fail = json!({ "status": "failed" });
@@ -107,10 +90,7 @@ fn test_condition_evaluation_field_equals() {
 
 #[test]
 fn test_condition_evaluation_field_greater_than() {
-    let cond = Condition::FieldGreaterThan {
-        field: "score".to_string(),
-        value: 0.8,
-    };
+    let cond = Condition::FieldGreaterThan { field: "score".to_string(), value: 0.8 };
 
     let context_high = json!({ "score": 0.95 });
     let context_low = json!({ "score": 0.5 });
@@ -123,10 +103,7 @@ fn test_condition_evaluation_field_greater_than() {
 
 #[test]
 fn test_condition_evaluation_nested_fields() {
-    let cond = Condition::FieldEquals {
-        field: "result.status".to_string(),
-        value: json!("success"),
-    };
+    let cond = Condition::FieldEquals { field: "result.status".to_string(), value: json!("success") };
 
     let context = json!({
         "result": {
@@ -141,14 +118,8 @@ fn test_condition_evaluation_nested_fields() {
 #[test]
 fn test_condition_and() {
     let cond = Condition::And(vec![
-        Condition::FieldEquals {
-            field: "tests_passed".to_string(),
-            value: json!(true),
-        },
-        Condition::FieldGreaterThan {
-            field: "coverage".to_string(),
-            value: 0.8,
-        },
+        Condition::FieldEquals { field: "tests_passed".to_string(), value: json!(true) },
+        Condition::FieldGreaterThan { field: "coverage".to_string(), value: 0.8 },
     ]);
 
     let context_both = json!({ "tests_passed": true, "coverage": 0.9 });
@@ -163,14 +134,8 @@ fn test_condition_and() {
 #[test]
 fn test_condition_or() {
     let cond = Condition::Or(vec![
-        Condition::FieldEquals {
-            field: "status".to_string(),
-            value: json!("passed"),
-        },
-        Condition::FieldEquals {
-            field: "status".to_string(),
-            value: json!("warning"),
-        },
+        Condition::FieldEquals { field: "status".to_string(), value: json!("passed") },
+        Condition::FieldEquals { field: "status".to_string(), value: json!("warning") },
     ]);
 
     let context_pass = json!({ "status": "passed" });
@@ -184,10 +149,7 @@ fn test_condition_or() {
 
 #[test]
 fn test_condition_not() {
-    let cond = Condition::Not(Box::new(Condition::FieldEquals {
-        field: "failed".to_string(),
-        value: json!(true),
-    }));
+    let cond = Condition::Not(Box::new(Condition::FieldEquals { field: "failed".to_string(), value: json!(true) }));
 
     let context_ok = json!({ "failed": false });
     let context_failed = json!({ "failed": true });
@@ -223,19 +185,10 @@ fn test_complex_nested_conditions() {
     // (tests_passed AND coverage > 0.8) OR status == "override"
     let cond = Condition::Or(vec![
         Condition::And(vec![
-            Condition::FieldEquals {
-                field: "tests_passed".to_string(),
-                value: json!(true),
-            },
-            Condition::FieldGreaterThan {
-                field: "coverage".to_string(),
-                value: 0.8,
-            },
+            Condition::FieldEquals { field: "tests_passed".to_string(), value: json!(true) },
+            Condition::FieldGreaterThan { field: "coverage".to_string(), value: 0.8 },
         ]),
-        Condition::FieldEquals {
-            field: "status".to_string(),
-            value: json!("override"),
-        },
+        Condition::FieldEquals { field: "status".to_string(), value: json!("override") },
     ]);
 
     let context_tests_and_coverage = json!({
@@ -304,19 +257,13 @@ fn test_sequential_then_branch() {
 
     // Verify branch edges from check
     let check_node = dag.nodes.iter().find(|n| n.title == "check").unwrap();
-    let edges_from_check: Vec<_> = dag
-        .edges
-        .iter()
-        .filter(|e| e.from == check_node.id)
-        .collect();
+    let edges_from_check: Vec<_> = dag.edges.iter().filter(|e| e.from == check_node.id).collect();
     assert_eq!(edges_from_check.len(), 2);
 }
 
 #[test]
 fn test_field_exists_condition() {
-    let cond = Condition::FieldExists {
-        field: "deployment_id".to_string(),
-    };
+    let cond = Condition::FieldExists { field: "deployment_id".to_string() };
 
     let context_exists = json!({ "deployment_id": "dep-123" });
     let context_missing = json!({ "other_field": "value" });
@@ -327,10 +274,7 @@ fn test_field_exists_condition() {
 
 #[test]
 fn test_field_less_than_condition() {
-    let cond = Condition::FieldLessThan {
-        field: "error_rate".to_string(),
-        value: 0.05,
-    };
+    let cond = Condition::FieldLessThan { field: "error_rate".to_string(), value: 0.05 };
 
     let context_low = json!({ "error_rate": 0.02 });
     let context_high = json!({ "error_rate": 0.10 });

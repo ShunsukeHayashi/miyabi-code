@@ -92,6 +92,4 @@ pub use task::{A2ATask, TaskStatus, TaskType};
 pub use rpc::push_notification::{
     generate_webhook_signature, send_push_notification, PushNotificationPayload, WebhookConfig,
 };
-pub use rpc::push_notification_config::{
-    ConfigStorage, MemoryConfigStorage, PushNotificationConfig,
-};
+pub use rpc::push_notification_config::{ConfigStorage, MemoryConfigStorage, PushNotificationConfig};

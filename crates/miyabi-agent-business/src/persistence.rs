@@ -94,11 +94,7 @@ pub trait PersistableAgent: Send + Sync {
     /// # Returns
     ///
     /// UUID of the created/updated execution record
-    async fn save_execution(
-        &self,
-        pool: &PgPool,
-        result: &AgentExecutionResult,
-    ) -> Result<Uuid, MiyabiError> {
+    async fn save_execution(&self, pool: &PgPool, result: &AgentExecutionResult) -> Result<Uuid, MiyabiError> {
         if let Some(execution_id) = result.execution_id {
             // Update existing execution
             self.update_execution(pool, execution_id, result).await
@@ -109,11 +105,7 @@ pub trait PersistableAgent: Send + Sync {
     }
 
     /// Create a new execution record
-    async fn create_execution(
-        &self,
-        pool: &PgPool,
-        result: &AgentExecutionResult,
-    ) -> Result<Uuid, MiyabiError> {
+    async fn create_execution(&self, pool: &PgPool, result: &AgentExecutionResult) -> Result<Uuid, MiyabiError> {
         let row: (Uuid,) = sqlx::query_as(
             r#"
             INSERT INTO agent_executions (
@@ -143,9 +135,7 @@ pub trait PersistableAgent: Send + Sync {
         .bind(result.pr_number)
         .fetch_one(pool)
         .await
-        .map_err(|e| {
-            MiyabiError::Unknown(format!("Database error: Failed to create execution: {}", e))
-        })?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to create execution: {}", e)))?;
 
         Ok(row.0)
     }
@@ -179,9 +169,7 @@ pub trait PersistableAgent: Send + Sync {
         .bind(result.pr_number)
         .execute(pool)
         .await
-        .map_err(|e| {
-            MiyabiError::Unknown(format!("Database error: Failed to update execution: {}", e))
-        })?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to update execution: {}", e)))?;
 
         Ok(execution_id)
     }
@@ -230,9 +218,7 @@ pub trait PersistableAgent: Send + Sync {
         .bind(limit)
         .fetch_all(pool)
         .await
-        .map_err(|e| {
-            MiyabiError::Unknown(format!("Database error: Failed to load history: {}", e))
-        })?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to load history: {}", e)))?;
 
         let results = records
             .into_iter()
@@ -298,9 +284,7 @@ pub trait PersistableAgent: Send + Sync {
         .bind(&metrics)
         .execute(pool)
         .await
-        .map_err(|e| {
-            MiyabiError::Unknown(format!("Database error: Failed to save metrics: {}", e))
-        })?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to save metrics: {}", e)))?;
 
         Ok(())
     }

@@ -146,10 +146,7 @@ impl ApprovalStore {
             let (_, value) = item?;
             let state: ApprovalState = serde_json::from_slice(&value)?;
 
-            if state.is_pending()
-                && state.is_approver_authorized(approver)
-                && !state.has_approver_responded(approver)
-            {
+            if state.is_pending() && state.is_approver_authorized(approver) && !state.has_approver_responded(approver) {
                 states.push(state);
             }
         }

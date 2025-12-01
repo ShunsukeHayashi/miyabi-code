@@ -1,8 +1,8 @@
 //! A2A Gateway - Central hub for all agent communication
 
 use crate::{
-    error::Error, monitor::CommunicationMonitor, queue::TaskQueue, registry::AgentRegistry,
-    router::MessageRouter, types::*, Result,
+    error::Error, monitor::CommunicationMonitor, queue::TaskQueue, registry::AgentRegistry, router::MessageRouter,
+    types::*, Result,
 };
 use miyabi_core::tools::{ToolRegistry, ToolResult};
 use miyabi_core::ExecutionMode;
@@ -64,11 +64,8 @@ impl A2AGateway {
         let _card = self.registry.get_card(agent_id).await?;
 
         // Create tool call
-        let call = miyabi_llm::ToolCall {
-            id: uuid::Uuid::new_v4().to_string(),
-            name: tool_name.to_string(),
-            arguments: args,
-        };
+        let call =
+            miyabi_llm::ToolCall { id: uuid::Uuid::new_v4().to_string(), name: tool_name.to_string(), arguments: args };
 
         // Execute tool
         let registry = self.tool_registry.read().await;
@@ -79,10 +76,7 @@ impl A2AGateway {
     }
 
     /// Get available tools for an agent based on its permissions
-    pub async fn get_available_tools(
-        &self,
-        _agent_id: &AgentId,
-    ) -> Vec<miyabi_llm::ToolDefinition> {
+    pub async fn get_available_tools(&self, _agent_id: &AgentId) -> Vec<miyabi_llm::ToolDefinition> {
         let registry = self.tool_registry.read().await;
         registry.get_tool_definitions()
     }
@@ -157,12 +151,7 @@ impl A2AGateway {
     }
 
     /// Broadcast task to multiple agents
-    pub async fn broadcast(
-        &self,
-        from: AgentId,
-        targets: Vec<AgentId>,
-        task: Task,
-    ) -> Result<Vec<TaskId>> {
+    pub async fn broadcast(&self, from: AgentId, targets: Vec<AgentId>, task: Task) -> Result<Vec<TaskId>> {
         let mut task_ids = Vec::new();
         for target in targets {
             let mut task_clone = task.clone();
@@ -175,12 +164,7 @@ impl A2AGateway {
     }
 
     /// Send and wait for result
-    pub async fn send_and_wait(
-        &self,
-        from: AgentId,
-        to: AgentId,
-        task: Task,
-    ) -> Result<TaskResult> {
+    pub async fn send_and_wait(&self, from: AgentId, to: AgentId, task: Task) -> Result<TaskResult> {
         let timeout = task.timeout_secs.unwrap_or(300);
         let task_id = self
             .send_with_guarantee(from, to, task, DeliveryGuarantee::AtLeastOnce)
@@ -262,11 +246,8 @@ mod tests {
     async fn test_agent_registration() {
         let gateway = A2AGateway::new().await.unwrap();
 
-        let card = AgentCard {
-            name: "test-agent".to_string(),
-            description: "Test agent".to_string(),
-            ..Default::default()
-        };
+        let card =
+            AgentCard { name: "test-agent".to_string(), description: "Test agent".to_string(), ..Default::default() };
 
         let id = gateway.register_agent(card).await.unwrap();
         assert!(!id.0.is_empty());

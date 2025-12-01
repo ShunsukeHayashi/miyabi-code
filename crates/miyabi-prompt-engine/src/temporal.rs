@@ -78,12 +78,7 @@ impl TemporalSegmenter {
     }
 
     /// Act/Segment indexからシーン取得
-    fn get_scene_for_segment(
-        &self,
-        concept: &VideoConcept,
-        act_id: u8,
-        _segment_index: u32,
-    ) -> Scene {
+    fn get_scene_for_segment(&self, concept: &VideoConcept, act_id: u8, _segment_index: u32) -> Scene {
         // 簡易版：Act内の最初のシーンを返す
         let act = match act_id {
             1 => &concept.plot_summary.act_1,
@@ -129,21 +124,9 @@ mod tests {
             genre: vec![],
             characters: vec![],
             plot_summary: PlotSummary {
-                act_1: Act {
-                    description: "Act 1".to_string(),
-                    duration_seconds: 180,
-                    scenes: vec![],
-                },
-                act_2: Act {
-                    description: "Act 2".to_string(),
-                    duration_seconds: 300,
-                    scenes: vec![],
-                },
-                act_3: Act {
-                    description: "Act 3".to_string(),
-                    duration_seconds: 120,
-                    scenes: vec![],
-                },
+                act_1: Act { description: "Act 1".to_string(), duration_seconds: 180, scenes: vec![] },
+                act_2: Act { description: "Act 2".to_string(), duration_seconds: 300, scenes: vec![] },
+                act_3: Act { description: "Act 3".to_string(), duration_seconds: 120, scenes: vec![] },
             },
             visual_style: VisualStyle {
                 art_style: "Anime".to_string(),
@@ -167,21 +150,9 @@ mod tests {
             genre: vec![],
             characters: vec![],
             plot_summary: PlotSummary {
-                act_1: Act {
-                    description: "Act 1".to_string(),
-                    duration_seconds: 180,
-                    scenes: vec![],
-                },
-                act_2: Act {
-                    description: "Act 2".to_string(),
-                    duration_seconds: 300,
-                    scenes: vec![],
-                },
-                act_3: Act {
-                    description: "Act 3".to_string(),
-                    duration_seconds: 120,
-                    scenes: vec![],
-                },
+                act_1: Act { description: "Act 1".to_string(), duration_seconds: 180, scenes: vec![] },
+                act_2: Act { description: "Act 2".to_string(), duration_seconds: 300, scenes: vec![] },
+                act_3: Act { description: "Act 3".to_string(), duration_seconds: 120, scenes: vec![] },
             },
             visual_style: VisualStyle {
                 art_style: "Anime".to_string(),

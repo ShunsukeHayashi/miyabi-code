@@ -22,8 +22,7 @@ impl Default for AgentConfig {
         Self {
             agent_type: "video-generator".to_string(),
             startup_command: "claude".to_string(),
-            working_dir_pattern:
-                "/Users/shunsuke/Dev/miyabi-private/.worktrees/segment-{segment_id}".to_string(),
+            working_dir_pattern: "/Users/shunsuke/Dev/miyabi-private/.worktrees/segment-{segment_id}".to_string(),
             startup_timeout: 30,
             env_vars: std::collections::HashMap::new(),
         }
@@ -33,10 +32,7 @@ impl Default for AgentConfig {
 impl AgentConfig {
     /// Create a new agent configuration
     pub fn new(agent_type: String) -> Self {
-        Self {
-            agent_type,
-            ..Self::default()
-        }
+        Self { agent_type, ..Self::default() }
     }
 
     /// Get working directory for a specific segment

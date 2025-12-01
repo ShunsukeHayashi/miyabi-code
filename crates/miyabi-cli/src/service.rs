@@ -67,9 +67,8 @@ pub trait CommandService: Send + Sync {
     ///
     /// Default implementation uses serde_json::to_string_pretty
     fn to_json(&self, output: &Self::Output) -> Result<String> {
-        serde_json::to_string_pretty(output).map_err(|e| {
-            crate::error::CliError::Serialization(format!("Failed to serialize output: {}", e))
-        })
+        serde_json::to_string_pretty(output)
+            .map_err(|e| crate::error::CliError::Serialization(format!("Failed to serialize output: {}", e)))
     }
 
     /// Execute command and optionally output as JSON
@@ -108,12 +107,7 @@ pub struct CommandMetadata {
 impl CommandMetadata {
     /// Create new command metadata
     pub fn new(command: impl Into<String>, success: bool) -> Self {
-        Self {
-            command: command.into(),
-            timestamp: chrono::Utc::now().to_rfc3339(),
-            success,
-            error: None,
-        }
+        Self { command: command.into(), timestamp: chrono::Utc::now().to_rfc3339(), success, error: None }
     }
 
     /// Create metadata with error
@@ -143,9 +137,7 @@ mod tests {
         type Output = TestOutput;
 
         async fn execute(&self) -> Result<Self::Output> {
-            Ok(TestOutput {
-                message: "test".to_string(),
-            })
+            Ok(TestOutput { message: "test".to_string() })
         }
     }
 

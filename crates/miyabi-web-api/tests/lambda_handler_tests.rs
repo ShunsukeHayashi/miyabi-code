@@ -51,10 +51,7 @@ mod lambda_tests {
         let config = config.unwrap();
         assert_eq!(config.environment, "production");
         assert!(config.is_production());
-        assert!(
-            config.frontend_url.starts_with("https://"),
-            "Production should use HTTPS"
-        );
+        assert!(config.frontend_url.starts_with("https://"), "Production should use HTTPS");
 
         cleanup_lambda_env();
     }
@@ -69,10 +66,7 @@ mod lambda_tests {
 
         assert!(config.is_err(), "Should fail with incomplete configuration");
         let err = config.unwrap_err();
-        assert!(
-            err.contains("JWT_SECRET"),
-            "Error should indicate missing JWT_SECRET"
-        );
+        assert!(err.contains("JWT_SECRET"), "Error should indicate missing JWT_SECRET");
 
         cleanup_lambda_env();
     }
@@ -99,7 +93,7 @@ mod lambda_tests {
         // Simulate VPC-hosted RDS endpoint
         env::set_var(
             "DATABASE_URL",
-            "postgresql://miyabi:secure_password@miyabi-prod.cluster-abc123.us-west-2.rds.amazonaws.com:5432/miyabi"
+            "postgresql://miyabi:secure_password@miyabi-prod.cluster-abc123.us-west-2.rds.amazonaws.com:5432/miyabi",
         );
 
         let config = miyabi_web_api::AppConfig::from_env();
@@ -107,10 +101,7 @@ mod lambda_tests {
         assert!(config.is_ok(), "VPC RDS configuration should be valid");
 
         let config = config.unwrap();
-        assert!(
-            config.database_url.contains("rds.amazonaws.com"),
-            "Should use RDS endpoint"
-        );
+        assert!(config.database_url.contains("rds.amazonaws.com"), "Should use RDS endpoint");
 
         cleanup_lambda_env();
     }
@@ -152,10 +143,7 @@ mod lambda_tests {
         let config = miyabi_web_api::AppConfig::from_env().unwrap();
 
         assert_eq!(config.frontend_url, "https://miyabi-society.com");
-        assert!(
-            config.frontend_url.starts_with("https://"),
-            "Production frontend should use HTTPS"
-        );
+        assert!(config.frontend_url.starts_with("https://"), "Production frontend should use HTTPS");
 
         cleanup_lambda_env();
     }
@@ -165,10 +153,7 @@ mod lambda_tests {
         setup_lambda_env();
         env::set_var("GITHUB_CLIENT_ID", "Iv1.1234567890abcdef");
         env::set_var("GITHUB_CLIENT_SECRET", "0123456789abcdef0123456789abcdef01234567");
-        env::set_var(
-            "GITHUB_CALLBACK_URL",
-            "https://api.miyabi-society.com/api/v1/auth/github/callback"
-        );
+        env::set_var("GITHUB_CALLBACK_URL", "https://api.miyabi-society.com/api/v1/auth/github/callback");
 
         let config = miyabi_web_api::AppConfig::from_env().unwrap();
 
@@ -215,7 +200,7 @@ mod lambda_tests {
         // (actual secret fetching would be done by Lambda runtime/extension)
         env::set_var(
             "DATABASE_URL",
-            "postgresql://miyabi:{{resolve:secretsmanager:db-password}}@rds.amazonaws.com:5432/miyabi"
+            "postgresql://miyabi:{{resolve:secretsmanager:db-password}}@rds.amazonaws.com:5432/miyabi",
         );
 
         // This would fail in actual runtime, but tests config parsing
@@ -233,15 +218,12 @@ mod lambda_tests {
         // Ensure callback URL supports API Gateway format
         env::set_var(
             "GITHUB_CALLBACK_URL",
-            "https://abc123.execute-api.us-west-2.amazonaws.com/prod/api/v1/auth/github/callback"
+            "https://abc123.execute-api.us-west-2.amazonaws.com/prod/api/v1/auth/github/callback",
         );
 
         let config = miyabi_web_api::AppConfig::from_env().unwrap();
 
-        assert!(
-            config.github_callback_url.contains("execute-api"),
-            "Should support API Gateway URLs"
-        );
+        assert!(config.github_callback_url.contains("execute-api"), "Should support API Gateway URLs");
 
         cleanup_lambda_env();
     }

@@ -137,17 +137,10 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
         match format {
             ExportFormat::Csv => self.export_csv(output_path_ref, entries_to_export).await?,
             ExportFormat::Json => self.export_json(output_path_ref, entries_to_export).await?,
-            ExportFormat::Markdown => {
-                self.export_markdown(output_path_ref, entries_to_export)
-                    .await?
-            }
+            ExportFormat::Markdown => self.export_markdown(output_path_ref, entries_to_export).await?,
         }
 
-        info!(
-            "Export completed: {} entries written to {:?}",
-            entries_to_export.len(),
-            output_path_ref
-        );
+        info!("Export completed: {} entries written to {:?}", entries_to_export.len(), output_path_ref);
 
         Ok(entries_to_export.len())
     }
@@ -230,11 +223,7 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
                  {}\n\n\
                  ---\n\n",
                 i + 1,
-                entry
-                    .metadata
-                    .agent
-                    .as_ref()
-                    .unwrap_or(&"Unknown".to_string()),
+                entry.metadata.agent.as_ref().unwrap_or(&"Unknown".to_string()),
                 entry.id,
                 entry.timestamp.to_rfc3339(),
                 entry.metadata.agent.as_ref().unwrap_or(&"N/A".to_string()),
@@ -243,16 +232,8 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
                     .issue_number
                     .map(|n| n.to_string())
                     .unwrap_or_else(|| "N/A".to_string()),
-                entry
-                    .metadata
-                    .task_type
-                    .as_ref()
-                    .unwrap_or(&"N/A".to_string()),
-                entry
-                    .metadata
-                    .outcome
-                    .as_ref()
-                    .unwrap_or(&"N/A".to_string()),
+                entry.metadata.task_type.as_ref().unwrap_or(&"N/A".to_string()),
+                entry.metadata.outcome.as_ref().unwrap_or(&"N/A".to_string()),
                 entry.metadata.workspace,
                 entry.score,
                 entry.content
@@ -290,19 +271,11 @@ mod tests {
             Ok(self.entries.clone())
         }
 
-        async fn search_filtered(
-            &self,
-            _query: &str,
-            _filter: SearchFilter,
-        ) -> Result<Vec<KnowledgeResult>> {
+        async fn search_filtered(&self, _query: &str, _filter: SearchFilter) -> Result<Vec<KnowledgeResult>> {
             Ok(self.entries.clone())
         }
 
-        async fn find_similar(
-            &self,
-            _entry_id: &KnowledgeId,
-            _limit: usize,
-        ) -> Result<Vec<KnowledgeResult>> {
+        async fn find_similar(&self, _entry_id: &KnowledgeId, _limit: usize) -> Result<Vec<KnowledgeResult>> {
             Ok(Vec::new())
         }
     }
@@ -339,15 +312,10 @@ mod tests {
             create_test_entry("id2", "Test content 2"),
         ];
 
-        let searcher = MockSearcher {
-            entries: entries.clone(),
-        };
+        let searcher = MockSearcher { entries: entries.clone() };
         let exporter = KnowledgeExporter::new(searcher);
 
-        let count = exporter
-            .export(ExportFormat::Csv, &output_path, None)
-            .await
-            .unwrap();
+        let count = exporter.export(ExportFormat::Csv, &output_path, None).await.unwrap();
 
         assert_eq!(count, 2);
         assert!(output_path.exists());
@@ -367,15 +335,10 @@ mod tests {
 
         let entries = vec![create_test_entry("id1", "Test content")];
 
-        let searcher = MockSearcher {
-            entries: entries.clone(),
-        };
+        let searcher = MockSearcher { entries: entries.clone() };
         let exporter = KnowledgeExporter::new(searcher);
 
-        let count = exporter
-            .export(ExportFormat::Json, &output_path, None)
-            .await
-            .unwrap();
+        let count = exporter.export(ExportFormat::Json, &output_path, None).await.unwrap();
 
         assert_eq!(count, 1);
         assert!(output_path.exists());
@@ -395,9 +358,7 @@ mod tests {
 
         let entries = vec![create_test_entry("id1", "Test content for markdown")];
 
-        let searcher = MockSearcher {
-            entries: entries.clone(),
-        };
+        let searcher = MockSearcher { entries: entries.clone() };
         let exporter = KnowledgeExporter::new(searcher);
 
         let count = exporter
@@ -416,42 +377,18 @@ mod tests {
 
     #[test]
     fn test_escape_csv() {
-        assert_eq!(
-            KnowledgeExporter::<MockSearcher>::escape_csv("simple"),
-            "simple"
-        );
-        assert_eq!(
-            KnowledgeExporter::<MockSearcher>::escape_csv("has,comma"),
-            "\"has,comma\""
-        );
-        assert_eq!(
-            KnowledgeExporter::<MockSearcher>::escape_csv("has\"quote"),
-            "\"has\"\"quote\""
-        );
-        assert_eq!(
-            KnowledgeExporter::<MockSearcher>::escape_csv("has\nnewline"),
-            "\"has\nnewline\""
-        );
+        assert_eq!(KnowledgeExporter::<MockSearcher>::escape_csv("simple"), "simple");
+        assert_eq!(KnowledgeExporter::<MockSearcher>::escape_csv("has,comma"), "\"has,comma\"");
+        assert_eq!(KnowledgeExporter::<MockSearcher>::escape_csv("has\"quote"), "\"has\"\"quote\"");
+        assert_eq!(KnowledgeExporter::<MockSearcher>::escape_csv("has\nnewline"), "\"has\nnewline\"");
     }
 
     #[test]
     fn test_export_format_from_str() {
-        assert!(matches!(
-            "csv".parse::<ExportFormat>().unwrap(),
-            ExportFormat::Csv
-        ));
-        assert!(matches!(
-            "json".parse::<ExportFormat>().unwrap(),
-            ExportFormat::Json
-        ));
-        assert!(matches!(
-            "markdown".parse::<ExportFormat>().unwrap(),
-            ExportFormat::Markdown
-        ));
-        assert!(matches!(
-            "md".parse::<ExportFormat>().unwrap(),
-            ExportFormat::Markdown
-        ));
+        assert!(matches!("csv".parse::<ExportFormat>().unwrap(), ExportFormat::Csv));
+        assert!(matches!("json".parse::<ExportFormat>().unwrap(), ExportFormat::Json));
+        assert!(matches!("markdown".parse::<ExportFormat>().unwrap(), ExportFormat::Markdown));
+        assert!(matches!("md".parse::<ExportFormat>().unwrap(), ExportFormat::Markdown));
         assert!("invalid".parse::<ExportFormat>().is_err());
     }
 }

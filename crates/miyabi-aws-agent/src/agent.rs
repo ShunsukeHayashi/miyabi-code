@@ -24,10 +24,7 @@ impl AwsAgent {
     }
 
     /// Assign historical agent to resource type
-    pub fn assign_historical_agent(
-        &self,
-        resource_type: &miyabi_types::AwsResourceType,
-    ) -> HistoricalAgent {
+    pub fn assign_historical_agent(&self, resource_type: &miyabi_types::AwsResourceType) -> HistoricalAgent {
         HistoricalAgent::for_resource_type(resource_type)
     }
 }
