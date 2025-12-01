@@ -1761,6 +1761,26 @@ TOOLS = [
             "openai/widgetAccessible": True,
         },
     },
+    {
+        "name": "mcp_docs",
+        "title": "MCP Documentation",
+        "description": "Fetch and search Model Context Protocol (MCP) official documentation. Use this to learn about MCP tools, resources, prompts, transports, authorization, and protocol specifications.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "topic": {
+                    "type": "string",
+                    "description": "Topic to look up: tools, resources, prompts, transports, authorization, lifecycle, specification, architecture, or general",
+                    "enum": ["tools", "resources", "prompts", "transports", "authorization", "lifecycle", "specification", "architecture", "general"]
+                },
+                "query": {
+                    "type": "string",
+                    "description": "Optional search query within the documentation"
+                }
+            },
+            "required": ["topic"]
+        },
+    },
 ]
 
 # Tools that can be executed in sandbox
@@ -2663,6 +2683,100 @@ async def show_agent_collection_tool(arguments: Dict[str, Any]) -> Dict[str, Any
     }
 
 
+async def mcp_docs_tool(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Fetch and return MCP (Model Context Protocol) official documentation"""
+    import httpx
+
+    topic = arguments.get("topic", "general")
+    query = arguments.get("query", "")
+
+    # MCP documentation URL mapping
+    MCP_DOCS_URLS = {
+        "general": "https://modelcontextprotocol.io/llms.txt",
+        "tools": "https://modelcontextprotocol.io/docs/concepts/tools",
+        "resources": "https://modelcontextprotocol.io/docs/concepts/resources",
+        "prompts": "https://modelcontextprotocol.io/docs/concepts/prompts",
+        "transports": "https://modelcontextprotocol.io/docs/concepts/transports",
+        "authorization": "https://modelcontextprotocol.io/docs/concepts/authorization",
+        "lifecycle": "https://modelcontextprotocol.io/docs/concepts/lifecycle",
+        "specification": "https://modelcontextprotocol.io/specification",
+        "architecture": "https://modelcontextprotocol.io/docs/concepts/architecture",
+    }
+
+    url = MCP_DOCS_URLS.get(topic, MCP_DOCS_URLS["general"])
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url, follow_redirects=True)
+            response.raise_for_status()
+
+            content = response.text
+
+            # If it's HTML, extract the main content
+            if "<html" in content.lower():
+                # Simple extraction - get text between main tags or body
+                import re
+                # Remove script and style tags
+                content = re.sub(r'<script[^>]*>.*?</script>', '', content, flags=re.DOTALL | re.IGNORECASE)
+                content = re.sub(r'<style[^>]*>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+                # Remove HTML tags but keep content
+                content = re.sub(r'<[^>]+>', ' ', content)
+                # Clean up whitespace
+                content = re.sub(r'\s+', ' ', content).strip()
+
+            # If there's a search query, filter relevant sections
+            if query:
+                lines = content.split('\n')
+                relevant_lines = []
+                query_lower = query.lower()
+                for i, line in enumerate(lines):
+                    if query_lower in line.lower():
+                        # Include context: 2 lines before and 5 lines after
+                        start = max(0, i - 2)
+                        end = min(len(lines), i + 6)
+                        relevant_lines.extend(lines[start:end])
+                        relevant_lines.append("---")
+                if relevant_lines:
+                    content = '\n'.join(relevant_lines)
+                else:
+                    content = f"No matches found for '{query}' in {topic} documentation.\n\nFull content:\n{content[:3000]}..."
+
+            # Truncate if too long
+            if len(content) > 8000:
+                content = content[:8000] + "\n\n... (truncated, use specific topic or query for more details)"
+
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"# MCP Documentation: {topic.title()}\n\nSource: {url}\n\n{content}"
+                    }
+                ],
+                "isError": False,
+            }
+
+    except httpx.HTTPError as e:
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Error fetching MCP documentation: {str(e)}\n\nTry accessing directly: {url}"
+                }
+            ],
+            "isError": True,
+        }
+    except Exception as e:
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Unexpected error: {str(e)}"
+                }
+            ],
+            "isError": True,
+        }
+
+
 async def list_agents_tool() -> Dict[str, Any]:
     """Show interactive agent selector widget with all 21 Miyabi agents"""
     try:
@@ -2858,6 +2972,76 @@ async def execute_agents_parallel_tool(params: ExecuteAgentsParallelParams) -> D
             ],
             "isError": False,
             **result,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error getting git status: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def git_status_tool(params: GitStatusParams) -> Dict[str, Any]:
+    """Get git status"""
+    try:
+        cmd = ["git", "status", "--porcelain"]
+        if params.path:
+            cmd.append(params.path)
+
+        stdout, stderr, returncode = run_command(cmd)
+
+        if returncode != 0:
+            return {
+                "content": [{"type": "text", "text": f"Error: {stderr}"}],
+                "isError": True,
+            }
+
+        # Parse status output
+        lines = stdout.strip().split('\n') if stdout.strip() else []
+        modified = []
+        added = []
+        deleted = []
+        untracked = []
+
+        for line in lines:
+            if len(line) >= 3:
+                status = line[:2]
+                filepath = line[3:]
+                if 'M' in status:
+                    modified.append(filepath)
+                elif 'A' in status:
+                    added.append(filepath)
+                elif 'D' in status:
+                    deleted.append(filepath)
+                elif '?' in status:
+                    untracked.append(filepath)
+
+        # Get current branch
+        branch_cmd = ["git", "branch", "--show-current"]
+        branch_stdout, _, _ = run_command(branch_cmd)
+        current_branch = branch_stdout.strip() if branch_stdout else "unknown"
+
+        result_text = f"📊 Git Status\n\nBranch: **{current_branch}**\n\n"
+
+        if modified:
+            result_text += f"📝 Modified ({len(modified)}):\n" + "\n".join([f"  - {f}" for f in modified[:20]]) + "\n\n"
+        if added:
+            result_text += f"➕ Added ({len(added)}):\n" + "\n".join([f"  - {f}" for f in added[:20]]) + "\n\n"
+        if deleted:
+            result_text += f"➖ Deleted ({len(deleted)}):\n" + "\n".join([f"  - {f}" for f in deleted[:20]]) + "\n\n"
+        if untracked:
+            result_text += f"❓ Untracked ({len(untracked)}):\n" + "\n".join([f"  - {f}" for f in untracked[:20]]) + "\n\n"
+
+        if not any([modified, added, deleted, untracked]):
+            result_text += "✅ Working directory clean\n"
+
+        return {
+            "content": [{"type": "text", "text": result_text}],
+            "branch": current_branch,
+            "modified": modified,
+            "added": added,
+            "deleted": deleted,
+            "untracked": untracked,
+            "isError": False,
         }
     except Exception as e:
         return {
@@ -4954,7 +5138,10 @@ async def handle_tool_call(mcp_request: MCPRequest) -> dict:
     """Handle tools/call request"""
     tool_name = mcp_request.params.get("name")
     arguments = mcp_request.params.get("arguments", {})
-    
+
+    # Get token from context var (set in /mcp handler)
+    token = current_user_token.get()
+
     try:
         # Import all tool handlers (they should already exist)
         result = None
@@ -5071,6 +5258,8 @@ async def handle_tool_call(mcp_request: MCPRequest) -> dict:
         elif tool_name == "gemini_generate_image":
             # Alias for generate_agent_card_image
             result = await generate_agent_card_image_tool(arguments)
+        elif tool_name == "mcp_docs":
+            result = await mcp_docs_tool(arguments)
         else:
             return {
                 "jsonrpc": "2.0",
@@ -5276,121 +5465,8 @@ async def mcp_handler(
             }
 
         elif mcp_request.method == "tools/call":
-            tool_name = mcp_request.params.get("name")
-            arguments = mcp_request.params.get("arguments", {})
-
-            # Route to appropriate tool
-            if tool_name == "execute_agent":
-                result = await execute_agent_tool(ExecuteAgentParams(**arguments))
-            elif tool_name == "create_issue":
-                result = await create_issue_tool(CreateIssueParams(**arguments))
-            elif tool_name == "list_issues":
-                result = await list_issues_tool(ListIssuesParams(**arguments))
-            elif tool_name == "get_project_status":
-                result = await get_project_status_tool()
-            elif tool_name == "list_agents":
-                result = await list_agents_tool()
-            elif tool_name == "show_agent_cards":
-                result = await show_agent_cards_tool()
-            elif tool_name == "execute_agents_parallel":
-                result = await execute_agents_parallel_tool(ExecuteAgentsParallelParams(**arguments))
-            # Git tools
-            elif tool_name == "git_status":
-                result = await git_status_tool(GitStatusParams(**arguments))
-            elif tool_name == "git_diff":
-                result = await git_diff_tool(GitDiffParams(**arguments))
-            elif tool_name == "git_log":
-                result = await git_log_tool(GitLogParams(**arguments))
-            elif tool_name == "git_branch":
-                result = await git_branch_tool(GitBranchParams(**arguments))
-            # System monitoring tools
-            elif tool_name == "system_resources":
-                result = await system_resources_tool()
-            elif tool_name == "process_list":
-                result = await process_list_tool(ProcessListParams(**arguments))
-            elif tool_name == "network_status":
-                result = await network_status_tool(NetworkStatusParams(**arguments))
-            # Obsidian tools
-            elif tool_name == "obsidian_create_note":
-                result = await obsidian_create_note_tool(ObsidianCreateNoteParams(**arguments))
-            elif tool_name == "obsidian_search":
-                result = await obsidian_search_tool(ObsidianSearchParams(**arguments))
-            elif tool_name == "obsidian_update_note":
-                result = await obsidian_update_note_tool(ObsidianUpdateNoteParams(**arguments))
-            # Tmux tools
-            elif tool_name == "tmux_list_sessions":
-                result = await tmux_list_sessions_tool(TmuxListParams(**arguments))
-            elif tool_name == "tmux_send_keys":
-                result = await tmux_send_keys_tool(TmuxSendKeysParams(**arguments))
-            # Log tools
-            elif tool_name == "get_logs":
-                result = await get_logs_tool(**arguments)
-                        # GitHub Extended
-            elif tool_name == "get_issue":
-                result = await get_issue_tool(GetIssueParams(**arguments))
-            elif tool_name == "update_issue":
-                result = await update_issue_tool(UpdateIssueParams(**arguments))
-            elif tool_name == "close_issue":
-                result = await close_issue_tool(CloseIssueParams(**arguments))
-            elif tool_name == "list_prs":
-                result = await list_prs_tool(ListPRsParams(**arguments))
-            elif tool_name == "get_pr":
-                result = await get_pr_tool(GetPRParams(**arguments))
-            elif tool_name == "create_pr":
-                result = await create_pr_tool(CreatePRParams(**arguments))
-            elif tool_name == "merge_pr":
-                result = await merge_pr_tool(MergePRParams(**arguments))
-            # Git Extended
-            elif tool_name == "git_commit":
-                result = await git_commit_tool(GitCommitParams(**arguments))
-            elif tool_name == "git_push":
-                result = await git_push_tool(GitPushParams(**arguments))
-            elif tool_name == "git_pull":
-                result = await git_pull_tool(GitPullParams(**arguments))
-            elif tool_name == "git_checkout":
-                result = await git_checkout_tool(GitCheckoutParams(**arguments))
-            elif tool_name == "git_create_branch":
-                result = await git_create_branch_tool(GitCreateBranchParams(**arguments))
-            elif tool_name == "git_stash":
-                result = await git_stash_tool(GitStashParams(**arguments))
-            # File Operations
-            elif tool_name == "read_file":
-                result = await read_file_tool(ReadFileParams(**arguments))
-            elif tool_name == "write_file":
-                result = await write_file_tool(WriteFileParams(**arguments))
-            elif tool_name == "list_files":
-                result = await list_files_tool(ListFilesParams(**arguments))
-            elif tool_name == "search_code":
-                result = await search_code_tool(SearchCodeParams(**arguments))
-            # Build/Test
-            elif tool_name == "cargo_build":
-                result = await cargo_build_tool(CargoBuildParams(**arguments))
-            elif tool_name == "cargo_test":
-                result = await cargo_test_tool(CargoTestParams(**arguments))
-            elif tool_name == "cargo_clippy":
-                result = await cargo_clippy_tool(CargoClippyParams(**arguments))
-            elif tool_name == "npm_install":
-                result = await npm_install_tool(NpmInstallParams(**arguments))
-            elif tool_name == "npm_run":
-                result = await npm_run_tool(NpmRunParams(**arguments))
-            # Agent Details
-            elif tool_name == "get_agent_status":
-                result = await get_agent_status_tool(GetAgentStatusParams(**arguments))
-            elif tool_name == "stop_agent":
-                result = await stop_agent_tool(StopAgentParams(**arguments))
-            elif tool_name == "get_agent_logs":
-                result = await get_agent_logs_tool(GetAgentLogsParams(**arguments))
-            elif tool_name == "get_agent_card":
-                result = await get_agent_card_tool(GetAgentCardParams(**arguments))
-            elif tool_name == "setup_project":
-                result = await setup_project_tool()
-            else:
-                return MCPResponse(
-                    id=mcp_request.id,
-                    error={"code": -32601, "message": f"Unknown tool: {tool_name}"},
-                ).dict()
-
-            return MCPResponse(id=mcp_request.id, result=result).dict()
+            # Use unified tool handler (shared with /mcp/messages)
+            return await handle_tool_call(mcp_request)
 
         else:
             return MCPResponse(
