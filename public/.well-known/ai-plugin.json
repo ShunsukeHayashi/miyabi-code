@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Miyabi Task Automation",
+  "name_for_model": "miyabi_tasks",
+  "description_for_human": "Miyabiに自然言語でタスクを指示し、コード生成・テスト・PR作成まで自動実行します。",
+  "description_for_model": "Use this plugin to create automation tasks in Miyabi. You can instruct code generation, testing, PR creation, and more using natural language. Tasks are executed asynchronously and you can check their status.",
+  "auth": {
+    "type": "service_http",
+    "authorization_type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "/openapi.yaml"
+  },
+  "logo_url": "/logo.png",
+  "contact_email": "support@miyabi.dev",
+  "legal_info_url": "https://miyabi.dev/legal"
+}

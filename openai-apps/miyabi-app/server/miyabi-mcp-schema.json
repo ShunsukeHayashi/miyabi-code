@@ -1,0 +1,859 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Miyabi MCP Server Schema",
+  "description": "Full schema for Miyabi MCP Server - AI Agent Development Platform",
+  "version": "1.0.0",
+  "server": {
+    "name": "miyabi-mcp-server",
+    "title": "Miyabi MCP Server",
+    "version": "1.0.0",
+    "vendor": "Miyabi World",
+    "homepage": "https://mcp.miyabi-world.com"
+  },
+  "capabilities": {
+    "tools": {"listChanged": true},
+    "resources": {"subscribe": true, "listChanged": true},
+    "prompts": {"listChanged": false}
+  },
+  "oauth": {
+    "type": "oauth2",
+    "authorizationUrl": "https://mcp.miyabi-world.com/authorize",
+    "tokenUrl": "https://mcp.miyabi-world.com/token",
+    "scopes": {
+      "profile": "User profile information",
+      "repo": "Repository access"
+    },
+    "pkce": true,
+    "grants": ["authorization_code", "refresh_token"]
+  },
+  "tools": [
+    {
+      "name": "execute_agent",
+      "title": "Execute Miyabi Agent",
+      "description": "Execute a Miyabi agent (CodeGen, Review, Issue, PR, Deploy, etc.)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent": {
+            "type": "string",
+            "description": "Agent name",
+            "enum": ["codegen", "review", "issue", "pr", "deploy", "refresher", "coordinator", "self_analysis", "market_research", "persona", "product_concept", "product_design", "content_creation", "funnel_design", "sns_strategy", "marketing", "sales", "crm", "analytics", "youtube", "ai_entrepreneur"]
+          },
+          "issue_number": {"type": "integer", "description": "GitHub issue number"},
+          "task": {"type": "string", "description": "Task description"},
+          "context": {"type": "string", "description": "Additional context"}
+        },
+        "required": ["agent"]
+      },
+      "annotations": {
+        "title": "Execute Miyabi Agent",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "create_issue",
+      "title": "Create GitHub Issue",
+      "description": "Create a new GitHub issue in the Miyabi repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string", "description": "Issue title"},
+          "body": {"type": "string", "description": "Issue description"},
+          "labels": {"type": "array", "items": {"type": "string"}, "description": "Issue labels"}
+        },
+        "required": ["title", "body"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false, "openWorldHint": true}
+    },
+    {
+      "name": "list_issues",
+      "title": "List GitHub Issues",
+      "description": "List GitHub issues in the repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "state": {"type": "string", "enum": ["open", "closed", "all"], "default": "open"},
+          "limit": {"type": "integer", "default": 10}
+        }
+      },
+      "annotations": {"readOnlyHint": true, "openWorldHint": true}
+    },
+    {
+      "name": "get_issue",
+      "title": "Get Issue",
+      "description": "Get detailed information about a GitHub issue",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"issue_number": {"type": "integer"}},
+        "required": ["issue_number"]
+      },
+      "annotations": {"readOnlyHint": true, "openWorldHint": true}
+    },
+    {
+      "name": "update_issue",
+      "title": "Update Issue",
+      "description": "Update an existing GitHub issue",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "issue_number": {"type": "integer"},
+          "title": {"type": "string"},
+          "body": {"type": "string"},
+          "state": {"type": "string"},
+          "labels": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["issue_number"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "close_issue",
+      "title": "Close Issue",
+      "description": "Close a GitHub issue",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "issue_number": {"type": "integer"},
+          "comment": {"type": "string"}
+        },
+        "required": ["issue_number"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "list_prs",
+      "title": "List Pull Requests",
+      "description": "List pull requests in the repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "state": {"type": "string", "default": "open"},
+          "limit": {"type": "integer", "default": 10}
+        }
+      },
+      "annotations": {"readOnlyHint": true, "openWorldHint": true}
+    },
+    {
+      "name": "get_pr",
+      "title": "Get Pull Request",
+      "description": "Get comprehensive pull request details",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"pr_number": {"type": "integer"}},
+        "required": ["pr_number"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "create_pr",
+      "title": "Create Pull Request",
+      "description": "Create a new pull request",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "body": {"type": "string"},
+          "head": {"type": "string"},
+          "base": {"type": "string", "default": "main"}
+        },
+        "required": ["title", "body", "head"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "merge_pr",
+      "title": "Merge Pull Request",
+      "description": "Merge a pull request",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pr_number": {"type": "integer"},
+          "merge_method": {"type": "string", "default": "squash"}
+        },
+        "required": ["pr_number"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": true}
+    },
+    {
+      "name": "get_project_status",
+      "title": "Project Status",
+      "description": "Get current Miyabi project status (branch, crates, agents, commits)",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "list_agents",
+      "title": "Agent Selector",
+      "description": "Show interactive agent selector with all 21 Miyabi agents",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "show_agent_cards",
+      "title": "Agent Trading Cards",
+      "description": "Display Miyabi agents as collectible TCG trading cards",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "execute_agents_parallel",
+      "title": "Execute Agents in Parallel",
+      "description": "Execute multiple Miyabi agents in parallel",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "agent": {"type": "string"},
+                "issue_number": {"type": "integer"},
+                "task": {"type": "string"},
+                "context": {"type": "string"}
+              },
+              "required": ["agent"]
+            }
+          }
+        },
+        "required": ["agents"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": true}
+    },
+    {
+      "name": "git_status",
+      "title": "Git Status",
+      "description": "Get current git status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"path": {"type": "string"}}
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "git_diff",
+      "title": "Git Diff",
+      "description": "Show git diff of changes",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "staged": {"type": "boolean", "default": false},
+          "file_path": {"type": "string"}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "git_log",
+      "title": "Commit History",
+      "description": "Show git commit history",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {"type": "integer", "default": 10},
+          "oneline": {"type": "boolean", "default": true}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "git_branch",
+      "title": "Git Branches",
+      "description": "List git branches",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"all": {"type": "boolean", "default": false}}
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "git_commit",
+      "title": "Git Commit",
+      "description": "Stage files and create a git commit",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {"type": "string"},
+          "files": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["message"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "git_push",
+      "title": "Git Push",
+      "description": "Push local commits to remote",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "remote": {"type": "string", "default": "origin"},
+          "branch": {"type": "string"},
+          "force": {"type": "boolean", "default": false}
+        }
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": true}
+    },
+    {
+      "name": "git_pull",
+      "title": "Git Pull",
+      "description": "Pull latest changes from remote",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "remote": {"type": "string", "default": "origin"},
+          "branch": {"type": "string"}
+        }
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "git_checkout",
+      "title": "Git Checkout",
+      "description": "Switch to a branch",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "branch": {"type": "string"},
+          "create": {"type": "boolean", "default": false}
+        },
+        "required": ["branch"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "git_create_branch",
+      "title": "Create Branch",
+      "description": "Create a new branch",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "from_branch": {"type": "string"}
+        },
+        "required": ["name"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "git_stash",
+      "title": "Git Stash",
+      "description": "Temporarily store uncommitted changes",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {"type": "string", "default": "push"},
+          "message": {"type": "string"}
+        }
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "system_resources",
+      "title": "System Resources",
+      "description": "Get system resource usage (CPU, memory, disk)",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "process_list",
+      "title": "Process List",
+      "description": "List running processes",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {"type": "integer", "default": 20},
+          "sort_by": {"type": "string", "enum": ["cpu", "memory", "name"], "default": "cpu"}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "network_status",
+      "title": "Network Status",
+      "description": "Get network interface status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"include_connections": {"type": "boolean", "default": false}}
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "obsidian_create_note",
+      "title": "Create Note",
+      "description": "Create a new note in Obsidian vault",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "content": {"type": "string"},
+          "folder": {"type": "string"},
+          "tags": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["title", "content"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "obsidian_search",
+      "title": "Search Notes",
+      "description": "Search notes in Obsidian vault",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string"},
+          "limit": {"type": "integer", "default": 10}
+        },
+        "required": ["query"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "obsidian_update_note",
+      "title": "Update Note",
+      "description": "Update an existing Obsidian note",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "content": {"type": "string"},
+          "replace": {"type": "boolean", "default": false}
+        },
+        "required": ["title", "content"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "tmux_list_sessions",
+      "title": "Tmux Sessions",
+      "description": "List all tmux sessions",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"include_windows": {"type": "boolean", "default": true}}
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "tmux_send_keys",
+      "title": "Send Tmux Keys",
+      "description": "Send keys/command to a tmux session",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session": {"type": "string"},
+          "keys": {"type": "string"},
+          "window": {"type": "integer"}
+        },
+        "required": ["session", "keys"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": true}
+    },
+    {
+      "name": "get_logs",
+      "title": "Get Logs",
+      "description": "Get aggregated logs",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source": {"type": "string", "enum": ["all", "agent", "build", "deploy"], "default": "all"},
+          "limit": {"type": "integer", "default": 50},
+          "level": {"type": "string", "enum": ["debug", "info", "warn", "error"], "default": "info"}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "read_file",
+      "title": "Read File",
+      "description": "Read file contents",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {"type": "string"},
+          "limit": {"type": "integer", "default": 100}
+        },
+        "required": ["path"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "write_file",
+      "title": "Write File",
+      "description": "Write content to a file",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {"type": "string"},
+          "content": {"type": "string"}
+        },
+        "required": ["path", "content"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": true}
+    },
+    {
+      "name": "list_files",
+      "title": "List Files",
+      "description": "List files and directories",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {"type": "string", "default": "."},
+          "pattern": {"type": "string"}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "search_code",
+      "title": "Search Code",
+      "description": "Search for patterns in code files",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string"},
+          "path": {"type": "string", "default": "."},
+          "file_pattern": {"type": "string"}
+        },
+        "required": ["query"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "cargo_build",
+      "title": "Cargo Build",
+      "description": "Build Rust project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "release": {"type": "boolean", "default": false},
+          "package": {"type": "string"}
+        }
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "cargo_test",
+      "title": "Cargo Test",
+      "description": "Run Rust tests",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "test_name": {"type": "string"},
+          "package": {"type": "string"}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "cargo_clippy",
+      "title": "Cargo Clippy",
+      "description": "Run Clippy linter",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"fix": {"type": "boolean", "default": false}}
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "npm_install",
+      "title": "NPM Install",
+      "description": "Install npm dependencies",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"package": {"type": "string"}}
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "npm_run",
+      "title": "NPM Run",
+      "description": "Execute npm scripts",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"script": {"type": "string"}},
+        "required": ["script"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "get_agent_status",
+      "title": "Agent Status",
+      "description": "Check status of running agents",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"agent": {"type": "string"}}
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "stop_agent",
+      "title": "Stop Agent",
+      "description": "Stop a running agent",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"agent": {"type": "string"}},
+        "required": ["agent"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": true}
+    },
+    {
+      "name": "get_agent_logs",
+      "title": "Agent Logs",
+      "description": "Retrieve agent output/logs",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent": {"type": "string"},
+          "limit": {"type": "integer", "default": 50}
+        },
+        "required": ["agent"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "get_agent_card",
+      "title": "Get Agent Card",
+      "description": "Get a Miyabi agent TCG card",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"agent_name": {"type": "string"}},
+        "required": ["agent_name"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "setup_project",
+      "title": "Setup Project",
+      "description": "Setup GitHub repository for Miyabi",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "list_repositories",
+      "title": "List Repositories",
+      "description": "List user's GitHub repositories",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "refresh": {"type": "boolean"},
+          "limit": {"type": "integer", "default": 30}
+        }
+      },
+      "annotations": {"readOnlyHint": true, "openWorldHint": true}
+    },
+    {
+      "name": "set_project",
+      "title": "Set Project",
+      "description": "Set active GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "repository": {"type": "string"},
+          "owner": {"type": "string"},
+          "name": {"type": "string"}
+        },
+        "required": ["repository"]
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false}
+    },
+    {
+      "name": "show_onboarding",
+      "title": "Show Onboarding",
+      "description": "Display onboarding wizard",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "show_quick_actions",
+      "title": "Quick Actions",
+      "description": "Display quick action buttons",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "show_notification",
+      "title": "Show Notification",
+      "description": "Display toast notification",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {"type": "string", "enum": ["success", "error", "warning", "info", "loading"]},
+          "title": {"type": "string"},
+          "message": {"type": "string"},
+          "duration": {"type": "integer"}
+        },
+        "required": ["type", "title"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "show_subscription",
+      "title": "Subscription Manager",
+      "description": "Display subscription management",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "start_checkout",
+      "title": "Start Checkout",
+      "description": "Start subscription checkout",
+      "inputSchema": {
+        "type": "object",
+        "properties": {"plan": {"type": "string", "enum": ["pro", "enterprise"]}},
+        "required": ["plan"]
+      },
+      "annotations": {"readOnlyHint": false, "openWorldHint": true}
+    },
+    {
+      "name": "manage_subscription",
+      "title": "Manage Subscription",
+      "description": "Open billing portal",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": false, "openWorldHint": true}
+    },
+    {
+      "name": "search_tools",
+      "title": "Search Tools",
+      "description": "Search available Miyabi tools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string"},
+          "category": {"type": "string", "enum": ["all", "git", "build", "github", "agent", "file", "tmux", "obsidian", "subscription"]}
+        }
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "gemini_analyze_image",
+      "title": "Gemini Image Analysis",
+      "description": "Analyze image with Gemini 3 Pro",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "image_url": {"type": "string"},
+          "prompt": {"type": "string"},
+          "analysis_type": {"type": "string", "enum": ["ui_review", "code_analysis", "diagram", "general"]}
+        },
+        "required": ["image_url"]
+      },
+      "annotations": {"readOnlyHint": true, "openWorldHint": true}
+    },
+    {
+      "name": "gemini_generate_image_description",
+      "title": "Image Description",
+      "description": "Generate image description with Gemini",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "image_url": {"type": "string"},
+          "style": {"type": "string", "enum": ["detailed", "concise", "technical", "creative"]}
+        },
+        "required": ["image_url"]
+      },
+      "annotations": {"readOnlyHint": true, "openWorldHint": true}
+    },
+    {
+      "name": "get_agent_tcg_card",
+      "title": "Agent TCG Card",
+      "description": "Get Miyabi Agent Trading Card with image",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_name": {"type": "string"},
+          "with_analysis": {"type": "boolean"}
+        },
+        "required": ["agent_name"]
+      },
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "show_agent_collection",
+      "title": "Agent Collection",
+      "description": "Display full Agent Trading Card collection",
+      "inputSchema": {"type": "object", "properties": {}},
+      "annotations": {"readOnlyHint": true}
+    },
+    {
+      "name": "generate_agent_card_image",
+      "title": "Generate Agent Card",
+      "description": "Generate AI agent trading card image",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_name": {"type": "string"},
+          "style": {"type": "string", "enum": ["anime", "pixel_art", "realistic", "chibi", "cyberpunk"]},
+          "rarity": {"type": "string", "enum": ["R", "SR", "SSR", "UR"]},
+          "element": {"type": "string", "enum": ["fire", "water", "earth", "wind", "light", "dark", "tech"]}
+        },
+        "required": ["agent_name"]
+      },
+      "annotations": {"readOnlyHint": false, "openWorldHint": true}
+    },
+    {
+      "name": "gemini_generate_image",
+      "title": "Gemini Image Generation",
+      "description": "Generate images with Gemini 3 Pro",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": {"type": "string"},
+          "style": {"type": "string", "enum": ["photorealistic", "illustration", "anime", "pixel_art", "sketch", "3d_render"]},
+          "aspect_ratio": {"type": "string", "enum": ["1:1", "16:9", "9:16", "4:3", "3:4"]}
+        },
+        "required": ["prompt"]
+      },
+      "annotations": {"readOnlyHint": false, "openWorldHint": true}
+    },
+    {
+      "name": "mcp_docs",
+      "title": "MCP Documentation",
+      "description": "Fetch and search MCP official documentation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topic": {"type": "string", "enum": ["tools", "resources", "prompts", "transports", "authorization", "lifecycle", "specification", "architecture", "general"]},
+          "query": {"type": "string"}
+        },
+        "required": ["topic"]
+      },
+      "annotations": {"readOnlyHint": true, "openWorldHint": true}
+    }
+  ],
+  "resources": [
+    {
+      "uri": "miyabi://project/status",
+      "name": "Project Status",
+      "description": "Current project status and metrics",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "miyabi://agents",
+      "name": "Agent List",
+      "description": "List of available Miyabi agents",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "miyabi://issues",
+      "name": "GitHub Issues",
+      "description": "Repository issues",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "miyabi://prs",
+      "name": "Pull Requests",
+      "description": "Repository pull requests",
+      "mimeType": "application/json"
+    }
+  ],
+  "endpoints": {
+    "sse": "https://mcp.miyabi-world.com/mcp",
+    "messages": "https://mcp.miyabi-world.com/mcp/messages",
+    "authorize": "https://mcp.miyabi-world.com/authorize",
+    "token": "https://mcp.miyabi-world.com/token",
+    "debug": "https://mcp.miyabi-world.com/debug/oauth-state"
+  },
+  "toolCount": 64
+}

@@ -1,0 +1,107 @@
+{
+  "mcpServers": {
+    "//": "=== Miyabi Full Development Environment ===",
+    "//": "Target: Local development, Claude Code CLI, direct terminal access",
+
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "disabled": false,
+      "description": "Filesystem access for project files"
+    },
+
+    "miyabi": {
+      "command": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/target/release/miyabi-mcp-server",
+      "args": [
+        "--repo-owner", "customer-cloud",
+        "--repo-name", "miyabi-private",
+        "--github-token", "${GITHUB_TOKEN}"
+      ],
+      "cwd": ".",
+      "env": {
+        "RUST_LOG": "miyabi_mcp_server=info,miyabi_agents=debug"
+      },
+      "disabled": false,
+      "description": "Miyabi Rust MCP Server - Agent execution via JSON-RPC 2.0"
+    },
+
+    "github-enhanced": {
+      "command": "node",
+      "args": [".claude/mcp-servers/github-enhanced.cjs"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPOSITORY": "${GITHUB_REPOSITORY}",
+        "REPOSITORY": "customer-cloud/miyabi-private"
+      },
+      "cwd": ".",
+      "disabled": false,
+      "description": "Enhanced GitHub operations for Issue/PR management"
+    },
+
+    "project-context": {
+      "command": "node",
+      "args": [".claude/mcp-servers/project-context.cjs"],
+      "cwd": ".",
+      "disabled": false,
+      "description": "Project-specific context and dependency information"
+    },
+
+    "ide-integration": {
+      "command": "node",
+      "args": [".claude/mcp-servers/ide-integration.cjs"],
+      "disabled": false,
+      "description": "VS Code diagnostics and Jupyter execution integration"
+    },
+
+    "miyabi-codex": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-codex/dist/index.js"],
+      "disabled": false,
+      "description": "Codex CLI MCP wrapper (codex_exec, codex_reply, etc.)"
+    },
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": ["mcp-servers/miyabi-tmux-server/dist/index.js"],
+      "disabled": false,
+      "description": "Miyabi tmux MCP Server - Multithread communication aggregation"
+    },
+
+    "gemini3-image-gen": {
+      "command": "node",
+      "args": ["mcp-servers/gemini3-image-gen/dist/simple-server.js"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini 3 Pro Preview image generation"
+    },
+
+    "discord-community": {
+      "command": "node",
+      "args": [".claude/mcp-servers/discord-integration.js"],
+      "env": {
+        "DISCORD_BOT_TOKEN": "${DISCORD_BOT_TOKEN}",
+        "DISCORD_GUILD_ID": "${DISCORD_GUILD_ID}",
+        "DISCORD_ANNOUNCE_CHANNEL": "${DISCORD_ANNOUNCE_CHANNEL}",
+        "DISCORD_GITHUB_CHANNEL": "${DISCORD_GITHUB_CHANNEL}"
+      },
+      "disabled": true,
+      "description": "Miyabi Discord community management"
+    },
+
+    "lark-openapi": {
+      "command": "node",
+      "args": [
+        "mcp-servers/lark-openapi-mcp-enhanced/dist/cli.js",
+        "mcp", "--mode", "stdio",
+        "--app-id", "cli_a8d2fdb1f1f8d02d",
+        "--app-secret", "V7mzILXEgIaqLwLXtyZstekRJsjRsFfJ",
+        "--tools", "bitable_v1_app_get,bitable_v1_appTable_list,bitable_v1_appTableRecord_list,bitable_v1_appTableRecord_create,im_v1_message_create"
+      ],
+      "cwd": ".",
+      "disabled": true,
+      "description": "Lark OpenAPI MCP - Bitable + IM tools"
+    }
+  }
+}

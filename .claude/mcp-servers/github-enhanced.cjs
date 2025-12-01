@@ -24,18 +24,15 @@ class GitHubEnhancedServer {
     );
 
     // Initialize Octokit
-    const token = process.env.GITHUB_TOKEN;
-    if (!token) {
-      throw new Error('GITHUB_TOKEN environment variable is required');
-    }
-    this.octokit = new Octokit({ auth: token });
+    this.token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || null;
+    this.octokit = new Octokit({ auth: this.token || undefined });
 
-    // Parse repository
-    const repo = process.env.REPOSITORY;
-    if (!repo || !repo.includes('/')) {
-      throw new Error('REPOSITORY environment variable must be in format "owner/repo"');
+    const repo = process.env.REPOSITORY || process.env.GITHUB_REPOSITORY || null;
+    if (repo && repo.includes('/')) {
+      [this.owner, this.repo] = repo.split('/');
+    } else {
+      this.repoError = '環境変数 REPOSITORY (例: owner/repo) が未設定のため GitHub 操作を実行できません';
     }
-    [this.owner, this.repo] = repo.split('/');
 
     this.setupToolHandlers();
   }
@@ -164,6 +161,18 @@ class GitHubEnhancedServer {
       const { name, arguments: args } = request.params;
 
       try {
+        if (this.repoError) {
+          return {
+            content: [{ type: 'text', text: this.repoError }],
+            isError: true,
+          };
+        }
+        if (!this.token) {
+          return {
+            content: [{ type: 'text', text: 'GITHUB_TOKEN が未設定です。読み取り専用でも認証が必要です。環境変数を設定して再実行してください。' }],
+            isError: true,
+          };
+        }
         switch (name) {
           case 'create_issue_with_labels':
             return await this.createIssueWithLabels(args);

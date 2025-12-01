@@ -1,0 +1,71 @@
+{
+  "mcpServers": {
+    "//": "=== ChatGPT + Appli Connector Environment ===",
+    "//": "Target: ChatGPT Custom GPT via Appli Connector bridge",
+    "//": "Note: Uses HTTP/SSE transport for external access",
+
+    "miyabi-task-api": {
+      "command": "node",
+      "args": [".claude/mcp-servers/task-api-bridge.cjs"],
+      "env": {
+        "MIYABI_API_URL": "http://localhost:3000/api/v1",
+        "MIYABI_API_KEY": "${MIYABI_API_KEY}",
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPOSITORY": "customer-cloud/miyabi-private"
+      },
+      "disabled": false,
+      "description": "Miyabi Task API Bridge - ChatGPT -> Miyabi task execution"
+    },
+
+    "github-readonly": {
+      "command": "node",
+      "args": [".claude/mcp-servers/github-readonly.cjs"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPOSITORY": "customer-cloud/miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub Read-only operations - Issue/PR viewing for ChatGPT"
+    },
+
+    "project-info": {
+      "command": "node",
+      "args": [".claude/mcp-servers/project-info.cjs"],
+      "env": {
+        "PROJECT_ROOT": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
+      },
+      "disabled": false,
+      "description": "Project information provider - Structure, docs, status"
+    },
+
+    "agent-status": {
+      "command": "node",
+      "args": [".claude/mcp-servers/agent-status.cjs"],
+      "env": {
+        "MIYABI_API_URL": "http://localhost:3000/api/v1"
+      },
+      "disabled": false,
+      "description": "Agent status monitor - Check running agents and tasks"
+    }
+  },
+
+  "appliConnector": {
+    "//": "Appli Connector specific settings",
+    "transport": "sse",
+    "port": 8765,
+    "host": "0.0.0.0",
+    "cors": {
+      "enabled": true,
+      "origins": ["https://chat.openai.com", "https://chatgpt.com"]
+    },
+    "auth": {
+      "type": "bearer",
+      "token": "${APPLI_CONNECTOR_TOKEN}"
+    },
+    "rateLimit": {
+      "enabled": true,
+      "maxRequests": 100,
+      "windowMs": 3600000
+    }
+  }
+}

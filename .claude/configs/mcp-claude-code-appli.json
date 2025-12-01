@@ -1,0 +1,75 @@
+{
+  "mcpServers": {
+    "//": "=== Claude Code + Appli Connector Environment ===",
+    "//": "Target: Claude Desktop App, Claude Code CLI via Appli Connector",
+    "//": "Note: Optimized for Claude's native MCP support",
+
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"],
+      "disabled": false,
+      "description": "Filesystem access for Miyabi project"
+    },
+
+    "miyabi-core": {
+      "command": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/target/release/miyabi-mcp-server",
+      "args": [
+        "--repo-owner", "customer-cloud",
+        "--repo-name", "miyabi-private",
+        "--github-token", "${GITHUB_TOKEN}"
+      ],
+      "cwd": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private",
+      "env": {
+        "RUST_LOG": "miyabi_mcp_server=info"
+      },
+      "disabled": false,
+      "description": "Miyabi Core MCP Server - Agent execution"
+    },
+
+    "github": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/mcp-servers/github-enhanced.cjs"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "REPOSITORY": "customer-cloud/miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub operations - Issue/PR management"
+    },
+
+    "codex": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-codex/dist/index.js"],
+      "disabled": false,
+      "description": "Codex CLI integration"
+    },
+
+    "tmux": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-tmux-server/dist/index.js"],
+      "disabled": false,
+      "description": "Tmux session management"
+    },
+
+    "gemini-image": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/gemini3-image-gen/dist/simple-server.js"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini image generation"
+    }
+  },
+
+  "appliConnector": {
+    "//": "Appli Connector specific settings for Claude Code",
+    "transport": "stdio",
+    "fallbackTransport": "sse",
+    "ssePort": 8766,
+    "auth": {
+      "type": "none",
+      "//": "Local access - no auth required"
+    }
+  }
+}

@@ -7,6 +7,10 @@ Worktree dirを作成してそのWorktree dir へ必ずcd すること。Git wor
 
 ## 🎯 Critical Rules - 必ず守ること
 
+### ⭐⭐⭐⭐⭐ Rule 0: Output Language
+
+- すべてのアウトプットは日本語で行うこと（要約・報告・コードコメントを含む）
+
 ### ⭐⭐⭐⭐⭐ Rule 1: Task Execution Protocol
 
 **必ず、Task todos は Sub-Agentへアサインする or Skill useで対応**

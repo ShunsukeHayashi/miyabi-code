@@ -1,0 +1,346 @@
+openapi: 3.1.0
+info:
+  title: Miyabi Task API
+  description: |
+    Miyabi自動化プラットフォームのTask API。
+    ChatGPTから自然言語でタスクを指示し、コード生成・テスト・PR作成まで自動実行します。
+  version: 1.0.0
+  contact:
+    name: Miyabi Support
+    url: https://github.com/customer-cloud/miyabi-private
+
+servers:
+  - url: https://your-domain.com/api/v1
+    description: Production server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /tasks:
+    post:
+      operationId: createTask
+      summary: 新しいタスクを作成
+      description: |
+        自然言語でタスクを指示し、Miyabiに自動実行させます。
+        タスクはキューに追加され、バックグラウンドで実行されます。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+            examples:
+              implementation:
+                summary: 機能実装
+                value:
+                  instruction: "ユーザー認証機能を実装してください。JWTを使用してログイン・ログアウトのエンドポイントを作成してください。"
+                  repository: "customer-cloud/miyabi-private"
+                  options:
+                    priority: "normal"
+                    auto_merge: false
+              bugfix:
+                summary: バグ修正
+                value:
+                  instruction: "Issue #123のバグを修正してください"
+                  repository: "customer-cloud/miyabi-private"
+      responses:
+        '201':
+          description: タスク作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 認証エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: レート制限超過
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      operationId: listTasks
+      summary: タスク一覧を取得
+      description: 自分が作成したタスクの一覧を取得します
+      parameters:
+        - name: limit
+          in: query
+          description: 取得するタスク数（最大100）
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: タスク一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskResponse'
+                  count:
+                    type: integer
+
+  /tasks/{taskId}:
+    get:
+      operationId: getTask
+      summary: タスク詳細を取得
+      description: 指定したタスクの詳細と進捗状況を取得します
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: タスクID（UUID）
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: タスク詳細
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: タスクが見つからない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      operationId: cancelTask
+      summary: タスクをキャンセル
+      description: 実行中または待機中のタスクをキャンセルします
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: タスクID（UUID）
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: キャンセル成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  task:
+                    $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: タスクが見つからないまたはキャンセル不可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      operationId: getHealth
+      summary: ヘルスチェック
+      description: システムの健全性と統計情報を取得します
+      security: []  # 認証不要
+      responses:
+        '200':
+          description: システム正常
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Bearer {api_key} 形式で指定"
+
+  schemas:
+    TaskRequest:
+      type: object
+      required:
+        - instruction
+        - repository
+      properties:
+        instruction:
+          type: string
+          description: 自然言語によるタスク指示（10-5000文字）
+          minLength: 10
+          maxLength: 5000
+          example: "ユーザー認証機能を実装してください"
+        repository:
+          type: string
+          description: 対象リポジトリ（owner/repo形式）
+          pattern: "^[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$"
+          example: "customer-cloud/miyabi-private"
+        options:
+          type: object
+          properties:
+            auto_merge:
+              type: boolean
+              description: PR作成後に自動マージするか
+              default: false
+            notify:
+              type: boolean
+              description: 完了時に通知するか
+              default: true
+            priority:
+              type: string
+              enum: [low, normal, high, critical]
+              default: normal
+            target_branch:
+              type: string
+              description: ターゲットブランチ
+              default: main
+            require_review:
+              type: boolean
+              description: レビュー必須か
+            callback_url:
+              type: string
+              format: uri
+              description: 完了時のコールバックURL
+
+    TaskResponse:
+      type: object
+      properties:
+        task_id:
+          type: string
+          format: uuid
+          description: タスクID
+        status:
+          type: string
+          enum: [queued, running, completed, failed, cancelled]
+          description: タスクステータス
+        estimated_time:
+          type: integer
+          description: 推定完了時間（秒）
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        progress:
+          $ref: '#/components/schemas/TaskProgress'
+        result:
+          $ref: '#/components/schemas/TaskResult'
+        error:
+          $ref: '#/components/schemas/TaskError'
+
+    TaskProgress:
+      type: object
+      properties:
+        current_step:
+          type: string
+          description: 現在のステップ名
+        total_steps:
+          type: integer
+        completed_steps:
+          type: integer
+        percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        current_agent:
+          type: string
+          description: 現在実行中のAgent
+
+    TaskResult:
+      type: object
+      properties:
+        pr_url:
+          type: string
+          format: uri
+          description: 作成されたPRのURL
+        changes:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              type:
+                type: string
+                enum: [added, modified, deleted]
+              additions:
+                type: integer
+              deletions:
+                type: integer
+        review_status:
+          type: string
+          enum: [pending, approved, changes_requested]
+        merge_status:
+          type: string
+          enum: [pending, merged, blocked]
+
+    TaskError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        tasks:
+          type: object
+          properties:
+            total:
+              type: integer
+            queued:
+              type: integer
+            running:
+              type: integer
+            completed:
+              type: integer
+            failed:
+              type: integer
