@@ -43,6 +43,14 @@ from a2a_client import get_client as get_a2a_client
 # Claude.ai Web MCP integration (OAuth + SSE)
 from claude_web_mcp import claude_router, verify_claude_token
 
+# OAuth State Store (Redis/InMemory - SaaS ready)
+from core.oauth_state import (
+    oauth_state_store,
+    create_oauth_state,
+    validate_and_consume_state,
+    OAuthStateData,
+)
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -4624,9 +4632,9 @@ async def get_user_info(token: str = Depends(verify_bearer_token)):
 # GitHub OAuth App Authentication
 # ==========================================
 
-# Store GitHub OAuth states and tokens
-github_oauth_states: Dict[str, Dict[str, Any]] = {}
+# GitHub user tokens (TODO: migrate to Redis as well)
 github_user_tokens: Dict[str, Dict[str, Any]] = {}
+# NOTE: github_oauth_states replaced by oauth_state_store (core/oauth_state.py)
 
 
 @app.get("/auth/github")
@@ -4641,15 +4649,13 @@ async def github_auth_start(
     if not GITHUB_OAUTH_CLIENT_ID:
         raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
 
-    # Generate state for CSRF protection
-    state = secrets.token_urlsafe(32)
-
-    # Store state with metadata
-    github_oauth_states[state] = {
-        "redirect_uri": redirect_uri or GITHUB_OAUTH_CALLBACK_URL,
-        "created_at": time.time(),
-        "expires_at": time.time() + 600,  # 10 minutes
-    }
+    # Generate and store state for CSRF protection (Redis/InMemory)
+    state = await create_oauth_state(
+        provider="github",
+        redirect_uri=redirect_uri or GITHUB_OAUTH_CALLBACK_URL,
+        ttl_seconds=600,  # 10 minutes
+        extra={"scope": scope},
+    )
 
     # Build GitHub authorization URL
     github_auth_url = (
@@ -4672,14 +4678,8 @@ async def github_auth_callback(
     GitHub OAuth callback
     Exchanges code for access token
     """
-    # Validate state
-    state_data = github_oauth_states.get(state)
-    if not state_data:
-        raise HTTPException(status_code=400, detail="Invalid state parameter")
-
-    if time.time() > state_data["expires_at"]:
-        del github_oauth_states[state]
-        raise HTTPException(status_code=400, detail="State expired")
+    # Validate and consume state (one-time use, raises HTTPException if invalid)
+    state_info = await validate_and_consume_state(state)
 
     # Exchange code for access token
     import httpx
@@ -4743,8 +4743,7 @@ async def github_auth_callback(
     }
     github_user_tokens[user_info["login"]] = our_access_token
 
-    # Clean up state
-    del github_oauth_states[state]
+    # State already consumed by validate_and_consume_state (one-time use)
 
     # Check if user has completed onboarding
     user_id = f"github_{user_info['id']}"
@@ -4755,7 +4754,7 @@ async def github_auth_callback(
         has_projects = False
 
     # Check if this is from ChatGPT/MCP client (no redirect_uri or specific patterns)
-    redirect_uri = state_data.get("redirect_uri")
+    redirect_uri = state_info.redirect_uri
     is_mcp_client = not redirect_uri or "chatgpt.com" in (redirect_uri or "") or "connector" in (redirect_uri or "")
     
     if is_mcp_client:
@@ -5885,16 +5884,14 @@ async def github_login_redirect():
     Convenience endpoint to start GitHub OAuth flow.
     Redirects to the OAuth authorize endpoint with default settings.
     """
-    import secrets
-    state = secrets.token_urlsafe(32)
-    
-    # Store state
-    github_oauth_states[state] = {
-        "redirect_uri": "/onboarding/",
-        "created_at": time.time(),
-        "expires_at": time.time() + 600,
-    }
-    
+    # Generate and store state (Redis/InMemory)
+    state = await create_oauth_state(
+        provider="github",
+        redirect_uri="/onboarding/",
+        ttl_seconds=600,
+        extra={"scope": "repo,read:user,user:email"},
+    )
+
     # Redirect to GitHub OAuth
     github_auth_url = (
         f"https://github.com/login/oauth/authorize"
