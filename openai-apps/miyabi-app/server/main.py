@@ -104,6 +104,21 @@ def get_user_miyabi_root(token: str) -> Path:
     project = get_user_project(token)
     return Path(project.get("project_root", str(MIYABI_ROOT)))
 
+
+def get_user_github_repo() -> tuple[str, str]:
+    """
+    Get the current user's GitHub repo (owner, name) from context.
+    Falls back to default REPO_OWNER/REPO_NAME if not configured.
+    """
+    token = current_user_token.get()
+    if token:
+        project = get_user_project(token)
+        github_repo = project.get("github_repo", f"{REPO_OWNER}/{REPO_NAME}")
+        if "/" in github_repo:
+            parts = github_repo.split("/", 1)
+            return parts[0], parts[1]
+    return REPO_OWNER, REPO_NAME
+
   # code -> code_challenge
 
 app = FastAPI(title="Miyabi MCP Server", version="1.0.0")
@@ -528,28 +543,98 @@ def run_command(cmd: List[str], cwd: Path = MIYABI_ROOT) -> tuple[str, str, int]
     return result.stdout, result.stderr, result.returncode
 
 
-# Cache GitHub client instance
+# Cache GitHub client instance (for static token only)
 _github_client = None
+# Cache per-user GitHub clients
+_user_github_clients: Dict[str, Github] = {}
 
-def get_github_client() -> Github:
-    """Get authenticated GitHub client (cached)"""
+
+def get_user_github_token() -> Optional[str]:
+    """
+    Get the current user's GitHub token from OAuth flow.
+    Returns None if not authenticated via GitHub OAuth.
+    """
+    token = current_user_token.get()
+    if not token:
+        return None
+
+    token_data = oauth_access_tokens.get(token)
+    if not token_data:
+        return None
+
+    return token_data.get("github_token")
+
+
+def get_github_client(user_token: Optional[str] = None) -> Github:
+    """
+    Get authenticated GitHub client.
+
+    Priority:
+    1. Explicit user_token parameter
+    2. Current user's GitHub token from OAuth (multi-user support)
+    3. Static GITHUB_TOKEN environment variable (fallback)
+    """
     global _github_client
+
+    # Try to get user's GitHub token if not explicitly provided
+    if user_token is None:
+        user_token = get_user_github_token()
+
+    # Use user-specific token if available
+    if user_token:
+        if user_token not in _user_github_clients:
+            _user_github_clients[user_token] = Github(user_token)
+        return _user_github_clients[user_token]
+
+    # Fallback to static token
     if not GITHUB_TOKEN:
-        raise ValueError("GITHUB_TOKEN not set")
+        raise ValueError("No GitHub token available. Please authenticate via GitHub OAuth or set GITHUB_TOKEN environment variable.")
+
     if _github_client is None:
         _github_client = Github(GITHUB_TOKEN)
     return _github_client
 
 
 
+# Cache for default repo (static token)
 _cached_repo = None
 _cached_repo_time = 0
+# Cache for user-specific repos
+_user_cached_repos: Dict[str, tuple] = {}  # token -> (repo, timestamp)
+
 
 def get_repo():
-    """Get cached repository object (refreshes every 5 min)"""
+    """
+    Get repository object for the current user.
+
+    - Uses user's GitHub token and repo if available
+    - Falls back to static GITHUB_TOKEN and default repo
+    - Caches repos per-user (refreshes every 5 min)
+    """
     global _cached_repo, _cached_repo_time
     import time
     now = time.time()
+
+    # Get user's GitHub token and repo
+    user_token = get_user_github_token()
+    owner, repo_name = get_user_github_repo()
+    repo_full_name = f"{owner}/{repo_name}"
+
+    if user_token:
+        # User-specific repo with caching
+        cache_key = f"{user_token}:{repo_full_name}"
+        if cache_key in _user_cached_repos:
+            cached_repo, cached_time = _user_cached_repos[cache_key]
+            if (now - cached_time) < 300:
+                return cached_repo
+
+        # Create new user-specific repo
+        g = get_github_client(user_token)
+        repo = g.get_repo(repo_full_name)
+        _user_cached_repos[cache_key] = (repo, now)
+        return repo
+
+    # Fallback to static cached repo
     if _cached_repo is None or (now - _cached_repo_time) > 300:
         g = get_github_client()
         _cached_repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
