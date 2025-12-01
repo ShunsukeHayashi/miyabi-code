@@ -1,0 +1,21 @@
+{
+  "name": "@miyabi/chatgpt-app-widget",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.tsx --bundle --format=esm --outfile=dist/widget.js --loader:.tsx=tsx --minify",
+    "build:css": "npx tailwindcss -i src/styles.css -o dist/widget.css --minify",
+    "dev": "esbuild src/index.tsx --bundle --format=esm --outfile=dist/widget.js --loader:.tsx=tsx --watch"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "esbuild": "^0.19.8",
+    "tailwindcss": "^3.4.0"
+  }
+}
