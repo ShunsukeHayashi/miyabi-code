@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi Agent Gacha | TCGカードを引こう</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                        mono: ['"Orbitron"', 'monospace'],
+                    },
+                    colors: {
+                        rarity: {
+                            ur: '#FFD700',
+                            ssr: '#A855F7',
+                            sr: '#3B82F6',
+                            r: '#10B981',
+                        },
+                        dark: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                            600: '#252533',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Card Flip Animation */
+        .card-container {
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Gacha Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-2deg); }
+            20%, 40%, 60%, 80% { transform: translateX(5px) rotate(2deg); }
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+            50% { box-shadow: 0 0 60px rgba(255, 215, 0, 0.8); }
+        }
+        .glow-animation {
+            animation: glow-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: #ff0000; box-shadow: 0 0 30px #ff0000; }
+            17% { border-color: #ff8000; box-shadow: 0 0 30px #ff8000; }
+            33% { border-color: #ffff00; box-shadow: 0 0 30px #ffff00; }
+            50% { border-color: #00ff00; box-shadow: 0 0 30px #00ff00; }
+            67% { border-color: #00ffff; box-shadow: 0 0 30px #00ffff; }
+            83% { border-color: #8000ff; box-shadow: 0 0 30px #8000ff; }
+            100% { border-color: #ff0000; box-shadow: 0 0 30px #ff0000; }
+        }
+        .rainbow-border {
+            animation: rainbow 2s linear infinite;
+            border-width: 4px;
+        }
+
+        /* Particle Effects */
+        @keyframes particle-rise {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(0); }
+        }
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particle-rise 1s ease-out forwards;
+        }
+
+        /* Rarity Glow */
+        .glow-ur { box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 215, 0, 0.3); }
+        .glow-ssr { box-shadow: 0 0 35px rgba(168, 85, 247, 0.5), 0 0 70px rgba(168, 85, 247, 0.25); }
+        .glow-sr { box-shadow: 0 0 25px rgba(59, 130, 246, 0.4); }
+        .glow-r { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+
+        /* Badge Styles */
+        .badge-ur { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
+        .badge-ssr { background: linear-gradient(135deg, #A855F7, #7C3AED); }
+        .badge-sr { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+        .badge-r { background: linear-gradient(135deg, #10B981, #059669); }
+
+        /* Gacha Machine */
+        .gacha-machine {
+            background: linear-gradient(180deg, #1a1a25 0%, #12121a 100%);
+            border: 3px solid #333;
+            border-radius: 24px;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-white font-sans min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-dark-900/90 backdrop-blur-lg border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg"></div>
+                <span class="text-xl font-bold">Miyabi <span class="text-indigo-400">Gacha</span></span>
+            </a>
+            <a href="index.html" class="text-sm text-gray-400 hover:text-white transition">
+                ← LPに戻る
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-16 px-6" x-data="gachaApp()">
+        <div class="max-w-6xl mx-auto">
+
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold mb-4">
+                    <span class="text-gradient">Miyabi Agent Gacha</span>
+                </h1>
+                <p class="text-gray-400">TCGスタイルのAIエージェントカードを引こう！</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12">
+
+                <!-- Left: Gacha Machine -->
+                <div class="flex flex-col items-center">
+                    <div class="gacha-machine p-8 w-full max-w-md">
+                        <!-- Gacha Display -->
+                        <div class="relative mb-8">
+                            <!-- Card Display Area -->
+                            <div class="card-container w-[280px] h-[400px] mx-auto"
+                                 :class="{ 'shake': isRolling }">
+                                <div class="card-inner" :class="{ 'flipped': showResult }">
+                                    <!-- Card Back -->
+                                    <div class="card-front bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center border-2 border-indigo-500"
+                                         :class="{ 'glow-animation': isRolling }">
+                                        <div class="text-center">
+                                            <div class="text-6xl mb-4">🎴</div>
+                                            <div class="text-xl font-bold text-indigo-300">Miyabi</div>
+                                            <div class="text-sm text-gray-400">Agent Card</div>
+                                        </div>
+                                    </div>
+                                    <!-- Card Front (Result) -->
+                                    <div class="card-back overflow-hidden"
+                                         :class="getRarityGlow(currentCard?.rarity)">
+                                        <img :src="currentCard?.image"
+                                             :alt="currentCard?.name"
+                                             class="w-full h-full object-cover"
+                                             x-show="currentCard">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gacha Buttons -->
+                        <div class="space-y-4">
+                            <button @click="rollGacha(1)"
+                                    :disabled="isRolling"
+                                    class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-500/25 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!isRolling">単発ガチャ</span>
+                                <span x-show="isRolling">抽選中...</span>
+                            </button>
+                            <button @click="rollGacha(10)"
+                                    :disabled="isRolling"
+                                    class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-orange-500/25 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!isRolling">10連ガチャ (SR以上1枚確定)</span>
+                                <span x-show="isRolling">抽選中...</span>
+                            </button>
+                        </div>
+
+                        <!-- Rates -->
+                        <div class="mt-6 p-4 bg-dark-900/50 rounded-xl">
+                            <div class="text-xs text-gray-500 mb-2">排出確率</div>
+                            <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                                <div>
+                                    <span class="badge-ur px-2 py-0.5 rounded text-[10px] font-bold">UR</span>
+                                    <div class="text-yellow-400 mt-1">3%</div>
+                                </div>
+                                <div>
+                                    <span class="badge-ssr px-2 py-0.5 rounded text-[10px] font-bold">SSR</span>
+                                    <div class="text-purple-400 mt-1">7%</div>
+                                </div>
+                                <div>
+                                    <span class="badge-sr px-2 py-0.5 rounded text-[10px] font-bold">SR</span>
+                                    <div class="text-blue-400 mt-1">25%</div>
+                                </div>
+                                <div>
+                                    <span class="badge-r px-2 py-0.5 rounded text-[10px] font-bold">R</span>
+                                    <div class="text-green-400 mt-1">65%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div x-show="showResult && currentCard"
+                         x-transition
+                         class="mt-8 text-center">
+                        <div class="text-2xl font-bold mb-2" x-text="currentCard?.name"></div>
+                        <span :class="getRarityBadge(currentCard?.rarity)"
+                              class="px-3 py-1 rounded-full text-sm font-bold"
+                              x-text="currentCard?.rarity"></span>
+                        <p class="text-gray-400 mt-2 text-sm" x-text="currentCard?.title"></p>
+                    </div>
+                </div>
+
+                <!-- Right: Collection -->
+                <div>
+                    <h2 class="text-2xl font-bold mb-6">コレクション</h2>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="bg-dark-800 rounded-xl p-4 text-center border border-yellow-500/30">
+                            <div class="text-2xl font-mono font-bold text-yellow-400" x-text="collection.filter(c => c.rarity === 'UR').length"></div>
+                            <div class="text-xs text-gray-500">UR</div>
+                        </div>
+                        <div class="bg-dark-800 rounded-xl p-4 text-center border border-purple-500/30">
+                            <div class="text-2xl font-mono font-bold text-purple-400" x-text="collection.filter(c => c.rarity === 'SSR').length"></div>
+                            <div class="text-xs text-gray-500">SSR</div>
+                        </div>
+                        <div class="bg-dark-800 rounded-xl p-4 text-center border border-blue-500/30">
+                            <div class="text-2xl font-mono font-bold text-blue-400" x-text="collection.filter(c => c.rarity === 'SR').length"></div>
+                            <div class="text-xs text-gray-500">SR</div>
+                        </div>
+                        <div class="bg-dark-800 rounded-xl p-4 text-center border border-green-500/30">
+                            <div class="text-2xl font-mono font-bold text-green-400" x-text="collection.filter(c => c.rarity === 'R').length"></div>
+                            <div class="text-xs text-gray-500">R</div>
+                        </div>
+                    </div>
+
+                    <!-- Collection Grid -->
+                    <div class="bg-dark-800 rounded-2xl p-6 max-h-[500px] overflow-y-auto">
+                        <template x-if="collection.length === 0">
+                            <div class="text-center py-12 text-gray-500">
+                                <div class="text-4xl mb-4">🎴</div>
+                                <p>まだカードがありません</p>
+                                <p class="text-sm">ガチャを引いてコレクションを始めよう！</p>
+                            </div>
+                        </template>
+                        <div class="grid grid-cols-3 gap-4">
+                            <template x-for="card in collection" :key="card.id + '-' + Math.random()">
+                                <div class="relative group cursor-pointer"
+                                     @click="viewCard(card)">
+                                    <div class="rounded-xl overflow-hidden transition-transform hover:scale-105"
+                                         :class="getRarityGlow(card.rarity)">
+                                        <img :src="card.image" :alt="card.name" class="w-full">
+                                    </div>
+                                    <div class="absolute bottom-2 right-2">
+                                        <span :class="getRarityBadge(card.rarity)"
+                                              class="px-2 py-0.5 rounded text-[10px] font-bold"
+                                              x-text="card.rarity"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Total Count -->
+                    <div class="mt-4 text-center text-gray-500 text-sm">
+                        総獲得数: <span class="text-white font-bold" x-text="collection.length"></span> 枚
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10連結果モーダル -->
+            <div x-show="showMultiResult"
+                 x-transition
+                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                 @click.self="showMultiResult = false">
+                <div class="bg-dark-800 rounded-2xl p-8 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                    <h3 class="text-2xl font-bold text-center mb-6">10連ガチャ結果</h3>
+                    <div class="grid grid-cols-5 gap-4">
+                        <template x-for="card in multiResults" :key="card.id + '-' + Math.random()">
+                            <div class="rounded-xl overflow-hidden"
+                                 :class="getRarityGlow(card.rarity)">
+                                <img :src="card.image" :alt="card.name" class="w-full">
+                                <div class="p-2 text-center bg-dark-900">
+                                    <span :class="getRarityBadge(card.rarity)"
+                                          class="px-2 py-0.5 rounded text-[10px] font-bold"
+                                          x-text="card.rarity"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <button @click="showMultiResult = false"
+                            class="w-full mt-6 py-3 bg-indigo-600 rounded-xl font-bold hover:bg-indigo-500 transition">
+                        閉じる
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark-800 border-t border-white/5 py-6">
+        <div class="text-center text-sm text-gray-500">
+            © 2025 Miyabi Plugin Marketplace. All cards are AI-generated using Gemini 3 (Nano Banana Pro).
+        </div>
+    </footer>
+
+    <script>
+        function gachaApp() {
+            return {
+                isRolling: false,
+                showResult: false,
+                showMultiResult: false,
+                currentCard: null,
+                collection: [],
+                multiResults: [],
+
+                // Agent Card Data
+                cards: [
+                    // UR (3%)
+                    { id: 'medaman', name: 'めだまん', title: '完璧主義のコードレビュアー', rarity: 'UR', image: 'images/medaman_unified_UR.png' },
+                    { id: 'kikakuron', name: 'きかくろん', title: 'AI起業家・ビジネス戦略立案', rarity: 'UR', image: 'images/medaman_unified_UR.png' },
+                    { id: 'imargesan', name: 'いまーじゅさん', title: '画像生成とビジュアル戦略', rarity: 'UR', image: 'images/medaman_unified_UR.png' },
+                    { id: 'bunsekyking', name: 'ぶんせききんぐ', title: '分析とインサイト抽出', rarity: 'UR', image: 'images/medaman_unified_UR.png' },
+
+                    // SSR (7%)
+                    { id: 'shikiroon', name: 'しきるん', title: 'タスク調整と並列実行の指揮者', rarity: 'SSR', image: 'images/shikiroon_unified_SSR.png' },
+                    { id: 'dezainyan', name: 'でざいにゃん', title: 'プロダクトデザインとUX', rarity: 'SSR', image: 'images/shikiroon_unified_SSR.png' },
+                    { id: 'makettosama', name: 'まけっとさま', title: 'マーケティング戦略全般', rarity: 'SSR', image: 'images/shikiroon_unified_SSR.png' },
+                    { id: 'jibunkun', name: 'じぶんくん', title: '自己分析とスキル開発', rarity: 'SSR', image: 'images/shikiroon_unified_SSR.png' },
+                    { id: 'shiraberu', name: 'しらべるん', title: '市場調査と競合分析', rarity: 'SSR', image: 'images/shikiroon_unified_SSR.png' },
+
+                    // SR (25%)
+                    { id: 'tsukuroon', name: 'つくるん', title: 'コード生成の天才プログラマー', rarity: 'SR', image: 'images/tsukuroon_unified_SR.png' },
+                    { id: 'matomeroon', name: 'まとめるん', title: 'PR作成のマエストロ', rarity: 'SR', image: 'images/matomeroon_unified_SR.png' },
+                    { id: 'hakoboon', name: 'はこぶん', title: 'デプロイの配達人', rarity: 'SR', image: 'images/tsukuroon_unified_SR.png' },
+                    { id: 'konseputan', name: 'こんせぷたん', title: '商品企画とコンセプト開発', rarity: 'SR', image: 'images/matomeroon_unified_SR.png' },
+                    { id: 'saerusu', name: 'せーるすせんせい', title: 'セールス戦略と営業支援', rarity: 'SR', image: 'images/tsukuroon_unified_SR.png' },
+                    { id: 'janelkun', name: 'じゃねるくん', title: 'ファネル設計と導線最適化', rarity: 'SR', image: 'images/matomeroon_unified_SR.png' },
+                    { id: 'gasladen', name: 'すらいどん', title: 'スライド作成とプレゼン', rarity: 'SR', image: 'images/tsukuroon_unified_SR.png' },
+                    { id: 'perusona', name: 'ぺるそな', title: 'ペルソナ設計とユーザー理解', rarity: 'SR', image: 'images/matomeroon_unified_SR.png' },
+                    { id: 'yuchubeler', name: 'ゆーちゅーべらー', title: 'YouTube戦略と動画コンテンツ', rarity: 'SR', image: 'images/tsukuroon_unified_SR.png' },
+                    { id: 'snssun', name: 'すんすさん', title: 'SNS戦略と運用', rarity: 'SR', image: 'images/matomeroon_unified_SR.png' },
+
+                    // R (65%)
+                    { id: 'mitsukeroon', name: 'みつけるん', title: 'Issue発見のスペシャリスト', rarity: 'R', image: 'images/mitsukeroon_unified_R.png' },
+                    { id: 'tsunagun', name: 'つなぐん', title: 'コードベース更新の番人', rarity: 'R', image: 'images/mitsukeroon_unified_R.png' },
+                    { id: 'kakuchan', name: 'かくちゃん', title: 'コンテンツ作成と記事執筆', rarity: 'R', image: 'images/mitsukeroon_unified_R.png' },
+                    { id: 'notesan', name: 'のーとさん', title: 'Note記事作成と発信', rarity: 'R', image: 'images/mitsukeroon_unified_R.png' },
+                    { id: 'cusrelo', name: 'かすれろちゃん', title: 'CRM構築と顧客関係管理', rarity: 'R', image: 'images/mitsukeroon_unified_R.png' },
+                ],
+
+                init() {
+                    // Load collection from localStorage
+                    const saved = localStorage.getItem('miyabi-gacha-collection');
+                    if (saved) {
+                        this.collection = JSON.parse(saved);
+                    }
+                },
+
+                rollGacha(count) {
+                    if (this.isRolling) return;
+
+                    this.isRolling = true;
+                    this.showResult = false;
+                    this.multiResults = [];
+
+                    setTimeout(() => {
+                        if (count === 1) {
+                            this.currentCard = this.drawCard();
+                            this.collection.unshift(this.currentCard);
+                            this.showResult = true;
+                        } else {
+                            // 10連: SR以上1枚確定
+                            for (let i = 0; i < 10; i++) {
+                                let card;
+                                if (i === 9) {
+                                    // 最後の1枚はSR以上確定
+                                    card = this.drawCard(true);
+                                } else {
+                                    card = this.drawCard();
+                                }
+                                this.multiResults.push(card);
+                                this.collection.unshift(card);
+                            }
+                            this.showMultiResult = true;
+                        }
+
+                        // Save to localStorage
+                        localStorage.setItem('miyabi-gacha-collection', JSON.stringify(this.collection));
+
+                        this.isRolling = false;
+                    }, 1500);
+                },
+
+                drawCard(guaranteedSR = false) {
+                    const rand = Math.random() * 100;
+                    let rarity;
+
+                    if (guaranteedSR) {
+                        // SR以上確定
+                        if (rand < 3) rarity = 'UR';
+                        else if (rand < 10) rarity = 'SSR';
+                        else rarity = 'SR';
+                    } else {
+                        // 通常確率
+                        if (rand < 3) rarity = 'UR';
+                        else if (rand < 10) rarity = 'SSR';
+                        else if (rand < 35) rarity = 'SR';
+                        else rarity = 'R';
+                    }
+
+                    const cardsOfRarity = this.cards.filter(c => c.rarity === rarity);
+                    const card = cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
+                    return { ...card };
+                },
+
+                viewCard(card) {
+                    this.currentCard = card;
+                    this.showResult = true;
+                },
+
+                getRarityGlow(rarity) {
+                    return {
+                        'glow-ur rainbow-border': rarity === 'UR',
+                        'glow-ssr': rarity === 'SSR',
+                        'glow-sr': rarity === 'SR',
+                        'glow-r': rarity === 'R',
+                    };
+                },
+
+                getRarityBadge(rarity) {
+                    return {
+                        'badge-ur': rarity === 'UR',
+                        'badge-ssr': rarity === 'SSR',
+                        'badge-sr': rarity === 'SR',
+                        'badge-r': rarity === 'R',
+                    };
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .text-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+
+</body>
+</html>

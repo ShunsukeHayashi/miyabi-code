@@ -1,0 +1,1766 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage{luatexja}
+\usepackage{luatexja-fontspec}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+
+% Japanese fonts
+\setmainjfont{Hiragino Kaku Gothic ProN}
+\setsansjfont{Hiragino Kaku Gothic ProN}
+
+% TikZ libraries
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
+
+% Colors
+\definecolor{claudeblue}{RGB}{114, 162, 247}
+\definecolor{codexgreen}{RGB}{16, 163, 127}
+\definecolor{miyabipurple}{RGB}{147, 112, 219}
+\definecolor{codebg}{RGB}{245, 245, 250}
+\definecolor{linkcolor}{RGB}{0, 102, 204}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=linkcolor,
+    urlcolor=linkcolor,
+    citecolor=linkcolor
+}
+
+% Listings setup
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{gray!50},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    tabsize=2,
+    xleftmargin=1em,
+    xrightmargin=1em,
+    aboveskip=1em,
+    belowskip=1em
+}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{miyabipurple}{\textbf{Miyabi}} CCG/CG 協調アーキテクチャ}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{\footnotesize\textcolor{gray}{Miyabi マルチエージェントオーケストレーション}}
+
+% Custom boxes
+\newtcolorbox{infobox}[1][]{
+    colback=claudeblue!10,
+    colframe=claudeblue,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+\newtcolorbox{warningbox}[1][]{
+    colback=orange!10,
+    colframe=orange!80!black,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+\newtcolorbox{codexbox}[1][]{
+    colback=codexgreen!10,
+    colframe=codexgreen,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+% Title
+\title{
+    \vspace{-2cm}
+    \textcolor{miyabipurple}{\Huge\textbf{Miyabi}}\\[0.5em]
+    \Large Claude Code \& Codex\\
+    \large マルチエージェント協調アーキテクチャ\\[1em]
+    \normalsize CCG (Claude Code) + CG (Codex) サブエージェントシステム
+}
+\author{Miyabi 開発チーム}
+\date{2025年11月}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+本ドキュメントは、Miyabi自律型開発プラットフォームにおけるClaude Code（CCG）とOpenAI Codex（CG）エージェントの協調に関する包括的な技術仕様を提供します。両システムのサブエージェントアーキテクチャを詳述し、協調パターンを定義し、マルチエージェントオーケストレーションのベストプラクティスを確立します。目標は、ClaudeとOpenAIモデルの両方の強みを活用するハイブリッドAI開発ワークフローを実現することです。
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%==============================================================================
+\section{はじめに}
+%==============================================================================
+
+\subsection{Miyabiプラットフォーム概要}
+
+Miyabiは完全自律型AI開発オペレーションプラットフォームです：
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{GitHub-as-OS}: Issue = タスク、PR = 成果物、Actions = CI/CD
+    \item \textbf{21個のAIエージェント}: コーディング7個 + ビジネス14個
+    \item \textbf{59個のRust Crate}: モジュラーアーキテクチャ（コンパイル50\%以上高速化）
+    \item \textbf{28個以上のMCPサーバー}: 拡張可能なツールエコシステム
+    \item \textbf{A2Aプロトコル}: エージェント間通信標準
+\end{itemize}
+
+\subsection{CCGとCGの定義}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{略称} & \textbf{正式名称} & \textbf{説明} \\
+\midrule
+CCG & Claude Code Guide & Claude Codeサブエージェントシステム \\
+CG & Codex Guide & OpenAI Codexサブエージェントシステム \\
+\bottomrule
+\end{tabular}
+\caption{エージェントシステム略称}
+\end{table}
+
+\subsection{本ドキュメントの目的}
+
+\begin{enumerate}
+    \item CCGとCGのサブエージェント機能と制限を定義
+    \item ハイブリッドワークフローの協調パターンを確立
+    \item Miyabi統合の実装ガイドラインを提供
+    \item マルチエージェントオーケストレーションのベストプラクティスを文書化
+\end{enumerate}
+
+%==============================================================================
+\section{Claude Code（CCG）アーキテクチャ}
+%==============================================================================
+
+\subsection{コアメカニズム}
+
+Claude CodeのTaskツールは一時的なワーカー生成システムとして動作します：
+
+\begin{itemize}
+    \item 各タスクは\textbf{独立した200kコンテキストウィンドウ}を受け取る
+    \item サブエージェントは親から\textbf{独立した状態}を維持
+    \item 最大\textbf{10個の並列タスク}
+    \item \textbf{サブエージェントのネスト不可}：サブエージェントは他のサブエージェントを生成できない
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{images/ccg_architecture.jpg}
+\caption{CCGサブエージェント実行モデル（Gemini 3 Pro生成）}
+\end{figure}
+
+\subsection{組み込みサブエージェントタイプ}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{タイプ} & \textbf{モデル} & \textbf{ツール} & \textbf{用途} \\
+\midrule
+General-Purpose & Sonnet & 全て & フルスタック実装 \\
+Plan & Sonnet & 読み取り専用 & アーキテクチャ分析 \\
+Explore & Haiku & 読み取り専用 & 高速コードベース検索 \\
+claude-code-guide & --- & ドキュメント & ドキュメント参照 \\
+\bottomrule
+\end{tabular}
+\caption{CCG組み込みサブエージェントタイプ}
+\end{table}
+
+\subsection{カスタムサブエージェント設定}
+
+カスタムサブエージェントはMarkdownファイルのYAMLフロントマターで定義：
+
+\begin{lstlisting}[language=yaml, caption=カスタムCCGサブエージェント定義]
+---
+name: security-reviewer
+description: "セキュリティ監査専門家"
+model: sonnet
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+permissionMode: default
+---
+
+あなたはコードの脆弱性を分析するセキュリティ専門家です...
+\end{lstlisting}
+
+\textbf{保存場所:}
+\begin{itemize}
+    \item プロジェクトレベル: \texttt{.claude/agents/}（バージョン管理）
+    \item ユーザーレベル: \texttt{\textasciitilde/.claude/agents/}（グローバル）
+\end{itemize}
+
+\subsection{Claude Agent SDKアーキテクチャ}
+
+\begin{infobox}[SDKコンポーネント]
+\begin{itemize}
+    \item \texttt{ClaudeSDKClient}: ステートフルなマルチターンセッション
+    \item \texttt{query()}: ステートレスな単発クエリ
+    \item \texttt{ClaudeAgentOptions}: 設定オブジェクト
+    \item Hooks: PreToolUse, PostToolUse, SessionStart など
+\end{itemize}
+\end{infobox}
+
+\subsubsection{Python SDK使用例}
+
+\begin{lstlisting}[language=python, caption=Claude Agent SDK例]
+from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
+
+options = ClaudeAgentOptions(
+    allowed_tools=["Read", "Write", "Bash"],
+    model="sonnet",
+    permission_mode="acceptEdits",
+    max_turns=20
+)
+
+async with ClaudeSDKClient() as client:
+    await client.connect(initial_prompt)
+    async for message in client.query(task):
+        process_message(message)
+\end{lstlisting}
+
+\subsection{通信パターン}
+
+\textbf{主要原則:}
+\begin{enumerate}
+    \item サブエージェントは\textbf{タスク関連コンテキストのみ}を受け取る
+    \item 結果は親に\textbf{コンテキスト汚染なし}で返される
+    \item サブエージェント間の\textbf{ピアツーピア通信なし}
+    \item オーケストレーターは\textbf{関心の分離}を維持
+\end{enumerate}
+
+%==============================================================================
+\section{OpenAI Codex（CG）アーキテクチャ}
+%==============================================================================
+
+\subsection{コアメカニズム}
+
+Codex CLIはModel Context Protocol（MCP）サーバーアーキテクチャで統合：
+
+\begin{itemize}
+    \item \texttt{codex()}と\texttt{codex-reply()}ツールを公開
+    \item エージェントターン間で永続的なセッション
+    \item 設定可能なサンドボックスと承認ポリシー
+    \item ネイティブAgents SDK統合
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{images/cg_architecture.jpg}
+\caption{CG MCPベースアーキテクチャ（Gemini 3 Pro生成）}
+\end{figure}
+
+\subsection{エージェント設定}
+
+Codexエージェントは\texttt{\textasciitilde/.codex/agents.toml}でTOMLファイルとして設定：
+
+\begin{lstlisting}[caption=Codexエージェント設定（agents.toml）]
+[agents.code-reviewer]
+name = "Code Reviewer"
+system_prompt = """
+あなたは以下に焦点を当てたコードレビュー専門家です：
+- セキュリティ脆弱性
+- パフォーマンス問題
+- コード品質と保守性
+"""
+model = "gpt-5"
+
+[agents.security-auditor]
+name = "Security Auditor"
+system_prompt = "あなたはセキュリティ専門家です..."
+\end{lstlisting}
+
+\subsection{マルチエージェントオーケストレーション}
+
+\begin{codexbox}[Codexオーケストレーション機能]
+\begin{itemize}
+    \item \textbf{階層的調整}: プロジェクトマネージャーがハンドオフを管理
+    \item \textbf{並列実行}: 独立したエージェントが同時実行
+    \item \textbf{ファイルベースチェックポイント}: 成果物が進行を制御
+    \item \textbf{双方向ハンドオフ}: 検証のためPMに戻る
+\end{itemize}
+\end{codexbox}
+
+\subsubsection{Agents SDK統合}
+
+\begin{lstlisting}[language=python, caption=Codex + Agents SDK]
+from agents import Agent, Runner
+from agents.mcp import MCPServerStdio
+
+async with MCPServerStdio(
+    name="Codex CLI",
+    params={"command": "npx", "args": ["-y", "codex", "mcp"]},
+) as codex_mcp:
+
+    developer = Agent(
+        name="Developer",
+        instructions="仕様に基づいて機能を構築...",
+        mcp_servers=[codex_mcp],
+        model="gpt-5"
+    )
+
+    reviewer = Agent(
+        name="Reviewer",
+        instructions="コード品質をレビュー...",
+        mcp_servers=[codex_mcp],
+        handoffs=[developer]
+    )
+
+    result = await Runner.run(reviewer, task)
+\end{lstlisting}
+
+\subsection{サンドボックスと権限}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{設定} & \textbf{説明} \\
+\midrule
+\texttt{approval-policy: never} & 自律実行 \\
+\texttt{approval-policy: always} & ユーザー承認必須 \\
+\texttt{sandbox: workspace-write} & ワークスペース内のみ書き込み \\
+\texttt{sandbox: none} & フルシステムアクセス \\
+\bottomrule
+\end{tabular}
+\caption{Codexサンドボックス設定}
+\end{table}
+
+%==============================================================================
+\section{CCG + CG 協調アーキテクチャ}
+%==============================================================================
+
+\subsection{ハイブリッドオーケストレーションモデル}
+
+Miyabiプラットフォームは統一されたオーケストレーション層を通じてCCGとCGを調整：
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{images/hybrid_architecture.jpg}
+\caption{Miyabi ハイブリッドCCG/CGアーキテクチャ（Gemini 3 Pro生成）}
+\end{figure}
+
+\subsection{役割定義}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{役割} & \textbf{システム} & \textbf{責務} & \textbf{強み} \\
+\midrule
+コーディネーター & CCG & タスク分解、DAG & 長いコンテキスト、推論 \\
+プランナー & CCG & アーキテクチャ設計 & 計画モード \\
+エクスプローラー & CCG & コードベース分析 & 高速Haiku検索 \\
+デベロッパー & CG & コード生成 & GPT-5創造性 \\
+テスター & CG & テスト作成 & 構造化出力 \\
+レビュアー & CCG & 品質保証 & Opus深い分析 \\
+\bottomrule
+\end{tabular}
+\caption{ハイブリッドエージェント役割割り当て}
+\end{table}
+
+\subsection{協調パターン}
+
+\subsubsection{パターン1: シーケンシャルハンドオフ}
+
+\begin{lstlisting}[caption=シーケンシャルCCGからCGへのハンドオフ]
+# フェーズ1: CCG計画
+plan = await ccg_planner.query("機能Xを分析・設計")
+
+# フェーズ2: CG実装
+impl = await cg_developer.query(f"実装: {plan}")
+
+# フェーズ3: CCGレビュー
+review = await ccg_reviewer.query(f"レビュー: {impl}")
+\end{lstlisting}
+
+\subsubsection{パターン2: 並列実行}
+
+\begin{lstlisting}[caption=CCGとCGの並列実行]
+# CCGとCGエージェントを並列実行
+results = await asyncio.gather(
+    ccg_explore.query("認証パターンを検索"),
+    cg_developer.query("認証ボイラープレートを生成"),
+    ccg_security.query("セキュリティ要件をレビュー")
+)
+
+# 結果を統合
+synthesis = await ccg_coordinator.query(
+    f"調査結果を統合: {results}"
+)
+\end{lstlisting}
+
+\subsubsection{パターン3: 競合検証}
+
+\begin{lstlisting}[caption=クロスシステム検証]
+# 一方のシステムで生成
+ccg_impl = await ccg_developer.query("機能を実装")
+
+# 他方で検証
+cg_review = await cg_reviewer.query(f"レビュー: {ccg_impl}")
+
+# または逆方向
+cg_impl = await cg_developer.query("機能を実装")
+ccg_review = await ccg_reviewer.query(f"レビュー: {cg_impl}")
+\end{lstlisting}
+
+\subsection{A2Aプロトコル統合}
+
+MiyabiのA2Aプロトコルは標準化された通信を実現：
+
+\begin{lstlisting}[caption=A2Aツール命名規則]
+# CCGエージェント
+a2a.claude_code_planning_agent.analyze_architecture
+a2a.claude_code_review_agent.review_code
+
+# CGエージェント
+a2a.codex_development_agent.generate_code
+a2a.codex_testing_agent.create_tests
+
+# A2A Gateway経由のクロスシステムルーティング
+a2a_gateway.route(
+    source="ccg.planner",
+    target="cg.developer",
+    payload=plan_document
+)
+\end{lstlisting}
+
+%==============================================================================
+\section{実装ガイドライン}
+%==============================================================================
+
+\subsection{Miyabi統合手順}
+
+\begin{enumerate}
+    \item \textbf{CCGエージェントの設定}
+    \begin{itemize}
+        \item \texttt{.claude/agents/}ディレクトリを作成
+        \item YAMLフロントマターでエージェント仕様を定義
+        \item Claude Agent SDKフックを設定
+    \end{itemize}
+
+    \item \textbf{CGエージェントの設定}
+    \begin{itemize}
+        \item \texttt{\textasciitilde/.codex/agents.toml}を作成
+        \item エージェントシステムプロンプトを定義
+        \item MCPサーバー統合を設定
+    \end{itemize}
+
+    \item \textbf{A2A Gatewayの実装}
+    \begin{itemize}
+        \item CCGとCGの両エージェントを登録
+        \item ルーティングルールを定義
+        \item メッセージ変換を実装
+    \end{itemize}
+
+    \item \textbf{オーケストレーションワークフローの作成}
+    \begin{itemize}
+        \item タスク分解ルールを定義
+        \item 並列実行ハンドラーを実装
+        \item 結果集約を設定
+    \end{itemize}
+\end{enumerate}
+
+\subsection{設定ファイル}
+
+\subsubsection{CCG設定（.claude/agents/miyabi-coordinator.md）}
+
+\begin{lstlisting}
+---
+name: miyabi-coordinator
+description: "CCG/CGルーティング機能を持つMiyabiタスクコーディネーター"
+model: opus
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Task
+  - Bash
+permissionMode: default
+---
+
+あなたはMiyabiコーディネーターとして以下を担当：
+1. タスクをサブタスクに分解
+2. タスクをCCGまたはCGエージェントにルーティング
+3. 結果を集約
+4. クロスシステムハンドオフを管理
+\end{lstlisting}
+
+\subsubsection{CG設定（\textasciitilde/.codex/agents.toml）}
+
+\begin{lstlisting}[language=python]
+[agents.miyabi-developer]
+name = "Miyabi Developer"
+system_prompt = """
+あなたはMiyabi開発エージェントとして以下を専門とします：
+- 機能実装
+- コード生成
+- テスト作成
+
+常に指定フォルダに出力し、チェックポイントを作成してください。
+"""
+model = "gpt-5"
+\end{lstlisting}
+
+\subsection{MCPサーバー設定}
+
+\begin{lstlisting}[language=json, caption=.mcp.json設定]
+{
+  "servers": {
+    "miyabi-ccg": {
+      "command": "claude-code",
+      "args": ["mcp"],
+      "protocol": "stdio"
+    },
+    "miyabi-cg": {
+      "command": "npx",
+      "args": ["-y", "codex", "mcp"],
+      "protocol": "stdio"
+    }
+  }
+}
+\end{lstlisting}
+
+%==============================================================================
+\section{ベストプラクティス}
+%==============================================================================
+
+本セクションでは、CCGとCGの協調における詳細なベストプラクティスを解説します。
+
+%------------------------------------------------------------------------------
+\subsection{エージェント設計パターン}
+%------------------------------------------------------------------------------
+
+\subsubsection{Explore-Plan-Code-Commit ワークフロー}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{images/workflow_pattern.jpg}
+\caption{Explore-Plan-Code-Commitワークフロー（Gemini 3 Pro生成）}
+\end{figure}
+
+実装前に必ず調査と計画を行うワークフローパターン：
+
+\begin{lstlisting}[language=python, caption=推奨ワークフロー]
+# Phase 1: Explore - 関連ファイルを読み込み
+context = await ccg_explore.query(
+    "認証に関連するファイルを全て検索し、現状を把握"
+)
+
+# Phase 2: Plan - 計画を立案
+plan = await ccg_planner.query(f"""
+以下のコンテキストに基づいて実装計画を立案：
+{context}
+
+出力形式：
+1. 変更が必要なファイル一覧
+2. 各ファイルの変更内容
+3. 依存関係と実行順序
+""")
+
+# Phase 3: Code - 実装
+impl = await cg_developer.query(f"計画に従って実装: {plan}")
+
+# Phase 4: Commit - 検証とコミット
+review = await ccg_reviewer.query(f"実装をレビュー: {impl}")
+\end{lstlisting}
+
+\begin{infobox}[なぜこのパターンが重要か]
+\begin{itemize}
+    \item 早期のコーディングを防止し、ソリューションの質を向上
+    \item 複雑な問題に対する成功率が大幅に改善
+    \item 明確なターゲットがあることでエージェントのパフォーマンスが向上
+\end{itemize}
+\end{infobox}
+
+\subsubsection{テスト駆動開発（TDD）パターン}
+
+\begin{lstlisting}[language=python, caption=TDDパターン]
+# Step 1: テストを先に作成
+tests = await cg_tester.query("""
+以下の機能のテストを作成（実装前）：
+- ユーザー認証
+- トークン検証
+- セッション管理
+""")
+
+# Step 2: テスト失敗を確認
+test_result = await run_tests(tests)
+assert test_result.failed > 0, "テストは最初失敗すべき"
+
+# Step 3: 実装
+impl = await cg_developer.query(f"""
+以下のテストを通過する実装を作成：
+{tests}
+""")
+
+# Step 4: テスト成功を確認
+final_result = await run_tests(tests)
+assert final_result.passed == final_result.total
+\end{lstlisting}
+
+\subsubsection{純粋オーケストレーターパターン}
+
+\begin{warningbox}[最重要原則]
+オーケストレーターは\textbf{絶対に実作業を行わない}。\\
+その唯一の責務は：
+\begin{enumerate}
+    \item グローバルな計画を保持
+    \item 専門エージェントへのタスク委譲
+    \item 結果の集約と調整
+\end{enumerate}
+\end{warningbox}
+
+\begin{lstlisting}[language=python, caption=純粋オーケストレーター実装]
+class MiyabiOrchestrator:
+    """純粋なコーディネーター - 実作業は行わない"""
+
+    async def execute_feature(self, requirement: str):
+        # 計画フェーズ（オーケストレーターは委譲のみ）
+        plan = await self.planning_agent.query(
+            f"要件を分析し計画: {requirement}"
+        )
+
+        # 実装フェーズ（並列実行）
+        tasks = [
+            self.backend_agent.query(plan.backend_spec),
+            self.frontend_agent.query(plan.frontend_spec),
+            self.test_agent.query(plan.test_spec)
+        ]
+        results = await asyncio.gather(*tasks)
+
+        # 検証フェーズ
+        review = await self.review_agent.query(
+            f"全実装をレビュー: {results}"
+        )
+
+        return review
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{コンテキスト管理}
+%------------------------------------------------------------------------------
+
+コンテキスト管理はマルチエージェントシステムの成功に最も重要な要素です。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{images/context_management.jpg}
+\caption{マルチエージェントシステムにおけるコンテキスト管理（Gemini 3 Pro生成）}
+\end{figure}
+
+\subsubsection{コンテキスト分離の原則}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{原則} & \textbf{説明} & \textbf{効果} \\
+\midrule
+サブエージェント分離 & 各サブエージェントは独立した200kコンテキスト & メモリ効率化 \\
+選択的情報伝達 & タスク関連情報のみを渡す & ノイズ削減 \\
+結果コンパクション & 結果を要約してから親に返す & コンテキスト節約 \\
+定期的リセット & 長いセッションでは\texttt{/clear}を使用 & パフォーマンス維持 \\
+\bottomrule
+\end{tabular}
+\caption{コンテキスト管理原則}
+\end{table}
+
+\subsubsection{CLAUDE.mdによる標準化}
+
+\begin{lstlisting}[caption=効果的なCLAUDE.md構成]
+# プロジェクト規約
+
+## ビルドコマンド
+- `cargo build` - デバッグビルド
+- `cargo test` - テスト実行
+- `cargo clippy` - リント
+
+## コードスタイル
+- インデント: 2スペース
+- 命名規則: snake_case（Rust）、camelCase（TypeScript）
+
+## ディレクトリ構造
+- `src/agents/` - エージェント実装
+- `src/core/` - コアロジック
+- `tests/` - テストファイル
+
+## 禁止事項
+- 直接の本番DBアクセス
+- ハードコードされた認証情報
+- 未テストのコードのマージ
+\end{lstlisting}
+
+\begin{infobox}[CLAUDE.mdの効果]
+\textbf{32.3\%のトークン削減}が報告されています。\\
+エージェントが共通の規約に従うことで、説明の繰り返しが不要になります。
+\end{infobox}
+
+\subsubsection{コンテキストコンパクション}
+
+\begin{lstlisting}[language=python, caption=自動コンテキスト要約]
+from claude_agent_sdk import ClaudeAgentOptions
+
+options = ClaudeAgentOptions(
+    # コンテキスト制限に近づくと自動要約
+    auto_compact=True,
+    compact_threshold=0.8,  # 80%使用で発動
+
+    # 要約時に保持する情報
+    compact_preserve=[
+        "current_task",
+        "key_decisions",
+        "file_modifications"
+    ]
+)
+\end{lstlisting}
+
+\subsubsection{長時間セッションでの管理}
+
+\begin{lstlisting}[language=python, caption=長時間セッション管理]
+class SessionManager:
+    def __init__(self):
+        self.task_count = 0
+        self.context_usage = 0
+
+    async def execute_with_management(self, agent, task):
+        self.task_count += 1
+
+        # 5タスクごとにコンテキストをクリア
+        if self.task_count % 5 == 0:
+            await agent.clear_context()
+            # 必要な情報のみ再ロード
+            await agent.load_context("CLAUDE.md")
+
+        result = await agent.query(task)
+
+        # コンテキスト使用量を追跡
+        self.context_usage = agent.get_context_usage()
+        if self.context_usage > 0.7:
+            logger.warning(f"コンテキスト使用率: {self.context_usage:.1%}")
+
+        return result
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{タスクルーティング戦略}
+%------------------------------------------------------------------------------
+
+\subsubsection{詳細なルーティングマトリックス}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{タスクタイプ} & \textbf{推奨} & \textbf{理由} & \textbf{代替} \\
+\midrule
+アーキテクチャ設計 & CCG (Opus) & 深い推論、長いコンテキスト & --- \\
+コードベース探索 & CCG (Haiku) & 高速、コスト効率 & CCG (Sonnet) \\
+新機能実装 & CG (GPT-5) & 創造的コード生成 & CCG (Sonnet) \\
+バグ修正 & CCG (Sonnet) & 分析力と実装のバランス & CG \\
+リファクタリング & CCG (Opus) & 広範な影響分析 & --- \\
+テスト作成 & CG & 構造化出力、テンプレート & CCG (Sonnet) \\
+セキュリティ監査 & CCG (Opus) & 深い分析、リスク評価 & --- \\
+ドキュメント & CCG & 長文生成、一貫性 & CG \\
+APIクライアント生成 & CG & JSONモード、構造化出力 & --- \\
+パフォーマンス最適化 & CCG (Opus) & 複雑な分析 & CG + CCG \\
+\bottomrule
+\end{tabular}
+\caption{詳細タスクルーティングマトリックス}
+\end{table}
+
+\subsubsection{動的ルーティングロジック}
+
+\begin{lstlisting}[language=python, caption=インテリジェントルーティング]
+class TaskRouter:
+    def route(self, task: Task) -> Agent:
+        # 複雑性に基づくルーティング
+        if task.complexity > 0.8:
+            return self.ccg_opus
+
+        # タスクタイプに基づくルーティング
+        if task.type == "exploration":
+            return self.ccg_haiku  # 高速探索
+        elif task.type == "code_generation":
+            if task.requires_creativity:
+                return self.cg_gpt5
+            return self.ccg_sonnet
+        elif task.type == "security_review":
+            return self.ccg_opus  # 常にOpus
+
+        # コスト最適化
+        if task.budget_constrained:
+            return self.ccg_haiku
+
+        # デフォルト
+        return self.ccg_sonnet
+
+    def estimate_cost(self, task: Task, agent: Agent) -> float:
+        """タスクのコスト見積もり"""
+        token_estimate = task.estimated_tokens
+        return token_estimate * agent.cost_per_token
+\end{lstlisting}
+
+\subsubsection{モデル選択ガイドライン}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{モデル} & \textbf{強み} & \textbf{コスト} & \textbf{推奨用途} \\
+\midrule
+CCG Opus & 最高の推論力 & 高 & 複雑な分析、設計 \\
+CCG Sonnet & バランス & 中 & 一般的なコーディング \\
+CCG Haiku & 高速、低コスト & 低 & 探索、簡単なタスク \\
+CG GPT-5 & 創造性 & 中〜高 & 新規実装 \\
+\bottomrule
+\end{tabular}
+\caption{モデル選択ガイド}
+\end{table}
+
+\begin{infobox}[Haiku活用のすすめ]
+Claude Haiku 4.5はSonnet 4.5の90\%のパフォーマンスを\\
+\textbf{2倍の速度}と\textbf{3倍のコスト削減}で実現します。\\
+軽量なカスタムエージェント（3k tokens未満）と組み合わせることで、\\
+マルチエージェントワークフローのボトルネックを解消できます。
+\end{infobox}
+
+%------------------------------------------------------------------------------
+\subsection{エラーハンドリングとリカバリー}
+%------------------------------------------------------------------------------
+
+\subsubsection{多層エラーハンドリング}
+
+\begin{lstlisting}[language=python, caption=多層エラーハンドリング]
+class ResilientExecutor:
+    async def execute(self, task: Task) -> Result:
+        # Layer 1: プライマリ実行
+        try:
+            return await self.primary_agent.query(task)
+        except TimeoutError:
+            logger.warning("プライマリタイムアウト、フォールバック")
+        except ContextOverflowError:
+            await self.handle_context_overflow(task)
+            return await self.retry_with_reduced_context(task)
+
+        # Layer 2: フォールバックエージェント
+        try:
+            return await self.fallback_agent.query(task)
+        except Exception as e:
+            logger.error(f"フォールバック失敗: {e}")
+
+        # Layer 3: 分割実行
+        try:
+            subtasks = await self.decompose_task(task)
+            results = []
+            for subtask in subtasks:
+                result = await self.execute(subtask)  # 再帰
+                results.append(result)
+            return self.aggregate_results(results)
+        except Exception as e:
+            logger.critical(f"分割実行も失敗: {e}")
+
+        # Layer 4: 人間へのエスカレーション
+        return await self.escalate_to_human(task)
+\end{lstlisting}
+
+\subsubsection{チェックポイントとリカバリー}
+
+\begin{lstlisting}[language=python, caption=チェックポイント機能]
+class CheckpointManager:
+    def __init__(self, storage_path: str):
+        self.storage_path = storage_path
+
+    async def save_checkpoint(self, task_id: str, state: dict):
+        """進捗を定期的に保存"""
+        checkpoint = {
+            "task_id": task_id,
+            "timestamp": datetime.now().isoformat(),
+            "state": state,
+            "completed_steps": state.get("completed_steps", []),
+            "pending_steps": state.get("pending_steps", [])
+        }
+        path = f"{self.storage_path}/{task_id}.json"
+        await self.write_json(path, checkpoint)
+
+    async def recover_from_checkpoint(self, task_id: str) -> dict:
+        """障害発生時にチェックポイントから復旧"""
+        path = f"{self.storage_path}/{task_id}.json"
+        if await self.exists(path):
+            checkpoint = await self.read_json(path)
+            logger.info(f"チェックポイント復旧: {checkpoint['timestamp']}")
+            return checkpoint
+        return None
+\end{lstlisting}
+
+\subsubsection{自己修復パターン}
+
+\begin{lstlisting}[language=python, caption=自己修復エージェント]
+class SelfHealingAgent:
+    async def execute_with_healing(self, task: str) -> Result:
+        max_retries = 3
+
+        for attempt in range(max_retries):
+            result = await self.agent.query(task)
+
+            # 結果を検証
+            validation = await self.validator.query(
+                f"以下の結果を検証:\n{result}"
+            )
+
+            if validation.is_valid:
+                return result
+
+            # 自己修復: エラーを分析して再試行
+            healing_prompt = f"""
+            前回の試行が以下の理由で失敗:
+            {validation.errors}
+
+            修正して再実行してください。
+            """
+            task = healing_prompt
+
+        raise MaxRetriesExceeded(f"{max_retries}回の試行後も失敗")
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{パフォーマンス最適化}
+%------------------------------------------------------------------------------
+
+\subsubsection{並列実行の最適化}
+
+\begin{lstlisting}[language=python, caption=最適な並列実行]
+class ParallelExecutor:
+    def __init__(self, max_concurrency: int = 10):
+        self.semaphore = asyncio.Semaphore(max_concurrency)
+
+    async def execute_parallel(self, tasks: list[Task]) -> list[Result]:
+        # 依存関係を分析
+        independent, dependent = self.analyze_dependencies(tasks)
+
+        # 独立タスクを並列実行
+        async def run_with_semaphore(task):
+            async with self.semaphore:
+                return await self.execute(task)
+
+        independent_results = await asyncio.gather(
+            *[run_with_semaphore(t) for t in independent]
+        )
+
+        # 依存タスクを順次実行
+        dependent_results = []
+        for task in dependent:
+            result = await self.execute(task)
+            dependent_results.append(result)
+
+        return independent_results + dependent_results
+\end{lstlisting}
+
+\subsubsection{トークン効率化}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{テクニック} & \textbf{削減率} & \textbf{実装方法} \\
+\midrule
+CLAUDE.md活用 & 〜32\% & プロジェクト規約の標準化 \\
+軽量エージェント & 〜40\% & 3k tokens未満のプロンプト \\
+コンテキスト要約 & 〜25\% & 自動コンパクション \\
+選択的ファイル読み込み & 〜50\% & 必要部分のみ読み込み \\
+結果コンパクション & 〜30\% & 要約してから返却 \\
+\bottomrule
+\end{tabular}
+\caption{トークン効率化テクニック}
+\end{table}
+
+\subsubsection{拡張思考モードの活用}
+
+\begin{lstlisting}[caption=思考予算の段階的増加]
+# 複雑性に応じた思考予算
+THINKING_LEVELS = {
+    "simple": "think",           # 基本的な思考
+    "moderate": "think hard",    # 中程度の複雑性
+    "complex": "think harder",   # 高い複雑性
+    "extreme": "ultrathink"      # 最大の思考予算
+}
+
+async def query_with_appropriate_thinking(task: Task):
+    thinking_level = THINKING_LEVELS[task.complexity]
+    prompt = f"{thinking_level}\n\n{task.description}"
+    return await agent.query(prompt)
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{セキュリティと権限管理}
+%------------------------------------------------------------------------------
+
+\subsubsection{最小権限の原則}
+
+\begin{lstlisting}[language=python, caption=最小権限設定]
+# 読み取り専用エージェント
+readonly_agent = ClaudeAgentOptions(
+    allowed_tools=["Read", "Glob", "Grep"],
+    disallowed_tools=["Write", "Edit", "Bash"],
+    permission_mode="plan"  # 読み取り専用モード
+)
+
+# 限定的書き込みエージェント
+limited_write_agent = ClaudeAgentOptions(
+    allowed_tools=["Read", "Write", "Edit"],
+    disallowed_tools=["Bash"],  # シェル実行禁止
+    allow_rules=[
+        {"pattern": "src/**/*.py", "action": "allow"},
+        {"pattern": "tests/**/*.py", "action": "allow"}
+    ],
+    deny_rules=[
+        {"pattern": ".env*", "action": "deny"},
+        {"pattern": "**/*.key", "action": "deny"}
+    ]
+)
+
+# 本番環境用（最も制限的）
+production_agent = ClaudeAgentOptions(
+    allowed_tools=["Read"],
+    permission_mode="default",
+    require_approval=True  # 全操作に承認必要
+)
+\end{lstlisting}
+
+\subsubsection{危険なコマンドのブロック}
+
+\begin{lstlisting}[language=python, caption=危険コマンドブロック]
+BLOCKED_COMMANDS = [
+    "rm -rf",
+    "git push --force",
+    "git reset --hard",
+    "DROP TABLE",
+    "DELETE FROM",
+    "chmod 777",
+    "curl | bash",
+    "wget | sh"
+]
+
+@hook_handler("PreToolUse")
+async def block_dangerous_commands(input: PreToolUseHookInput):
+    if input.tool_name == "Bash":
+        command = input.tool_input.get("command", "")
+        for blocked in BLOCKED_COMMANDS:
+            if blocked in command:
+                return Deny(f"ブロック: {blocked}")
+    return Allow()
+\end{lstlisting}
+
+\subsubsection{機密情報の保護}
+
+\begin{lstlisting}[language=python, caption=機密情報フィルタリング]
+SENSITIVE_PATTERNS = [
+    r"(?i)api[_-]?key",
+    r"(?i)secret",
+    r"(?i)password",
+    r"(?i)token",
+    r"(?i)credential"
+]
+
+@hook_handler("PostToolUse")
+async def filter_sensitive_output(input: PostToolUseHookInput):
+    response = input.tool_response
+    for pattern in SENSITIVE_PATTERNS:
+        if re.search(pattern, response):
+            # 機密情報をマスク
+            response = re.sub(
+                f"({pattern})\\s*[:=]\\s*[^\\s]+",
+                r"\1=***REDACTED***",
+                response
+            )
+    return response
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{監視と可観測性}
+%------------------------------------------------------------------------------
+
+\subsubsection{包括的ログ記録}
+
+\begin{lstlisting}[language=python, caption=構造化ログ]
+import structlog
+
+logger = structlog.get_logger()
+
+@hook_handler("PreToolUse")
+async def log_tool_use(input: PreToolUseHookInput):
+    logger.info(
+        "tool_invocation",
+        tool=input.tool_name,
+        agent=input.agent_id,
+        task_id=input.task_id,
+        timestamp=datetime.now().isoformat()
+    )
+
+@hook_handler("PostToolUse")
+async def log_tool_result(input: PostToolUseHookInput):
+    logger.info(
+        "tool_completion",
+        tool=input.tool_name,
+        duration_ms=input.duration_ms,
+        tokens_used=input.tokens_used,
+        success=input.success
+    )
+\end{lstlisting}
+
+\subsubsection{メトリクス収集}
+
+\begin{lstlisting}[language=python, caption=メトリクス収集]
+from prometheus_client import Counter, Histogram, Gauge
+
+# カウンター
+task_total = Counter(
+    'miyabi_tasks_total',
+    'Total tasks executed',
+    ['agent_type', 'status']
+)
+
+# ヒストグラム
+task_duration = Histogram(
+    'miyabi_task_duration_seconds',
+    'Task execution duration',
+    ['agent_type']
+)
+
+# ゲージ
+context_usage = Gauge(
+    'miyabi_context_usage_ratio',
+    'Context window usage ratio',
+    ['agent_id']
+)
+
+token_cost = Counter(
+    'miyabi_token_cost_usd',
+    'Total token cost in USD',
+    ['model', 'agent_type']
+)
+\end{lstlisting}
+
+\subsubsection{アラート設定}
+
+\begin{lstlisting}[language=yaml, caption=アラートルール（Prometheus形式）]
+groups:
+  - name: miyabi_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          rate(miyabi_tasks_total{status="error"}[5m])
+          / rate(miyabi_tasks_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "エラー率が10%を超過"
+
+      - alert: ContextOverflow
+        expr: miyabi_context_usage_ratio > 0.9
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "コンテキスト使用率90%超過"
+
+      - alert: HighCost
+        expr: |
+          increase(miyabi_token_cost_usd[1h]) > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "1時間のコストが$10を超過"
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{アンチパターン}
+%------------------------------------------------------------------------------
+
+以下は避けるべき一般的なアンチパターンです：
+
+\begin{warningbox}[避けるべきアンチパターン]
+\begin{enumerate}
+    \item \textbf{巨大エージェント}: 25k+ tokensのカスタムエージェントはボトルネック
+    \item \textbf{コンテキスト共有過多}: 全履歴をサブエージェントに渡す
+    \item \textbf{ネスト試行}: サブエージェントからサブエージェントを生成しようとする
+    \item \textbf{同期的実行}: 並列化可能なタスクを順次実行
+    \item \textbf{エラー無視}: 例外をキャッチしても適切に処理しない
+    \item \textbf{無制限リトライ}: リトライ制限なしの再試行ループ
+    \item \textbf{ハードコード}: 設定を直接コードに埋め込む
+    \item \textbf{ログ不足}: デバッグ情報なしでの本番運用
+\end{enumerate}
+\end{warningbox}
+
+\subsubsection{アンチパターンの修正例}
+
+\begin{lstlisting}[language=python, caption=アンチパターンの修正]
+# BAD: 巨大なシステムプロンプト
+bad_agent = Agent(
+    system_prompt="""
+    [30,000 tokens of instructions...]
+    """
+)
+
+# GOOD: 軽量プロンプト + CLAUDE.md参照
+good_agent = Agent(
+    system_prompt="""
+    あなたはコードレビュー担当です。
+    詳細はCLAUDE.mdを参照してください。
+    """,
+    context_files=["CLAUDE.md"]
+)
+
+# BAD: 全コンテキスト共有
+bad_subagent_call = await parent.spawn_subagent(
+    task=task,
+    context=parent.full_conversation_history  # 全履歴
+)
+
+# GOOD: 必要な情報のみ
+good_subagent_call = await parent.spawn_subagent(
+    task=task,
+    context={
+        "current_file": current_file,
+        "specific_requirements": requirements
+    }
+)
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{クロスシステム協調のベストプラクティス}
+%------------------------------------------------------------------------------
+
+\subsubsection{データ形式の標準化}
+
+\begin{lstlisting}[language=python, caption=統一データ形式]
+from dataclasses import dataclass
+from typing import Optional, List
+
+@dataclass
+class StandardTaskResult:
+    """CCG/CG間で共通の結果形式"""
+    task_id: str
+    status: str  # "success", "failure", "partial"
+    output: str
+    artifacts: List[str]  # 生成ファイルパス
+    metrics: dict
+    errors: Optional[List[str]] = None
+
+    def to_ccg_format(self) -> dict:
+        """CCG用に変換"""
+        return {
+            "result": self.output,
+            "files_modified": self.artifacts
+        }
+
+    def to_cg_format(self) -> dict:
+        """CG用に変換"""
+        return {
+            "completion": self.output,
+            "artifacts": self.artifacts,
+            "success": self.status == "success"
+        }
+\end{lstlisting}
+
+\subsubsection{ハンドオフプロトコル}
+
+\begin{lstlisting}[language=python, caption=標準ハンドオフ]
+class HandoffProtocol:
+    async def ccg_to_cg(self, result: CCGResult) -> CGTask:
+        """CCGからCGへのハンドオフ"""
+        return CGTask(
+            instruction=f"""
+            以下のCCG分析結果に基づいて実装:
+
+            ## 分析結果
+            {result.analysis}
+
+            ## 実装要件
+            {result.requirements}
+
+            ## ファイル構造
+            {result.file_structure}
+            """,
+            context_files=result.relevant_files,
+            output_format="structured"
+        )
+
+    async def cg_to_ccg(self, result: CGResult) -> CCGTask:
+        """CGからCCGへのハンドオフ"""
+        return CCGTask(
+            prompt=f"""
+            以下のCG実装をレビュー:
+
+            ## 実装コード
+            {result.code}
+
+            ## テスト結果
+            {result.test_results}
+
+            レビュー観点:
+            1. セキュリティ
+            2. パフォーマンス
+            3. 保守性
+            """,
+            mode="review"
+        )
+\end{lstlisting}
+
+%==============================================================================
+\section{制限事項と制約}
+%==============================================================================
+
+\subsection{CCGの制限}
+
+\begin{itemize}
+    \item サブエージェントのネスト不可（無限の複雑性を防止）
+    \item 最大10個の並列タスク
+    \item サブエージェント間の直接通信なし
+    \item バッチキューは次を取得する前に完了を待機
+\end{itemize}
+
+\subsection{CGの制限}
+
+\begin{itemize}
+    \item エージェント統合にMCPサーバーが必要
+    \item セッション永続性はMCP接続に依存
+    \item サンドボックス制限がファイルアクセスを制限する場合あり
+    \item モデル可用性はプランによって異なる
+\end{itemize}
+
+\subsection{クロスシステム制約}
+
+\begin{itemize}
+    \item ネイティブなシステム間通信なし
+    \item コンテキストはシステム間で明示的に渡す必要あり
+    \item 異なる認証メカニズム
+    \item 異なるレスポンス形式には正規化が必要
+\end{itemize}
+
+%==============================================================================
+\section{結論}
+%==============================================================================
+
+CCG + CG協調アーキテクチャにより、MiyabiはClaude CodeとOpenAI Codexの両方の強みを活用できます：
+
+\begin{itemize}
+    \item \textbf{CCG}は大きなコンテキストウィンドウでの計画、分析、深い推論に優れる
+    \item \textbf{CG}はMCPを介したコード生成と構造化ワークフローに優れる
+    \item \textbf{MiyabiのA2A Gateway}がシームレスな協調のための橋渡しを提供
+\end{itemize}
+
+本ドキュメントのパターンとガイドラインに従うことで、開発チームは両AIシステムの最良の部分を組み合わせた洗練されたマルチエージェントワークフローを構築できます。
+
+%==============================================================================
+\appendix
+\section{付録A: 詳細セキュリティ実装}
+%==============================================================================
+
+本付録では、AIエージェントシステムにおける包括的なセキュリティ実装を提供します。
+
+\subsection{多層防御アーキテクチャ}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    layer/.style={draw, rounded corners, minimum width=12cm, minimum height=1.2cm, align=center},
+    arrow/.style={->, thick}
+]
+    \node[layer, fill=red!20] (l1) at (0,0) {Layer 1: 入力ガードレール（プロンプトインジェクション検出）};
+    \node[layer, fill=orange!20] (l2) at (0,-1.5) {Layer 2: 権限管理（RBAC + 最小権限）};
+    \node[layer, fill=yellow!20] (l3) at (0,-3) {Layer 3: サンドボックス（Docker + gVisor隔離）};
+    \node[layer, fill=green!20] (l4) at (0,-4.5) {Layer 4: 実行監視（リアルタイム異常検知）};
+    \node[layer, fill=blue!20] (l5) at (0,-6) {Layer 5: 出力フィルタリング（機密情報マスク）};
+    \node[layer, fill=purple!20] (l6) at (0,-7.5) {Layer 6: 監査ログ（完全なアクションログ）};
+\end{tikzpicture}
+\caption{セキュリティ多層防御アーキテクチャ}
+\end{figure}
+
+\subsection{プロンプトインジェクション対策}
+
+\begin{lstlisting}[language=python, caption=プロンプトインジェクション検出]
+import re
+from dataclasses import dataclass
+from enum import Enum
+
+class ThreatLevel(Enum):
+    SAFE = "safe"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+@dataclass
+class ValidationResult:
+    is_safe: bool
+    threat_level: ThreatLevel
+    threats_found: list
+    sanitized_input: str
+
+class PromptInjectionGuard:
+    """プロンプトインジェクション検出・防御"""
+
+    INJECTION_PATTERNS = [
+        # システムプロンプト上書き試行
+        (r"ignore\s+(previous|above|all)\s+instructions", ThreatLevel.CRITICAL),
+        (r"forget\s+everything", ThreatLevel.CRITICAL),
+        (r"you\s+are\s+now", ThreatLevel.HIGH),
+
+        # ロール強制
+        (r"act\s+as\s+if", ThreatLevel.HIGH),
+        (r"pretend\s+to\s+be", ThreatLevel.MEDIUM),
+
+        # コマンドインジェクション
+        (r"\$\([^)]+\)", ThreatLevel.CRITICAL),  # $(command)
+        (r"`[^`]+`", ThreatLevel.HIGH),           # `command`
+        (r";\s*(rm|cat|curl|wget)", ThreatLevel.CRITICAL),
+
+        # 情報漏洩試行
+        (r"reveal\s+your\s+(system|instructions)", ThreatLevel.HIGH),
+        (r"show\s+me\s+your\s+prompt", ThreatLevel.MEDIUM),
+    ]
+
+    def validate(self, user_input: str) -> ValidationResult:
+        threats = []
+        highest_level = ThreatLevel.SAFE
+
+        for pattern, level in self.INJECTION_PATTERNS:
+            if re.search(pattern, user_input, re.IGNORECASE):
+                threats.append({"pattern": pattern, "level": level})
+                if level.value > highest_level.value:
+                    highest_level = level
+
+        return ValidationResult(
+            is_safe=highest_level == ThreatLevel.SAFE,
+            threat_level=highest_level,
+            threats_found=threats,
+            sanitized_input=self._sanitize(user_input) if threats else user_input
+        )
+
+    def _sanitize(self, text: str) -> str:
+        # 危険なパターンを無害化
+        sanitized = text
+        sanitized = re.sub(r"\$\([^)]+\)", "[BLOCKED]", sanitized)
+        sanitized = re.sub(r"`[^`]+`", "[BLOCKED]", sanitized)
+        return sanitized
+\end{lstlisting}
+
+\subsection{サンドボックス実行環境}
+
+\begin{lstlisting}[language=python, caption=Docker + gVisorサンドボックス]
+import docker
+import tempfile
+import asyncio
+from pathlib import Path
+
+class SecureSandbox:
+    """gVisor + Dockerによるセキュアな実行環境"""
+
+    def __init__(self):
+        self.client = docker.from_env()
+        self.config = {
+            "runtime": "runsc",  # gVisorランタイム
+            "mem_limit": "512m",
+            "cpu_period": 100000,
+            "cpu_quota": 50000,   # 50% CPU制限
+            "network_disabled": True,
+            "read_only": True,
+            "security_opt": ["no-new-privileges:true"],
+            "cap_drop": ["ALL"],
+        }
+
+    async def execute_code(self, code: str, language: str) -> dict:
+        """サンドボックス内でコードを実行"""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # コードファイルを作成
+            code_file = Path(tmpdir) / f"code.{language}"
+            code_file.write_text(code)
+
+            # 出力ディレクトリ
+            output_dir = Path(tmpdir) / "output"
+            output_dir.mkdir()
+
+            container = self.client.containers.run(
+                image=f"miyabi-sandbox-{language}",
+                command=f"run /code/code.{language}",
+                volumes={
+                    str(code_file.parent): {"bind": "/code", "mode": "ro"},
+                    str(output_dir): {"bind": "/output", "mode": "rw"},
+                },
+                detach=True,
+                **self.config
+            )
+
+            try:
+                # タイムアウト付きで実行
+                result = await asyncio.wait_for(
+                    asyncio.to_thread(container.wait),
+                    timeout=30.0
+                )
+
+                logs = container.logs().decode("utf-8")
+                return {
+                    "status": "success" if result["StatusCode"] == 0 else "error",
+                    "exit_code": result["StatusCode"],
+                    "output": logs,
+                    "files": list(output_dir.glob("*"))
+                }
+
+            except asyncio.TimeoutError:
+                container.kill()
+                return {"status": "timeout", "output": "実行がタイムアウト"}
+
+            finally:
+                container.remove(force=True)
+\end{lstlisting}
+
+\subsection{機密情報保護}
+
+\begin{lstlisting}[language=python, caption=機密情報フィルタリング]
+import re
+from typing import List, Tuple
+
+class SensitiveDataFilter:
+    """機密情報の検出とマスク"""
+
+    PATTERNS: List[Tuple[str, str, str]] = [
+        # (パターン, 名前, マスク形式)
+        (r"(?i)(api[_-]?key|apikey)\s*[:=]\s*['\"]?([a-zA-Z0-9_-]{20,})['\"]?",
+         "API Key", "***API_KEY***"),
+        (r"(?i)(password|passwd|pwd)\s*[:=]\s*['\"]?([^\s'\"]{8,})['\"]?",
+         "Password", "***PASSWORD***"),
+        (r"(?i)(secret|token)\s*[:=]\s*['\"]?([a-zA-Z0-9_-]{16,})['\"]?",
+         "Secret/Token", "***SECRET***"),
+        (r"(?i)(aws_access_key_id)\s*[:=]\s*['\"]?(AKIA[0-9A-Z]{16})['\"]?",
+         "AWS Access Key", "***AWS_KEY***"),
+        (r"(?i)(aws_secret_access_key)\s*[:=]\s*['\"]?([a-zA-Z0-9/+=]{40})['\"]?",
+         "AWS Secret", "***AWS_SECRET***"),
+        # クレジットカード番号
+        (r"\b(\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4})\b",
+         "Credit Card", "****-****-****-****"),
+        # メールアドレス
+        (r"\b([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)\b",
+         "Email", "***@***.***"),
+    ]
+
+    def filter_output(self, text: str) -> Tuple[str, List[dict]]:
+        """出力から機密情報をフィルタリング"""
+        filtered = text
+        findings = []
+
+        for pattern, name, mask in self.PATTERNS:
+            matches = re.finditer(pattern, filtered)
+            for match in matches:
+                findings.append({
+                    "type": name,
+                    "position": match.span(),
+                    "masked": True
+                })
+
+            filtered = re.sub(pattern, mask, filtered)
+
+        return filtered, findings
+
+    def validate_before_send(self, data: dict) -> Tuple[bool, List[str]]:
+        """送信前に機密情報をチェック"""
+        issues = []
+        text = str(data)
+
+        for pattern, name, _ in self.PATTERNS:
+            if re.search(pattern, text):
+                issues.append(f"機密情報検出: {name}")
+
+        return len(issues) == 0, issues
+\end{lstlisting}
+
+%==============================================================================
+\section{付録B: 実装リファレンス}
+%==============================================================================
+
+本ドキュメントに関連する完全な実装コードは以下のディレクトリに格納されています。
+
+\subsection{ファイル構成}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{ファイル} & \textbf{サイズ} & \textbf{説明} \\
+\midrule
+\texttt{multi\_agent\_orchestrator.py} & 18KB & CCG/CG協調オーケストレーター \\
+\texttt{context\_manager.py} & 21KB & コンテキスト管理ユーティリティ \\
+\texttt{error\_handling.py} & 22KB & エラーハンドリングフレームワーク \\
+\texttt{security\_layer.py} & 24KB & セキュリティレイヤー実装 \\
+\texttt{test\_harness.py} & 21KB & テストハーネス \\
+\texttt{example\_integration.py} & 16KB & 統合使用例 \\
+\bottomrule
+\end{tabular}
+\caption{実装コードファイル一覧}
+\end{table}
+
+\subsection{クイックスタート}
+
+\begin{lstlisting}[language=bash, caption=インストールと実行]
+# ディレクトリに移動
+cd miyabi-private/agent-orchestration
+
+# 依存関係をインストール
+pip install -r requirements.txt
+
+# 環境変数を設定
+export ANTHROPIC_API_KEY="your-key"
+export OPENAI_API_KEY="your-key"
+
+# 統合例を実行
+python example_integration.py
+\end{lstlisting}
+
+\subsection{主要クラスリファレンス}
+
+\subsubsection{MultiAgentOrchestrator}
+
+\begin{lstlisting}[language=python, caption=オーケストレーター使用例]
+from multi_agent_orchestrator import (
+    MultiAgentOrchestrator,
+    Task,
+    TaskType
+)
+
+# 初期化
+orchestrator = MultiAgentOrchestrator(
+    claude_api_key=os.environ["ANTHROPIC_API_KEY"],
+    openai_api_key=os.environ["OPENAI_API_KEY"]
+)
+
+# タスク作成と実行
+task = Task(
+    task_id="feature-001",
+    task_type=TaskType.CODE_GENERATION,
+    description="ユーザー認証機能を実装",
+    priority=1,
+    metadata={"language": "python"}
+)
+
+orchestrator.add_task(task)
+results = await orchestrator.process_queue()
+
+# 統計情報
+stats = orchestrator.get_statistics()
+print(f"成功率: {stats['success_rate']:.1%}")
+\end{lstlisting}
+
+\subsubsection{ContextManager}
+
+\begin{lstlisting}[language=python, caption=コンテキスト管理使用例]
+from context_manager import ContextManager
+
+# 200kトークンのコンテキストウィンドウ
+context = ContextManager(max_tokens=200000)
+
+# システムプロンプト設定
+context.set_system_prompt("""
+あなたはMiyabiコーディングエージェントです。
+CLAUDE.mdの規約に従ってください。
+""")
+
+# メッセージ追加
+context.add_message("user", "認証機能を実装してください")
+context.add_message("assistant", "了解しました。まず現状を調査します...")
+
+# API呼び出し用メッセージ取得
+messages = context.get_messages_for_api()
+
+# トークン使用状況
+usage = context.get_token_usage_statistics()
+print(f"使用中: {usage['current_tokens']} / {usage['max_tokens']}")
+\end{lstlisting}
+
+\subsubsection{ErrorHandlingFramework}
+
+\begin{lstlisting}[language=python, caption=エラーハンドリング使用例]
+from error_handling import (
+    ErrorHandlingFramework,
+    RetryStrategy,
+    CircuitBreaker
+)
+
+# フレームワーク初期化
+error_handler = ErrorHandlingFramework()
+
+# リトライ戦略設定
+retry = RetryStrategy(
+    max_retries=3,
+    base_delay=1.0,
+    max_delay=30.0,
+    exponential_base=2.0
+)
+
+# サーキットブレーカー設定
+circuit = CircuitBreaker(
+    failure_threshold=5,
+    recovery_timeout=60.0
+)
+
+# 安全な実行
+@error_handler.with_retry(retry)
+@error_handler.with_circuit_breaker(circuit)
+async def safe_api_call(prompt: str):
+    return await agent.query(prompt)
+
+# フォールバック付き実行
+result = await error_handler.execute_with_fallback(
+    primary=lambda: ccg_agent.query(task),
+    fallback=lambda: cg_agent.query(task)
+)
+\end{lstlisting}
+
+\subsection{関連ドキュメント}
+
+\begin{itemize}
+    \item \texttt{docs/ai-agent-security-best-practices.md} - セキュリティ詳細ガイド
+    \item \texttt{docs/agent-orchestration-implementation-summary.md} - 実装サマリー
+    \item \texttt{agent-orchestration/README.md} - 完全なドキュメント
+    \item \texttt{agent-orchestration/QUICKSTART.md} - 5分で始めるガイド
+\end{itemize}
+
+%==============================================================================
+\section*{参考文献}
+%==============================================================================
+
+\begin{enumerate}
+    \item Claude Code ドキュメント: \url{https://docs.anthropic.com/claude-code}
+    \item Claude Agent SDK: \url{https://github.com/anthropics/claude-agent-sdk-python}
+    \item OpenAI Codex: \url{https://github.com/openai/codex}
+    \item Codex Agents SDKガイド: \url{https://developers.openai.com/codex/guides/agents-sdk}
+    \item Miyabi A2Aプロトコル: 内部ドキュメント
+    \item Guardrails AI: \url{https://docs.guardrailsai.com/}
+    \item gVisor: \url{https://gvisor.dev/docs/}
+    \item Docker Security: \url{https://docs.docker.com/engine/security/}
+\end{enumerate}
+
+\end{document}

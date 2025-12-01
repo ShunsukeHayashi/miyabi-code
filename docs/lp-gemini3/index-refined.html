@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi Plugin Marketplace | Autonomous AI Platform</title>
+
+    <!-- SEO Meta -->
+    <meta name="description" content="Miyabiは自律型AIエージェントをデッキのように組み合わせて開発を行う次世代プラグイン・マーケットプレイス。開発時間を10分の1に。">
+    <meta name="keywords" content="Miyabi, AI Agent, Plugin, Marketplace, 自動化, 開発効率化">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Miyabi Plugin Marketplace | 開発時間を10分の1に">
+    <meta property="og:description" content="25+ AI Agents, 22 Skills, 50+ Commands - 次世代AI開発プラットフォーム">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://miyabi-world.com">
+
+    <!-- System Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Consolas', 'monospace'],
+                    },
+                    colors: {
+                        surface: {
+                            900: '#050505',
+                            800: '#0A0A0A',
+                            700: '#111111',
+                            600: '#171717',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Selection color */
+        ::selection {
+            background: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Smooth hover transitions */
+        .hover-lift {
+            transition: transform 0.2s ease-out;
+        }
+        .hover-lift:hover {
+            transform: scale(1.02);
+        }
+
+        /* Card subtle gradient */
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-surface-900 text-white font-sans overflow-x-hidden">
+
+    <!-- Navigation - Minimalist -->
+    <nav class="w-full px-8 py-6 flex justify-between items-center border-b border-white/5">
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-white rounded-full"></div>
+            <span class="font-medium tracking-tight text-sm text-neutral-400">Miyabi Platform</span>
+        </div>
+        <div class="hidden md:flex gap-8 text-sm font-medium text-neutral-500">
+            <a href="#marketplace" class="hover:text-white transition-colors duration-200">Marketplace</a>
+            <a href="#pricing" class="hover:text-white transition-colors duration-200">Pricing</a>
+            <a href="#cases" class="hover:text-white transition-colors duration-200">Cases</a>
+            <a href="#faq" class="hover:text-white transition-colors duration-200">FAQ</a>
+        </div>
+        <button class="text-sm font-medium text-white border border-white/20 px-4 py-2 rounded-full hover:bg-white hover:text-black transition-all duration-200">
+            Sign In
+        </button>
+    </nav>
+
+    <!-- Main Hero Content -->
+    <main class="flex flex-col items-center justify-center pt-24 pb-12 px-4 relative">
+
+        <!-- Value Proposition - Massive Typography -->
+        <div class="text-center max-w-5xl mx-auto mb-16 space-y-6">
+            <h1 class="text-5xl md:text-8xl lg:text-9xl font-extralight tracking-tighter text-white leading-[0.9]">
+                Development time<br>
+                <span class="text-neutral-500">reduced to 1/10.</span>
+            </h1>
+            <p class="text-neutral-400 text-lg md:text-xl font-light tracking-wide mt-8">
+                開発時間を10分の1に。The definitive plugin architecture.
+            </p>
+        </div>
+
+        <!-- Comparison Section - The "Before/After" refined -->
+        <div class="w-full max-w-4xl mx-auto mb-20">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+                <!-- Before -->
+                <div class="text-center opacity-40">
+                    <div class="font-mono text-4xl md:text-6xl font-light tracking-tight line-through decoration-1 decoration-neutral-600">
+                        17.5<span class="text-2xl align-top ml-1">h</span>
+                    </div>
+                    <div class="text-xs uppercase tracking-widest mt-2 text-neutral-500">Traditional</div>
+                </div>
+
+                <!-- Divider -->
+                <div class="h-px w-16 md:w-px md:h-16 bg-neutral-800"></div>
+
+                <!-- After -->
+                <div class="text-center">
+                    <div class="font-mono text-6xl md:text-8xl font-light tracking-tight text-white">
+                        24<span class="text-3xl align-top ml-1 text-neutral-400">m</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-2 mt-2">
+                        <span class="text-xs uppercase tracking-widest text-indigo-400">Miyabi Engine</span>
+                        <span class="bg-indigo-900/30 text-indigo-400 text-[10px] px-2 py-0.5 rounded-full border border-indigo-500/20">
+                            44x FASTER
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row gap-6 mb-24">
+            <button class="hover-lift px-8 py-4 bg-white text-black rounded-full text-sm font-medium tracking-wide flex items-center gap-2">
+                無料で始める
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </button>
+            <button class="px-8 py-4 bg-transparent border border-white/10 text-white rounded-full text-sm font-medium tracking-wide hover:bg-white/5 transition-colors duration-200 flex items-center gap-2">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"></path>
+                </svg>
+                デモを見る
+            </button>
+        </div>
+
+        <!-- The "Card" - Physical Material Representation -->
+        <div class="relative w-full max-w-md mx-auto mb-24">
+            <div class="w-full bg-surface-800 border border-white/10 rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden hover:border-white/20 transition-colors duration-500 card-gradient">
+
+                <!-- Card Header -->
+                <div class="flex justify-between items-start z-10 mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 border border-white/10 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-white">CoordinatorAgent</div>
+                            <div class="text-xs text-neutral-500 font-mono">v.3.1.0 • Stable</div>
+                        </div>
+                    </div>
+                    <div class="px-2 py-1 rounded border border-white/10 text-[10px] text-neutral-400 font-mono">
+                        AGENT
+                    </div>
+                </div>
+
+                <!-- Code Snippet Visual -->
+                <div class="space-y-2 my-6 z-10">
+                    <div class="h-px w-full bg-neutral-800"></div>
+                    <div class="font-mono text-xs text-neutral-500 space-y-1 py-4">
+                        <div class="flex gap-4">
+                            <span class="text-neutral-700 select-none">01</span>
+                            <span><span class="text-indigo-400">import</span> <span class="text-white">{ CoordinatorAgent }</span></span>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-neutral-700 select-none">02</span>
+                            <span><span class="text-indigo-400">const</span> <span class="text-white">agent</span> = <span class="text-indigo-400">new</span> Agent();</span>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-neutral-700 select-none">03</span>
+                            <span class="text-neutral-600">// Parallel task orchestration</span>
+                        </div>
+                    </div>
+                    <div class="h-px w-full bg-neutral-800"></div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="flex justify-between items-end z-10 mt-4">
+                    <div class="flex gap-6">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-neutral-500 uppercase tracking-wider">Latency</span>
+                            <span class="text-sm font-mono text-white">12ms</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-neutral-500 uppercase tracking-wider">Memory</span>
+                            <span class="text-sm font-mono text-white">4MB</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-neutral-500 uppercase tracking-wider">Tasks</span>
+                            <span class="text-sm font-mono text-white">∞</span>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 cursor-pointer transition-colors">
+                        <svg class="w-3 h-3 text-white -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Footer - Clean Grid -->
+        <div class="w-full max-w-5xl border-t border-white/5 pt-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
+                <div class="group">
+                    <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+                        <svg class="w-4 h-4 text-neutral-600 group-hover:text-indigo-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                        </svg>
+                        <span class="text-sm text-neutral-500 font-medium tracking-wide uppercase">Active Agents</span>
+                    </div>
+                    <div class="text-4xl font-mono font-light text-white">25+</div>
+                </div>
+                <div class="group">
+                    <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+                        <svg class="w-4 h-4 text-neutral-600 group-hover:text-indigo-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span class="text-sm text-neutral-500 font-medium tracking-wide uppercase">Skills Available</span>
+                    </div>
+                    <div class="text-4xl font-mono font-light text-white">22</div>
+                </div>
+                <div class="group">
+                    <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+                        <svg class="w-4 h-4 text-neutral-600 group-hover:text-indigo-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="text-sm text-neutral-500 font-medium tracking-wide uppercase">Commands</span>
+                    </div>
+                    <div class="text-4xl font-mono font-light text-white">50+</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Agent Cards Section - Minimal -->
+    <section id="marketplace" class="py-32 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-5xl font-extralight tracking-tight mb-4">Featured Agents</h2>
+                <p class="text-neutral-500 text-lg font-light">Professional-grade AI agents for every workflow</p>
+            </div>
+
+            <!-- Agent Grid - Clean Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- Agent Card 1 -->
+                <div class="bg-surface-800 border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors duration-300">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-surface-700 border border-white/5 flex items-center justify-center">
+                            <img src="images/medaman_unified_UR.png" alt="ReviewAgent" class="w-10 h-10 rounded-lg object-cover">
+                        </div>
+                        <span class="text-[10px] font-mono text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">UR</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-white mb-1">ReviewAgent</h3>
+                    <p class="text-sm text-neutral-500 mb-4">Automated code review with security analysis</p>
+                    <div class="flex gap-4 text-xs text-neutral-600">
+                        <span>92% accuracy</span>
+                        <span>•</span>
+                        <span>15ms avg</span>
+                    </div>
+                </div>
+
+                <!-- Agent Card 2 -->
+                <div class="bg-surface-800 border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors duration-300">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-surface-700 border border-white/5 flex items-center justify-center">
+                            <img src="images/shikiroon_unified_SSR.png" alt="CoordinatorAgent" class="w-10 h-10 rounded-lg object-cover">
+                        </div>
+                        <span class="text-[10px] font-mono text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded">SSR</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-white mb-1">CoordinatorAgent</h3>
+                    <p class="text-sm text-neutral-500 mb-4">Parallel task orchestration and workflow control</p>
+                    <div class="flex gap-4 text-xs text-neutral-600">
+                        <span>DAG-based</span>
+                        <span>•</span>
+                        <span>∞ parallelism</span>
+                    </div>
+                </div>
+
+                <!-- Agent Card 3 -->
+                <div class="bg-surface-800 border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors duration-300">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-surface-700 border border-white/5 flex items-center justify-center">
+                            <img src="images/tsukuroon_unified_SR.png" alt="CodeGenAgent" class="w-10 h-10 rounded-lg object-cover">
+                        </div>
+                        <span class="text-[10px] font-mono text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded">SR</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-white mb-1">CodeGenAgent</h3>
+                    <p class="text-sm text-neutral-500 mb-4">Intelligent code generation with context awareness</p>
+                    <div class="flex gap-4 text-xs text-neutral-600">
+                        <span>Multi-lang</span>
+                        <span>•</span>
+                        <span>TDD support</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- View All CTA -->
+            <div class="text-center mt-12">
+                <button class="text-sm text-neutral-500 hover:text-white transition-colors duration-200 flex items-center gap-2 mx-auto">
+                    View all 25+ agents
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Studies - Minimal -->
+    <section id="cases" class="py-32 px-4 border-t border-white/5">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-5xl font-extralight tracking-tight mb-4">Real Results</h2>
+                <p class="text-neutral-500 text-lg font-light">導入事例</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Case 1 -->
+                <div class="border-l border-white/10 pl-6">
+                    <div class="text-xs text-indigo-400 uppercase tracking-widest mb-4">Startup</div>
+                    <div class="text-4xl font-mono font-light text-white mb-2">6mo → 3wk</div>
+                    <p class="text-sm text-neutral-500">MVP development timeline compressed with parallel agent execution</p>
+                </div>
+
+                <!-- Case 2 -->
+                <div class="border-l border-white/10 pl-6">
+                    <div class="text-xs text-indigo-400 uppercase tracking-widest mb-4">Enterprise</div>
+                    <div class="text-4xl font-mono font-light text-white mb-2">92%</div>
+                    <p class="text-sm text-neutral-500">Reduction in review workload. Zero production bugs after implementation</p>
+                </div>
+
+                <!-- Case 3 -->
+                <div class="border-l border-white/10 pl-6">
+                    <div class="text-xs text-indigo-400 uppercase tracking-widest mb-4">Freelancer</div>
+                    <div class="text-4xl font-mono font-light text-white mb-2">2.5x</div>
+                    <p class="text-sm text-neutral-500">Revenue increase through concurrent project handling</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing - Clean -->
+    <section id="pricing" class="py-32 px-4 border-t border-white/5">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-5xl font-extralight tracking-tight mb-4">Simple Pricing</h2>
+                <p class="text-neutral-500 text-lg font-light">Start free, scale when ready</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Free -->
+                <div class="bg-surface-800 border border-white/5 rounded-2xl p-8">
+                    <div class="text-sm text-neutral-500 mb-2">Free</div>
+                    <div class="text-4xl font-mono font-light text-white mb-6">¥0</div>
+                    <ul class="space-y-3 text-sm text-neutral-400 mb-8">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            3 Agents
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Basic Skills
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Community Support
+                        </li>
+                    </ul>
+                    <button class="w-full py-3 border border-white/10 rounded-full text-sm font-medium hover:bg-white/5 transition-colors">
+                        Get Started
+                    </button>
+                </div>
+
+                <!-- Pro -->
+                <div class="bg-surface-800 border-2 border-indigo-500/50 rounded-2xl p-8 relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-medium px-3 py-1 rounded-full">
+                        RECOMMENDED
+                    </div>
+                    <div class="text-sm text-indigo-400 mb-2">Pro</div>
+                    <div class="text-4xl font-mono font-light text-white mb-6">¥9,800<span class="text-sm text-neutral-500">/mo</span></div>
+                    <ul class="space-y-3 text-sm text-neutral-400 mb-8">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            All 25+ Agents
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            22 Skills + 50+ Commands
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Parallel Execution
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Priority Support
+                        </li>
+                    </ul>
+                    <button class="w-full py-3 bg-white text-black rounded-full text-sm font-medium hover:bg-neutral-200 transition-colors">
+                        Start Pro Trial
+                    </button>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="bg-surface-800 border border-white/5 rounded-2xl p-8">
+                    <div class="text-sm text-neutral-500 mb-2">Enterprise</div>
+                    <div class="text-4xl font-mono font-light text-white mb-6">Custom</div>
+                    <ul class="space-y-3 text-sm text-neutral-400 mb-8">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Everything in Pro
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Custom Agent Development
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            On-premise Deployment
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            SLA Guarantee
+                        </li>
+                    </ul>
+                    <button class="w-full py-3 border border-white/10 rounded-full text-sm font-medium hover:bg-white/5 transition-colors">
+                        Contact Sales
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ - Minimal Alpine.js -->
+    <section id="faq" class="py-32 px-4 border-t border-white/5" x-data="{ open: null }">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-5xl font-extralight tracking-tight mb-4">FAQ</h2>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(faq, index) in [
+                    { q: 'Miyabiとは何ですか？', a: 'Miyabiは自律型AIエージェントを活用した開発オペレーションプラットフォームです。25以上のAIエージェントが協調して開発タスクを自動化し、開発効率を最大10倍に向上させます。' },
+                    { q: '無料プランで何ができますか？', a: '無料プランでは3体までのAgentを使用でき、基本的なスキルセットとコミュニティサポートが含まれます。個人開発や小規模プロジェクトに最適です。' },
+                    { q: 'どのプログラミング言語に対応していますか？', a: 'Miyabiは言語非依存で設計されています。Rust、TypeScript、Python、Go、Javaなど、主要な言語すべてに対応。特にRust開発に最適化されたツールセットを提供。' },
+                    { q: '導入にどのくらい時間がかかりますか？', a: 'Miyabiプラグインのインストールは数分で完了。/plugin install @miyabi/suite コマンド一つで、全25以上のAgentと22のSkillがすぐに利用可能になります。' }
+                ]" :key="index">
+                    <div class="border-b border-white/5">
+                        <button
+                            @click="open = open === index ? null : index"
+                            class="w-full py-6 text-left flex justify-between items-center hover:text-indigo-400 transition-colors"
+                        >
+                            <span class="font-light text-lg" x-text="faq.q"></span>
+                            <svg class="w-4 h-4 transition-transform" :class="open === index ? 'rotate-45' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === index" x-collapse class="pb-6 text-neutral-500 text-sm leading-relaxed" x-text="faq.a"></div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-32 px-4 border-t border-white/5">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-4xl md:text-6xl font-extralight tracking-tight mb-6">
+                Ready to accelerate?
+            </h2>
+            <p class="text-neutral-500 text-lg font-light mb-12">
+                Join developers who ship 44x faster with Miyabi.
+            </p>
+            <button class="hover-lift px-10 py-4 bg-white text-black rounded-full text-sm font-medium flex items-center gap-2 mx-auto">
+                Start Building
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer - Minimal -->
+    <footer class="border-t border-white/5 py-12 px-4">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-white rounded-full"></div>
+                <span class="text-sm text-neutral-500">Miyabi Platform</span>
+            </div>
+            <div class="flex gap-6 text-sm text-neutral-600">
+                <a href="#" class="hover:text-white transition-colors">Terms</a>
+                <a href="#" class="hover:text-white transition-colors">Privacy</a>
+                <a href="#" class="hover:text-white transition-colors">GitHub</a>
+                <a href="#" class="hover:text-white transition-colors">Discord</a>
+            </div>
+            <div class="text-sm text-neutral-600">
+                © 2025 Miyabi
+            </div>
+        </div>
+    </footer>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.directive('collapse', (el) => {
+                el.style.overflow = 'hidden';
+                el.style.transition = 'height 0.3s ease-out';
+                const update = () => {
+                    if (el._x_isShown) {
+                        el.style.height = 'auto';
+                        const height = el.scrollHeight + 'px';
+                        el.style.height = '0px';
+                        el.offsetHeight;
+                        el.style.height = height;
+                    } else {
+                        el.style.height = el.scrollHeight + 'px';
+                        el.offsetHeight;
+                        el.style.height = '0px';
+                    }
+                };
+                Alpine.effect(update);
+            });
+        });
+    </script>
+
+</body>
+</html>

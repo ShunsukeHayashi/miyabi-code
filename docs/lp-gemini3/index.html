@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi Plugin Marketplace | Autonomous AI Platform</title>
+
+    <!-- SEO Meta -->
+    <meta name="description" content="Miyabiは自律型AIエージェントをデッキのように組み合わせて開発を行う次世代プラグイン・マーケットプレイス。開発時間を10分の1に。">
+    <meta name="keywords" content="Miyabi, AI Agent, Plugin, Marketplace, 自動化, 開発効率化, TCG">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Miyabi Plugin Marketplace | 開発時間を10分の1に">
+    <meta property="og:description" content="25+ AI Agents, 22 Skills, 50+ Commands - TCGスタイルのAI開発プラットフォーム">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://miyabi-world.com">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                        mono: ['"Orbitron"', 'monospace'],
+                    },
+                    colors: {
+                        rarity: {
+                            ur: '#FFD700',
+                            ssr: '#A855F7',
+                            sr: '#3B82F6',
+                            r: '#10B981',
+                        },
+                        dark: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                            600: '#252533',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Card Glow Effects */
+        .glow-ur {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 0 60px rgba(255, 215, 0, 0.2);
+            animation: pulse-ur 3s ease-in-out infinite;
+        }
+        @keyframes pulse-ur {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 0 60px rgba(255, 215, 0, 0.2); }
+            50% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 215, 0, 0.3); }
+        }
+
+        .glow-ssr {
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.4), 0 0 50px rgba(168, 85, 247, 0.2);
+            animation: pulse-ssr 3s ease-in-out infinite;
+        }
+        @keyframes pulse-ssr {
+            0%, 100% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.6); }
+        }
+
+        .glow-sr {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .glow-r {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Card Hover */
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-hover:hover {
+            transform: translateY(-15px) scale(1.02);
+        }
+
+        /* Gradient Background */
+        .hero-gradient {
+            background: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom right, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                        #0a0a0f;
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .float { animation: float 4s ease-in-out infinite; }
+        .float-delay-1 { animation-delay: 0.5s; }
+        .float-delay-2 { animation-delay: 1s; }
+        .float-delay-3 { animation-delay: 1.5s; }
+        .float-delay-4 { animation-delay: 2s; }
+
+        /* Scroll Animation */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+        .bounce { animation: bounce 2s ease-in-out infinite; }
+
+        /* Text Gradient */
+        .text-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Rarity Badge Styles */
+        .badge-ur { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
+        .badge-ssr { background: linear-gradient(135deg, #A855F7, #7C3AED); }
+        .badge-sr { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+        .badge-r { background: linear-gradient(135deg, #10B981, #059669); }
+    </style>
+</head>
+<body class="bg-dark-900 text-white font-sans">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-dark-900/90 backdrop-blur-lg border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg"></div>
+                <span class="text-xl font-bold">Miyabi <span class="text-indigo-400">Market</span></span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm text-gray-400">
+                <a href="#agents" class="hover:text-white transition">Agents</a>
+                <a href="#pricing" class="hover:text-white transition">Pricing</a>
+                <a href="#cases" class="hover:text-white transition">Cases</a>
+                <a href="#faq" class="hover:text-white transition">FAQ</a>
+            </div>
+            <button class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg font-medium text-sm transition">
+                Get Started
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient min-h-screen flex items-center pt-16">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <!-- Left: Text Content -->
+                <div>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm mb-8">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        AI Development Evolution
+                    </div>
+
+                    <h1 class="text-5xl lg:text-7xl font-black leading-tight mb-6">
+                        開発時間を<br>
+                        <span class="text-gradient">10分の1に</span>
+                    </h1>
+
+                    <p class="text-xl text-gray-400 mb-8 leading-relaxed">
+                        Miyabiは、自律型AIエージェントを<br class="hidden sm:block">
+                        デッキのように組み合わせて開発を行う<br class="hidden sm:block">
+                        次世代のプラグイン・マーケットプレイスです。
+                    </p>
+
+                    <!-- Stats -->
+                    <div class="flex gap-8 mb-10">
+                        <div>
+                            <div class="text-3xl font-mono font-bold">25<span class="text-indigo-500">+</span></div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">Agents</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-mono font-bold">22</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">Skills</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-mono font-bold">50<span class="text-indigo-500">+</span></div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">Commands</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4">
+                        <button class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-500/25 transition transform hover:-translate-y-0.5">
+                            無料で始める
+                        </button>
+                        <button class="px-8 py-4 bg-dark-700 border border-white/10 rounded-xl font-bold text-lg hover:bg-dark-600 transition">
+                            デモを見る
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Featured Card -->
+                <div class="flex justify-center lg:justify-end">
+                    <div class="relative">
+                        <!-- Main Card: しきるん SSR -->
+                        <div class="card-hover glow-ssr rounded-2xl overflow-hidden">
+                            <img src="images/shikiroon_unified_SSR.png" alt="しきるん - CoordinatorAgent" class="w-[320px] lg:w-[380px]">
+                        </div>
+
+                        <!-- Floating Mini Cards -->
+                        <div class="absolute -top-8 -left-16 w-24 opacity-60 float">
+                            <img src="images/mitsukeroon_unified_R.png" alt="みつけるん" class="rounded-lg shadow-lg">
+                        </div>
+                        <div class="absolute -bottom-4 -right-12 w-28 opacity-70 float float-delay-2">
+                            <img src="images/tsukuroon_unified_SR.png" alt="つくるん" class="rounded-lg shadow-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="mt-20 max-w-3xl mx-auto">
+                <div class="bg-dark-800/50 backdrop-blur rounded-2xl p-8 border border-white/5">
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                        <div class="text-center">
+                            <div class="text-sm text-gray-500 mb-2">Before</div>
+                            <div class="text-4xl font-mono font-bold text-red-400">17.5時間</div>
+                            <div class="text-xs text-gray-500 mt-1">従来の開発</div>
+                        </div>
+                        <div class="text-4xl text-gray-600">→</div>
+                        <div class="text-center">
+                            <div class="text-sm text-gray-500 mb-2">After</div>
+                            <div class="text-4xl font-mono font-bold text-green-400">24分</div>
+                            <div class="text-xs text-gray-500 mt-1">Miyabi導入後</div>
+                        </div>
+                        <div class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl">
+                            <span class="text-3xl font-bold">44x</span>
+                            <span class="text-sm ml-1">高速化</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scroll Hint -->
+            <div class="flex justify-center mt-16">
+                <div class="bounce text-gray-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Agent Cards Section -->
+    <section id="agents" class="py-32 bg-dark-900">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Featured Agent Cards</h2>
+                <p class="text-gray-400 text-lg">TCGスタイルのAIエージェントでチームを構築しよう</p>
+            </div>
+
+            <!-- Card Gallery -->
+            <div class="flex flex-wrap justify-center gap-8 lg:gap-12">
+
+                <!-- UR: めだまん -->
+                <div class="card-hover float">
+                    <div class="glow-ur rounded-2xl overflow-hidden">
+                        <img src="images/medaman_unified_UR.png" alt="めだまん - ReviewAgent (UR)" class="w-[280px] lg:w-[300px]">
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span class="badge-ur text-xs font-bold px-3 py-1 rounded-full">UR</span>
+                        <p class="text-sm text-gray-400 mt-2">完璧主義のコードレビュアー</p>
+                    </div>
+                </div>
+
+                <!-- SSR: しきるん -->
+                <div class="card-hover float float-delay-1">
+                    <div class="glow-ssr rounded-2xl overflow-hidden">
+                        <img src="images/shikiroon_unified_SSR.png" alt="しきるん - CoordinatorAgent (SSR)" class="w-[280px] lg:w-[300px]">
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span class="badge-ssr text-xs font-bold px-3 py-1 rounded-full">SSR</span>
+                        <p class="text-sm text-gray-400 mt-2">タスク調整と並列実行の指揮者</p>
+                    </div>
+                </div>
+
+                <!-- SR: つくるん -->
+                <div class="card-hover float float-delay-2">
+                    <div class="glow-sr rounded-2xl overflow-hidden hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-shadow">
+                        <img src="images/tsukuroon_unified_SR.png" alt="つくるん - CodeGenAgent (SR)" class="w-[280px] lg:w-[300px]">
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span class="badge-sr text-xs font-bold px-3 py-1 rounded-full">SR</span>
+                        <p class="text-sm text-gray-400 mt-2">コード生成の天才プログラマー</p>
+                    </div>
+                </div>
+
+                <!-- SR: まとめるん -->
+                <div class="card-hover float float-delay-3">
+                    <div class="glow-sr rounded-2xl overflow-hidden hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-shadow">
+                        <img src="images/matomeroon_unified_SR.png" alt="まとめるん - PRAgent (SR)" class="w-[280px] lg:w-[300px]">
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span class="badge-sr text-xs font-bold px-3 py-1 rounded-full">SR</span>
+                        <p class="text-sm text-gray-400 mt-2">PR作成のマエストロ</p>
+                    </div>
+                </div>
+
+                <!-- R: みつけるん -->
+                <div class="card-hover float float-delay-4">
+                    <div class="glow-r rounded-2xl overflow-hidden hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-shadow">
+                        <img src="images/mitsukeroon_unified_R.png" alt="みつけるん - IssueAgent (R)" class="w-[280px] lg:w-[300px]">
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span class="badge-r text-xs font-bold px-3 py-1 rounded-full">R</span>
+                        <p class="text-sm text-gray-400 mt-2">Issue発見のスペシャリスト</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CTA -->
+            <div class="text-center mt-16">
+                <p class="text-gray-500 mb-6">他にも <span class="text-white font-bold">19体以上</span> のエージェントが待っています</p>
+                <button class="px-8 py-3 bg-dark-700 border border-white/10 rounded-xl font-medium hover:bg-dark-600 transition">
+                    全エージェントを見る →
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rarity System Explanation -->
+    <section class="py-20 bg-dark-800">
+        <div class="max-w-5xl mx-auto px-6">
+            <h3 class="text-2xl font-bold text-center mb-12">Rarity System</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="text-center p-6 bg-dark-900 rounded-xl border border-yellow-500/30">
+                    <span class="badge-ur text-sm font-bold px-4 py-1 rounded-full">UR</span>
+                    <p class="text-yellow-400 font-bold mt-3">Ultra Rare</p>
+                    <p class="text-xs text-gray-500 mt-1">4体</p>
+                </div>
+                <div class="text-center p-6 bg-dark-900 rounded-xl border border-purple-500/30">
+                    <span class="badge-ssr text-sm font-bold px-4 py-1 rounded-full">SSR</span>
+                    <p class="text-purple-400 font-bold mt-3">Super Super Rare</p>
+                    <p class="text-xs text-gray-500 mt-1">5体</p>
+                </div>
+                <div class="text-center p-6 bg-dark-900 rounded-xl border border-blue-500/30">
+                    <span class="badge-sr text-sm font-bold px-4 py-1 rounded-full">SR</span>
+                    <p class="text-blue-400 font-bold mt-3">Super Rare</p>
+                    <p class="text-xs text-gray-500 mt-1">10体</p>
+                </div>
+                <div class="text-center p-6 bg-dark-900 rounded-xl border border-green-500/30">
+                    <span class="badge-r text-sm font-bold px-4 py-1 rounded-full">R</span>
+                    <p class="text-green-400 font-bold mt-3">Rare</p>
+                    <p class="text-xs text-gray-500 mt-1">5体</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Studies -->
+    <section id="cases" class="py-32 bg-dark-900">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">導入事例</h2>
+                <p class="text-gray-400 text-lg">Miyabi導入で劇的な効果を実現</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Startup -->
+                <div class="bg-dark-800 border border-white/5 rounded-2xl p-8 hover:border-indigo-500/30 transition">
+                    <div class="text-xs text-indigo-400 font-bold mb-3 uppercase tracking-wider">Startup</div>
+                    <h3 class="text-xl font-bold mb-4">MVP開発を劇的に短縮</h3>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-mono font-bold text-red-400">6ヶ月</div>
+                            <div class="text-xs text-gray-500">Before</div>
+                        </div>
+                        <span class="text-gray-600">→</span>
+                        <div class="text-center">
+                            <div class="text-2xl font-mono font-bold text-green-400">3週間</div>
+                            <div class="text-xs text-gray-500">After</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        「CoordinatorAgentとCodeGenAgentの組み合わせで、想像以上の速度でMVPを完成できました」
+                    </p>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="bg-dark-800 border border-white/5 rounded-2xl p-8 hover:border-purple-500/30 transition">
+                    <div class="text-xs text-purple-400 font-bold mb-3 uppercase tracking-wider">Enterprise</div>
+                    <h3 class="text-xl font-bold mb-4">レビュー工数を大幅削減</h3>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg">
+                            <span class="text-2xl font-bold">92%</span>
+                            <span class="text-sm ml-1">削減</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        「めだまん(ReviewAgent)導入後、本番環境でのバグ発生が0件になりました」
+                    </p>
+                </div>
+
+                <!-- Freelancer -->
+                <div class="bg-dark-800 border border-white/5 rounded-2xl p-8 hover:border-green-500/30 transition">
+                    <div class="text-xs text-green-400 font-bold mb-3 uppercase tracking-wider">Freelancer</div>
+                    <h3 class="text-xl font-bold mb-4">月収が2.5倍に増加</h3>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-mono font-bold text-gray-400">¥50万</div>
+                            <div class="text-xs text-gray-500">Before</div>
+                        </div>
+                        <span class="text-gray-600">→</span>
+                        <div class="text-center">
+                            <div class="text-2xl font-mono font-bold text-green-400">¥125万</div>
+                            <div class="text-xs text-gray-500">After</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        「同時に複数案件を処理できるようになり、受注数が大幅に増えました」
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="py-32 bg-dark-800">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Pricing Plans</h2>
+                <p class="text-gray-400 text-lg">あなたのチームに最適なプランを選択</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- Free -->
+                <div class="bg-dark-900 border border-white/10 rounded-2xl p-8">
+                    <h3 class="text-xl font-bold text-gray-400 mb-2">Free</h3>
+                    <div class="text-4xl font-bold mb-6">¥0<span class="text-sm text-gray-500 font-normal"> /月</span></div>
+                    <ul class="space-y-3 mb-8 text-sm text-gray-300">
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> Agent 3体まで</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 基本スキルセット</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> コミュニティサポート</li>
+                        <li class="flex items-center gap-2 text-gray-600"><span>×</span> 並列実行</li>
+                    </ul>
+                    <button class="w-full py-3 rounded-xl border border-white/20 hover:bg-white/5 transition font-medium">
+                        無料で始める
+                    </button>
+                </div>
+
+                <!-- Pro -->
+                <div class="bg-gradient-to-b from-indigo-900/30 to-dark-900 border-2 border-indigo-500 rounded-2xl p-8 relative transform md:-translate-y-4">
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full">
+                        MOST POPULAR
+                    </div>
+                    <h3 class="text-xl font-bold text-indigo-400 mb-2">Pro</h3>
+                    <div class="text-4xl font-bold mb-6">¥9,800<span class="text-sm text-gray-500 font-normal"> /月</span></div>
+                    <ul class="space-y-3 mb-8 text-sm text-gray-300">
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 全25+ Agent</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 22 Skills</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 50+ Commands</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> Git Worktree並列実行</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 優先サポート</li>
+                    </ul>
+                    <button class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg hover:shadow-indigo-500/25 transition font-bold">
+                        Proプランを始める
+                    </button>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="bg-dark-900 border border-white/10 rounded-2xl p-8">
+                    <h3 class="text-xl font-bold text-gray-400 mb-2">Enterprise</h3>
+                    <div class="text-4xl font-bold mb-6">¥300,000<span class="text-sm text-gray-500 font-normal">〜</span></div>
+                    <ul class="space-y-3 mb-8 text-sm text-gray-300">
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> Pro全機能</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> カスタムAgent開発</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> オンプレミス対応</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 専任サポート</li>
+                        <li class="flex items-center gap-2"><span class="text-green-500">✓</span> SLA保証</li>
+                    </ul>
+                    <button class="w-full py-3 rounded-xl border border-white/20 hover:bg-white/5 transition font-medium">
+                        お問い合わせ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-32 bg-dark-900" x-data="{ open: null }">
+        <div class="max-w-3xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">よくある質問</h2>
+                <p class="text-gray-400">FAQ</p>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(faq, index) in [
+                    { q: 'Miyabiとは何ですか？', a: 'Miyabiは自律型AIエージェントを活用した開発オペレーションプラットフォームです。25以上のAIエージェントが協調して開発タスクを自動化し、開発効率を最大10倍に向上させます。' },
+                    { q: 'TCGスタイルのAgent Cardとは？', a: '各AIエージェントはトレーディングカードゲーム（TCG）のカードとして表現されています。レアリティ（UR/SSR/SR/R）、ステータス（HP/ATK/DEF/INT）、スキルを持ち、ゲーム感覚でチームを構築できます。' },
+                    { q: '無料プランで何ができますか？', a: '無料プランでは3体までのAgentを使用でき、基本的なスキルセットとコミュニティサポートが含まれます。個人開発や小規模プロジェクトに最適です。' },
+                    { q: 'どのプログラミング言語に対応していますか？', a: 'Miyabiは言語非依存で設計されています。Rust、TypeScript、Python、Go、Javaなど、主要な言語すべてに対応。特にRust開発に最適化されたツールセットを提供。' },
+                    { q: '導入にどのくらい時間がかかりますか？', a: 'Miyabiプラグインのインストールは数分で完了。/plugin install @miyabi/suite コマンド一つで、全25以上のAgentと22のSkillがすぐに利用可能になります。' }
+                ]" :key="index">
+                    <div class="bg-dark-800 border border-white/5 rounded-xl overflow-hidden">
+                        <button
+                            @click="open = open === index ? null : index"
+                            class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-dark-700 transition"
+                        >
+                            <span class="font-medium" x-text="faq.q"></span>
+                            <svg class="w-5 h-5 transition-transform" :class="open === index ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === index" x-collapse class="px-6 pb-4 text-gray-400 text-sm" x-text="faq.a"></div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-32 bg-gradient-to-b from-dark-900 via-indigo-900/10 to-dark-900">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-4xl lg:text-5xl font-bold mb-6">
+                今すぐ<span class="text-gradient">Miyabi</span>を始めよう
+            </h2>
+            <p class="text-xl text-gray-400 mb-10 leading-relaxed">
+                開発時間を10分の1に。<br>
+                25+のAIエージェントがあなたの開発を革新します。
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <button class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-500/30 transition transform hover:-translate-y-0.5">
+                    無料で始める
+                </button>
+                <button class="px-10 py-4 bg-dark-700 border border-white/10 rounded-xl font-bold text-lg hover:bg-dark-600 transition">
+                    ドキュメント
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark-900 border-t border-white/5 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg"></div>
+                    <span class="text-lg font-bold">Miyabi</span>
+                </div>
+                <div class="flex gap-6 text-sm text-gray-500">
+                    <a href="#" class="hover:text-white transition">Terms</a>
+                    <a href="#" class="hover:text-white transition">Privacy</a>
+                    <a href="#" class="hover:text-white transition">GitHub</a>
+                    <a href="#" class="hover:text-white transition">Discord</a>
+                </div>
+                <div class="text-sm text-gray-500">
+                    © 2025 Miyabi. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Alpine.js x-collapse -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.directive('collapse', (el) => {
+                el.style.overflow = 'hidden';
+                el.style.transition = 'height 0.3s ease-out';
+
+                const update = () => {
+                    if (el._x_isShown) {
+                        el.style.height = 'auto';
+                        const height = el.scrollHeight + 'px';
+                        el.style.height = '0px';
+                        el.offsetHeight; // force reflow
+                        el.style.height = height;
+                    } else {
+                        el.style.height = el.scrollHeight + 'px';
+                        el.offsetHeight; // force reflow
+                        el.style.height = '0px';
+                    }
+                };
+
+                Alpine.effect(update);
+            });
+        });
+    </script>
+
+</body>
+</html>

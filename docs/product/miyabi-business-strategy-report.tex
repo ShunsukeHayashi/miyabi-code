@@ -1,0 +1,733 @@
+\documentclass[a4paper,11pt,twoside]{report}
+
+% Japanese support with LuaLaTeX
+\usepackage{luatexja}
+\usepackage{luatexja-fontspec}
+\setmainjfont{Hiragino Mincho ProN}
+\setsansjfont{Hiragino Kaku Gothic ProN}
+
+% Essential packages
+\usepackage{textcomp}
+\usepackage[margin=2.5cm]{geometry}
+\setlength{\headheight}{14pt}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{fontspec}
+\usepackage{parskip}
+
+% Colors
+\definecolor{miyabiprimary}{RGB}{16,185,129}
+\definecolor{miyabisecondary}{RGB}{59,130,246}
+\definecolor{miyabiaccent}{RGB}{245,158,11}
+\definecolor{miyabidark}{RGB}{31,41,55}
+\definecolor{miyabilight}{RGB}{249,250,251}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=miyabiprimary,
+    urlcolor=miyabisecondary,
+    citecolor=miyabiaccent
+}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\leftmark}
+\fancyhead[RE,LO]{Miyabi Plugin Marketplace}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Chapter/Section formatting
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{miyabidark}}
+{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{miyabiprimary}}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries\color{miyabisecondary}}
+{\thesubsection}{1em}{}
+
+% Box styles
+\tcbset{
+    colback=miyabilight,
+    colframe=miyabiprimary,
+    fonttitle=\bfseries,
+    arc=3mm,
+    boxrule=0.5mm
+}
+
+\begin{document}
+
+% =============================================================================
+% TITLE PAGE
+% =============================================================================
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\Huge\bfseries\color{miyabidark} Miyabi Plugin Marketplace}\\[0.5cm]
+{\Large\color{miyabiprimary} 12 Phase Business Strategy Report}\\[2cm]
+
+{\LARGE 包括的ビジネス戦略書}\\[0.3cm]
+{\large Year 1-3 完全実行計画}\\[2cm]
+
+\begin{tikzpicture}
+\fill[miyabiprimary!20] (0,0) circle (3cm);
+\fill[miyabisecondary!30] (0,0) circle (2cm);
+\fill[miyabiaccent!40] (0,0) circle (1cm);
+\end{tikzpicture}
+
+\vfill
+
+{\large\textbf{作成日}: 2025年11月29日}\\[0.3cm]
+{\large\textbf{バージョン}: 1.0.0}\\[0.3cm]
+{\large\textbf{作成}: Miyabi AI Agent Orchestra}\\[1cm]
+
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Year 3 目標} & \textbf{達成値} \\
+\hline
+ARR & ¥ 1,896M \\
+Pro Users & 10,000名 \\
+Enterprise & 200社 \\
+LTV/CAC & 18.5x \\
+NPS & 65+ \\
+\hline
+\end{tabular}
+
+\end{titlepage}
+
+% =============================================================================
+% TABLE OF CONTENTS
+% =============================================================================
+\tableofcontents
+\newpage
+
+% =============================================================================
+% EXECUTIVE SUMMARY
+% =============================================================================
+\chapter{エグゼクティブサマリー}
+
+\section{製品概要}
+
+\textbf{Miyabi Plugin Marketplace}は、AI開発者向けのプラグインエコシステムです。
+
+\begin{tcolorbox}[title=ワンライナー]
+「1つのプラグインで、全てのAI IDEに対応。開発時間を10倍削減し、ROI 23倍を実現。」
+\end{tcolorbox}
+
+\subsection{市場機会}
+\begin{itemize}
+    \item AI開発ツール市場: \$50B（2025年）、CAGR 35\%
+    \item ターゲット: AI開発者 500万人（有料転換率 3-5\%想定）
+\end{itemize}
+
+\subsection{収益予測}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Year} & \textbf{ARR} & \textbf{YoY成長率} & \textbf{営業利益率} \\
+\midrule
+Year 1 & ¥ 71.28M & N/A & -112\% \\
+Year 2 & ¥ 415.2M & +482\% & +10.5\% \\
+Year 3 & ¥ 1,896M & +356.5\% & +53.4\% \\
+\bottomrule
+\end{tabular}
+\caption{3年収益予測}
+\end{table}
+
+\section{3つの差別化ポイント}
+
+\subsection{1. マルチプラットフォーム対応}
+\begin{itemize}
+    \item Universal AI IDE Plugin Adapter（特許出願中）
+    \item 対応IDE: Claude Code, GitHub Copilot, Cursor, VSCode
+    \item 開発コスト75\%削減
+\end{itemize}
+
+\subsection{2. AIエージェント統合}
+\begin{itemize}
+    \item 25 AI Agents（9 Coding + 16 Business）
+    \item Issue → PR完成: 3時間 → 15分（12倍高速）
+    \item 並列実行で効率72\%向上
+\end{itemize}
+
+\subsection{3. TCGスタイルの楽しい体験}
+\begin{itemize}
+    \item プラグインをキャラクター化（ポケモン図鑑スタイル）
+    \item ゲーミフィケーション: Exp獲得、レベルアップ
+    \item ユーザーエンゲージメント3倍
+\end{itemize}
+
+% =============================================================================
+% PHASE 1-4: FOUNDATION
+% =============================================================================
+\chapter{Phase 1-4: ファンデーション}
+
+\section{Phase 1: 自己分析}
+
+\begin{tcolorbox}[title=SelfAnalysisAgent による分析]
+\textbf{強み}:
+\begin{itemize}
+    \item Universal Adapter技術（特許出願中）
+    \item 25 AI Agents統合
+    \item 500+ Issue処理実績
+\end{itemize}
+
+\textbf{機会}:
+\begin{itemize}
+    \item AI開発ツール市場: 年率35\%成長
+    \item リモートワーク普及によるプラグイン需要増
+\end{itemize}
+\end{tcolorbox}
+
+\section{Phase 2: 市場調査}
+
+\subsection{TAM/SAM/SOM分析}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrl}
+\toprule
+\textbf{指標} & \textbf{規模} & \textbf{定義} \\
+\midrule
+TAM & \$50B & AI開発ツール市場全体 \\
+SAM & \$5B & プラグイン/拡張機能市場 \\
+SOM & \$100M & Year 3時点の獲得可能市場 \\
+\bottomrule
+\end{tabular}
+\caption{市場規模分析}
+\end{table}
+
+\section{Phase 3: ペルソナ設計}
+
+\subsection{ペルソナ1: たかしさん（28歳・フリーランス）}
+\begin{itemize}
+    \item 課題: タスク管理苦手、コードレビュー時間
+    \item 欲しいもの: 全IDE対応、簡単操作
+    \item 利用プラン: Pro（¥ 9,800/月）
+\end{itemize}
+
+\subsection{ペルソナ2: さゆりさん（35歳・スタートアップCTO）}
+\begin{itemize}
+    \item 課題: チーム開発速度、品質バラつき
+    \item 欲しいもの: ROI測定可能なツール
+    \item 利用プラン: Enterprise（¥ 300,000/月〜）
+\end{itemize}
+
+\section{Phase 4: プロダクトコンセプト}
+
+\subsection{ビジネスモデルキャンバス概要}
+
+\textbf{Value Proposition}:
+\begin{itemize}
+    \item 開発時間10倍削減
+    \item マルチプラットフォーム対応
+    \item AI Agent統合
+    \item TCGスタイル体験
+\end{itemize}
+
+\textbf{Revenue Streams}:
+\begin{itemize}
+    \item Subscription: 85\%
+    \item Transaction Fee: 10\%
+    \item Enterprise Services: 5\%
+\end{itemize}
+
+% =============================================================================
+% PHASE 5-6: PRODUCT
+% =============================================================================
+\chapter{Phase 5-6: プロダクト設計}
+
+\section{Phase 5: サービス詳細設計}
+
+\subsection{価格設定}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llr}
+\toprule
+\textbf{プラン} & \textbf{機能} & \textbf{価格} \\
+\midrule
+Free & プラグイン5個まで & ¥ 0 \\
+Pro & 全機能 + 25 Agents & ¥ 9,800/月 \\
+Enterprise & 専任CSM + SLA & ¥ 300,000/月〜 \\
+\bottomrule
+\end{tabular}
+\caption{価格プラン}
+\end{table}
+
+\subsection{Unit Economics}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\textbf{指標} & \textbf{Year 1} & \textbf{Year 2} & \textbf{Year 3} \\
+\midrule
+LTV (Pro) & ¥ 326,666 & ¥ 326,666 & ¥ 326,666 \\
+CAC & ¥ 145,161 & ¥ 43,902 & ¥ 17,647 \\
+LTV/CAC & 2.25x & 7.44x & 18.5x \\
+Payback & 17.4ヶ月 & 5.3ヶ月 & 2.1ヶ月 \\
+\bottomrule
+\end{tabular}
+\caption{Unit Economics推移}
+\end{table}
+
+\section{Phase 6: コンテンツ制作}
+
+\subsection{コンテンツカレンダー（6ヶ月）}
+
+\begin{itemize}
+    \item YouTube: 週2本（72動画）
+    \item ブログ: 週2本（48記事）
+    \item note.com: 週3本（週末配信）
+    \item Udemy: 3コース
+\end{itemize}
+
+% =============================================================================
+% PHASE 7-8: MARKETING
+% =============================================================================
+\chapter{Phase 7-8: マーケティング戦略}
+
+\section{Phase 7: ファネル設計}
+
+\subsection{6ステージファネル}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrl}
+\toprule
+\textbf{ステージ} & \textbf{人数} & \textbf{転換率} & \textbf{主要施策} \\
+\midrule
+認知 & 100,000 & - & SEO, X, Product Hunt \\
+興味 & 10,000 & 10\% & LP最適化, 動画デモ \\
+検討 & 3,000 & 30\% & 無料プラン, オンボーディング \\
+購入 & 300 & 10\% & 限定割引, ROI計算ツール \\
+継続 & 240 & 80\% & CS強化, コミュニティ \\
+推奨 & 90 & 30\% & 紹介報酬, レアキャラ \\
+\bottomrule
+\end{tabular}
+\caption{ファネル設計（Month 6目標）}
+\end{table}
+
+\section{Phase 8: SNS戦略}
+
+\subsection{プラットフォーム別目標（Month 6）}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{プラットフォーム} & \textbf{目標} \\
+\midrule
+X (Twitter) & 5,000フォロワー \\
+YouTube & 10,000登録者 \\
+GitHub Stars & 2,500 \\
+Discord & 1,000メンバー \\
+dev.to & 1,500フォロワー \\
+LinkedIn & 2,000フォロワー \\
+\bottomrule
+\end{tabular}
+\caption{SNS目標}
+\end{table}
+
+\subsection{コンテンツミックス}
+\begin{itemize}
+    \item 教育・ノウハウ: 40\%
+    \item トレンド参加: 25\%
+    \item ブランドストーリー: 20\%
+    \item プロモーション: 10\%
+    \item コミュニティ: 5\%
+\end{itemize}
+
+% =============================================================================
+% PHASE 9-10: SALES
+% =============================================================================
+\chapter{Phase 9-10: セールス戦略}
+
+\section{Phase 9: マーケティング施策}
+
+\subsection{7P分析}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{要素} & \textbf{戦略} \\
+\midrule
+Product & マルチプラットフォーム対応プラグイン \\
+Price & Value-Based Pricing (¥ 9,800/月) \\
+Place & オンラインMarketplace \\
+Promotion & PLG + コンテンツマーケティング \\
+People & 専任CSM配置 \\
+Process & 自動化95\% (Free/Pro) \\
+Physical & ダッシュボード・分析ツール \\
+\bottomrule
+\end{tabular}
+\caption{7P Marketing Mix}
+\end{table}
+
+\section{Phase 10: セールス戦略}
+
+\subsection{セグメント別セールスモーション}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrl}
+\toprule
+\textbf{セグメント} & \textbf{モーション} & \textbf{サイクル} & \textbf{自動化率} \\
+\midrule
+SMB (1-10名) & Self-Serve PLG & 0-7日 & 95\% \\
+Mid-Market (11-100名) & Sales-Assisted & 14-30日 & 40\% \\
+Enterprise (100+名) & Field Sales & 60-180日 & 10\% \\
+\bottomrule
+\end{tabular}
+\caption{セールスモーション設計}
+\end{table}
+
+\subsection{パイプライン転換率}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{ステージ遷移} & \textbf{転換率} \\
+\midrule
+MQL → SQL & 40\% \\
+SQL → Opportunity & 60\% \\
+Opportunity → Proposal & 70\% \\
+Proposal → Negotiation & 80\% \\
+Negotiation → Closed Won & 90\% \\
+\midrule
+\textbf{MQL → Closed Won} & \textbf{12.1\%} \\
+\bottomrule
+\end{tabular}
+\caption{パイプライン転換率}
+\end{table}
+
+% =============================================================================
+% PHASE 11-12: OPERATIONS
+% =============================================================================
+\chapter{Phase 11-12: オペレーション}
+
+\section{Phase 11: CRM・顧客管理}
+
+\subsection{CS組織構成（Year 3）}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrl}
+\toprule
+\textbf{役職} & \textbf{人数} & \textbf{担当} \\
+\midrule
+VP of CS & 1名 & 部門統括 \\
+CSM Lead & 3名 & Enterprise/Pro/Self-Service \\
+CSM & 10名 & Enterprise 4名, Pro 6名 \\
+Support Engineer & 2名 & 技術サポート \\
+Community Manager & 1名 & Discord運営 \\
+\midrule
+\textbf{合計} & \textbf{17名} & \\
+\bottomrule
+\end{tabular}
+\caption{CS組織構成}
+\end{table}
+
+\subsection{Health Score設計}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrl}
+\toprule
+\textbf{要素} & \textbf{ウェイト} & \textbf{計測項目} \\
+\midrule
+利用頻度 & 20\% & DAU, 実行回数 \\
+エンゲージメント & 30\% & 機能採用率, ログイン頻度 \\
+サポート満足度 & 20\% & CSAT, 応答時間 \\
+支払い状況 & 15\% & 遅延なし, 更新率 \\
+NPS & 15\% & 四半期調査 \\
+\bottomrule
+\end{tabular}
+\caption{Health Score構成}
+\end{table}
+
+\subsection{リスクレベル対応}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{スコア} & \textbf{リスク} & \textbf{対応} \\
+\midrule
+0-40 & High Risk & 即座に介入（24時間以内） \\
+41-60 & Medium Risk & CSMコンタクト（48時間以内） \\
+61-80 & Healthy & モニタリング継続 \\
+81-100 & Champion & Advocate育成プログラム \\
+\bottomrule
+\end{tabular}
+\caption{リスクレベル対応}
+\end{table}
+
+\section{Phase 12: データ分析・PDCA}
+
+\subsection{データアーキテクチャ}
+
+\textbf{データソース（8種類）}:
+\begin{itemize}
+    \item GA4（Webトラフィック）
+    \item 広告データ（Google/Meta/LinkedIn）
+    \item CRMデータ（HubSpot）
+    \item 売上データ（Stripe）
+    \item SNSデータ（X/Discord/YouTube）
+    \item プロダクトデータ（Mixpanel）
+    \item サポートデータ（Intercom）
+    \item NPS調査（Delighted）
+\end{itemize}
+
+\textbf{インフラストラクチャ}:
+\begin{itemize}
+    \item DWH: BigQuery
+    \item BI: Looker Studio
+    \item Product Analytics: Mixpanel
+    \item Alerting: PagerDuty
+\end{itemize}
+
+\subsection{North Star Metric}
+
+\begin{tcolorbox}[title=North Star Metric]
+\textbf{Weekly Active Plugins (WAP)}
+
+週次アクティブプラグイン数を主要指標として採用。
+
+目標:
+\begin{itemize}
+    \item Month 3: 5,000 WAP
+    \item Month 6: 50,000 WAP
+    \item Year 1: 500,000 WAP
+\end{itemize}
+
+理由: プラグイン実行数 = ユーザー価値実現。有料転換率と高相関（R² = 0.85）
+\end{tcolorbox}
+
+% =============================================================================
+% FINANCIAL PROJECTIONS
+% =============================================================================
+\chapter{財務計画}
+
+\section{3年収益予測}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\textbf{指標} & \textbf{Year 1} & \textbf{Year 2} & \textbf{Year 3} \\
+\midrule
+Free Users & 10,000 & 50,000 & 200,000 \\
+Pro Users & 300 & 2,000 & 10,000 \\
+Enterprise & 10社 & 50社 & 200社 \\
+\midrule
+ARR & ¥ 71.28M & ¥ 415.2M & ¥ 1,896M \\
+YoY成長率 & N/A & +482\% & +356.5\% \\
+\midrule
+売上原価 & ¥ 10.69M & ¥ 62.28M & ¥ 284.4M \\
+粗利益 & ¥ 60.59M & ¥ 352.92M & ¥ 1,611.6M \\
+\midrule
+販売管理費 & ¥ 140.71M & ¥ 309.4M & ¥ 599.6M \\
+営業利益 & -¥ 80.12M & +¥ 43.52M & +¥ 1,012M \\
+営業利益率 & -112\% & +10.5\% & +53.4\% \\
+\bottomrule
+\end{tabular}
+\caption{P/L予測}
+\end{table}
+
+\section{資金調達計画}
+
+\subsection{Year 1: シードラウンド}
+\begin{itemize}
+    \item 調達額: ¥ 200,000,000
+    \item Pre-money Valuation: ¥ 800,000,000
+    \item 用途: プロダクト開発40\%, マーケティング30\%, 人材採用20\%, 運転資金10\%
+    \item Runway: 12-18ヶ月
+\end{itemize}
+
+\subsection{Year 2: シリーズA}
+\begin{itemize}
+    \item 調達額: ¥ 500,000,000
+    \item Pre-money Valuation: ¥ 4,000,000,000
+    \item 用途: マーケティング強化50\%, 人材採用30\%, グローバル展開20\%
+    \item Runway: 24ヶ月
+\end{itemize}
+
+\subsection{Year 3: 黒字化}
+\begin{itemize}
+    \item 営業CF: +¥ 1,012,000,000
+    \item 追加調達: 不要
+    \item 戦略: 利益を成長投資に再配分
+\end{itemize}
+
+\section{Rule of 40}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+\textbf{Year} & \textbf{成長率 + 利益率} & \textbf{評価} \\
+\midrule
+Year 1 & N/A & - \\
+Year 2 & 482\% + (-5\%) = 477\% & Excellent \\
+Year 3 & 356.5\% + 15\% = 371.5\% & Excellent \\
+\bottomrule
+\end{tabular}
+\caption{Rule of 40分析}
+\end{table}
+
+% =============================================================================
+% ROADMAP
+% =============================================================================
+\chapter{6ヶ月ロードマップ}
+
+\section{Month 1-2: MVP構築}
+
+\begin{itemize}
+    \item プラグインアップロード機能
+    \item MCP v2.0統合
+    \item Claude Code + Copilot対応
+    \item Stripe決済統合
+\end{itemize}
+
+\textbf{KPI}:
+\begin{itemize}
+    \item betaテスター: 100名
+    \item プラグイン: 10個
+    \item ダウンロード: 500
+\end{itemize}
+
+\section{Month 3-4: パブリックローンチ}
+
+\begin{itemize}
+    \item Cursor + VSCode対応
+    \item プラグイン検索強化
+    \item レビューシステム
+    \item SDK公開
+\end{itemize}
+
+\textbf{マーケティング}:
+\begin{itemize}
+    \item Product Hunt
+    \item Hacker News
+    \item X広告開始
+\end{itemize}
+
+\textbf{KPI}:
+\begin{itemize}
+    \item ユーザー: 1,000名
+    \item プラグイン: 50個
+    \item Pro転換: 3\%（30名）
+    \item MRR: ¥ 294,000
+\end{itemize}
+
+\section{Month 5-6: エコシステム拡大}
+
+\begin{itemize}
+    \item プラグイン推薦AI（GPT-4o）
+    \item カスタムAgent作成UI
+    \item チームワークスペース
+    \item Enterpriseプラン開始
+\end{itemize}
+
+\textbf{パートナーシップ}:
+\begin{itemize}
+    \item Anthropic公式パートナー申請
+    \item Microsoft連携協議
+    \item Anysphere連携開始
+\end{itemize}
+
+\textbf{KPI}:
+\begin{itemize}
+    \item ユーザー: 5,000名
+    \item プラグイン: 200個
+    \item Pro転換: 4\%（200名）
+    \item Enterprise: 3社
+    \item MRR: ¥ 2,860,000
+\end{itemize}
+
+% =============================================================================
+% CONCLUSION
+% =============================================================================
+\chapter{まとめ}
+
+\section{投資ハイライト}
+
+\begin{tcolorbox}[title=なぜMiyabiに投資すべきか]
+\textbf{1. 巨大市場と高成長}
+\begin{itemize}
+    \item 市場規模: \$50B（2025年）、CAGR 35\%
+    \item TAM: AI開発者 500万人
+\end{itemize}
+
+\textbf{2. 圧倒的な差別化}
+\begin{itemize}
+    \item 特許: Universal Adapter（出願中）
+    \item 技術: 25 AI Agents統合
+    \item UX: TCGスタイル（エンゲージメント3倍）
+\end{itemize}
+
+\textbf{3. 強力なUnit Economics}
+\begin{itemize}
+    \item LTV/CAC: 18.5x（Year 3）
+    \item Payback: 2.1ヶ月（Year 3）
+    \item Gross Margin: 85\%
+\end{itemize}
+
+\textbf{4. 急成長と早期黒字化}
+\begin{itemize}
+    \item 黒字化: Year 2 Q4
+    \item 営業利益率: +53.4\%（Year 3）
+    \item Rule of 40: 371.5\%（Year 3）
+\end{itemize}
+\end{tcolorbox}
+
+\section{Next Steps}
+
+\begin{enumerate}
+    \item \textbf{MVP構築開始}（Month 1-2）
+    \item \textbf{シード資金調達}（¥ 200M）
+    \item \textbf{betaテスター募集}（100名）
+    \item \textbf{パブリックローンチ}（Month 3）
+\end{enumerate}
+
+\vspace{1cm}
+
+\begin{center}
+\Large\bfseries
+このコンセプトなら、市場で勝てる。\\
+投資家を魅了できる。
+\end{center}
+
+\vfill
+
+\begin{center}
+\textbf{Miyabi Plugin Marketplace}\\
+contact@miyabi-marketplace.com\\
+https://miyabi-world.com\\
+GitHub: github.com/ShunsukeHayashi/miyabi-private
+\end{center}
+
+\end{document}

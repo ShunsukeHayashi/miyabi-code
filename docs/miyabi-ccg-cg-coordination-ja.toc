@@ -1,0 +1,84 @@
+\contentsline {section}{\numberline {1}はじめに}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Miyabiプラットフォーム概要}{4}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}CCGとCGの定義}{4}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}本ドキュメントの目的}{4}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Claude Code（CCG）アーキテクチャ}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}コアメカニズム}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}組み込みサブエージェントタイプ}{5}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}カスタムサブエージェント設定}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Claude Agent SDKアーキテクチャ}{6}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}Python SDK使用例}{6}{subsubsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.5}通信パターン}{6}{subsection.2.5}%
+\contentsline {section}{\numberline {3}OpenAI Codex（CG）アーキテクチャ}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}コアメカニズム}{6}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}エージェント設定}{7}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}マルチエージェントオーケストレーション}{7}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Agents SDK統合}{7}{subsubsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.4}サンドボックスと権限}{8}{subsection.3.4}%
+\contentsline {section}{\numberline {4}CCG + CG 協調アーキテクチャ}{8}{section.4}%
+\contentsline {subsection}{\numberline {4.1}ハイブリッドオーケストレーションモデル}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}役割定義}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}協調パターン}{8}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}パターン1: シーケンシャルハンドオフ}{8}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}パターン2: 並列実行}{9}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}パターン3: 競合検証}{10}{subsubsection.4.3.3}%
+\contentsline {subsection}{\numberline {4.4}A2Aプロトコル統合}{10}{subsection.4.4}%
+\contentsline {section}{\numberline {5}実装ガイドライン}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Miyabi統合手順}{10}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}設定ファイル}{11}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}CCG設定（.claude/agents/miyabi-coordinator.md）}{11}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}CG設定（\textasciitilde /.codex/agents.toml）}{11}{subsubsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.3}MCPサーバー設定}{11}{subsection.5.3}%
+\contentsline {section}{\numberline {6}ベストプラクティス}{12}{section.6}%
+\contentsline {subsection}{\numberline {6.1}エージェント設計パターン}{12}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Explore-Plan-Code-Commit ワークフロー}{12}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}テスト駆動開発（TDD）パターン}{13}{subsubsection.6.1.2}%
+\contentsline {subsubsection}{\numberline {6.1.3}純粋オーケストレーターパターン}{14}{subsubsection.6.1.3}%
+\contentsline {subsection}{\numberline {6.2}コンテキスト管理}{14}{subsection.6.2}%
+\contentsline {subsubsection}{\numberline {6.2.1}コンテキスト分離の原則}{14}{subsubsection.6.2.1}%
+\contentsline {subsubsection}{\numberline {6.2.2}CLAUDE.mdによる標準化}{15}{subsubsection.6.2.2}%
+\contentsline {subsubsection}{\numberline {6.2.3}コンテキストコンパクション}{15}{subsubsection.6.2.3}%
+\contentsline {subsubsection}{\numberline {6.2.4}長時間セッションでの管理}{16}{subsubsection.6.2.4}%
+\contentsline {subsection}{\numberline {6.3}タスクルーティング戦略}{16}{subsection.6.3}%
+\contentsline {subsubsection}{\numberline {6.3.1}詳細なルーティングマトリックス}{16}{subsubsection.6.3.1}%
+\contentsline {subsubsection}{\numberline {6.3.2}動的ルーティングロジック}{16}{subsubsection.6.3.2}%
+\contentsline {subsubsection}{\numberline {6.3.3}モデル選択ガイドライン}{17}{subsubsection.6.3.3}%
+\contentsline {subsection}{\numberline {6.4}エラーハンドリングとリカバリー}{18}{subsection.6.4}%
+\contentsline {subsubsection}{\numberline {6.4.1}多層エラーハンドリング}{18}{subsubsection.6.4.1}%
+\contentsline {subsubsection}{\numberline {6.4.2}チェックポイントとリカバリー}{18}{subsubsection.6.4.2}%
+\contentsline {subsubsection}{\numberline {6.4.3}自己修復パターン}{19}{subsubsection.6.4.3}%
+\contentsline {subsection}{\numberline {6.5}パフォーマンス最適化}{19}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}並列実行の最適化}{19}{subsubsection.6.5.1}%
+\contentsline {subsubsection}{\numberline {6.5.2}トークン効率化}{20}{subsubsection.6.5.2}%
+\contentsline {subsubsection}{\numberline {6.5.3}拡張思考モードの活用}{20}{subsubsection.6.5.3}%
+\contentsline {subsection}{\numberline {6.6}セキュリティと権限管理}{21}{subsection.6.6}%
+\contentsline {subsubsection}{\numberline {6.6.1}最小権限の原則}{21}{subsubsection.6.6.1}%
+\contentsline {subsubsection}{\numberline {6.6.2}危険なコマンドのブロック}{21}{subsubsection.6.6.2}%
+\contentsline {subsubsection}{\numberline {6.6.3}機密情報の保護}{22}{subsubsection.6.6.3}%
+\contentsline {subsection}{\numberline {6.7}監視と可観測性}{22}{subsection.6.7}%
+\contentsline {subsubsection}{\numberline {6.7.1}包括的ログ記録}{22}{subsubsection.6.7.1}%
+\contentsline {subsubsection}{\numberline {6.7.2}メトリクス収集}{23}{subsubsection.6.7.2}%
+\contentsline {subsubsection}{\numberline {6.7.3}アラート設定}{23}{subsubsection.6.7.3}%
+\contentsline {subsection}{\numberline {6.8}アンチパターン}{24}{subsection.6.8}%
+\contentsline {subsubsection}{\numberline {6.8.1}アンチパターンの修正例}{24}{subsubsection.6.8.1}%
+\contentsline {subsection}{\numberline {6.9}クロスシステム協調のベストプラクティス}{25}{subsection.6.9}%
+\contentsline {subsubsection}{\numberline {6.9.1}データ形式の標準化}{25}{subsubsection.6.9.1}%
+\contentsline {subsubsection}{\numberline {6.9.2}ハンドオフプロトコル}{25}{subsubsection.6.9.2}%
+\contentsline {section}{\numberline {7}制限事項と制約}{26}{section.7}%
+\contentsline {subsection}{\numberline {7.1}CCGの制限}{26}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}CGの制限}{26}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}クロスシステム制約}{27}{subsection.7.3}%
+\contentsline {section}{\numberline {8}結論}{27}{section.8}%
+\contentsline {section}{\numberline {A}付録A: 詳細セキュリティ実装}{27}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}多層防御アーキテクチャ}{27}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}プロンプトインジェクション対策}{28}{subsection.A.2}%
+\contentsline {subsection}{\numberline {A.3}サンドボックス実行環境}{29}{subsection.A.3}%
+\contentsline {subsection}{\numberline {A.4}機密情報保護}{30}{subsection.A.4}%
+\contentsline {section}{\numberline {B}付録B: 実装リファレンス}{31}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}ファイル構成}{31}{subsection.B.1}%
+\contentsline {subsection}{\numberline {B.2}クイックスタート}{31}{subsection.B.2}%
+\contentsline {subsection}{\numberline {B.3}主要クラスリファレンス}{32}{subsection.B.3}%
+\contentsline {subsubsection}{\numberline {B.3.1}MultiAgentOrchestrator}{32}{subsubsection.B.3.1}%
+\contentsline {subsubsection}{\numberline {B.3.2}ContextManager}{32}{subsubsection.B.3.2}%
+\contentsline {subsubsection}{\numberline {B.3.3}ErrorHandlingFramework}{33}{subsubsection.B.3.3}%
+\contentsline {subsection}{\numberline {B.4}関連ドキュメント}{34}{subsection.B.4}%

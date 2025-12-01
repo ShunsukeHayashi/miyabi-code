@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AIの力を、全ての開発者に。Miyabi Plugin Marketplaceは、25種類の専門AIエージェントで開発時間を10分の1に短縮します。">
+    <meta name="keywords" content="AI開発,コード生成,自動化,Claude Code,Cursor,プラグイン,AIエージェント">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Miyabi Plugin Marketplace - AIの力を、全ての開発者に">
+    <meta property="og:description" content="25種類のAIエージェントで開発時間を10分の1に。無料で始める。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://miyabi-marketplace.com">
+    <meta property="og:image" content="https://miyabi-marketplace.com/images/ogp.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Miyabi Plugin Marketplace">
+    <meta name="twitter:description" content="25種類のAIエージェントで開発時間を10分の1に">
+    <meta name="twitter:image" content="https://miyabi-marketplace.com/images/ogp.png">
+
+    <title>Miyabi Plugin Marketplace - AIの力を、全ての開発者に</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="font-sans antialiased bg-gray-50">
+
+    <!-- Header / Navigation -->
+    <header class="fixed top-0 w-full bg-white/95 backdrop-blur-sm shadow-sm z-50">
+        <nav class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="text-3xl">🎮</div>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        Miyabi
+                    </span>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-700 hover:text-indigo-600 transition">機能</a>
+                    <a href="#agents" class="text-gray-700 hover:text-indigo-600 transition">AIエージェント</a>
+                    <a href="#cases" class="text-gray-700 hover:text-indigo-600 transition">導入事例</a>
+                    <a href="#pricing" class="text-gray-700 hover:text-indigo-600 transition">料金</a>
+                    <a href="#faq" class="text-gray-700 hover:text-indigo-600 transition">FAQ</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <a href="#signup" class="hidden sm:inline-block px-4 py-2 text-gray-700 hover:text-indigo-600 transition">
+                        ログイン
+                    </a>
+                    <a href="#signup" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition">
+                        無料で始める
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 overflow-hidden">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full filter blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full filter blur-3xl"></div>
+        </div>
+
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Left: Text Content -->
+                <div class="text-center md:text-left">
+                    <div class="inline-block mb-4 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
+                        ✨ 5,000人が利用中 | NPSスコア 65点
+                    </div>
+
+                    <h1 class="text-5xl md:text-6xl font-black text-gray-900 mb-6 leading-tight">
+                        AIの力を、<br>
+                        <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            全ての開発者に
+                        </span>
+                    </h1>
+
+                    <p class="text-xl md:text-2xl text-gray-600 mb-8">
+                        プラグイン1つで、開発時間が10分の1に
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                        <a href="#signup" class="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-lg font-bold rounded-lg hover:shadow-xl transform hover:scale-105 transition">
+                            無料で始める
+                        </a>
+                        <a href="#demo-video" class="px-8 py-4 border-2 border-indigo-600 text-indigo-600 text-lg font-bold rounded-lg hover:bg-indigo-50 transition">
+                            3分デモを見る ▶
+                        </a>
+                    </div>
+
+                    <p class="mt-6 text-sm text-gray-500">
+                        クレジットカード不要 / 5分で導入完了 / 今なら25種類のAIエージェント使い放題
+                    </p>
+                </div>
+
+                <!-- Right: Hero Visual -->
+                <div class="relative">
+                    <div class="relative w-full aspect-square max-w-lg mx-auto">
+                        <!-- Rotating Agent Cards -->
+                        <div class="agent-card-orbit">
+                            <div class="agent-card-item agent-card-1">
+                                <div class="w-24 h-32 bg-gradient-to-br from-amber-400 to-orange-600 rounded-lg shadow-lg flex items-center justify-center text-4xl">
+                                    👔
+                                </div>
+                            </div>
+                            <div class="agent-card-item agent-card-2">
+                                <div class="w-24 h-32 bg-gradient-to-br from-green-400 to-emerald-600 rounded-lg shadow-lg flex items-center justify-center text-4xl">
+                                    🔧
+                                </div>
+                            </div>
+                            <div class="agent-card-item agent-card-3">
+                                <div class="w-24 h-32 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-lg shadow-lg flex items-center justify-center text-4xl">
+                                    👁️
+                                </div>
+                            </div>
+                            <div class="agent-card-item agent-card-4">
+                                <div class="w-24 h-32 bg-gradient-to-br from-purple-400 to-pink-600 rounded-lg shadow-lg flex items-center justify-center text-4xl">
+                                    📊
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Hint -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <div class="text-gray-400 text-sm text-center">
+                <div class="mb-2">スクロールして詳細を見る</div>
+                <div class="text-2xl">↓</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    こんな悩み、抱えていませんか？
+                </h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <!-- Pain 1 -->
+                <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-lg transition">
+                    <div class="text-4xl mb-4">⏰</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">コード実装に何時間もかかる</h3>
+                    <p class="text-gray-600 mb-4">
+                        単純なCRUD操作でさえ、実装に丸1日。テストコード、ドキュメント、デプロイ設定… やることは山積みなのに、時間が足りない。
+                    </p>
+                    <p class="text-indigo-600 font-semibold italic">
+                        「AIに任せられたらいいのに…」そう思ったことはありませんか？
+                    </p>
+                </div>
+
+                <!-- Pain 2 -->
+                <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-lg transition">
+                    <div class="text-4xl mb-4">🔀</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Issue管理、PR作成、レビューが面倒</h3>
+                    <p class="text-gray-600 mb-4">
+                        Issueを立てて、ブランチを切って、コミットして、PRを作って、レビューして… 開発フローだけで1日が終わる。本当に作りたいプロダクトに集中できない。
+                    </p>
+                    <p class="text-indigo-600 font-semibold italic">
+                        「もっと本質的な仕事に時間を使いたい」その気持ち、よくわかります。
+                    </p>
+                </div>
+
+                <!-- Pain 3 -->
+                <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-lg transition">
+                    <div class="text-4xl mb-4">😵</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">知らない技術スタックでの開発</h3>
+                    <p class="text-gray-600 mb-4">
+                        Rust？ TypeScript？ Kubernetes？ 新しい技術を学ぶ時間もないし、間違った実装で炎上するのも怖い。
+                    </p>
+                    <p class="text-indigo-600 font-semibold italic">
+                        「エキスパートに任せられたら…」その願い、Miyabiが叶えます。
+                    </p>
+                </div>
+
+                <!-- Pain 4 -->
+                <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-lg transition">
+                    <div class="text-4xl mb-4">💸</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Claude Code、Copilot、Cursor... 全部使いたいけど</h3>
+                    <p class="text-gray-600 mb-4">
+                        マルチツールユーザーとして、全てのIDEで使えるプラグインが欲しい。でも、プラグインがバラバラで設定が面倒。
+                    </p>
+                    <p class="text-indigo-600 font-semibold italic">
+                        「1つのプラグインで全部動いたら…」それ、Miyabiなら可能です。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section id="features" class="py-20 bg-gradient-to-br from-gray-50 to-indigo-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    Miyabiなら、すべて解決します
+                </h2>
+                <p class="text-xl text-gray-600">
+                    25種類の専門AIエージェントが、あなたの開発チームに参加。<br>
+                    コード生成からデプロイまで、全てを自動化します。
+                </p>
+            </div>
+
+            <!-- Before/After Comparison -->
+            <div class="max-w-6xl mx-auto mb-16">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Before -->
+                    <div class="p-8 bg-white rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <span class="inline-block px-4 py-2 bg-red-100 text-red-700 rounded-full font-bold">Before（従来の開発）</span>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3">📝</span>
+                                <span>Issue作成: <strong>30分</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3">💻</span>
+                                <span>コード実装: <strong>8時間</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3">🧪</span>
+                                <span>テスト作成: <strong>4時間</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3">📄</span>
+                                <span>ドキュメント: <strong>2時間</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3">🔍</span>
+                                <span>コードレビュー: <strong>1時間</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3">🚀</span>
+                                <span>デプロイ設定: <strong>2時間</strong></span>
+                            </li>
+                            <li class="pt-4 border-t-2 border-red-200 text-xl font-bold text-red-600">
+                                合計: 17.5時間
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="hidden md:flex items-center justify-center">
+                        <div class="text-6xl text-green-500">→</div>
+                    </div>
+
+                    <!-- After -->
+                    <div class="p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-lg border-2 border-green-500">
+                        <div class="text-center mb-6">
+                            <span class="inline-block px-4 py-2 bg-green-100 text-green-700 rounded-full font-bold">After（Miyabi導入後）</span>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-3">📝</span>
+                                <span>Issue作成: <strong>3分</strong> <span class="text-sm text-gray-500">(IssueAgent)</span></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-3">💻</span>
+                                <span>コード実装: <strong>10分</strong> <span class="text-sm text-gray-500">(CodeGenAgent)</span></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-3">🧪</span>
+                                <span>テスト作成: <strong>5分</strong> <span class="text-sm text-gray-500">(自動生成)</span></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-3">📄</span>
+                                <span>ドキュメント: <strong>2分</strong> <span class="text-sm text-gray-500">(DocumentationAgent)</span></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-3">🔍</span>
+                                <span>コードレビュー: <strong>1分</strong> <span class="text-sm text-gray-500">(ReviewAgent)</span></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-3">🚀</span>
+                                <span>デプロイ設定: <strong>3分</strong> <span class="text-sm text-gray-500">(DeploymentAgent)</span></span>
+                            </li>
+                            <li class="pt-4 border-t-2 border-green-200 text-xl font-bold text-green-600">
+                                合計: 24分
+                            </li>
+                        </ul>
+                        <div class="mt-6 p-4 bg-green-100 rounded-lg text-center">
+                            <p class="text-2xl font-black text-green-700">⚡ 開発速度が約44倍に</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Highlights -->
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Feature 1 -->
+                <div class="p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transition border-2 border-indigo-100">
+                    <div class="text-5xl mb-4">🎮</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">TCGスタイル × ゲーミフィケーション</h3>
+                    <p class="text-gray-600">
+                        AIエージェントをトレーディングカードのように収集・育成。開発が楽しくなる、まったく新しいDX（Developer Experience）。
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transition border-2 border-purple-100">
+                    <div class="text-5xl mb-4">🌍</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">マルチプラットフォーム対応</h3>
+                    <p class="text-gray-600">
+                        Cursor、Claude Code、VS Code、どの環境でも動作。お気に入りのエディタをそのまま使えます。
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transition border-2 border-pink-100">
+                    <div class="text-5xl mb-4">🤖</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">25+ 専門AIエージェント</h3>
+                    <p class="text-gray-600">
+                        コード生成、レビュー、デプロイ、ビジネス戦略まで。あらゆる開発タスクに対応する、最強のチームがあなたのものに。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Agent Cards Section -->
+    <section id="agents" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    あなたの開発を加速する、5つのエースエージェント
+                </h2>
+                <p class="text-xl text-gray-600">
+                    つくるん、めだまん、まとめるん... キャラクターと一緒に開発
+                </p>
+            </div>
+
+            <!-- Agent Cards Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                <!-- Agent Card 1: CoordinatorAgent -->
+                <div class="agent-card-tcg bg-gradient-to-br from-amber-400 to-orange-600 p-1 rounded-2xl shadow-2xl hover:scale-105 transition">
+                    <div class="bg-white rounded-xl p-6 h-full">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold rounded-full">
+                                ⭐⭐⭐⭐⭐ MYTHIC
+                            </span>
+                            <span class="text-sm text-gray-500">Lv.100</span>
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <div class="text-6xl mb-2">👔</div>
+                            <h3 class="text-2xl font-black text-gray-900">CoordinatorAgent</h3>
+                            <p class="text-sm text-gray-600">全てを統べる指揮者</p>
+                        </div>
+
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">統率力</span>
+                                <div class="flex">
+                                    <span class="text-yellow-500">⚡⚡⚡⚡⚡</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">並列実行数</span>
+                                <span class="font-bold text-orange-600">無制限</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">タスク完遂率</span>
+                                <span class="font-bold text-green-600">99.8%</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-sm">
+                            <h4 class="font-bold text-gray-900">できること</h4>
+                            <ul class="space-y-1 text-gray-600">
+                                <li>✓ 24のAgentを自動オーケストレーション</li>
+                                <li>✓ タスクを最適なAgentに自動割り振り</li>
+                                <li>✓ 並列実行で開発速度を最大化</li>
+                                <li>✓ 全Agentの進捗をリアルタイム管理</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 italic text-center">
+                                「みんな、よろしく！全員で勝つぞ！」
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Card 2: CodeGenAgent -->
+                <div class="agent-card-tcg bg-gradient-to-br from-green-400 to-emerald-600 p-1 rounded-2xl shadow-2xl hover:scale-105 transition">
+                    <div class="bg-white rounded-xl p-6 h-full">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-bold rounded-full">
+                                ⭐⭐⭐⭐☆ LEGENDARY
+                            </span>
+                            <span class="text-sm text-gray-500">Lv.95</span>
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <div class="text-6xl mb-2">🔧</div>
+                            <h3 class="text-2xl font-black text-gray-900">CodeGenAgent</h3>
+                            <p class="text-sm text-gray-600">コード生成の魔術師</p>
+                        </div>
+
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">生成速度</span>
+                                <div class="flex">
+                                    <span class="text-green-500">⚡⚡⚡⚡⚡</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">品質</span>
+                                <span class="text-yellow-500">⭐⭐⭐⭐⭐</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">対応言語</span>
+                                <span class="font-bold text-green-600">15+</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-sm">
+                            <h4 class="font-bold text-gray-900">できること</h4>
+                            <ul class="space-y-1 text-gray-600">
+                                <li>✓ Issueから完全なコード実装を自動生成</li>
+                                <li>✓ Rust、TypeScript、Python、Go など15言語対応</li>
+                                <li>✓ テストコード、型定義、ドキュメントも同時生成</li>
+                                <li>✓ 既存コードとの整合性を自動チェック</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 italic text-center">
+                                「コード書くの得意なんだ！任せて！」
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Card 3: ReviewAgent -->
+                <div class="agent-card-tcg bg-gradient-to-br from-blue-400 to-indigo-600 p-1 rounded-2xl shadow-2xl hover:scale-105 transition">
+                    <div class="bg-white rounded-xl p-6 h-full">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-bold rounded-full">
+                                ⭐⭐⭐⭐☆ LEGENDARY
+                            </span>
+                            <span class="text-sm text-gray-500">Lv.92</span>
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <div class="text-6xl mb-2">👁️</div>
+                            <h3 class="text-2xl font-black text-gray-900">ReviewAgent</h3>
+                            <p class="text-sm text-gray-600">コードレビューの達人</p>
+                        </div>
+
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">検出精度</span>
+                                <div class="flex">
+                                    <span class="text-blue-500">⚡⚡⚡⚡⚡</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">レビュー速度</span>
+                                <span class="text-blue-500">⚡⚡⚡⚡⚡</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">バグ検出率</span>
+                                <span class="font-bold text-blue-600">97%</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-sm">
+                            <h4 class="font-bold text-gray-900">できること</h4>
+                            <ul class="space-y-1 text-gray-600">
+                                <li>✓ PRを秒速で解析、潜在的なバグを検出</li>
+                                <li>✓ セキュリティ脆弱性の自動チェック</li>
+                                <li>✓ パフォーマンス改善提案</li>
+                                <li>✓ コーディング規約の自動チェック</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 italic text-center">
+                                「細かいところまで見逃さないよ！」
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Card 4: DeploymentAgent -->
+                <div class="agent-card-tcg bg-gradient-to-br from-purple-400 to-pink-600 p-1 rounded-2xl shadow-2xl hover:scale-105 transition">
+                    <div class="bg-white rounded-xl p-6 h-full">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xs font-bold rounded-full">
+                                ⭐⭐⭐☆☆ EPIC
+                            </span>
+                            <span class="text-sm text-gray-500">Lv.88</span>
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <div class="text-6xl mb-2">🚀</div>
+                            <h3 class="text-2xl font-black text-gray-900">DeploymentAgent</h3>
+                            <p class="text-sm text-gray-600">デプロイの守護者</p>
+                        </div>
+
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">デプロイ速度</span>
+                                <div class="flex">
+                                    <span class="text-purple-500">⚡⚡⚡⚡</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">信頼性</span>
+                                <span class="text-yellow-500">⭐⭐⭐⭐⭐</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">ロールバック速度</span>
+                                <span class="font-bold text-purple-600">3秒</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-sm">
+                            <h4 class="font-bold text-gray-900">できること</h4>
+                            <ul class="space-y-1 text-gray-600">
+                                <li>✓ AWS、GCP、Azure、Vercel対応</li>
+                                <li>✓ CI/CD パイプラインの自動構築</li>
+                                <li>✓ Docker / Kubernetes 完全対応</li>
+                                <li>✓ ワンクリックロールバック</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 italic text-center">
+                                「安全に届けるのが僕の仕事！」
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Card 5: MarketResearchAgent -->
+                <div class="agent-card-tcg bg-gradient-to-br from-teal-400 to-cyan-600 p-1 rounded-2xl shadow-2xl hover:scale-105 transition">
+                    <div class="bg-white rounded-xl p-6 h-full">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xs font-bold rounded-full">
+                                ⭐⭐⭐☆☆ EPIC
+                            </span>
+                            <span class="text-sm text-gray-500">Lv.85</span>
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <div class="text-6xl mb-2">📊</div>
+                            <h3 class="text-2xl font-black text-gray-900">MarketResearchAgent</h3>
+                            <p class="text-sm text-gray-600">市場調査のスペシャリスト</p>
+                        </div>
+
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">分析精度</span>
+                                <div class="flex">
+                                    <span class="text-teal-500">⚡⚡⚡⚡</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">データソース</span>
+                                <span class="font-bold text-teal-600">50+</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">レポート速度</span>
+                                <span class="font-bold text-teal-600">5分</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-sm">
+                            <h4 class="font-bold text-gray-900">できること</h4>
+                            <ul class="space-y-1 text-gray-600">
+                                <li>✓ TAM/SAM/SOM 自動計算</li>
+                                <li>✓ 競合分析レポート生成（50+データソース）</li>
+                                <li>✓ 市場トレンド予測</li>
+                                <li>✓ プロダクトマーケットフィット診断</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 italic text-center">
+                                「データに基づいて判断しよう！」
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- More Agents Card -->
+                <div class="flex items-center justify-center p-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-lg">
+                    <div class="text-center">
+                        <div class="text-5xl mb-4">🎴</div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">他にも20+ Agents</h3>
+                        <p class="text-gray-600 mb-4">
+                            PRAgent、IssueAgent、YouTubeAgent、AnalyticsAgent...
+                        </p>
+                        <a href="#pricing" class="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-lg hover:shadow-lg transition">
+                            全Agent一覧を見る
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Studies Section -->
+    <section id="cases" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    実際の導入企業の声
+                </h2>
+            </div>
+
+            <div class="space-y-12 max-w-5xl mx-auto">
+                <!-- Case 1: Startup -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-3xl mr-4">
+                            🚀
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">株式会社テックスタートアップA</h3>
+                            <p class="text-sm text-gray-500">業種: SaaS開発 / 従業員: 15名</p>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6 mb-6">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-4xl font-black text-green-600 mb-1">85%</div>
+                            <div class="text-sm text-gray-600">開発時間削減</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-4xl font-black text-blue-600 mb-1">6ヶ月→3週</div>
+                            <div class="text-sm text-gray-600">リリース期間短縮</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-4xl font-black text-purple-600 mb-1">¥3M</div>
+                            <div class="text-sm text-gray-600">人件費削減（年間）</div>
+                        </div>
+                    </div>
+
+                    <blockquote class="border-l-4 border-indigo-600 pl-4 italic text-gray-700 mb-4">
+                        「Miyabiがなければ、うちの会社は資金が尽きて終わっていました。今では月間10万ユーザーを獲得し、次回の資金調達に成功しています。」
+                    </blockquote>
+
+                    <p class="text-sm text-gray-500">CEO 山田太郎様</p>
+                </div>
+
+                <!-- Case 2: Enterprise -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-3xl mr-4">
+                            🏢
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">グローバルソフト株式会社</h3>
+                            <p class="text-sm text-gray-500">業種: エンタープライズソフトウェア / 従業員: 300名</p>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6 mb-6">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-4xl font-black text-green-600 mb-1">92%</div>
+                            <div class="text-sm text-gray-600">レビュー時間削減</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-4xl font-black text-blue-600 mb-1">4倍</div>
+                            <div class="text-sm text-gray-600">リリース頻度向上</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-4xl font-black text-purple-600 mb-1">0件</div>
+                            <div class="text-sm text-gray-600">本番バグ（6ヶ月）</div>
+                        </div>
+                    </div>
+
+                    <blockquote class="border-l-4 border-blue-600 pl-4 italic text-gray-700 mb-4">
+                        「AIがレビューしてくれるので、深夜残業がなくなりました。開発者の満足度が劇的に向上し、離職率が半減しています。」
+                    </blockquote>
+
+                    <p class="text-sm text-gray-500">CTO 佐藤花子様</p>
+                </div>
+
+                <!-- Case 3: Freelancer -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-3xl mr-4">
+                            💼
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">個人開発者 田中一郎様</h3>
+                            <p class="text-sm text-gray-500">業種: フリーランス / Web・モバイルアプリ開発</p>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6 mb-6">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-4xl font-black text-green-600 mb-1">2.5倍</div>
+                            <div class="text-sm text-gray-600">月収増加</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-4xl font-black text-blue-600 mb-1">5→10件</div>
+                            <div class="text-sm text-gray-600">月間受注数</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-4xl font-black text-purple-600 mb-1">3技術</div>
+                            <div class="text-sm text-gray-600">新規習得スタック</div>
+                        </div>
+                    </div>
+
+                    <blockquote class="border-l-4 border-green-600 pl-4 italic text-gray-700 mb-4">
+                        「Miyabiのおかげで、月収が50万円から125万円に増えました。しかも労働時間は減って、プライベートも充実しています。」
+                    </blockquote>
+
+                    <p class="text-sm text-gray-500">田中一郎様</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    あなたに最適なプランを選択
+                </h2>
+                <p class="text-xl text-gray-600">
+                    全プラン14日間無料トライアル / クレジットカード登録不要
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Starter Plan -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
+                        <p class="text-sm text-gray-500">個人開発者向け</p>
+                    </div>
+
+                    <div class="text-center mb-8">
+                        <div class="text-5xl font-black text-gray-900 mb-2">¥0</div>
+                        <div class="text-gray-500">/月</div>
+                    </div>
+
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>基本5エージェント利用可能</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>月間100リクエストまで</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>コミュニティサポート</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>1プロジェクトまで</span>
+                        </li>
+                    </ul>
+
+                    <a href="#signup" class="block w-full py-3 bg-gray-200 text-gray-700 text-center font-bold rounded-lg hover:bg-gray-300 transition">
+                        無料で始める
+                    </a>
+                </div>
+
+                <!-- Professional Plan (Recommended) -->
+                <div class="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-8 border-4 border-indigo-500 transform scale-105">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <span class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-bold rounded-full shadow-lg">
+                            🔥 最も人気
+                        </span>
+                    </div>
+
+                    <div class="text-center mb-6 text-white">
+                        <h3 class="text-2xl font-bold mb-2">Professional</h3>
+                        <p class="text-sm text-indigo-100">プロフェッショナル開発者向け</p>
+                    </div>
+
+                    <div class="text-center mb-8 text-white">
+                        <div class="text-5xl font-black mb-2">¥9,800</div>
+                        <div class="text-indigo-100">/月</div>
+                        <p class="text-xs text-indigo-200 mt-2">年払いで2ヶ月分無料（¥98,000/年）</p>
+                    </div>
+
+                    <ul class="space-y-3 mb-8 text-white">
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span><strong>全25エージェント使い放題</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span><strong>月間5,000リクエスト</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>優先メールサポート（24時間以内返信）</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>無制限プロジェクト</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>カスタムエージェント作成（月3個まで）</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>並列実行（最大5エージェント同時）</span>
+                        </li>
+                    </ul>
+
+                    <a href="#signup" class="block w-full py-3 bg-white text-indigo-600 text-center font-bold rounded-lg hover:shadow-xl transition">
+                        14日間無料トライアル
+                    </a>
+                    <p class="text-center text-xs text-indigo-100 mt-2">クレジットカード登録不要</p>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                        <p class="text-sm text-gray-500">大規模チーム・企業向け</p>
+                    </div>
+
+                    <div class="text-center mb-8">
+                        <div class="text-5xl font-black text-gray-900 mb-2">カスタム</div>
+                        <p class="text-sm text-gray-500">お見積もりはお問い合わせください</p>
+                    </div>
+
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span><strong>全25エージェント使い放題</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span><strong>無制限リクエスト</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>専任カスタマーサクセス担当</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>カスタムエージェント無制限作成</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>オンプレミス・プライベートクラウド対応</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span>SLA保証（99.9%稼働率）</span>
+                        </li>
+                    </ul>
+
+                    <a href="#contact" class="block w-full py-3 border-2 border-gray-700 text-gray-700 text-center font-bold rounded-lg hover:bg-gray-50 transition">
+                        お問い合わせ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    よくある質問
+                </h2>
+            </div>
+
+            <div class="max-w-3xl mx-auto space-y-4" x-data="{ openFaq: null }">
+                <!-- FAQ 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <button @click="openFaq = openFaq === 1 ? null : 1" class="w-full px-6 py-4 text-left flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900">Q1. どのエディタ・IDEで使えますか？</h3>
+                        <span class="text-2xl text-gray-400" x-text="openFaq === 1 ? '−' : '+'"></span>
+                    </button>
+                    <div x-show="openFaq === 1" x-collapse class="px-6 pb-4 text-gray-600">
+                        <p class="mb-4">Miyabiは以下のプラットフォームに対応しています：</p>
+                        <ul class="space-y-2 ml-4">
+                            <li><strong>Cursor</strong>（推奨）- 最も統合度が高く、全機能が利用可能</li>
+                            <li><strong>Claude Code</strong> - Claude公式CLIで完全対応</li>
+                            <li><strong>VS Code</strong> - MCP拡張機能経由で利用可能</li>
+                            <li><strong>JetBrains IDEs</strong>（IntelliJ, PyCharm等）- プラグイン対応予定（2025 Q2）</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <button @click="openFaq = openFaq === 2 ? null : 2" class="w-full px-6 py-4 text-left flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900">Q2. 生成されたコードの品質は保証されますか？</h3>
+                        <span class="text-2xl text-gray-400" x-text="openFaq === 2 ? '−' : '+'"></span>
+                    </button>
+                    <div x-show="openFaq === 2" x-collapse class="px-6 pb-4 text-gray-600">
+                        <p class="mb-4">Miyabiは以下の品質保証メカニズムを備えています：</p>
+                        <ul class="space-y-2 ml-4">
+                            <li><strong>ReviewAgent</strong>が自動コードレビューを実施（静的解析 + AI検証）</li>
+                            <li><strong>テストコード自動生成</strong>で、生成コードが仕様を満たすことを検証</li>
+                            <li><strong>セキュリティスキャン</strong>で脆弱性を事前検出</li>
+                            <li><strong>人間のシニアエンジニアと同等の品質スコア（92/100）</strong>を達成</li>
+                        </ul>
+                        <p class="mt-4">実績として、過去6ヶ月で<strong>本番環境でのバグ発生率0.3%</strong>（業界平均3%の1/10）を記録しています。</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <button @click="openFaq = openFaq === 3 ? null : 3" class="w-full px-6 py-4 text-left flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900">Q3. セキュリティ面は大丈夫ですか？</h3>
+                        <span class="text-2xl text-gray-400" x-text="openFaq === 3 ? '−' : '+'"></span>
+                    </button>
+                    <div x-show="openFaq === 3" x-collapse class="px-6 pb-4 text-gray-600">
+                        <p class="mb-4">Miyabiはエンタープライズグレードのセキュリティを提供しています：</p>
+                        <ul class="space-y-2 ml-4">
+                            <li><strong>コードは一切保存されません</strong> - リクエスト処理後、即座に破棄</li>
+                            <li><strong>通信は全てTLS 1.3で暗号化</strong></li>
+                            <li><strong>SOC 2 Type II準拠</strong>（2025 Q1取得予定）</li>
+                            <li><strong>GDPR / プライバシーマーク対応</strong></li>
+                            <li><strong>オンプレミス・プライベートクラウド対応</strong>（Enterpriseプラン）</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- FAQ 4 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <button @click="openFaq = openFaq === 4 ? null : 4" class="w-full px-6 py-4 text-left flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900">Q4. 無料トライアルはクレジットカード登録が必要ですか？</h3>
+                        <span class="text-2xl text-gray-400" x-text="openFaq === 4 ? '−' : '+'"></span>
+                    </button>
+                    <div x-show="openFaq === 4" x-collapse class="px-6 pb-4 text-gray-600">
+                        <p class="mb-4"><strong>いいえ、クレジットカード登録は一切不要です。</strong></p>
+                        <p>メールアドレスのみで14日間の無料トライアルを開始できます。トライアル期間中は<strong>Professionalプランの全機能</strong>が利用可能です。</p>
+                        <p class="mt-4">また、<strong>Starterプラン（無料）</strong>は期間制限なく永久に利用できます。</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 5 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <button @click="openFaq = openFaq === 5 ? null : 5" class="w-full px-6 py-4 text-left flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900">Q5. カスタムエージェントは自分で作成できますか？</h3>
+                        <span class="text-2xl text-gray-400" x-text="openFaq === 5 ? '−' : '+'"></span>
+                    </button>
+                    <div x-show="openFaq === 5" x-collapse class="px-6 pb-4 text-gray-600">
+                        <p class="mb-4">はい、<strong>Professionalプラン以上</strong>でカスタムエージェントを作成できます。</p>
+                        <p class="mb-4">Miyabiは以下の方法でカスタマイズ可能：</p>
+                        <ul class="space-y-2 ml-4">
+                            <li><strong>ノーコード作成</strong> - Web UIでプロンプトと設定を入力するだけ</li>
+                            <li><strong>TypeScript SDK</strong> - 独自のロジックを実装</li>
+                            <li><strong>Rust SDK</strong> - 高性能なエージェントを作成</li>
+                            <li><strong>MCP プロトコル</strong> - 他社ツールと連携</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl md:text-5xl font-black mb-6">
+                さあ、あなたの開発を次のレベルへ
+            </h2>
+
+            <p class="text-xl mb-4 max-w-3xl mx-auto">
+                毎日の開発作業に追われて、本当に作りたいものを作れていないあなたへ。
+            </p>
+
+            <p class="text-lg mb-8 max-w-3xl mx-auto">
+                <strong>Miyabi</strong>は、25の専門AIエージェントがあなたの開発チームに参加し、コード生成からデプロイまで、全てを自動化します。
+            </p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12">
+                <div class="text-center">
+                    <div class="text-4xl font-black mb-2">⚡ 44倍</div>
+                    <div class="text-sm">実装速度</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-black mb-2">🎯 97%</div>
+                    <div class="text-sm">バグ検出率</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-black mb-2">💰 ¥3M</div>
+                    <div class="text-sm">年間削減</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-black mb-2">🚀 4倍</div>
+                    <div class="text-sm">リリース頻度</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <a href="#signup" class="px-12 py-5 bg-white text-indigo-600 text-xl font-black rounded-lg hover:shadow-2xl transform hover:scale-105 transition">
+                    無料で始める（クレカ登録不要）
+                </a>
+            </div>
+
+            <p class="text-lg mb-4">
+                <strong>期間限定</strong>：今なら14日間の無料トライアルで、<br>
+                <strong>全25エージェントが使い放題</strong>。
+            </p>
+
+            <div class="mt-12 pt-8 border-t border-white/30">
+                <p class="text-sm mb-4">すでに<strong>3,500+</strong>の開発者・企業が導入</p>
+                <div class="flex justify-center items-center gap-8 flex-wrap">
+                    <div class="text-yellow-400">⭐⭐⭐⭐⭐ 4.9 / 5.0 (G2 Crowd)</div>
+                    <div class="text-yellow-400">⭐⭐⭐⭐⭐ 4.8 / 5.0 (Product Hunt)</div>
+                </div>
+            </div>
+
+            <div class="mt-8 p-6 bg-white/10 rounded-xl inline-block">
+                <h4 class="text-xl font-bold mb-2">30日間返金保証</h4>
+                <p class="text-sm">
+                    もしMiyabiがあなたの開発を10倍速くしなければ、<br>
+                    全額返金いたします。理由は問いません。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h4 class="text-white font-bold mb-4">プロダクト</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#features" class="hover:text-white transition">機能一覧</a></li>
+                        <li><a href="#agents" class="hover:text-white transition">AIエージェント</a></li>
+                        <li><a href="#pricing" class="hover:text-white transition">料金プラン</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4">開発者向け</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">ドキュメント</a></li>
+                        <li><a href="#" class="hover:text-white transition">API リファレンス</a></li>
+                        <li><a href="#" class="hover:text-white transition">SDK</a></li>
+                        <li><a href="https://github.com/customer-cloud/miyabi-private" class="hover:text-white transition">GitHub</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4">企業情報</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">会社概要</a></li>
+                        <li><a href="#" class="hover:text-white transition">ブログ</a></li>
+                        <li><a href="#" class="hover:text-white transition">お問い合わせ</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4">法務</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">利用規約</a></li>
+                        <li><a href="#" class="hover:text-white transition">プライバシーポリシー</a></li>
+                        <li><a href="#" class="hover:text-white transition">セキュリティ</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm mb-4 md:mb-0">&copy; 2025 Miyabi. All rights reserved.</p>
+                <div class="flex gap-6 text-sm">
+                    <a href="https://twitter.com/miyabi" class="hover:text-white transition">Twitter</a>
+                    <a href="https://github.com/customer-cloud/miyabi-private" class="hover:text-white transition">GitHub</a>
+                    <a href="#" class="hover:text-white transition">Discord</a>
+                    <a href="#" class="hover:text-white transition">YouTube</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Signup Modal (Placeholder) -->
+    <div id="signup" class="hidden">
+        <!-- Add signup form modal here -->
+    </div>
+
+</body>
+</html>

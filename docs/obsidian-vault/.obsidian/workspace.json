@@ -11,10 +11,14 @@
             "id": "5c1749d49c211330",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "entities/INDEX.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "INDEX"
             }
           }
         ]
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "entities/INDEX.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for INDEX"
             }
           },
           {
@@ -174,8 +179,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -190,6 +194,7 @@
   },
   "active": "5c1749d49c211330",
   "lastOpenFiles": [
+    "agents/Refresher-Agent-Detailed.md",
     "MAINTENANCE_GUIDE.md",
     "workflows/W5.md",
     "workflows/W4.md",
@@ -221,7 +226,6 @@
     "relations/R8.md",
     "relations/R7.md",
     "relations/R6.md",
-    "relations/R5.md",
     "relations",
     "planning/validation-report.json",
     "planning/validate-graph.js",
