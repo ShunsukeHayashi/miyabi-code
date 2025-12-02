@@ -844,9 +844,9 @@ async fn create_github_issue(_state: &AppState, info: &IssueAnalysis) -> Result<
     let client = GitHubClient::new(token, owner.clone(), repo.clone())
         .map_err(|e| AppError::Configuration(format!("GitHub client error: {}", e)))?;
 
-    // Create issue
+    // Create issue (new signature: title, body, labels)
     let issue = client
-        .create_issue(&info.title, Some(&info.description))
+        .create_issue(&info.title, &info.description, vec![])
         .await
         .map_err(|e| AppError::ExternalApi(format!("Failed to create GitHub Issue: {}", e)))?;
 

@@ -16,12 +16,12 @@ pub mod workflow;
 pub mod world;
 
 // Re-export commonly used types
-pub use agent::{AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType, ImpactLevel};
+pub use agent::{AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType, ImpactLevel, ToolResponse};
 pub use benchmark::{
     BenchmarkSummary, EvaluationResult, LanguageStats, PatchOutput, RepositoryStats, SWEBenchInstance,
 };
 pub use error::{AgentError, CircularDependencyError, EscalationError, MiyabiError};
-pub use issue::{Issue, IssueAnalysis, IssueState, IssueTraceLog};
+pub use issue::{DevIssue, Issue, IssueAnalysis, IssueState, IssueTraceLog};
 pub use quality::{QualityIssue, QualityReport};
 pub use task::{Task, TaskDecomposition, TaskResult};
 pub use workflow::{ExecutionPlan, ExecutionReport, DAG};

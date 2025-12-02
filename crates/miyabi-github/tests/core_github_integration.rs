@@ -3,6 +3,7 @@
 
 use miyabi_core::Config;
 use miyabi_github::GitHubClient;
+use miyabi_types::issue::DevIssue;
 use miyabi_types::Issue;
 use std::env;
 use std::fs;
@@ -202,4 +203,69 @@ fn test_github_username_validation() {
         assert!(!username.is_empty());
         assert!(username.chars().all(|c| c.is_alphanumeric() || c == '-'));
     }
+}
+
+// ========================================================================
+// DevIssue Tests
+// ========================================================================
+
+#[test]
+fn test_dev_issue_creation() {
+    let dev_issue = DevIssue::new("Test issue", "This is a test issue body");
+
+    assert_eq!(dev_issue.title, "Test issue");
+    assert_eq!(dev_issue.body, "This is a test issue body");
+    assert!(dev_issue.labels.is_none());
+    assert!(dev_issue.assignee.is_none());
+}
+
+#[test]
+fn test_dev_issue_with_labels() {
+    let labels = vec!["type:feature".to_string(), "priority:high".to_string()];
+    let dev_issue = DevIssue::with_labels("Add new feature", "Feature description", labels.clone());
+
+    assert_eq!(dev_issue.title, "Add new feature");
+    assert_eq!(dev_issue.labels, Some(labels));
+}
+
+#[test]
+fn test_dev_issue_with_assignee() {
+    let dev_issue = DevIssue::new("Fix bug", "Bug description").with_assignee("developer123");
+
+    assert_eq!(dev_issue.assignee, Some("developer123".to_string()));
+}
+
+#[test]
+fn test_dev_issue_builder_pattern() {
+    let dev_issue = DevIssue::new("Implement feature", "Feature details")
+        .with_labels_chained(vec!["type:feature".to_string(), "priority:medium".to_string()])
+        .with_assignee("dev456");
+
+    assert_eq!(dev_issue.title, "Implement feature");
+    assert_eq!(dev_issue.body, "Feature details");
+    assert!(dev_issue.labels.is_some());
+    assert_eq!(dev_issue.assignee, Some("dev456".to_string()));
+}
+
+#[test]
+fn test_dev_issue_validation_success() {
+    let dev_issue = DevIssue::new("Valid title", "Valid body");
+    assert!(dev_issue.validate().is_ok());
+}
+
+#[test]
+fn test_dev_issue_validation_empty_title() {
+    let dev_issue = DevIssue::new("", "Body");
+    let result = dev_issue.validate();
+    assert!(result.is_err());
+    assert!(result.unwrap_err().contains("title cannot be empty"));
+}
+
+#[test]
+fn test_dev_issue_validation_title_too_long() {
+    let long_title = "a".repeat(257);
+    let dev_issue = DevIssue::new(long_title, "Body");
+    let result = dev_issue.validate();
+    assert!(result.is_err());
+    assert!(result.unwrap_err().contains("title too long"));
 }

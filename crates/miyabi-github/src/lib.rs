@@ -11,7 +11,9 @@
 //! - **State-based Queries**: Filter issues by Miyabi state labels
 //! - **Type Safety**: Uses miyabi-types for consistent type definitions
 //!
-//! # Example
+//! # Examples
+//!
+//! ## Basic Issue Creation
 //!
 //! ```no_run
 //! use miyabi_github::GitHubClient;
@@ -35,6 +37,31 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! ## Creating Issues from DevIssue Struct
+//!
+//! ```no_run
+//! use miyabi_github::GitHubClient;
+//! use miyabi_types::issue::DevIssue;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let client = GitHubClient::new("ghp_xxx", "owner", "repo")?;
+//!
+//!     // Create a DevIssue with labels and assignee
+//!     let dev_issue = DevIssue::with_labels(
+//!         "Fix authentication bug",
+//!         "Users cannot login with SSO. Error occurs on login page.",
+//!         vec!["type:bug".to_string(), "priority:high".to_string()]
+//!     ).with_assignee("developer123");
+//!
+//!     // Create the issue and get the issue number
+//!     let issue_number = client.create_issue_from_dev_issue(&dev_issue).await?;
+//!     println!("Created issue #{}", issue_number);
+//!
+//!     Ok(())
+//! }
+//! ```
 
 pub mod auth;
 pub mod client;
@@ -50,7 +77,7 @@ pub use labels::Label;
 pub use projects::{ContentType, KPIReport, ProjectItem};
 
 // Re-export commonly used types from miyabi-types
-pub use miyabi_types::issue::{Issue, IssueState, IssueStateGithub, PRResult, PRState};
+pub use miyabi_types::issue::{DevIssue, Issue, IssueState, IssueStateGithub, PRResult, PRState};
 
 #[cfg(test)]
 mod tests {

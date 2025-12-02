@@ -7,4 +7,4 @@ mod agent;
 mod analysis;
 
 pub use agent::IssueAgent;
-pub use analysis::{ComplexityLevel, IssueAnalysis};
+pub use analysis::{detect_issue_from_tool_response, ComplexityLevel, IssueAnalysis};

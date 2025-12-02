@@ -482,6 +482,67 @@ impl AgentConfig {
     }
 }
 
+/// Tool execution response
+///
+/// Represents the response from a tool execution, which can be used to detect
+/// errors and automatically create issues for failed operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolResponse {
+    /// Tool name that was executed
+    pub tool_name: String,
+
+    /// Response text content
+    pub text: String,
+
+    /// Whether the response indicates an error
+    #[serde(default)]
+    pub is_error: bool,
+
+    /// Optional error code
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_code: Option<String>,
+
+    /// Optional additional metadata
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<HashMap<String, String>>,
+}
+
+impl ToolResponse {
+    /// Create a new successful tool response
+    pub fn success(tool_name: impl Into<String>, text: impl Into<String>) -> Self {
+        Self {
+            tool_name: tool_name.into(),
+            text: text.into(),
+            is_error: false,
+            error_code: None,
+            metadata: None,
+        }
+    }
+
+    /// Create a new error tool response
+    pub fn error(tool_name: impl Into<String>, text: impl Into<String>) -> Self {
+        Self {
+            tool_name: tool_name.into(),
+            text: text.into(),
+            is_error: true,
+            error_code: None,
+            metadata: None,
+        }
+    }
+
+    /// Add an error code
+    pub fn with_error_code(mut self, code: impl Into<String>) -> Self {
+        self.error_code = Some(code.into());
+        self
+    }
+
+    /// Add metadata
+    pub fn with_metadata(mut self, metadata: HashMap<String, String>) -> Self {
+        self.metadata = Some(metadata);
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

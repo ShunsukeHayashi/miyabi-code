@@ -559,28 +559,23 @@ impl ToolRegistry {
         let title = args["title"]
             .as_str()
             .ok_or_else(|| MiyabiError::ToolError("Missing 'title' parameter".to_string()))?;
-        let body = args["body"].as_str();
+        let body = args["body"].as_str().unwrap_or("");
 
-        // Create the issue
-        let issue = github_client
-            .create_issue(title, body)
-            .await
-            .map_err(|e| MiyabiError::GitHub(format!("Failed to create issue: {}", e)))?;
-
-        // Add labels if provided
-        if let Some(labels_arr) = args["labels"].as_array() {
-            let labels: Vec<String> = labels_arr
+        // Extract labels if provided
+        let labels = if let Some(labels_arr) = args["labels"].as_array() {
+            labels_arr
                 .iter()
                 .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                .collect();
+                .collect()
+        } else {
+            Vec::new()
+        };
 
-            if !labels.is_empty() {
-                github_client
-                    .add_labels(issue.number, &labels)
-                    .await
-                    .map_err(|e| MiyabiError::GitHub(format!("Failed to add labels: {}", e)))?;
-            }
-        }
+        // Create the issue with labels
+        let issue = github_client
+            .create_issue(title, body, labels)
+            .await
+            .map_err(|e| MiyabiError::GitHub(format!("Failed to create issue: {}", e)))?;
 
         Ok(ToolResult::success(json!({
             "number": issue.number,

@@ -4,7 +4,7 @@
 
 use crate::client::GitHubClient;
 use miyabi_types::error::{MiyabiError, Result};
-use miyabi_types::issue::{Issue, IssueState, IssueStateGithub};
+use miyabi_types::issue::{DevIssue, Issue, IssueState, IssueStateGithub};
 use octocrab::models::issues::Issue as OctoIssue;
 use octocrab::params::State;
 
@@ -62,15 +62,20 @@ impl GitHubClient {
     /// # Arguments
     /// * `title` - Issue title
     /// * `body` - Issue body (optional)
+    /// * `labels` - Labels to apply (optional)
     ///
     /// # Returns
     /// Created `Issue` struct
-    pub async fn create_issue(&self, title: &str, body: Option<&str>) -> Result<Issue> {
+    pub async fn create_issue(&self, title: &str, body: &str, labels: Vec<String>) -> Result<Issue> {
         let issues = self.client.issues(&self.owner, &self.repo);
         let mut handler = issues.create(title);
 
-        if let Some(b) = body {
-            handler = handler.body(b);
+        if !body.is_empty() {
+            handler = handler.body(body);
+        }
+
+        if !labels.is_empty() {
+            handler = handler.labels(Some(labels));
         }
 
         let issue = handler.send().await.map_err(|e| {
@@ -78,6 +83,75 @@ impl GitHubClient {
         })?;
 
         convert_issue(issue)
+    }
+
+    /// Create a GitHub issue from a DevIssue struct
+    ///
+    /// This is a convenience method that takes a `DevIssue` struct and creates
+    /// a GitHub issue with the specified title, body, labels, and assignee.
+    ///
+    /// # Arguments
+    /// * `dev_issue` - DevIssue struct containing issue details
+    ///
+    /// # Returns
+    /// * `Ok(u64)` - The created issue number
+    /// * `Err(MiyabiError)` - If validation fails or issue creation fails
+    ///
+    /// # Examples
+    /// ```no_run
+    /// use miyabi_github::GitHubClient;
+    /// use miyabi_types::issue::DevIssue;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let client = GitHubClient::new("ghp_xxx", "owner", "repo")?;
+    ///
+    ///     let dev_issue = DevIssue::with_labels(
+    ///         "Fix authentication bug",
+    ///         "Users cannot login with SSO",
+    ///         vec!["type:bug".to_string(), "priority:high".to_string()]
+    ///     ).with_assignee("dev123");
+    ///
+    ///     let issue_number = client.create_issue_from_dev_issue(&dev_issue).await?;
+    ///     println!("Created issue #{}", issue_number);
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn create_issue_from_dev_issue(&self, dev_issue: &DevIssue) -> Result<u64> {
+        // Validate the DevIssue first
+        dev_issue.validate().map_err(|e| {
+            MiyabiError::Validation(format!("DevIssue validation failed: {}", e))
+        })?;
+
+        // Create the issue using the existing create_issue method
+        let issues = self.client.issues(&self.owner, &self.repo);
+        let mut handler = issues.create(&dev_issue.title);
+
+        // Add body
+        if !dev_issue.body.is_empty() {
+            handler = handler.body(&dev_issue.body);
+        }
+
+        // Add assignees if present (note: octocrab uses assignees, not assignee)
+        if let Some(assignee) = &dev_issue.assignee {
+            handler = handler.assignees(Some(vec![assignee.clone()]));
+        }
+
+        // Add labels if present
+        if let Some(labels) = &dev_issue.labels {
+            handler = handler.labels(Some(labels.clone()));
+        }
+
+        // Send the request
+        let issue = handler.send().await.map_err(|e| {
+            MiyabiError::GitHub(format!(
+                "Failed to create issue from DevIssue in {}/{}: {}",
+                self.owner, self.repo, e
+            ))
+        })?;
+
+        Ok(issue.number)
     }
 
     /// Update an existing issue

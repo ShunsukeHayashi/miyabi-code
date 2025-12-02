@@ -473,6 +473,138 @@ pub struct IssueMetadata {
     pub last_updated: chrono::DateTime<chrono::Utc>,
 }
 
+/// Development Issue - lightweight structure for creating GitHub issues
+///
+/// This struct represents a minimal issue creation request, containing only
+/// the essential fields needed to create a GitHub issue programmatically.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DevIssue {
+    /// Issue title (max 256 characters recommended)
+    pub title: String,
+    /// Issue body/description in Markdown format
+    pub body: String,
+    /// Optional labels to apply to the issue
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<String>>,
+    /// Optional GitHub username to assign the issue to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assignee: Option<String>,
+}
+
+impl DevIssue {
+    /// Create a new DevIssue with just title and body
+    ///
+    /// # Arguments
+    /// * `title` - Issue title
+    /// * `body` - Issue body in Markdown format
+    ///
+    /// # Examples
+    /// ```
+    /// use miyabi_types::issue::DevIssue;
+    ///
+    /// let issue = DevIssue::new(
+    ///     "Fix authentication bug",
+    ///     "Users cannot login with SSO"
+    /// );
+    /// ```
+    pub fn new(title: impl Into<String>, body: impl Into<String>) -> Self {
+        Self {
+            title: title.into(),
+            body: body.into(),
+            labels: None,
+            assignee: None,
+        }
+    }
+
+    /// Create a DevIssue with labels
+    ///
+    /// # Arguments
+    /// * `title` - Issue title
+    /// * `body` - Issue body in Markdown format
+    /// * `labels` - Labels to apply
+    ///
+    /// # Examples
+    /// ```
+    /// use miyabi_types::issue::DevIssue;
+    ///
+    /// let issue = DevIssue::with_labels(
+    ///     "Add dark mode",
+    ///     "Implement dark mode theme",
+    ///     vec!["type:feature".to_string(), "priority:medium".to_string()]
+    /// );
+    /// ```
+    pub fn with_labels(title: impl Into<String>, body: impl Into<String>, labels: Vec<String>) -> Self {
+        Self {
+            title: title.into(),
+            body: body.into(),
+            labels: Some(labels),
+            assignee: None,
+        }
+    }
+
+    /// Set the assignee for this issue
+    pub fn with_assignee(mut self, assignee: impl Into<String>) -> Self {
+        self.assignee = Some(assignee.into());
+        self
+    }
+
+    /// Add labels to this issue
+    pub fn with_labels_chained(mut self, labels: Vec<String>) -> Self {
+        self.labels = Some(labels);
+        self
+    }
+
+    /// Validate DevIssue fields
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(String)` with detailed error message if validation fails
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate title
+        if self.title.is_empty() {
+            return Err("Issue title cannot be empty. \
+                Hint: Provide a clear, descriptive title"
+                .to_string());
+        }
+
+        if self.title.len() > 256 {
+            return Err(format!(
+                "Issue title too long ({} characters). Maximum 256 characters allowed. \
+                Hint: Keep titles concise and move details to body",
+                self.title.len()
+            ));
+        }
+
+        // Validate labels if present
+        if let Some(labels) = &self.labels {
+            if labels.is_empty() {
+                return Err("Labels array cannot be empty. \
+                    Hint: Either provide labels or use None"
+                    .to_string());
+            }
+
+            for label in labels {
+                if label.is_empty() {
+                    return Err("Label name cannot be empty. \
+                        Hint: Remove empty labels from the list"
+                        .to_string());
+                }
+            }
+        }
+
+        // Validate assignee if present
+        if let Some(assignee) = &self.assignee {
+            if assignee.is_empty() {
+                return Err("Assignee cannot be empty string. \
+                    Hint: Either provide a valid username or use None"
+                    .to_string());
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1538,5 +1670,149 @@ mod tests {
         let json = serde_json::to_string(&metadata).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert!(parsed.get("total_duration_ms").is_none());
+    }
+
+    // ========================================================================
+    // DevIssue Tests
+    // ========================================================================
+
+    #[test]
+    fn test_dev_issue_new() {
+        let issue = DevIssue::new("Test issue", "This is a test");
+
+        assert_eq!(issue.title, "Test issue");
+        assert_eq!(issue.body, "This is a test");
+        assert!(issue.labels.is_none());
+        assert!(issue.assignee.is_none());
+    }
+
+    #[test]
+    fn test_dev_issue_with_labels() {
+        let labels = vec!["bug".to_string(), "priority:high".to_string()];
+        let issue = DevIssue::with_labels("Bug fix", "Fix the bug", labels.clone());
+
+        assert_eq!(issue.title, "Bug fix");
+        assert_eq!(issue.body, "Fix the bug");
+        assert_eq!(issue.labels, Some(labels));
+        assert!(issue.assignee.is_none());
+    }
+
+    #[test]
+    fn test_dev_issue_with_assignee() {
+        let issue = DevIssue::new("Task", "Do the task").with_assignee("user123");
+
+        assert_eq!(issue.assignee, Some("user123".to_string()));
+    }
+
+    #[test]
+    fn test_dev_issue_builder_pattern() {
+        let issue = DevIssue::new("Feature", "Add feature")
+            .with_labels_chained(vec!["type:feature".to_string()])
+            .with_assignee("dev456");
+
+        assert_eq!(issue.title, "Feature");
+        assert_eq!(issue.body, "Add feature");
+        assert_eq!(issue.labels, Some(vec!["type:feature".to_string()]));
+        assert_eq!(issue.assignee, Some("dev456".to_string()));
+    }
+
+    #[test]
+    fn test_dev_issue_validate_success() {
+        let issue = DevIssue::new("Valid title", "Valid body");
+        assert!(issue.validate().is_ok());
+    }
+
+    #[test]
+    fn test_dev_issue_validate_empty_title() {
+        let issue = DevIssue::new("", "Body");
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("title cannot be empty"));
+    }
+
+    #[test]
+    fn test_dev_issue_validate_title_too_long() {
+        let long_title = "a".repeat(257);
+        let issue = DevIssue::new(long_title, "Body");
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("title too long"));
+    }
+
+    #[test]
+    fn test_dev_issue_validate_empty_labels() {
+        let issue = DevIssue {
+            title: "Test".to_string(),
+            body: "Body".to_string(),
+            labels: Some(vec![]),
+            assignee: None,
+        };
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Labels array cannot be empty"));
+    }
+
+    #[test]
+    fn test_dev_issue_validate_empty_label_name() {
+        let issue = DevIssue {
+            title: "Test".to_string(),
+            body: "Body".to_string(),
+            labels: Some(vec!["bug".to_string(), "".to_string()]),
+            assignee: None,
+        };
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Label name cannot be empty"));
+    }
+
+    #[test]
+    fn test_dev_issue_validate_empty_assignee() {
+        let issue = DevIssue {
+            title: "Test".to_string(),
+            body: "Body".to_string(),
+            labels: None,
+            assignee: Some("".to_string()),
+        };
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Assignee cannot be empty"));
+    }
+
+    #[test]
+    fn test_dev_issue_serialization() {
+        let issue = DevIssue::with_labels(
+            "Test issue",
+            "Test body",
+            vec!["bug".to_string(), "priority:high".to_string()],
+        )
+        .with_assignee("user123");
+
+        let json = serde_json::to_string(&issue).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["title"], "Test issue");
+        assert_eq!(parsed["body"], "Test body");
+        assert_eq!(parsed["labels"][0], "bug");
+        assert_eq!(parsed["assignee"], "user123");
+    }
+
+    #[test]
+    fn test_dev_issue_roundtrip() {
+        let issue = DevIssue::with_labels("Title", "Body", vec!["label1".to_string()]);
+
+        let json = serde_json::to_string(&issue).unwrap();
+        let deserialized: DevIssue = serde_json::from_str(&json).unwrap();
+        assert_eq!(issue.title, deserialized.title);
+        assert_eq!(issue.body, deserialized.body);
+        assert_eq!(issue.labels, deserialized.labels);
+    }
+
+    #[test]
+    fn test_dev_issue_optional_fields_serialization() {
+        let issue = DevIssue::new("Title", "Body");
+
+        let json = serde_json::to_string(&issue).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed.get("labels").is_none());
+        assert!(parsed.get("assignee").is_none());
     }
 }

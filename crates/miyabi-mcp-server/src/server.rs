@@ -209,6 +209,57 @@ impl McpServer {
             Ok(Value::String(env!("CARGO_PKG_VERSION").to_string()))
         });
 
+        // dev_issue.create
+        {
+            let ctx = context.clone();
+            io.add_method("dev_issue.create", move |params: Params| {
+                let ctx = ctx.clone();
+                async move {
+                    let params: crate::rpc::CreateDevIssueParams = params.parse()?;
+                    let context = ctx.read().await;
+                    let result = context
+                        .create_dev_issue(params)
+                        .await
+                        .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                    Ok(serde_json::to_value(result).unwrap())
+                }
+            });
+        }
+
+        // dev_issue.list
+        {
+            let ctx = context.clone();
+            io.add_method("dev_issue.list", move |params: Params| {
+                let ctx = ctx.clone();
+                async move {
+                    let params: crate::rpc::ListDevIssuesParams = params.parse()?;
+                    let context = ctx.read().await;
+                    let result = context
+                        .list_dev_issues(params)
+                        .await
+                        .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                    Ok(serde_json::to_value(result).unwrap())
+                }
+            });
+        }
+
+        // dev_issue.sync
+        {
+            let ctx = context.clone();
+            io.add_method("dev_issue.sync", move |params: Params| {
+                let ctx = ctx.clone();
+                async move {
+                    let params: crate::rpc::SyncDevIssuesToGitHubParams = params.parse()?;
+                    let context = ctx.read().await;
+                    let result = context
+                        .sync_dev_issues_to_github(params)
+                        .await
+                        .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                    Ok(serde_json::to_value(result).unwrap())
+                }
+            });
+        }
+
         // Session management methods (if SessionHandler is available)
         if let Some(session_handler) = &self.session_handler {
             let handler = session_handler.clone();

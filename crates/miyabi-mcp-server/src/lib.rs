@@ -106,8 +106,10 @@ pub use agent_init::initialize_all_agents;
 
 // Re-export RPC types for convenience
 pub use rpc::{
-    AgentExecuteParams, AgentExecuteResult, HealthCheckResult, IssueFetchParams, IssueListParams, IssueResponse,
-    KnowledgeMetadata, KnowledgeSearchParams, KnowledgeSearchResult,
+    AgentExecuteParams, AgentExecuteResult, CreateDevIssueParams, CreateDevIssueResult, DevIssue, DevIssuePriority,
+    DevIssueStatus, DevIssueSyncDetail, HealthCheckResult, IssueFetchParams, IssueListParams, IssueResponse,
+    KnowledgeMetadata, KnowledgeSearchParams, KnowledgeSearchResult, ListDevIssuesParams, ListDevIssuesResult,
+    SyncDevIssuesToGitHubParams, SyncDevIssuesToGitHubResult,
 };
 
 // Re-export Session RPC types

@@ -9,6 +9,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
 import { Octokit } from "@octokit/rest";
+import { promises as fs } from "fs";
+import * as path from "path";
+import * as os from "os";
 // Environment configuration
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const DEFAULT_OWNER = process.env.GITHUB_DEFAULT_OWNER || "";
@@ -21,6 +24,18 @@ if (!GITHUB_TOKEN) {
 const octokit = new Octokit({
     auth: GITHUB_TOKEN,
 });
+// DevIssue configuration
+const DEV_ISSUES_DIR = path.join(os.homedir(), ".miyabi", "dev_issues");
+const INBOX_FILE = path.join(DEV_ISSUES_DIR, "inbox.jsonl");
+// Ensure dev_issues directory exists
+async function ensureDevIssuesDir() {
+    try {
+        await fs.mkdir(DEV_ISSUES_DIR, { recursive: true });
+    }
+    catch (error) {
+        // Directory already exists or other error
+    }
+}
 // Create MCP server
 const server = new Server({
     name: "miyabi-github-mcp",
@@ -417,6 +432,164 @@ async function listMilestones(args) {
         ],
     };
 }
+/**
+ * Tool: dev_issue_create
+ * Create a new DevIssue in the local inbox
+ */
+async function devIssueCreate(args) {
+    const title = args.title;
+    const body = args.body || "";
+    const labels = args.labels || [];
+    const priority = args.priority || "P2-Medium";
+    if (!title) {
+        throw new Error("title is required");
+    }
+    await ensureDevIssuesDir();
+    const devIssue = {
+        id: `dev-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title,
+        body,
+        labels,
+        priority,
+        status: "queued",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
+    // Append to JSONL file
+    const line = JSON.stringify(devIssue) + "\n";
+    await fs.appendFile(INBOX_FILE, line, "utf-8");
+    return {
+        content: [
+            {
+                type: "text",
+                text: `DevIssue created successfully:\n${JSON.stringify(devIssue, null, 2)}`,
+            },
+        ],
+    };
+}
+/**
+ * Tool: dev_issue_list
+ * List all DevIssues from the local inbox
+ */
+async function devIssueList(args) {
+    const status = args.status; // Optional filter by status
+    await ensureDevIssuesDir();
+    let devIssues = [];
+    try {
+        const content = await fs.readFile(INBOX_FILE, "utf-8");
+        const lines = content.trim().split("\n").filter(line => line.length > 0);
+        devIssues = lines.map(line => JSON.parse(line));
+        // Filter by status if provided
+        if (status) {
+            devIssues = devIssues.filter(issue => issue.status === status);
+        }
+    }
+    catch (error) {
+        if (error.code === "ENOENT") {
+            // File doesn't exist yet, return empty list
+            devIssues = [];
+        }
+        else {
+            throw error;
+        }
+    }
+    return {
+        content: [
+            {
+                type: "text",
+                text: JSON.stringify(devIssues, null, 2),
+            },
+        ],
+    };
+}
+/**
+ * Tool: dev_issue_sync
+ * Sync queued DevIssues to GitHub
+ */
+async function devIssueSync(args) {
+    const owner = args.owner || DEFAULT_OWNER;
+    const repo = args.repo || DEFAULT_REPO;
+    if (!owner || !repo) {
+        throw new Error("owner and repo are required (or set defaults)");
+    }
+    await ensureDevIssuesDir();
+    let devIssues = [];
+    try {
+        const content = await fs.readFile(INBOX_FILE, "utf-8");
+        const lines = content.trim().split("\n").filter(line => line.length > 0);
+        devIssues = lines.map(line => JSON.parse(line));
+    }
+    catch (error) {
+        if (error.code === "ENOENT") {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: "No DevIssues found in inbox",
+                    },
+                ],
+            };
+        }
+        throw error;
+    }
+    // Filter queued issues
+    const queuedIssues = devIssues.filter(issue => issue.status === "queued");
+    if (queuedIssues.length === 0) {
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: "No queued DevIssues to sync",
+                },
+            ],
+        };
+    }
+    const results = [];
+    for (const devIssue of queuedIssues) {
+        try {
+            // Create GitHub issue
+            const response = await octokit.issues.create({
+                owner,
+                repo,
+                title: devIssue.title,
+                body: devIssue.body,
+                labels: devIssue.labels || [],
+            });
+            // Update DevIssue status
+            devIssue.status = "synced";
+            devIssue.github_issue_number = response.data.number;
+            devIssue.updated_at = new Date().toISOString();
+            results.push({
+                id: devIssue.id,
+                status: "synced",
+                github_issue_number: response.data.number,
+                url: response.data.html_url,
+            });
+        }
+        catch (error) {
+            // Mark as failed
+            devIssue.status = "failed";
+            devIssue.error = error.message;
+            devIssue.updated_at = new Date().toISOString();
+            results.push({
+                id: devIssue.id,
+                status: "failed",
+                error: error.message,
+            });
+        }
+    }
+    // Write updated DevIssues back to file
+    const updatedLines = devIssues.map(issue => JSON.stringify(issue)).join("\n") + "\n";
+    await fs.writeFile(INBOX_FILE, updatedLines, "utf-8");
+    return {
+        content: [
+            {
+                type: "text",
+                text: `Sync completed. Results:\n${JSON.stringify(results, null, 2)}`,
+            },
+        ],
+    };
+}
 // Register tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
@@ -594,6 +767,45 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     },
                 },
             },
+            {
+                name: "dev_issue_create",
+                description: "Create a new DevIssue in the local inbox (~/.miyabi/dev_issues/inbox.jsonl)",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        title: { type: "string", description: "Issue title" },
+                        body: { type: "string", description: "Issue body" },
+                        labels: { type: "array", items: { type: "string" }, description: "Labels to add" },
+                        priority: { type: "string", description: "Priority (e.g., P0-Critical, P1-High, P2-Medium, P3-Low)" },
+                    },
+                    required: ["title"],
+                },
+            },
+            {
+                name: "dev_issue_list",
+                description: "List all DevIssues from the local inbox",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        status: {
+                            type: "string",
+                            enum: ["queued", "synced", "failed"],
+                            description: "Filter by status (optional)"
+                        },
+                    },
+                },
+            },
+            {
+                name: "dev_issue_sync",
+                description: "Sync queued DevIssues to GitHub (creates GitHub issues for all queued DevIssues)",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        owner: { type: "string", description: "Repository owner" },
+                        repo: { type: "string", description: "Repository name" },
+                    },
+                },
+            },
         ],
     };
 });
@@ -626,6 +838,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return await addLabels(args);
             case "github_list_milestones":
                 return await listMilestones(args);
+            case "dev_issue_create":
+                return await devIssueCreate(args);
+            case "dev_issue_list":
+                return await devIssueList(args);
+            case "dev_issue_sync":
+                return await devIssueSync(args);
             default:
                 throw new Error(`Unknown tool: ${name}`);
         }

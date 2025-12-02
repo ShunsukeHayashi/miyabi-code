@@ -15,6 +15,7 @@
 pub mod approval;
 pub mod cache;
 pub mod config;
+pub mod dev_issue;
 pub mod documentation;
 pub mod error;
 pub mod error_policy;
@@ -35,6 +36,7 @@ pub mod utils;
 
 pub use approval::{ApprovalDecision, ApprovalSystem, CommandApproval, FileChangeApproval, FileOperation};
 pub use config::Config;
+pub use dev_issue::{DevIssue, GitHub, Severity, Source, Status, Timestamps};
 pub use documentation::{
     generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, DocumentationResult, ReadmeTemplate,
     ValidationResult,
