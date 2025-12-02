@@ -1,0 +1,52 @@
+flowchart TB
+  subgraph company["🏢 マネーフォワード"]
+    subgraph pains["❗ Pain Points"]
+      pain1["組織スケール<br/>2000→2900名"]
+      pain2["エンジニア組織<br/>グローバル化"]
+      pain3["開発生産性<br/>Four Keys可視化"]
+      pain4["60+プロダクト<br/>の標準化"]
+    end
+    
+    subgraph depts["📁 組織構造"]
+      cto["CTO室"]
+      tech["技術本部"]
+      ai["AI活用推進室"]
+      biz["ビジネスカンパニー"]
+    end
+    
+    cto --> tech
+    ai --> tech
+  end
+  
+  subgraph product["📦 提案製品"]
+    tool["開発生産性<br/>可視化ツール"]
+    feature1["Four Keys<br/>リアルタイム計測"]
+    feature2["チーム横断<br/>ベンチマーク"]
+    feature3["AI効果<br/>測定"]
+    
+    tool --> feature1
+    tool --> feature2
+    tool --> feature3
+  end
+  
+  pain3 -.->|solves| feature1
+  pain2 -.->|solves| feature2
+  pain4 -.->|solves| feature2
+  
+  subgraph targets["🎯 Target Contacts"]
+    kp1["👑 中出匠哉<br/>CTO<br/>P1 | LinkedIn"]
+    kp2["💡 AI活用推進担当<br/>執行役員<br/>P2 | Email"]
+    kp3["👤 技術本部EM<br/>P3 | Event"]
+  end
+  
+  kp1 --- cto
+  kp2 --- ai
+  kp3 --- tech
+  
+  classDef painStyle fill:#ffcccc,stroke:#ff0000
+  classDef productStyle fill:#ccffcc,stroke:#00aa00
+  classDef targetStyle fill:#cce5ff,stroke:#0066cc
+  
+  class pain1,pain2,pain3,pain4 painStyle
+  class tool,feature1,feature2,feature3 productStyle
+  class kp1,kp2,kp3 targetStyle

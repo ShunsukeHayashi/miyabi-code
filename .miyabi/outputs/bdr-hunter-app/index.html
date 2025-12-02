@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BDR Hunter | AI-Powered Sales Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+            'slide-in-right': 'slideInRight 0.3s ease-out',
+            'pulse-slow': 'pulse 3s infinite',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            slideInRight: {
+              '0%': { opacity: '0', transform: 'translateX(20px)' },
+              '100%': { opacity: '1', transform: 'translateX(0)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { -webkit-font-smoothing: antialiased; }
+    .glass { backdrop-filter: blur(20px); background: rgba(255,255,255,0.8); }
+    .glass-dark { backdrop-filter: blur(20px); background: rgba(15,23,42,0.8); }
+    .gradient-mesh {
+      background: 
+        radial-gradient(at 40% 20%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+        radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .card-shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .card-shine::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s;
+    }
+    .card-shine:hover::before {
+      left: 100%;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    input:focus, button:focus { outline: none; }
+    .ring-brand:focus { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3); }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans">
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect, createContext, useContext, useRef } = React;
+
+    // ==================== ICONS ====================
+    const Icons = {
+      target: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2"/><circle cx="12" cy="12" r="6" strokeWidth="2"/><circle cx="12" cy="12" r="2" strokeWidth="2"/></svg>,
+      search: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
+      home: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>,
+      building: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>,
+      users: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>,
+      chart: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>,
+      mail: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>,
+      settings: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
+      bell: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>,
+      plus: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>,
+      chevronRight: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>,
+      chevronDown: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>,
+      check: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>,
+      checkCircle: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
+      x: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>,
+      sparkles: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>,
+      linkedin: (p) => <svg {...p} fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>,
+      calendar: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
+      clock: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
+      trending: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>,
+      zap: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
+      globe: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>,
+      filter: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>,
+      download: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>,
+      copy: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>,
+      externalLink: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>,
+      play: (p) => <svg {...p} fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>,
+      menu: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>,
+      arrowRight: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>,
+      star: (p) => <svg {...p} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+      message: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>,
+      refresh: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>,
+      eye: (p) => <svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>,
+    };
+
+    // ==================== CONTEXT ====================
+    const AppContext = createContext();
+    const useApp = () => useContext(AppContext);
+
+    // ==================== MOCK DATA ====================
+    const mockCompanies = [
+      {
+        id: 1,
+        name: 'マネーフォワード',
+        industry: 'SaaS / FinTech',
+        employees: 2916,
+        revenue: '¥300億+',
+        status: 'analyzed',
+        score: 92,
+        keypersons: 3,
+        lastUpdated: '2024-12-02',
+        logo: '💰'
+      },
+      {
+        id: 2,
+        name: 'SmartHR',
+        industry: 'HR Tech / SaaS',
+        employees: 1200,
+        revenue: '¥150億+',
+        status: 'analyzing',
+        score: 78,
+        keypersons: 2,
+        lastUpdated: '2024-12-01',
+        logo: '👥'
+      },
+      {
+        id: 3,
+        name: 'freee',
+        industry: 'SaaS / FinTech',
+        employees: 1500,
+        revenue: '¥200億+',
+        status: 'pending',
+        score: null,
+        keypersons: 0,
+        lastUpdated: null,
+        logo: '📊'
+      },
+      {
+        id: 4,
+        name: 'LayerX',
+        industry: 'Blockchain / SaaS',
+        employees: 300,
+        revenue: '¥30億+',
+        status: 'analyzed',
+        score: 85,
+        keypersons: 2,
+        lastUpdated: '2024-11-28',
+        logo: '🔗'
+      },
+    ];
+
+    const mockKeypersons = [
+      {
+        id: 1,
+        companyId: 1,
+        name: '中出匠哉',
+        title: '取締役執行役員 グループCTO',
+        priority: 1,
+        channel: 'linkedin',
+        whyYou: 'CTOとして技術戦略・開発ツール選定の最終決裁権。日本CTO協会理事として業界への影響力大。',
+        whyNow: '2024年7月にCTO協会理事就任。組織が2900名規模に拡大中でFour Keys可視化が喫緊の課題。',
+        avatar: '👑',
+        status: 'not_contacted'
+      },
+      {
+        id: 2,
+        companyId: 1,
+        name: 'AI活用推進担当',
+        title: 'グループ執行役員 AI活用推進担当',
+        priority: 2,
+        channel: 'email',
+        whyYou: '2024年8月新設ポジション。全社的なAI利活用を推進。新任のため新ツール導入に積極的な可能性。',
+        whyNow: '就任から約4ヶ月。具体的な施策実行フェーズ。年度末に向けて成果を出したいタイミング。',
+        avatar: '💡',
+        status: 'not_contacted'
+      },
+      {
+        id: 3,
+        companyId: 1,
+        name: '技術本部EM',
+        title: 'Engineering Manager',
+        priority: 3,
+        channel: 'event',
+        whyYou: '現場レベルでの開発生産性改善を担う立場。CTOの戦略を実装する実務責任者。',
+        whyNow: '採用ページでEM積極募集中。組織拡大に伴うマネジメント体制強化フェーズ。',
+        avatar: '👤',
+        status: 'not_contacted'
+      },
+    ];
+
+    // ==================== UI COMPONENTS ====================
+    const Button = ({ children, variant = 'primary', size = 'md', icon: Icon, className = '', ...props }) => {
+      const variants = {
+        primary: 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm shadow-brand-600/25',
+        secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-700',
+        outline: 'border-2 border-slate-200 hover:border-brand-300 hover:bg-brand-50 text-slate-700',
+        ghost: 'hover:bg-slate-100 text-slate-600',
+        danger: 'bg-red-600 hover:bg-red-700 text-white',
+        success: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+      };
+      const sizes = {
+        xs: 'px-2.5 py-1 text-xs',
+        sm: 'px-3 py-1.5 text-sm',
+        md: 'px-4 py-2 text-sm',
+        lg: 'px-6 py-3 text-base',
+        xl: 'px-8 py-4 text-lg',
+      };
+      return (
+        <button 
+          className={`inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 ${variants[variant]} ${sizes[size]} ${className}`} 
+          {...props}
+        >
+          {Icon && <Icon className={size === 'xs' ? 'w-3 h-3' : size === 'sm' ? 'w-4 h-4' : 'w-5 h-5'} />}
+          {children}
+        </button>
+      );
+    };
+
+    const Badge = ({ children, variant = 'default', size = 'md', dot = false }) => {
+      const variants = {
+        default: 'bg-slate-100 text-slate-700',
+        primary: 'bg-brand-100 text-brand-700',
+        success: 'bg-emerald-100 text-emerald-700',
+        warning: 'bg-amber-100 text-amber-700',
+        danger: 'bg-red-100 text-red-700',
+        purple: 'bg-purple-100 text-purple-700',
+      };
+      const sizes = {
+        sm: 'px-2 py-0.5 text-xs',
+        md: 'px-2.5 py-1 text-xs',
+        lg: 'px-3 py-1.5 text-sm',
+      };
+      return (
+        <span className={`inline-flex items-center gap-1.5 font-medium rounded-full ${variants[variant]} ${sizes[size]}`}>
+          {dot && <span className={`w-1.5 h-1.5 rounded-full ${variant === 'success' ? 'bg-emerald-500' : variant === 'warning' ? 'bg-amber-500' : variant === 'danger' ? 'bg-red-500' : 'bg-slate-400'}`} />}
+          {children}
+        </span>
+      );
+    };
+
+    const Card = ({ children, className = '', hover = false, onClick }) => (
+      <div 
+        className={`bg-white rounded-2xl border border-slate-200/60 shadow-sm ${hover ? 'hover:shadow-lg hover:border-brand-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer' : ''} ${className}`}
+        onClick={onClick}
+      >
+        {children}
+      </div>
+    );
+
+    const Avatar = ({ src, name, size = 'md', emoji }) => {
+      const sizes = {
+        sm: 'w-8 h-8 text-lg',
+        md: 'w-10 h-10 text-xl',
+        lg: 'w-12 h-12 text-2xl',
+        xl: 'w-16 h-16 text-3xl',
+      };
+      if (emoji) {
+        return (
+          <div className={`${sizes[size]} rounded-xl bg-gradient-to-br from-brand-100 to-purple-100 flex items-center justify-center`}>
+            {emoji}
+          </div>
+        );
+      }
+      return (
+        <div className={`${sizes[size]} rounded-xl bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center text-white font-bold`}>
+          {name?.charAt(0) || '?'}
+        </div>
+      );
+    };
+
+    const Input = ({ icon: Icon, className = '', ...props }) => (
+      <div className="relative">
+        {Icon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <Icon className="w-5 h-5" />
+          </div>
+        )}
+        <input 
+          className={`w-full px-4 py-3 ${Icon ? 'pl-10' : ''} bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:border-brand-400 focus:ring-4 focus:ring-brand-100 transition-all duration-200 ${className}`}
+          {...props}
+        />
+      </div>
+    );
+
+    const Progress = ({ value, max = 100, size = 'md', showLabel = false }) => {
+      const percentage = Math.min(100, Math.max(0, (value / max) * 100));
+      const sizes = { sm: 'h-1', md: 'h-2', lg: 'h-3' };
+      const color = percentage >= 80 ? 'bg-emerald-500' : percentage >= 50 ? 'bg-amber-500' : 'bg-red-500';
+      return (
+        <div className="flex items-center gap-3">
+          <div className={`flex-1 ${sizes[size]} bg-slate-100 rounded-full overflow-hidden`}>
+            <div className={`${sizes[size]} ${color} rounded-full transition-all duration-500`} style={{ width: `${percentage}%` }} />
+          </div>
+          {showLabel && <span className="text-sm font-medium text-slate-600">{Math.round(percentage)}%</span>}
+        </div>
+      );
+    };
+
+    const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
+      if (!isOpen) return null;
+      const sizes = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-5xl' };
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+          <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[85vh] overflow-hidden animate-slide-up`}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                <Icons.x className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(85vh-4rem)]">
+              {children}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const Tabs = ({ tabs, active, onChange }) => (
+      <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+              active === tab.id 
+                ? 'bg-white text-slate-900 shadow-sm' 
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    );
+
+    const Tooltip = ({ children, content }) => (
+      <div className="relative group">
+        {children}
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+          {content}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+        </div>
+      </div>
+    );
+
+    // ==================== SIDEBAR ====================
+    const Sidebar = ({ currentPage, onNavigate }) => {
+      const navItems = [
+        { id: 'dashboard', icon: Icons.home, label: 'ダッシュボード' },
+        { id: 'companies', icon: Icons.building, label: '企業リスト' },
+        { id: 'contacts', icon: Icons.users, label: 'コンタクト' },
+        { id: 'analytics', icon: Icons.chart, label: 'アナリティクス' },
+        { id: 'messages', icon: Icons.mail, label: 'メッセージ' },
+      ];
+
+      return (
+        <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 z-40 flex flex-col">
+          {/* Logo */}
+          <div className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30">
+                <Icons.target className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-slate-900">BDR Hunter</h1>
+                <p className="text-xs text-slate-500">AI Sales Intelligence</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Action */}
+          <div className="px-4 mb-6">
+            <Button variant="primary" size="md" icon={Icons.plus} className="w-full justify-center">
+              新規分析を開始
+            </Button>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-3">
+            <ul className="space-y-1">
+              {navItems.map(item => (
+                <li key={item.id}>
+                  <button
+                    onClick={() => onNavigate(item.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      currentPage === item.id
+                        ? 'bg-brand-50 text-brand-700'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    <item.icon className={`w-5 h-5 ${currentPage === item.id ? 'text-brand-600' : ''}`} />
+                    {item.label}
+                    {item.id === 'messages' && (
+                      <span className="ml-auto w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Bottom Section */}
+          <div className="p-4 border-t border-slate-100">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <Avatar name="田中太郎" size="sm" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900 truncate">田中 太郎</p>
+                <p className="text-xs text-slate-500 truncate">Pro Plan</p>
+              </div>
+              <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                <Icons.settings className="w-4 h-4 text-slate-400" />
+              </button>
+            </div>
+          </div>
+        </aside>
+      );
+    };
+
+    // ==================== HEADER ====================
+    const Header = ({ title, subtitle }) => (
+      <header className="sticky top-0 z-30 glass border-b border-slate-200/50">
+        <div className="flex items-center justify-between px-8 py-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+            {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Input icon={Icons.search} placeholder="企業・担当者を検索..." className="w-64" />
+            </div>
+            <button className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors">
+              <Icons.bell className="w-5 h-5 text-slate-500" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+
+    // ==================== DASHBOARD PAGE ====================
+    const DashboardPage = ({ onNavigate, onSelectCompany }) => {
+      const stats = [
+        { label: '分析済み企業', value: '24', change: '+4', icon: Icons.building, color: 'brand' },
+        { label: '特定キーマン', value: '68', change: '+12', icon: Icons.users, color: 'purple' },
+        { label: '送信メッセージ', value: '156', change: '+23', icon: Icons.mail, color: 'emerald' },
+        { label: '成約率', value: '12.4%', change: '+2.1%', icon: Icons.trending, color: 'amber' },
+      ];
+
+      return (
+        <div className="p-8 space-y-8 animate-fade-in">
+          {/* Welcome Section */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-purple-700 rounded-3xl p-8 text-white">
+            <div className="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute right-20 bottom-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2" />
+            <div className="relative">
+              <Badge variant="primary" className="mb-4 bg-white/20 text-white">
+                <Icons.sparkles className="w-3 h-3" />
+                AI-Powered
+              </Badge>
+              <h1 className="text-3xl font-bold mb-2">おかえりなさい、田中さん 👋</h1>
+              <p className="text-brand-100 mb-6 max-w-xl">
+                今日は3件の新しいアプローチ機会があります。AIが最適なタイミングを分析しました。
+              </p>
+              <div className="flex gap-4">
+                <Button variant="secondary" size="lg" icon={Icons.play}>
+                  クイックツアー
+                </Button>
+                <Button variant="outline" size="lg" icon={Icons.plus} className="border-white/30 text-white hover:bg-white/10">
+                  新規分析を開始
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-4 gap-6">
+            {stats.map((stat, i) => (
+              <Card key={i} className="p-6" hover>
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`p-3 rounded-xl ${
+                    stat.color === 'brand' ? 'bg-brand-100' :
+                    stat.color === 'purple' ? 'bg-purple-100' :
+                    stat.color === 'emerald' ? 'bg-emerald-100' : 'bg-amber-100'
+                  }`}>
+                    <stat.icon className={`w-6 h-6 ${
+                      stat.color === 'brand' ? 'text-brand-600' :
+                      stat.color === 'purple' ? 'text-purple-600' :
+                      stat.color === 'emerald' ? 'text-emerald-600' : 'text-amber-600'
+                    }`} />
+                  </div>
+                  <Badge variant="success" size="sm">
+                    <Icons.trending className="w-3 h-3" />
+                    {stat.change}
+                  </Badge>
+                </div>
+                <p className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</p>
+                <p className="text-sm text-slate-500">{stat.label}</p>
+              </Card>
+            ))}
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-3 gap-6">
+            {/* Recent Companies */}
+            <div className="col-span-2">
+              <Card>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                  <h3 className="font-semibold text-slate-900">最近の分析企業</h3>
+                  <Button variant="ghost" size="sm" onClick={() => onNavigate('companies')}>
+                    すべて見る
+                    <Icons.chevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {mockCompanies.slice(0, 4).map((company, i) => (
+                    <div 
+                      key={company.id} 
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                      style={{ animationDelay: `${i * 100}ms` }}
+                      onClick={() => onSelectCompany(company)}
+                    >
+                      <Avatar emoji={company.logo} size="lg" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-slate-900">{company.name}</h4>
+                          <Badge 
+                            variant={company.status === 'analyzed' ? 'success' : company.status === 'analyzing' ? 'warning' : 'default'}
+                            size="sm"
+                            dot
+                          >
+                            {company.status === 'analyzed' ? '分析完了' : company.status === 'analyzing' ? '分析中' : '待機中'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-slate-500">{company.industry}</p>
+                      </div>
+                      <div className="text-right">
+                        {company.score && (
+                          <div className="text-2xl font-bold text-brand-600">{company.score}</div>
+                        )}
+                        <p className="text-xs text-slate-400">{company.keypersons}名のキーマン</p>
+                      </div>
+                      <Icons.chevronRight className="w-5 h-5 text-slate-300" />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Quick Actions */}
+              <Card className="p-6">
+                <h3 className="font-semibold text-slate-900 mb-4">クイックアクション</h3>
+                <div className="space-y-3">
+                  <button className="w-full flex items-center gap-3 px-4 py-3 bg-brand-50 hover:bg-brand-100 rounded-xl transition-colors text-left">
+                    <div className="p-2 bg-brand-100 rounded-lg">
+                      <Icons.zap className="w-5 h-5 text-brand-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">AI分析を実行</p>
+                      <p className="text-xs text-slate-500">新規企業を分析</p>
+                    </div>
+                  </button>
+                  <button className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-left">
+                    <div className="p-2 bg-slate-100 rounded-lg">
+                      <Icons.message className="w-5 h-5 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">メッセージ作成</p>
+                      <p className="text-xs text-slate-500">AIが最適化</p>
+                    </div>
+                  </button>
+                  <button className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-left">
+                    <div className="p-2 bg-slate-100 rounded-lg">
+                      <Icons.download className="w-5 h-5 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">レポート出力</p>
+                      <p className="text-xs text-slate-500">PDF / Excel</p>
+                    </div>
+                  </button>
+                </div>
+              </Card>
+
+              {/* Activity Feed */}
+              <Card className="p-6">
+                <h3 className="font-semibold text-slate-900 mb-4">最近のアクティビティ</h3>
+                <div className="space-y-4">
+                  {[
+                    { text: 'マネーフォワードの分析が完了', time: '5分前', icon: Icons.checkCircle, color: 'text-emerald-500' },
+                    { text: 'CTOへのメッセージを下書き保存', time: '1時間前', icon: Icons.mail, color: 'text-brand-500' },
+                    { text: 'SmartHRの分析を開始', time: '3時間前', icon: Icons.refresh, color: 'text-amber-500' },
+                  ].map((activity, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <activity.icon className={`w-5 h-5 ${activity.color} mt-0.5`} />
+                      <div>
+                        <p className="text-sm text-slate-700">{activity.text}</p>
+                        <p className="text-xs text-slate-400">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ==================== COMPANIES PAGE ====================
+    const CompaniesPage = ({ onSelectCompany }) => {
+      const [filter, setFilter] = useState('all');
+      const [searchQuery, setSearchQuery] = useState('');
+
+      const filteredCompanies = mockCompanies.filter(c => {
+        if (filter !== 'all' && c.status !== filter) return false;
+        if (searchQuery && !c.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        return true;
+      });
+
+      return (
+        <div className="p-8 space-y-6 animate-fade-in">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">企業リスト</h1>
+              <p className="text-slate-500">分析済み・分析中の企業を管理</p>
+            </div>
+            <Button variant="primary" icon={Icons.plus}>
+              新規企業を追加
+            </Button>
+          </div>
+
+          {/* Filters */}
+          <Card className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Input 
+                  icon={Icons.search} 
+                  placeholder="企業名で検索..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                {[
+                  { id: 'all', label: 'すべて' },
+                  { id: 'analyzed', label: '分析完了' },
+                  { id: 'analyzing', label: '分析中' },
+                  { id: 'pending', label: '待機中' },
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFilter(f.id)}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      filter === f.id 
+                        ? 'bg-brand-100 text-brand-700' 
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              <Button variant="outline" icon={Icons.filter}>
+                フィルター
+              </Button>
+            </div>
+          </Card>
+
+          {/* Company Grid */}
+          <div className="grid grid-cols-2 gap-6">
+            {filteredCompanies.map((company, i) => (
+              <Card 
+                key={company.id} 
+                className="overflow-hidden animate-slide-up card-shine" 
+                hover
+                onClick={() => onSelectCompany(company)}
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <div className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <Avatar emoji={company.logo} size="xl" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-slate-900">{company.name}</h3>
+                        <Badge 
+                          variant={company.status === 'analyzed' ? 'success' : company.status === 'analyzing' ? 'warning' : 'default'}
+                          size="sm"
+                          dot
+                        >
+                          {company.status === 'analyzed' ? '完了' : company.status === 'analyzing' ? '分析中' : '待機'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-slate-500">{company.industry}</p>
+                    </div>
+                    {company.score && (
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-brand-600">{company.score}</div>
+                        <p className="text-xs text-slate-400">スコア</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="text-center p-3 bg-slate-50 rounded-xl">
+                      <p className="text-lg font-bold text-slate-900">{company.employees.toLocaleString()}</p>
+                      <p className="text-xs text-slate-500">従業員数</p>
+                    </div>
+                    <div className="text-center p-3 bg-slate-50 rounded-xl">
+                      <p className="text-lg font-bold text-slate-900">{company.keypersons}</p>
+                      <p className="text-xs text-slate-500">キーマン</p>
+                    </div>
+                    <div className="text-center p-3 bg-slate-50 rounded-xl">
+                      <p className="text-lg font-bold text-slate-900">{company.revenue}</p>
+                      <p className="text-xs text-slate-500">売上高</p>
+                    </div>
+                  </div>
+
+                  {company.score && (
+                    <Progress value={company.score} showLabel />
+                  )}
+                </div>
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                  <p className="text-xs text-slate-500">
+                    {company.lastUpdated ? `最終更新: ${company.lastUpdated}` : '未分析'}
+                  </p>
+                  <Button variant="ghost" size="sm" icon={Icons.arrowRight}>
+                    詳細を見る
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // ==================== COMPANY DETAIL PAGE ====================
+    const CompanyDetailPage = ({ company, onBack }) => {
+      const [activeTab, setActiveTab] = useState('overview');
+      const [showMessageModal, setShowMessageModal] = useState(false);
+      const [selectedPerson, setSelectedPerson] = useState(null);
+
+      const keypersons = mockKeypersons.filter(k => k.companyId === company.id);
+
+      const painPoints = [
+        { label: '組織スケール', value: '2000→2900名への急成長', severity: 'high', icon: '📈' },
+        { label: 'グローバル化', value: 'エンジニア組織の英語化推進', severity: 'high', icon: '🌏' },
+        { label: '開発生産性', value: 'Four Keys可視化が課題', severity: 'high', icon: '⚡' },
+        { label: 'AI活用推進', value: '効果測定の仕組みが必要', severity: 'medium', icon: '🤖' }
+      ];
+
+      const handleMessageClick = (person) => {
+        setSelectedPerson(person);
+        setShowMessageModal(true);
+      };
+
+      return (
+        <div className="animate-fade-in">
+          {/* Hero Section */}
+          <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 text-white">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,...')] opacity-5" />
+            <div className="relative px-8 py-8">
+              <button 
+                onClick={onBack}
+                className="flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors"
+              >
+                <Icons.chevronRight className="w-5 h-5 rotate-180" />
+                企業リストに戻る
+              </button>
+
+              <div className="flex items-start gap-6">
+                <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center text-5xl backdrop-blur-sm">
+                  {company.logo}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-3xl font-bold">{company.name}</h1>
+                    <Badge variant="success" className="bg-emerald-500/20 text-emerald-300">
+                      <Icons.checkCircle className="w-3 h-3" />
+                      分析完了
+                    </Badge>
+                  </div>
+                  <p className="text-slate-400 mb-4">{company.industry} • 従業員 {company.employees.toLocaleString()}名</p>
+                  <div className="flex gap-3">
+                    <Button variant="primary" icon={Icons.message} onClick={() => handleMessageClick(keypersons[0])}>
+                      メッセージ作成
+                    </Button>
+                    <Button variant="outline" icon={Icons.download} className="border-white/20 text-white hover:bg-white/10">
+                      レポート出力
+                    </Button>
+                    <Button variant="ghost" icon={Icons.externalLink} className="text-white hover:bg-white/10">
+                      企業サイト
+                    </Button>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-brand-300">
+                    {company.score}
+                  </div>
+                  <p className="text-slate-400 text-sm">AIスコア</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="px-8 pb-0">
+              <div className="flex gap-1 border-b border-white/10">
+                {[
+                  { id: 'overview', label: '概要' },
+                  { id: 'contacts', label: 'キーマン' },
+                  { id: 'strategy', label: '戦略' },
+                  { id: 'timeline', label: 'タイムライン' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === tab.id 
+                        ? 'border-brand-400 text-white' 
+                        : 'border-transparent text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8">
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-3 gap-6">
+                {/* Main Info */}
+                <div className="col-span-2 space-y-6">
+                  {/* Company Overview */}
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">企業概要</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                      マネーフォワードは「お金を前へ。人生をもっと前へ。」をミッションに掲げ、
+                      法人向けバックオフィスSaaS『マネーフォワード クラウド』や個人向け家計簿アプリ
+                      『マネーフォワード ME』など60以上のプロダクトを展開。2028年度に売上高1000億円以上を目指す。
+                    </p>
+                    <div className="grid grid-cols-4 gap-4">
+                      {[
+                        { label: '売上高', value: company.revenue },
+                        { label: '従業員数', value: company.employees.toLocaleString() },
+                        { label: '設立', value: '2012年' },
+                        { label: '上場', value: '東証グロース' },
+                      ].map((item, i) => (
+                        <div key={i} className="text-center p-4 bg-slate-50 rounded-xl">
+                          <p className="text-xl font-bold text-slate-900">{item.value}</p>
+                          <p className="text-xs text-slate-500">{item.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Key Contacts Preview */}
+                  <Card className="overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-lg font-semibold text-slate-900">特定キーマン</h3>
+                      <Button variant="ghost" size="sm" onClick={() => setActiveTab('contacts')}>
+                        すべて見る
+                      </Button>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {keypersons.map((person, i) => (
+                        <div key={person.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+                          <div className="text-3xl">{person.avatar}</div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-semibold text-slate-900">{person.name}</h4>
+                              <Badge 
+                                variant={person.priority === 1 ? 'danger' : person.priority === 2 ? 'warning' : 'success'}
+                                size="sm"
+                              >
+                                P{person.priority}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-slate-500">{person.title}</p>
+                          </div>
+                          <Button variant="primary" size="sm" icon={Icons.message} onClick={() => handleMessageClick(person)}>
+                            メッセージ
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                  {/* Pain Points */}
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">❗ Pain Points</h3>
+                    <div className="space-y-3">
+                      {painPoints.map((pain, i) => (
+                        <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                          <span className="text-xl">{pain.icon}</span>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-medium text-slate-900 text-sm">{pain.label}</span>
+                              <Badge variant={pain.severity === 'high' ? 'danger' : 'warning'} size="sm">
+                                {pain.severity === 'high' ? 'High' : 'Medium'}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-slate-500">{pain.value}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Key Messages */}
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">💬 Key Messages</h3>
+                    <div className="space-y-2">
+                      {[
+                        'Four Keysをリアルタイムで可視化',
+                        '60+プロダクトでの導入実績',
+                        'グローバル組織での生産性ベンチマーク',
+                        'AI活用の効果測定',
+                      ].map((msg, i) => (
+                        <div key={i} className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl">
+                          <Icons.checkCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <span className="text-sm text-emerald-900">{msg}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'contacts' && (
+              <div className="space-y-6">
+                {keypersons.map((person, i) => (
+                  <Card key={person.id} className="p-6 animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
+                    <div className="flex items-start gap-6">
+                      <div className="text-5xl">{person.avatar}</div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold text-slate-900">{person.name}</h3>
+                          <Badge variant={person.priority === 1 ? 'danger' : person.priority === 2 ? 'warning' : 'success'}>
+                            Priority {person.priority}
+                          </Badge>
+                          <Badge variant="primary">
+                            {person.channel === 'linkedin' ? 'LinkedIn' : person.channel === 'email' ? 'Email' : 'Event'}
+                          </Badge>
+                        </div>
+                        <p className="text-slate-600 mb-4">{person.title}</p>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="p-4 bg-blue-50 rounded-xl">
+                            <h4 className="text-xs font-semibold text-blue-600 mb-2">WHY YOU</h4>
+                            <p className="text-sm text-slate-700">{person.whyYou}</p>
+                          </div>
+                          <div className="p-4 bg-amber-50 rounded-xl">
+                            <h4 className="text-xs font-semibold text-amber-600 mb-2">WHY NOW</h4>
+                            <p className="text-sm text-slate-700">{person.whyNow}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <Button variant="primary" icon={Icons.message} onClick={() => handleMessageClick(person)}>
+                            メッセージ作成
+                          </Button>
+                          <Button variant="outline" icon={Icons.linkedin}>
+                            プロフィールを見る
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Message Modal */}
+          <Modal 
+            isOpen={showMessageModal} 
+            onClose={() => setShowMessageModal(false)} 
+            title={`📧 ${selectedPerson?.name}へのメッセージ`}
+            size="lg"
+          >
+            {selectedPerson && (
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
+                  <div className="text-4xl">{selectedPerson.avatar}</div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900">{selectedPerson.name}</h4>
+                    <p className="text-sm text-slate-500">{selectedPerson.title}</p>
+                  </div>
+                  <Badge variant={selectedPerson.channel === 'linkedin' ? 'primary' : 'purple'} className="ml-auto">
+                    {selectedPerson.channel === 'linkedin' ? 'LinkedIn' : 'Email'}
+                  </Badge>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">AIが生成したメッセージ</label>
+                  <textarea 
+                    className="w-full h-64 p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white focus:border-brand-400 focus:ring-4 focus:ring-brand-100 transition-all resize-none"
+                    defaultValue={`${selectedPerson.name}様
+
+はじめまして。突然のご連絡失礼いたします。
+
+${selectedPerson.priority === 1 ? '先日の日本CTO協会理事ご就任、おめでとうございます。「テクノロジーによる自己変革」というミッション、まさに御社のグローバルエンジニア組織構築の取り組みと重なるものを感じ、ご連絡させていただきました。\n\nCTOブログで言及されていたFour Keysの取り組み、大変興味深く拝読しました。弊社では、まさにFour Keysをリアルタイムで可視化し、60以上のプロダクトを持つ組織でも横断的に開発生産性を計測できるツールを提供しております。' : '御社の新設ポジションについて、プレスリリースを拝見しました。「働き方・組織文化の変革」を掲げていらっしゃる点、非常に先進的なお取り組みだと感じております。\n\n弊社では開発生産性の可視化ツールを提供しており、AI活用の効果測定も可能です。'}
+
+15分ほどお時間をいただければ、具体的な事例をご紹介できればと考えております。
+
+ご検討いただけますと幸いです。`}
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="outline" icon={Icons.copy} className="flex-1">
+                    コピー
+                  </Button>
+                  <Button variant="outline" icon={Icons.refresh}>
+                    再生成
+                  </Button>
+                  <Button variant="primary" icon={selectedPerson.channel === 'linkedin' ? Icons.linkedin : Icons.mail} className="flex-1">
+                    {selectedPerson.channel === 'linkedin' ? 'LinkedInで送信' : 'メールで送信'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Modal>
+        </div>
+      );
+    };
+
+    // ==================== MAIN APP ====================
+    function App() {
+      const [currentPage, setCurrentPage] = useState('dashboard');
+      const [selectedCompany, setSelectedCompany] = useState(null);
+
+      const handleSelectCompany = (company) => {
+        setSelectedCompany(company);
+        setCurrentPage('companyDetail');
+      };
+
+      const handleBackToList = () => {
+        setSelectedCompany(null);
+        setCurrentPage('companies');
+      };
+
+      const renderPage = () => {
+        switch (currentPage) {
+          case 'dashboard':
+            return (
+              <>
+                <Header title="ダッシュボード" subtitle="BDR Hunterへようこそ" />
+                <DashboardPage onNavigate={setCurrentPage} onSelectCompany={handleSelectCompany} />
+              </>
+            );
+          case 'companies':
+            return (
+              <>
+                <Header title="企業リスト" subtitle={`${mockCompanies.length}社の企業を管理中`} />
+                <CompaniesPage onSelectCompany={handleSelectCompany} />
+              </>
+            );
+          case 'companyDetail':
+            return selectedCompany ? (
+              <CompanyDetailPage company={selectedCompany} onBack={handleBackToList} />
+            ) : null;
+          case 'contacts':
+            return (
+              <>
+                <Header title="コンタクト" subtitle="特定したキーマンを管理" />
+                <div className="p-8">
+                  <Card className="p-12 text-center">
+                    <Icons.users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">コンタクト一覧</h3>
+                    <p className="text-slate-500">全企業のキーマンを一元管理できます</p>
+                  </Card>
+                </div>
+              </>
+            );
+          case 'analytics':
+            return (
+              <>
+                <Header title="アナリティクス" subtitle="パフォーマンス分析" />
+                <div className="p-8">
+                  <Card className="p-12 text-center">
+                    <Icons.chart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">アナリティクス</h3>
+                    <p className="text-slate-500">Coming Soon...</p>
+                  </Card>
+                </div>
+              </>
+            );
+          case 'messages':
+            return (
+              <>
+                <Header title="メッセージ" subtitle="送信履歴と下書き" />
+                <div className="p-8">
+                  <Card className="p-12 text-center">
+                    <Icons.mail className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">メッセージ管理</h3>
+                    <p className="text-slate-500">Coming Soon...</p>
+                  </Card>
+                </div>
+              </>
+            );
+          default:
+            return null;
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50">
+          <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+          <main className="ml-64">
+            {renderPage()}
+          </main>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

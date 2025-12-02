@@ -1,0 +1,126 @@
+{
+  "org_structure": [
+    {
+      "name": "技術本部",
+      "parent": null,
+      "mission": "プロダクト開発基盤の強化、グローバルエンジニア組織の構築、開発生産性向上",
+      "maturity_level": "high",
+      "related_departments": ["CTO室", "プロダクト本部", "各カンパニー開発チーム"]
+    },
+    {
+      "name": "CTO室",
+      "parent": "技術本部",
+      "mission": "技術戦略立案、エンジニア組織のグローバル化推進、AI活用戦略",
+      "maturity_level": "high"
+    },
+    {
+      "name": "ビジネスカンパニー",
+      "parent": null,
+      "mission": "法人向けバックオフィスSaaS『マネーフォワード クラウド』の開発・販売",
+      "maturity_level": "high",
+      "related_departments": ["SMBドメイン", "エンタープライズドメイン"]
+    },
+    {
+      "name": "ホームカンパニー",
+      "parent": null,
+      "mission": "個人向けサービス『マネーフォワード ME』の運営",
+      "maturity_level": "high"
+    },
+    {
+      "name": "AI活用推進室",
+      "parent": null,
+      "mission": "グループ全体のAI利活用推進、働き方・アウトプット・組織文化の変革",
+      "maturity_level": "mid",
+      "note": "2024年8月新設"
+    }
+  ],
+  "keyman_profiles": [
+    {
+      "name": "中出匠哉",
+      "title": "取締役執行役員 グループCTO",
+      "department": "技術本部",
+      "role_type": "decision_maker",
+      "career_summary": "SIer・証券会社向けトレーディングシステム開発を経て、2015年マネーフォワード入社。2016年CTO就任。日本CTO協会理事。エンジニア組織のグローバル化・英語化を主導。",
+      "expert_areas": [
+        "エンジニアリングマネジメント",
+        "開発組織設計",
+        "グローバル採用",
+        "DevOps/Four Keys",
+        "プロダクトオーナーシップ"
+      ],
+      "sns_links": {
+        "linkedin": "https://www.linkedin.com/in/takuya-nakade/",
+        "twitter": "https://twitter.com/takuya_nakade"
+      },
+      "event_appearances": [
+        {
+          "event_name": "Money Forward Tech Day 2024",
+          "date": "2024-09-20",
+          "topic": "グローバルテックカンパニーを目指して"
+        },
+        {
+          "event_name": "日本CTO協会 理事就任",
+          "date": "2024-07-01",
+          "topic": "テクノロジーによる自己変革"
+        }
+      ],
+      "key_quotes": [
+        "エンジニアはものづくりをするだけではなく、サービス全体に責任を持つ立場",
+        "炎上プロジェクトにあえて身を置く。課題だらけのプロジェクトで試行錯誤することがエンジニアの成長機会",
+        "うまくいっている会社のやり方を学んで、アレンジして取り入れる"
+      ]
+    },
+    {
+      "name": "辻庸介",
+      "title": "代表取締役社長 グループCEO",
+      "department": "経営",
+      "role_type": "decision_maker",
+      "career_summary": "2012年マネーフォワード創業。ソニー、マネックス証券を経て起業。",
+      "expert_areas": ["経営戦略", "FinTech", "スタートアップ経営"],
+      "sns_links": {
+        "twitter": "https://twitter.com/yosuketsuji"
+      }
+    },
+    {
+      "name": "AI活用推進担当執行役員",
+      "title": "グループ執行役員 AI活用推進担当",
+      "department": "AI活用推進室",
+      "role_type": "influencer",
+      "career_summary": "パーソルキャリア出身。BtoBマーケティング、経理財務領域を経て2024年8月にAI活用推進担当就任。",
+      "expert_areas": ["AI活用", "BtoBマーケティング", "業務効率化"],
+      "note": "新設ポジション。AI導入の実務責任者"
+    }
+  ],
+  "dept_missions": {
+    "技術本部": "60以上のプロダクトを支える開発基盤の構築・運用。グローバルエンジニア組織の構築",
+    "CTO室": "技術戦略立案、DevOps推進、エンジニア採用・育成",
+    "AI活用推進室": "全社的なAI利活用の推進。単なる技術導入でなく、働き方・組織文化の変革"
+  },
+  "hiring_signals": [
+    {
+      "position": "SRE / Platform Engineer",
+      "skills_required": ["Kubernetes", "Terraform", "AWS", "GCP"],
+      "implication": "インフラ基盤への投資拡大、マルチクラウド対応"
+    },
+    {
+      "position": "Engineering Manager",
+      "skills_required": ["ピープルマネジメント", "アジャイル", "英語コミュニケーション"],
+      "implication": "組織スケールに伴うマネジメント体制強化"
+    },
+    {
+      "position": "Backend Engineer (English-speaking)",
+      "skills_required": ["Go", "Ruby", "Microservices"],
+      "implication": "エンジニア組織のグローバル化推進"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2024-12-02T23:05:00+09:00",
+    "sources": [
+      "https://corp.moneyforward.com/aboutus/director/",
+      "https://flxy.jp/media/article/804",
+      "https://type.jp/et/feature/13298/",
+      "https://recruit.moneyforward.com/"
+    ],
+    "confidence_score": 0.85
+  }
+}

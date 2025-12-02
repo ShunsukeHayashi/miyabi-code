@@ -1,0 +1,156 @@
+# ==========================================
+# Enterprise BDR Hunter Workflow
+# Based on I-W-R Architecture
+# ==========================================
+version: "2.0"
+system_name: "Enterprise_BDR_Hunter"
+description: |
+  エンタープライズBDR向けに、企業戦略、組織図、キーマン、アプローチ文脈を
+  自動収集・構造化し、Miro/Figma等での可視化データを出力するエージェント。
+
+# ==========================================
+# Workflow Definition
+# ==========================================
+workflow:
+  name: "bdr_account_planning"
+  trigger: "manual"  # or "issue_label:bdr-research"
+  
+  pipeline:
+    - step: 1
+      name: "input_analysis"
+      agent: "coordinator"
+      action: "Receive target company name and decompose intent"
+      output: 
+        - company_name
+        - research_scope
+        - priority_areas
+    
+    - step: 2
+      name: "corporate_profiling"
+      agent: "corporate_profiler"
+      parallel: false
+      tools:
+        - web_search
+        - pdf_parser
+        - news_scraper
+      output:
+        - company_strategy
+        - investment_areas
+        - trigger_events
+        - pain_points
+    
+    - step: 3
+      name: "talent_scouting"
+      agent: "talent_scout"
+      parallel: true
+      depends_on: ["corporate_profiling"]
+      tools:
+        - linkedin_search
+        - recruit_site_parser
+        - sns_cross_search
+      output:
+        - org_structure
+        - keyman_profiles
+        - dept_missions
+    
+    - step: 4
+      name: "strategy_synthesis"
+      agent: "bdr_strategist"
+      depends_on: ["corporate_profiling", "talent_scouting"]
+      tools:
+        - case_study_matcher
+        - context_generator
+      output:
+        - why_you_messages
+        - why_now_triggers
+        - ice_breakers
+        - approach_scripts
+    
+    - step: 5
+      name: "output_generation"
+      agent: "coordinator"
+      action: "Aggregate and structure final output"
+      output:
+        - account_plan_json
+        - miro_export
+        - summary_report
+
+# ==========================================
+# Space Definitions (I-W-R Model)
+# ==========================================
+spaces:
+  intent_space:
+    input_types:
+      - company_name
+      - industry_vertical
+      - target_department
+      - saas_product_to_sell
+    decomposition:
+      - extract_variables
+      - identify_research_scope
+      - set_priority_areas
+
+  world_space:
+    domain_allowlist:
+      corporate:
+        - "Official Site"
+        - "IR Library"
+        - "Sustainability Report"
+        - "Recruit Site"
+      news_media:
+        - "PR Times"
+        - "Nikkei"
+        - "Nikkei xTECH"
+        - "NewsPicks"
+      social_professional:
+        - "LinkedIn"
+        - "Wantedly"
+        - "Eight"
+        - "Note"
+        - "Zenn"
+        - "Qiita"
+        - "SpeakerDeck"
+      events:
+        - "Salesforce World Tour"
+        - "AWS Summit"
+        - "Google Cloud Next"
+        - "IVS"
+    
+    extraction_rules:
+      focus_on:
+        - "Segment Sales/Profit Growth"
+        - "Mid-term Plan Keywords (DX, Efficiency, Productivity)"
+        - "Risk & Issues"
+        - "Organizational Transformation"
+        - "New Investment (AI, Data, SaaS)"
+      ignore_patterns:
+        - "Detailed BS/CF/PL tables"
+        - "Legal Disclaimers"
+        - "Accounting Notes"
+        - "Boilerplate text"
+
+  result_space:
+    format: "JSON"
+    visualization: ["Miro", "Figma", "Mermaid.js"]
+    schema_ref: "./schemas/account-plan.json"
+
+# ==========================================
+# Evaluation & Quality Gates
+# ==========================================
+evaluation:
+  gates:
+    - name: "intent_alignment"
+      check: "Decomposed intent matches original query"
+      threshold: 0.8
+    
+    - name: "coverage_check"
+      check: "All required data points collected"
+      required_fields:
+        - company_strategy
+        - org_structure
+        - keyman_profiles
+    
+    - name: "quality_score"
+      check: "Information credibility scoring"
+      min_sources: 3
+      freshness_days: 180

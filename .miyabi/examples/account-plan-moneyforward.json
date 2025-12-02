@@ -1,0 +1,230 @@
+{
+  "company": {
+    "name": "株式会社マネーフォワード",
+    "industry": "SaaS / FinTech",
+    "scale": "mid_market",
+    "employee_count": 2100,
+    "revenue": "約300億円（2024年11月期予想）",
+    "fiscal_year_end": "11月",
+    "headquarters": "東京都港区芝浦3-1-21",
+    "website": "https://corp.moneyforward.com/",
+    "saas_stack": [
+      "Salesforce",
+      "Slack",
+      "Google Workspace",
+      "Notion",
+      "GitHub"
+    ],
+    "strategic_focus": [
+      "中堅・エンタープライズ領域への拡大",
+      "ARR成長（YoY 30%+）",
+      "AI活用による業務効率化",
+      "バックオフィスSaaSのプラットフォーム化"
+    ],
+    "pain_points": [
+      {
+        "category": "組織拡大",
+        "description": "急成長に伴う組織・プロセスの標準化ニーズ",
+        "source": "採用ページ・JD分析",
+        "confidence": "high"
+      },
+      {
+        "category": "エンタープライズ対応",
+        "description": "大企業向け機能・セキュリティ要件への対応",
+        "source": "IR資料",
+        "confidence": "high"
+      },
+      {
+        "category": "プロダクト統合",
+        "description": "複数プロダクト間のデータ連携・UX統一",
+        "source": "プレスリリース分析",
+        "confidence": "medium"
+      }
+    ],
+    "trigger_events": [
+      {
+        "event": "新CTO就任（中出匠哉氏）",
+        "date": "2024-06-01",
+        "type": "leadership_change",
+        "relevance": "技術戦略・組織変革のタイミング",
+        "source_url": "https://prtimes.jp/main/html/rd/p/000000xxx.html"
+      },
+      {
+        "event": "クラウド会計ソフト市場シェアNo.1継続",
+        "date": "2024-09-01",
+        "type": "other",
+        "relevance": "成長継続のプレッシャー",
+        "source_url": "https://corp.moneyforward.com/news/"
+      }
+    ]
+  },
+  "departments": [
+    {
+      "name": "技術本部",
+      "parent": null,
+      "mission": "プロダクト開発基盤の強化とエンジニアリング文化の醸成",
+      "maturity_level": "high",
+      "related_departments": ["プロダクト本部", "CTO室"],
+      "hiring_signals": [
+        {
+          "position": "SRE / Platform Engineer",
+          "skills_required": ["Kubernetes", "Terraform", "AWS"],
+          "implication": "インフラ・プラットフォーム投資拡大"
+        },
+        {
+          "position": "Engineering Manager",
+          "skills_required": ["ピープルマネジメント", "アジャイル"],
+          "implication": "組織スケールに伴うマネジメント体制強化"
+        }
+      ]
+    },
+    {
+      "name": "ビジネス本部（エンタープライズ）",
+      "parent": null,
+      "mission": "中堅・大企業向け営業・カスタマーサクセスの拡大",
+      "maturity_level": "mid",
+      "related_departments": ["マーケティング本部", "カスタマーサクセス本部"],
+      "hiring_signals": [
+        {
+          "position": "エンタープライズセールス",
+          "skills_required": ["大企業向け営業経験", "SaaS"],
+          "implication": "エンタープライズ市場への本格参入"
+        }
+      ]
+    },
+    {
+      "name": "コーポレート本部",
+      "parent": null,
+      "mission": "経営管理基盤の高度化",
+      "maturity_level": "high",
+      "related_departments": ["人事本部", "法務"],
+      "hiring_signals": []
+    }
+  ],
+  "keypersons": [
+    {
+      "name": "中出 匠哉",
+      "title": "取締役CTO",
+      "department": "技術本部",
+      "role_type": "decision_maker",
+      "career_summary": "元メルカリVPoE。大規模エンジニア組織のスケールを経験。",
+      "expert_areas": ["エンジニアリングマネジメント", "開発組織設計", "技術戦略"],
+      "sns_links": {
+        "linkedin": "https://www.linkedin.com/in/takuya-nakade/",
+        "twitter": "https://twitter.com/takuya_nakade",
+        "note": null
+      },
+      "event_appearances": [
+        {
+          "event_name": "Developers Summit 2024",
+          "date": "2024-02-15",
+          "topic": "エンジニア組織のスケール"
+        }
+      ],
+      "bdr_context": {
+        "priority": 1,
+        "why_you": "CTOとして技術戦略・ツール選定の最終決裁権を持つ。メルカリでの大規模組織経験から、開発生産性への関心が高い。",
+        "why_now": "CTO就任から約半年。組織・技術戦略の見直しフェーズ。新たなツール導入検討の好機。",
+        "ice_breaker": "Developers Summit 2024での「エンジニア組織のスケール」のお話、大変興味深く拝見しました。特に〇〇の部分について...",
+        "pain_to_solution": "エンジニア組織のスケールに伴う「情報の分断」「ナレッジ共有」の課題 → 弊社ツールによる一元管理",
+        "recommended_channel": "linkedin",
+        "sample_message": "中出様\n\n突然のご連絡失礼いたします。\n\n先日のDevelopers Summit 2024でのご講演、大変興味深く拝聴いたしました。「エンジニア組織のスケール」というテーマ、まさに多くの成長企業様が直面される課題かと存じます。\n\n弊社では〇〇という形でこの課題に取り組んでおり、メルカリ様と同規模の組織での導入実績もございます。\n\n15分ほどお時間をいただき、情報交換させていただけませんでしょうか。\n\n何卒よろしくお願いいたします。"
+      }
+    },
+    {
+      "name": "都築 隆之",
+      "title": "執行役員 技術本部長",
+      "department": "技術本部",
+      "role_type": "influencer",
+      "career_summary": "マネーフォワード創業期からのエンジニア。プロダクト開発の中核を担う。",
+      "expert_areas": ["Ruby on Rails", "プロダクト開発", "技術負債解消"],
+      "sns_links": {
+        "linkedin": "https://www.linkedin.com/in/takayuki-tsuzuki/",
+        "twitter": null,
+        "note": "https://note.com/takayuki_t"
+      },
+      "event_appearances": [],
+      "bdr_context": {
+        "priority": 2,
+        "why_you": "技術本部長として現場のオペレーション決定に大きな影響力。プロダクト開発の実務を熟知。",
+        "why_now": "CTOの戦略を現場実装するフェーズ。具体的なツール評価・導入の実務を担う立場。",
+        "ice_breaker": "マネーフォワードさんのRailsアーキテクチャについてのテックブログ、大変参考になりました。",
+        "pain_to_solution": "複数プロダクト開発における生産性・品質維持 → 弊社ツールによる可視化・自動化",
+        "recommended_channel": "email",
+        "sample_message": null
+      }
+    }
+  ],
+  "competitive_landscape": {
+    "known_vendors": ["Datadog（モニタリング）", "GitHub Actions（CI/CD）"],
+    "potential_competitors": ["Findy Team+", "LinearB"],
+    "differentiation_points": [
+      "エンジニア組織特化ではなく全社横断の可視化",
+      "日本企業向けローカライズ・サポート体制"
+    ]
+  },
+  "recommended_approach": {
+    "entry_point": "CTO 中出氏へのLinkedIn接触",
+    "sequence": [
+      {
+        "step": 1,
+        "action": "LinkedIn接続リクエスト + パーソナライズメッセージ",
+        "target": "中出 匠哉 CTO",
+        "channel": "linkedin",
+        "timing": "即時"
+      },
+      {
+        "step": 2,
+        "action": "技術本部長への紹介依頼 or 並行アプローチ",
+        "target": "都築 隆之 技術本部長",
+        "channel": "email",
+        "timing": "Step1から1週間後"
+      },
+      {
+        "step": 3,
+        "action": "初回ミーティング設定",
+        "target": "CTO + 技術本部長",
+        "channel": "zoom",
+        "timing": "Step2から2週間以内"
+      }
+    ],
+    "key_messages": [
+      "メルカリ規模での導入実績あり",
+      "急成長SaaS企業特有の課題を理解",
+      "開発生産性の可視化→経営レポートへの連携"
+    ],
+    "case_study_recommendations": [
+      {
+        "company": "メルカリ",
+        "relevance": "CTO前職。規模感・課題が近い",
+        "story": "エンジニア1000人超の組織で、開発生産性を〇〇%改善"
+      },
+      {
+        "company": "ラクスル",
+        "relevance": "同規模のSaaS企業。バックオフィス系プロダクト",
+        "story": "複数プロダクト横断での品質・速度改善"
+      }
+    ]
+  },
+  "metadata": {
+    "generated_at": "2024-12-02T12:00:00+09:00",
+    "workflow_version": "2.0",
+    "data_freshness": {
+      "corporate_data": "2024-11-28",
+      "keyman_data": "2024-11-30"
+    },
+    "sources": [
+      {
+        "url": "https://corp.moneyforward.com/ir/",
+        "type": "ir",
+        "accessed_at": "2024-11-28T10:00:00+09:00"
+      },
+      {
+        "url": "https://www.linkedin.com/company/moneyforward/",
+        "type": "linkedin",
+        "accessed_at": "2024-11-30T14:00:00+09:00"
+      }
+    ],
+    "confidence_score": 0.85
+  }
+}

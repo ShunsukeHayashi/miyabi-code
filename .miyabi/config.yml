@@ -1,0 +1,147 @@
+# AntiGravity Miyabi Configuration
+# Version: 1.0.0
+
+project:
+  name: AntiGravity Miyabi Edition
+  version: 1.0.0
+  description: 完全自律型AI開発オペレーションプラットフォーム
+  repository: ShunsukeHayashi/AntiGravity_miyabi_edition
+
+# 環境設定
+environment:
+  default: development
+  profiles:
+    development:
+      log_level: debug
+      mcp_port_start: 3100
+      enable_hot_reload: true
+    staging:
+      log_level: info
+      mcp_port_start: 3100
+      enable_hot_reload: false
+    production:
+      log_level: warn
+      mcp_port_start: 3100
+      enable_hot_reload: false
+
+# Git設定
+git:
+  default_branch: main
+  protected_branches:
+    - main
+    - develop
+  branch_patterns:
+    feature: "feature/issue-{issue_number}-{description}"
+    fix: "fix/issue-{issue_number}-{description}"
+    hotfix: "hotfix/issue-{issue_number}-{description}"
+    refactor: "refactor/issue-{issue_number}-{description}"
+
+# MCP Server設定
+mcp:
+  servers:
+    # Core
+    miyabi-mcp:
+      port: 3100
+      enabled: true
+      priority: 1
+    miyabi-github:
+      port: 3101
+      enabled: true
+      priority: 1
+    miyabi-tmux:
+      port: 3102
+      enabled: true
+      priority: 1
+    
+    # Development
+    miyabi-git-inspector:
+      port: 3103
+      enabled: true
+      priority: 2
+    miyabi-file-watcher:
+      port: 3104
+      enabled: true
+      priority: 2
+    miyabi-log-aggregator:
+      port: 3105
+      enabled: true
+      priority: 2
+    miyabi-resource-monitor:
+      port: 3106
+      enabled: true
+      priority: 2
+    
+    # AI Integration
+    gemini3-uiux-designer:
+      port: 3110
+      enabled: true
+      priority: 3
+    miyabi-codex:
+      port: 3111
+      enabled: true
+      priority: 3
+    context7:
+      port: 3112
+      enabled: true
+      priority: 3
+
+# ビルド設定
+build:
+  rust:
+    target: release
+    features:
+      - full
+      - mcp
+    clippy_flags:
+      - "-D warnings"
+  typescript:
+    strict: true
+    target: ES2022
+
+# テスト設定
+test:
+  coverage_threshold: 80
+  parallel: true
+  timeout: 300
+
+# デプロイ設定
+deploy:
+  provider: aws
+  regions:
+    - ap-northeast-1
+  services:
+    frontend:
+      type: s3-cloudfront
+      bucket: antigravity-frontend
+    api:
+      type: lambda
+      memory: 512
+      timeout: 30
+    mcp:
+      type: ecs
+      cpu: 256
+      memory: 512
+
+# 監視設定
+monitoring:
+  enabled: true
+  metrics:
+    - cpu_usage
+    - memory_usage
+    - request_latency
+    - error_rate
+  alerts:
+    cpu_threshold: 80
+    memory_threshold: 80
+    error_rate_threshold: 5
+
+# ログ設定
+logging:
+  format: json
+  outputs:
+    - stdout
+    - file
+  file:
+    path: ./logs
+    rotation: daily
+    retention: 30

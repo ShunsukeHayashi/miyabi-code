@@ -1,0 +1,330 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://miyabi.dev/schemas/account-plan.json",
+  "title": "Enterprise Account Plan",
+  "description": "BDR向けエンタープライズアカウントプラン構造",
+  "type": "object",
+  "required": ["company", "generated_at", "workflow_version"],
+  "properties": {
+    "company": {
+      "type": "object",
+      "required": ["name", "industry", "scale"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "企業名"
+        },
+        "industry": {
+          "type": "string",
+          "description": "業界"
+        },
+        "scale": {
+          "type": "string",
+          "enum": ["enterprise", "mid_market", "smb"],
+          "description": "企業規模（ABMセグメント）"
+        },
+        "employee_count": {
+          "type": "integer",
+          "description": "従業員数"
+        },
+        "revenue": {
+          "type": "string",
+          "description": "売上規模"
+        },
+        "fiscal_year_end": {
+          "type": "string",
+          "description": "決算期"
+        },
+        "headquarters": {
+          "type": "string",
+          "description": "本社所在地"
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "description": "公式サイトURL"
+        },
+        "saas_stack": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "導入済みSaaS（判明分）"
+        },
+        "strategic_focus": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "中計キーワード"
+        },
+        "pain_points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "category": { "type": "string" },
+              "description": { "type": "string" },
+              "source": { "type": "string" },
+              "confidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              }
+            }
+          },
+          "description": "課題・ペインポイント"
+        },
+        "trigger_events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "event": { "type": "string" },
+              "date": { "type": "string", "format": "date" },
+              "type": {
+                "type": "string",
+                "enum": ["org_change", "new_initiative", "ma", "leadership_change", "product_launch", "other"]
+              },
+              "relevance": { "type": "string" },
+              "source_url": { "type": "string", "format": "uri" }
+            }
+          },
+          "description": "トリガーイベント"
+        }
+      }
+    },
+    "departments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "部門名"
+          },
+          "parent": {
+            "type": "string",
+            "description": "上位部門名"
+          },
+          "mission": {
+            "type": "string",
+            "description": "部門ミッション（JDから抽出）"
+          },
+          "maturity_level": {
+            "type": "string",
+            "enum": ["high", "mid", "low"],
+            "description": "DX成熟度"
+          },
+          "related_departments": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "関連部署"
+          },
+          "hiring_signals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "position": { "type": "string" },
+                "skills_required": { "type": "array", "items": { "type": "string" } },
+                "implication": { "type": "string" }
+              }
+            },
+            "description": "採用シグナル"
+          }
+        }
+      },
+      "description": "部門リスト"
+    },
+    "keypersons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "title"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "氏名"
+          },
+          "title": {
+            "type": "string",
+            "description": "役職"
+          },
+          "department": {
+            "type": "string",
+            "description": "所属部門"
+          },
+          "role_type": {
+            "type": "string",
+            "enum": ["decision_maker", "influencer", "user", "blocker"],
+            "description": "役割タイプ"
+          },
+          "career_summary": {
+            "type": "string",
+            "description": "キャリアサマリー"
+          },
+          "expert_areas": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "専門領域"
+          },
+          "sns_links": {
+            "type": "object",
+            "properties": {
+              "linkedin": { "type": "string", "format": "uri" },
+              "twitter": { "type": "string", "format": "uri" },
+              "note": { "type": "string", "format": "uri" },
+              "qiita": { "type": "string", "format": "uri" },
+              "speakerdeck": { "type": "string", "format": "uri" }
+            },
+            "description": "SNSリンク"
+          },
+          "event_appearances": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "event_name": { "type": "string" },
+                "date": { "type": "string", "format": "date" },
+                "topic": { "type": "string" }
+              }
+            },
+            "description": "イベント登壇歴"
+          },
+          "bdr_context": {
+            "type": "object",
+            "properties": {
+              "priority": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5,
+                "description": "優先度（1=最優先）"
+              },
+              "why_you": {
+                "type": "string",
+                "description": "なぜこの人にアプローチするか"
+              },
+              "why_now": {
+                "type": "string",
+                "description": "なぜ今がタイミングか"
+              },
+              "ice_breaker": {
+                "type": "string",
+                "description": "会話のきっかけ"
+              },
+              "pain_to_solution": {
+                "type": "string",
+                "description": "課題と提案の紐付け"
+              },
+              "recommended_channel": {
+                "type": "string",
+                "enum": ["linkedin", "email", "event", "referral", "cold_call"],
+                "description": "推奨アプローチチャネル"
+              },
+              "sample_message": {
+                "type": "string",
+                "description": "アプローチメッセージ例"
+              }
+            },
+            "description": "BDRアプローチ文脈"
+          }
+        }
+      },
+      "description": "キーパーソンリスト"
+    },
+    "competitive_landscape": {
+      "type": "object",
+      "properties": {
+        "known_vendors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "導入済み競合"
+        },
+        "potential_competitors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "競合候補"
+        },
+        "differentiation_points": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "差別化ポイント"
+        }
+      },
+      "description": "競合状況"
+    },
+    "recommended_approach": {
+      "type": "object",
+      "properties": {
+        "entry_point": {
+          "type": "string",
+          "description": "推奨エントリーポイント"
+        },
+        "sequence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": { "type": "integer" },
+              "action": { "type": "string" },
+              "target": { "type": "string" },
+              "channel": { "type": "string" },
+              "timing": { "type": "string" }
+            }
+          },
+          "description": "アプローチシーケンス"
+        },
+        "key_messages": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "キーメッセージ"
+        },
+        "case_study_recommendations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "company": { "type": "string" },
+              "relevance": { "type": "string" },
+              "story": { "type": "string" }
+            }
+          },
+          "description": "推奨事例"
+        }
+      },
+      "description": "推奨アプローチ戦略"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "workflow_version": {
+          "type": "string"
+        },
+        "data_freshness": {
+          "type": "object",
+          "properties": {
+            "corporate_data": { "type": "string", "format": "date" },
+            "keyman_data": { "type": "string", "format": "date" }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "type": { "type": "string" },
+              "accessed_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "confidence_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

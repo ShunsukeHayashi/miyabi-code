@@ -1,0 +1,341 @@
+# AntiGravity Agent Configuration
+# Version: 1.0.0
+
+# エージェント共通設定
+defaults:
+  timeout: 300
+  max_retries: 3
+  log_level: info
+
+# Coding Agents (7個)
+coding_agents:
+  coordinator:
+    name: Coordinator
+    japanese_name: しきろーん
+    description: タスク調整・分配を担当
+    enabled: true
+    priority: 1
+    triggers:
+      - complex_task
+      - multi_agent
+      - orchestration
+    capabilities:
+      - task_decomposition
+      - agent_dispatch
+      - progress_monitoring
+    tmux:
+      session: miyabi-orchestra
+      pane: coordinator
+
+  codegen:
+    name: CodeGen
+    japanese_name: つくろーん
+    description: コード生成を担当
+    enabled: true
+    priority: 2
+    triggers:
+      - feature_request
+      - code_generation
+      - implementation
+    capabilities:
+      - rust_generation
+      - typescript_generation
+      - test_generation
+      - documentation
+    tmux:
+      session: miyabi-orchestra
+      pane: codegen
+
+  review:
+    name: Review
+    japanese_name: めだまん
+    description: コードレビューを担当
+    enabled: true
+    priority: 2
+    triggers:
+      - pr_created
+      - code_review
+      - quality_check
+    capabilities:
+      - code_analysis
+      - security_check
+      - performance_review
+    tmux:
+      session: miyabi-orchestra
+      pane: review
+
+  pr:
+    name: PR
+    japanese_name: まとめろーん
+    description: プルリクエスト管理を担当
+    enabled: true
+    priority: 2
+    triggers:
+      - feature_complete
+      - pr_management
+    capabilities:
+      - pr_creation
+      - pr_update
+      - merge_management
+    tmux:
+      session: miyabi-orchestra
+      pane: pr
+
+  deployment:
+    name: Deployment
+    japanese_name: はこぼーん
+    description: デプロイ自動化を担当
+    enabled: true
+    priority: 2
+    triggers:
+      - merge_to_main
+      - deploy_request
+    capabilities:
+      - build_execution
+      - deploy_automation
+      - rollback
+    tmux:
+      session: miyabi-orchestra
+      pane: deployment
+
+  issue:
+    name: Issue
+    japanese_name: みつけろーん
+    description: Issue管理を担当
+    enabled: true
+    priority: 2
+    triggers:
+      - bug_report
+      - feature_request
+      - issue_management
+    capabilities:
+      - issue_creation
+      - label_management
+      - priority_setting
+    tmux:
+      session: miyabi-orchestra
+      pane: issue
+
+  refresher:
+    name: Refresher
+    japanese_name: つなぐん
+    description: コンテキスト更新を担当
+    enabled: true
+    priority: 1
+    triggers:
+      - session_start
+      - context_refresh
+    capabilities:
+      - state_sync
+      - context_update
+      - knowledge_integration
+    tmux:
+      session: miyabi-orchestra
+      pane: refresher
+
+# Business Agents (14個)
+business_agents:
+  market_research:
+    name: Market Research
+    description: 市場調査・分析
+    enabled: true
+    domain: marketing
+
+  persona:
+    name: Persona
+    description: ペルソナ設計
+    enabled: true
+    domain: marketing
+
+  sns_strategy:
+    name: SNS Strategy
+    japanese_name: つぶやくん
+    description: SNS戦略
+    enabled: true
+    domain: marketing
+
+  marketing:
+    name: Marketing
+    japanese_name: ひろめるん
+    description: マーケティング施策
+    enabled: true
+    domain: marketing
+
+  content_creation:
+    name: Content Creation
+    japanese_name: かくちゃん
+    description: コンテンツ作成
+    enabled: true
+    domain: marketing
+
+  sales:
+    name: Sales
+    japanese_name: うるるん
+    description: 営業活動支援
+    enabled: true
+    domain: sales
+
+  funnel_design:
+    name: Funnel Design
+    description: ファネル設計
+    enabled: true
+    domain: sales
+
+  crm:
+    name: CRM
+    japanese_name: ささえるん
+    description: 顧客関係管理
+    enabled: true
+    domain: sales
+
+  product_concept:
+    name: Product Concept
+    description: 製品コンセプト
+    enabled: true
+    domain: product
+
+  product_design:
+    name: Product Design
+    description: 製品設計
+    enabled: true
+    domain: product
+
+  analytics:
+    name: Analytics
+    japanese_name: かぞえるん
+    description: データ分析
+    enabled: true
+    domain: analytics
+
+  youtube:
+    name: YouTube
+    japanese_name: どうがくん
+    description: YouTube戦略
+    enabled: true
+    domain: analytics
+
+  self_analysis:
+    name: Self Analysis
+    description: 自己分析
+    enabled: true
+    domain: strategy
+
+  ai_entrepreneur:
+    name: AI Entrepreneur
+    description: AI起業家支援
+    enabled: true
+    domain: strategy
+
+# ==========================================
+# BDR Hunter Agents (3個) 
+# I-W-Rアーキテクチャベース
+# ==========================================
+bdr_agents:
+  corporate_profiler:
+    name: Corporate Profiler
+    japanese_name: 企業分析くん
+    description: 企業戦略・投資領域・トリガーイベントを分析
+    enabled: true
+    priority: 1
+    domain: bdr
+    capabilities:
+      - ir_analysis
+      - news_monitoring
+      - strategy_extraction
+      - pain_point_identification
+    tools:
+      - web_search
+      - pdf_parser
+      - news_scraper
+    config_path: .miyabi/agents/bdr-agents.yml
+    prompt_path: .miyabi/prompts/bdr-prompts.yml
+
+  talent_scout:
+    name: Talent Scout
+    japanese_name: キーマン探偵
+    description: 組織構造とキーマンをマッピング
+    enabled: true
+    priority: 2
+    domain: bdr
+    capabilities:
+      - org_mapping
+      - keyman_identification
+      - career_analysis
+      - sns_cross_reference
+    tools:
+      - linkedin_search
+      - recruit_site_parser
+      - event_speaker_search
+    config_path: .miyabi/agents/bdr-agents.yml
+    prompt_path: .miyabi/prompts/bdr-prompts.yml
+
+  bdr_strategist:
+    name: BDR Strategist
+    japanese_name: 提案構築くん
+    description: WHY YOU / WHY NOW アプローチ戦略を構築
+    enabled: true
+    priority: 3
+    domain: bdr
+    depends_on:
+      - corporate_profiler
+      - talent_scout
+    capabilities:
+      - context_synthesis
+      - message_personalization
+      - timing_analysis
+      - approach_scripting
+    reasoning_framework: "Fact A + B + C → Insight"
+    tools:
+      - case_study_matcher
+      - context_generator
+    config_path: .miyabi/agents/bdr-agents.yml
+    prompt_path: .miyabi/prompts/bdr-prompts.yml
+
+# ==========================================
+# BDR Workflow Definition
+# ==========================================
+bdr_workflow:
+  name: enterprise_bdr_hunter
+  entry_point: .miyabi/scripts/bdr-hunter.ts
+  trigger: manual
+  spaces:
+    intent: "User Input → Intent Decomposition"
+    world: "Domain Constraints → Source Filtering"
+    result: "Structured Output → Visualization"
+  pipeline:
+    - step: 1
+      name: input_analysis
+      agent: coordinator
+    - step: 2
+      name: corporate_profiling
+      agent: corporate_profiler
+    - step: 3
+      name: talent_scouting
+      agent: talent_scout
+      parallel: true
+    - step: 4
+      name: strategy_synthesis
+      agent: bdr_strategist
+    - step: 5
+      name: output_generation
+      agent: coordinator
+  output:
+    format: json
+    visualization:
+      - miro
+      - figma
+      - mermaid
+    schema: .miyabi/schemas/account-plan.json
+
+# オーケストレーション設定
+orchestration:
+  mode: distributed
+  communication:
+    protocol: tmux
+    backup: mcp
+  task_queue:
+    max_size: 100
+    priority_levels: 4
+  health_check:
+    interval: 30
+    timeout: 10

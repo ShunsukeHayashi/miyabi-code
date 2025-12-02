@@ -1,0 +1,114 @@
+{
+  "company_strategy": "2028年度に売上高1000億円以上、EBITDAマージン40%以上を目指すグローバルテックカンパニー。バックオフィスSaaS『マネーフォワード クラウド』を軸に、法人・個人・金融機関向け60以上のプロダクトを展開。中堅・エンタープライズ領域への拡大を推進中。",
+  "investment_areas": [
+    "AI活用推進（AI活用推進担当執行役員を新設）",
+    "エンジニア組織のグローバル化・英語化",
+    "エンタープライズ市場への本格参入",
+    "プロダクト間のデータ連携・プラットフォーム化",
+    "DevOps/Four Keys による開発生産性向上"
+  ],
+  "trigger_events": [
+    {
+      "event": "CTO中出匠哉が日本CTO協会理事に就任",
+      "date": "2024-07-01",
+      "type": "leadership_change",
+      "relevance": "技術戦略・組織変革のリーダーシップ強化",
+      "source_url": "https://corp.moneyforward.com/news/info/20250701-mf-press-1/"
+    },
+    {
+      "event": "役員体制変更（CSO→CFO分離、AI活用推進担当新設）",
+      "date": "2024-12-01",
+      "type": "org_change",
+      "relevance": "経営体制強化フェーズ、新規ツール導入検討の好機",
+      "source_url": "https://corp.moneyforward.com/news/info/20241127-mf-press/"
+    },
+    {
+      "event": "Money Forward Tech Day 2024 開催（初のテックカンファレンス）",
+      "date": "2024-09-20",
+      "type": "new_initiative",
+      "relevance": "技術発信強化、エンジニア採用加速",
+      "source_url": "https://corp.moneyforward.com/news/release/corp/20240801_mf_press_1/"
+    },
+    {
+      "event": "Talent Forward Strategy 2024 公開",
+      "date": "2024-12-11",
+      "type": "new_initiative",
+      "relevance": "人事戦略の明確化、組織スケールへの対応",
+      "source_url": "https://corp.moneyforward.com/news/release/20231211-mf-press-1/"
+    }
+  ],
+  "pain_points": [
+    {
+      "category": "組織スケール",
+      "description": "従業員2000名超→2900名への急成長に伴う組織・プロセスの標準化ニーズ。創業メンバーのビジョン・カルチャー継承が課題",
+      "source": "CTOインタビュー、Talent Forward Strategy",
+      "confidence": "high"
+    },
+    {
+      "category": "エンジニア組織グローバル化",
+      "description": "エンジニア組織の英語化・グローバル人材採用。日本とベトナム拠点の開発組織統合",
+      "source": "CTO中出氏ブログ・インタビュー",
+      "confidence": "high"
+    },
+    {
+      "category": "開発生産性",
+      "description": "Four Keys（デプロイ頻度、リードタイム、変更障害率）の可視化・改善。60以上のプロダクトを支える開発基盤の標準化",
+      "source": "Money Forward Developers Blog",
+      "confidence": "high"
+    },
+    {
+      "category": "プロダクト統合",
+      "description": "複数プロダクト間のデータ連携・UX統一。プラットフォーム化による顧客価値向上",
+      "source": "IR資料、プレスリリース",
+      "confidence": "medium"
+    }
+  ],
+  "key_executives": [
+    {
+      "name": "辻庸介",
+      "title": "代表取締役社長 グループCEO",
+      "role_type": "decision_maker"
+    },
+    {
+      "name": "中出匠哉",
+      "title": "取締役執行役員 グループCTO",
+      "role_type": "decision_maker",
+      "background": "2015年入社、2016年CTO就任。日本CTO協会理事。エンジニア組織のグローバル化・英語化を推進。炎上プロジェクトにあえて身を置く「何とかする人」ブランディング。",
+      "expert_areas": ["エンジニアリングマネジメント", "開発組織設計", "グローバル採用", "DevOps"]
+    },
+    {
+      "name": "金坂直哉",
+      "title": "取締役執行役員 グループCSO",
+      "role_type": "decision_maker"
+    },
+    {
+      "name": "長尾",
+      "title": "CFO（2024年12月〜）",
+      "role_type": "decision_maker"
+    },
+    {
+      "name": "AI活用推進担当執行役員",
+      "title": "グループ執行役員 AI活用推進担当（2024年8月〜）",
+      "role_type": "influencer",
+      "background": "元ビジネスカンパニーカンパニー執行役員"
+    }
+  ],
+  "financial_highlights": {
+    "current_revenue": "約300億円（2024年11月期）",
+    "target_2028": "売上高1000億円以上、SaaS ARR 800億円以上",
+    "ebitda_target": "EBITDA 300億円以上、マージン40%以上",
+    "employee_count": "2916名（2025年8月時点、連結）",
+    "growth_rate": "YoY 30%+"
+  },
+  "metadata": {
+    "generated_at": "2024-12-02T23:00:00+09:00",
+    "sources": [
+      "https://corp.moneyforward.com/ir/",
+      "https://news.mynavi.jp/techplus/article/20240112-2861850/",
+      "https://flxy.jp/media/article/804",
+      "https://type.jp/et/feature/13298/",
+      "https://moneyforward-dev.jp/entry/2022/12/25/cto-message-202212/"
+    ],
+    "confidence_score": 0.9
+  }
+}

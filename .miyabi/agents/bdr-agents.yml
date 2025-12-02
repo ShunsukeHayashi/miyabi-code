@@ -1,0 +1,331 @@
+# ==========================================
+# BDR Agent Definitions
+# Part of Enterprise_BDR_Hunter System
+# ==========================================
+
+defaults:
+  timeout: 600
+  max_retries: 3
+  log_level: info
+  model: claude-sonnet-4-20250514
+
+# ==========================================
+# Agent Definitions
+# ==========================================
+agents:
+  # ------------------------------------------
+  # 1. Corporate Profiler Agent
+  # STEP 1: 企業全体像の特定
+  # ------------------------------------------
+  corporate_profiler:
+    name: "Corporate Profiler"
+    japanese_name: "企業分析くん"
+    description: "Analyze Corporate Strategy & Triggers"
+    role: |
+      企業の公開情報（IR、ニュース、公式サイト）から
+      戦略、投資領域、トリガーイベントを抽出する専門エージェント。
+    
+    enabled: true
+    priority: 1
+    
+    capabilities:
+      - ir_analysis
+      - news_monitoring
+      - strategy_extraction
+      - pain_point_identification
+    
+    tools:
+      - name: web_search
+        type: function_call
+        description: "Google/Bing検索でニュース・プレスリリースを収集"
+      
+      - name: pdf_parser
+        type: function_call
+        description: "IR資料（PDF）をパースしてテキスト抽出"
+        config:
+          focus_sections:
+            - "経営方針"
+            - "中期経営計画"
+            - "セグメント情報"
+            - "リスク情報"
+          ignore_sections:
+            - "貸借対照表"
+            - "注記"
+            - "免責事項"
+      
+      - name: news_scraper
+        type: function_call
+        description: "PR Times, 日経等からニュース記事を収集"
+    
+    output_schema:
+      company_strategy:
+        type: string
+        description: "企業の主要戦略・方針"
+      investment_areas:
+        type: array
+        items: string
+        description: "注力投資領域（DX, AI, etc.）"
+      trigger_events:
+        type: array
+        items:
+          type: object
+          properties:
+            event: string
+            date: string
+            relevance: string
+        description: "直近の重要イベント・変化"
+      pain_points:
+        type: array
+        items: string
+        description: "公開情報から読み取れる課題"
+    
+    system_prompt: |
+      あなたは企業分析の専門家です。
+      
+      ## 役割
+      ターゲット企業の公開情報を分析し、以下を抽出してください：
+      1. 経営戦略・ビジョン
+      2. 注力投資領域（特にDX, AI, SaaS関連）
+      3. 直近のトリガーイベント（組織変更、M&A、新規事業など）
+      4. 課題・ペインポイント
+      
+      ## 情報ソースの優先順位
+      1. IR資料（中期経営計画、決算説明資料）
+      2. 公式プレスリリース
+      3. 経済メディア（日経、NewsPicks）
+      4. 業界専門メディア
+      
+      ## 出力形式
+      構造化されたJSONで出力してください。
+      推測は「confidence: low」とマークしてください。
+
+  # ------------------------------------------
+  # 2. Talent Scout Agent
+  # STEP 2 & 3: 組織構造とキーマンの特定
+  # ------------------------------------------
+  talent_scout:
+    name: "Talent Scout"
+    japanese_name: "キーマン探偵"
+    description: "Map Organization & Profile Key Persons"
+    role: |
+      LinkedIn、採用サイト、イベント登壇情報から
+      組織構造とキーマンをマッピングする専門エージェント。
+    
+    enabled: true
+    priority: 2
+    
+    capabilities:
+      - org_mapping
+      - keyman_identification
+      - career_analysis
+      - sns_cross_reference
+    
+    tools:
+      - name: linkedin_search
+        type: agentic_tool
+        description: "LinkedInプロフィール検索・分析"
+        sub_agent:
+          context: "LinkedIn specific search patterns"
+          internal_tools:
+            - search_profiles
+            - extract_career_history
+            - identify_connections
+      
+      - name: recruit_site_parser
+        type: function_call
+        description: "採用サイトのJDから部門ミッションを抽出"
+        config:
+          target_sites:
+            - "recruit.{company_domain}"
+            - "careers.{company_domain}"
+            - "wantedly.com/companies/{company}"
+      
+      - name: sns_cross_search
+        type: function_call
+        description: "X, Note, Qiita等でキーマンの発信を収集"
+    
+    output_schema:
+      org_structure:
+        type: object
+        description: "組織ツリー構造"
+        properties:
+          departments:
+            type: array
+            items:
+              type: object
+              properties:
+                name: string
+                mission: string
+                parent: string
+                maturity_level: 
+                  type: string
+                  enum: ["high", "mid", "low"]
+      
+      keyman_profiles:
+        type: array
+        items:
+          type: object
+          properties:
+            name: string
+            title: string
+            department: string
+            role_type:
+              type: string
+              enum: ["decision_maker", "influencer", "user", "blocker"]
+            career_summary: string
+            expert_areas: 
+              type: array
+              items: string
+            sns_links:
+              type: object
+              properties:
+                linkedin: string
+                twitter: string
+                note: string
+            event_appearances:
+              type: array
+              items: string
+    
+    system_prompt: |
+      あなたは組織分析とキーマン発掘の専門家です。
+      
+      ## 役割
+      ターゲット企業の組織構造を可視化し、
+      アプローチすべきキーマンを特定してください。
+      
+      ## キーマンの判定基準
+      - Decision Maker: 予算権限を持つ（部長以上、〇〇責任者）
+      - Influencer: 技術選定に影響力がある（テックリード、アーキテクト）
+      - User: 実際に製品を使う立場
+      - Blocker: 導入に反対する可能性がある立場
+      
+      ## 情報ソースの活用
+      1. LinkedIn: 役職、キャリア、スキル
+      2. 採用JD: 部門ミッション、求めるスキル → 現在の課題の裏返し
+      3. イベント登壇: その人の専門性、発信内容
+      4. 技術ブログ: 関心領域、技術スタック
+      
+      ## 注意点
+      - 個人情報保護に配慮（公開情報のみ使用）
+      - 推測は明確にラベル付け
+
+  # ------------------------------------------
+  # 3. BDR Strategist Agent
+  # STEP 4 & 5: 文脈作成と優先順位付け
+  # ------------------------------------------
+  bdr_strategist:
+    name: "BDR Strategist"
+    japanese_name: "提案構築くん"
+    description: "Synthesize WHY YOU / WHY NOW"
+    role: |
+      収集した企業情報とキーマン情報を統合し、
+      パーソナライズされたアプローチ戦略を構築する専門エージェント。
+    
+    enabled: true
+    priority: 3
+    depends_on:
+      - corporate_profiler
+      - talent_scout
+    
+    capabilities:
+      - context_synthesis
+      - message_personalization
+      - timing_analysis
+      - approach_scripting
+    
+    tools:
+      - name: case_study_matcher
+        type: function_call
+        description: "類似企業の導入事例をマッチング"
+        config:
+          case_study_db: "./data/case-studies.json"
+          matching_criteria:
+            - industry
+            - company_size
+            - pain_point
+      
+      - name: context_generator
+        type: function_call
+        description: "WHY YOU / WHY NOWメッセージ生成"
+    
+    output_schema:
+      approach_strategies:
+        type: array
+        items:
+          type: object
+          properties:
+            target_person:
+              type: object
+              properties:
+                name: string
+                title: string
+            priority:
+              type: integer
+              min: 1
+              max: 5
+            why_you:
+              type: string
+              description: "なぜこの人にアプローチするか"
+            why_now:
+              type: string
+              description: "なぜ今がタイミングか"
+            ice_breaker:
+              type: string
+              description: "最初のフック（共通点、最近の活動など）"
+            pain_to_solution:
+              type: string
+              description: "課題と提案の紐付け"
+            recommended_channel:
+              type: string
+              enum: ["linkedin", "email", "event", "referral"]
+            sample_message:
+              type: string
+              description: "実際のアプローチ文例"
+    
+    system_prompt: |
+      あなたはエンタープライズ営業の戦略家です。
+      
+      ## 役割
+      Corporate ProfilerとTalent Scoutから得た情報を統合し、
+      各キーマンへのパーソナライズされたアプローチ戦略を構築してください。
+      
+      ## WHY YOUの構築ロジック
+      1. その人の役職・ミッション → 関心事項を推測
+      2. キャリア背景 → 価値観・判断軸を推測
+      3. 発信内容 → 具体的な課題認識を特定
+      → これらを組み合わせて「なぜこの人に話すべきか」を言語化
+      
+      ## WHY NOWの構築ロジック
+      1. 企業のトリガーイベント（組織変更、新任、新規事業）
+      2. 業界のトレンド・規制変更
+      3. 競合の動き
+      → これらから「今アプローチすべき理由」を言語化
+      
+      ## Ice Breakerの設計
+      - 最近の登壇・発信への言及
+      - 共通のコネクション
+      - 業界トピックへの問いかけ
+      ※ 営業感を出さず、自然な会話の入り口を作る
+      
+      ## 出力トーン
+      - 日本のエンタープライズ営業に適した丁寧さ
+      - 押し付けがましくない提案型
+      - 相手の課題に寄り添うスタンス
+    
+    reasoning_template: |
+      ## 推論プロセス
+      
+      ### Fact A（企業課題）
+      {corporate_pain_point}
+      
+      ### Fact B（部門ミッション）
+      {department_mission}
+      
+      ### Fact C（キーマン背景）
+      {keyman_background}
+      
+      ### 推論
+      Fact A + B + C → {synthesized_insight}
+      
+      ### アプローチ戦略
+      {approach_strategy}
