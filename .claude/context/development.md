@@ -1,161 +1,145 @@
-# Development Guidelines
+# AntiGravity Development Guidelines
 
-**Last Updated**: 2025-10-26
-**Version**: 2.0.1
+## 🎯 Development Philosophy
 
-**Priority**: ⭐⭐⭐
+### Core Principles
+1. **MCP First** - ツールはMCP経由で使用
+2. **Issue Driven** - 全作業はIssueに紐づく
+3. **Test Coverage** - テストなきコードなし
+4. **Documentation** - コードと同時にドキュメント更新
 
-## 🦀 Rust Development
+---
 
-### Core Libraries
-- `tokio` - 非同期ランタイム
-- `async-trait` - Trait非同期メソッド
-- `serde` + `serde_json` - シリアライゼーション
-- `thiserror` + `anyhow` - エラーハンドリング
-- `clap` - CLI フレームワーク
-- `octocrab` - GitHub API
-- `tracing` + `tracing-subscriber` - ログ
+## 🔀 Git Workflow
 
-### Coding Standards
-```bash
-# Clippy警告0件
-cargo clippy -- -D warnings
-
-# Rustfmt適用
-cargo fmt
-
-# 全public APIにRustdocコメント
-/// Documentation here
+### Branch Strategy
+```
+main
+  └── develop
+        ├── feature/issue-XXX-description
+        ├── fix/issue-XXX-description
+        └── refactor/issue-XXX-description
 ```
 
-### Testing
-```bash
-# 単体テスト + 統合テスト
-cargo test --all
+### Branch Naming
+```
+type/issue-number-short-description
 
-# 特定パッケージ
-cargo test --package miyabi-agents
-
-# カバレッジ目標: 80%以上
+Examples:
+- feature/issue-123-add-dashboard
+- fix/issue-456-memory-leak
+- refactor/issue-789-cleanup-api
 ```
 
-### Error Handling
+### Commit Convention
+```
+type(scope): description
+
+feat(dashboard): add agent status panel
+fix(mcp): resolve connection timeout
+docs(readme): update installation guide
+refactor(core): simplify agent communication
+test(api): add integration tests
+chore(deps): update dependencies
+```
+
+---
+
+## 🏗️ Code Standards
+
+### Rust
 ```rust
-use miyabi_types::error::{MiyabiError, Result};
+// cargo fmt で整形
+// cargo clippy で静的解析
 
-fn my_function() -> Result<String> {
-    // Result型を常に使用
-    Ok("success".to_string())
-}
+// 命名規則
+struct AgentConfig { ... }  // PascalCase
+fn process_task() { ... }   // snake_case
+const MAX_AGENTS: u32 = 21; // SCREAMING_SNAKE_CASE
 ```
 
-**詳細**: [rust.md](./rust.md)
+### TypeScript
+```typescript
+// ESLint + Prettier で整形
 
-## 📘 TypeScript (レガシー - 参考)
+// 命名規則
+interface AgentConfig { ... }  // PascalCase
+function processTask() { ... } // camelCase
+const MAX_AGENTS = 21;         // SCREAMING_SNAKE_CASE
+```
 
-**Note**: TypeScript版は段階的にRustに移行中
+---
 
-- Strict mode必須
-- ESM形式（import/export）
-- Vitest使用
+## 🧪 Testing
 
-**詳細**: [typescript.md](./typescript.md)
+### Rust Tests
+```bash
+# 全テスト実行
+cargo test
+
+# 特定テスト
+cargo test test_agent_communication
+
+# カバレッジ
+cargo tarpaulin
+```
+
+### TypeScript Tests
+```bash
+# Jest実行
+npm test
+
+# Watch mode
+npm test -- --watch
+```
+
+---
+
+## 📦 Build & Deploy
+
+### Local Build
+```bash
+# Rust
+cargo build --release
+
+# Frontend
+npm run build
+```
+
+### CI/CD Pipeline
+1. Push to feature branch
+2. GitHub Actions runs tests
+3. Create PR to develop
+4. Review & Merge
+5. Auto-deploy to staging
+6. Merge to main
+7. Auto-deploy to production
+
+---
 
 ## 🔐 Security
 
-### トークン管理
-```bash
-# 環境変数推奨
-export GITHUB_TOKEN=ghp_xxx
-export ANTHROPIC_API_KEY=sk-xxx
+### Secrets Management
+- 環境変数は `.env` (gitignore済み)
+- Secrets は GitHub Secrets 経由
+- API キーはコードに含めない
 
-# .miyabi.ymlはgitignore
-echo ".miyabi.yml" >> .gitignore
-```
+### Code Review Checklist
+- [ ] セキュリティホールなし
+- [ ] 機密情報の露出なし
+- [ ] 入力バリデーション済み
+- [ ] エラーハンドリング適切
 
-### Dependabot & CodeQL
-- Dependabot有効（自動セキュリティアップデート）
-- CodeQL有効（静的解析）
+---
 
-## 📝 Commit Conventions
+## 📊 Performance
 
-### Conventional Commits準拠
-```
-feat: Add new feature
-fix: Fix bug
-chore: Update dependencies
-docs: Update documentation
-refactor: Refactor code
-test: Add tests
-```
+### Metrics
+- レスポンスタイム < 200ms
+- メモリ使用量 < 512MB
+- CPU使用率 < 80%
 
-### Git Commit Process
-```bash
-# ステータス確認
-git status
-
-# 変更確認
-git diff
-
-# ステージング
-git add <files>
-
-# コミット（必ずHEREDOC使用）
-git commit -m "$(cat <<'EOF'
-feat(miyabi-core): add new feature
-
-Description here
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
-```
-
-**詳細**: CLAUDE.md "Committing changes with git"セクション
-
-## 🚀 Build & Release
-
-### Development Build
-```bash
-cargo build
-```
-
-### Release Build
-```bash
-cargo build --release
-# Binary: target/release/miyabi
-```
-
-### CI/CD
-**GitHub Actions**: `.github/workflows/rust.yml`
-- Test job: ubuntu-latest, macos-latest, windows-latest
-- Build job: リリースバイナリ生成
-- Artifact upload: `miyabi` / `miyabi.exe`
-
-## 📊 Quality Metrics
-
-### Code Quality Targets
-- **Clippy警告**: 0件
-- **テストカバレッジ**: 80%以上
-- **Rustdocカバレッジ**: 100% (public API)
-- **ビルド時間**: <5分 (CI)
-
-### ReviewAgent Scoring (100点満点)
-- 90-100点: `quality:excellent`
-- 80-89点: `quality:good`
-- 70-79点: `quality:fair`
-- <70点: `quality:needs-improvement`
-
-## 🔗 Related Modules
-
-- **Rust**: [rust.md](./rust.md) - Rust詳細ガイド
-- **Protocols**: [protocols.md](./protocols.md) - タスク管理・報告
-- **Core Rules**: [core-rules.md](./core-rules.md) - MCP/Benchmark/Context7
-
-## 📖 Detailed Documentation
-
-- **Rust Migration**: `docs/RUST_MIGRATION_REQUIREMENTS.md`
-- **Rust Migration Sprint**: `docs/RUST_MIGRATION_SPRINT_PLAN.md`
-- **Rust Migration Checklist**: `.claude/RUST_MIGRATION_CHECKLIST.md`
+### Optimization Guidelines
+1. 機能完成後に最適化
+2. プロファイリングで検証
+3. 計測なき最適化なし

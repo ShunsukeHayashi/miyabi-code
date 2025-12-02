@@ -1,156 +1,126 @@
-# Worktree Protocol - Git Worktree並列実行
+# AntiGravity Git Worktree Guide
 
-**Last Updated**: 2025-10-26
-**Version**: 2.0.1
+## 🌳 Worktree Overview
 
-**Priority**: ⭐⭐⭐
+Git Worktreeは、単一リポジトリから複数の作業ディレクトリを作成する機能です。
+並列開発やエージェント分離に最適です。
 
-## 🔗 概要
+---
 
-**Git Worktree並列実行**: Worktree単位でAgent並列実行を実現
-
-```
-CoordinatorAgent (Main Process)
-    │
-    ├─ Worktree #1 (Issue #270) → CodeGenAgent
-    ├─ Worktree #2 (Issue #271) → ReviewAgent
-    └─ Worktree #3 (Issue #272) → DeploymentAgent
-    │
-    └─ Merge Back to Main
-```
-
-## 📁 Worktreeディレクトリ構造
+## 📂 Worktree Structure
 
 ```
-.worktrees/
-├── issue-270/                  # Issue #270専用Worktree
-│   ├── .agent-context.json     # 機械可読コンテキスト
-│   ├── EXECUTION_CONTEXT.md    # 人間可読コンテキスト
-│   └── [project files]
-├── issue-271/
-└── issue-272/
+AntiGravity/                    # メインワークツリー (main/develop)
+├── .worktrees/
+│   ├── feature-dashboard/      # ダッシュボード開発
+│   ├── feature-mcp/            # MCP統合開発
+│   ├── hotfix-urgent/          # 緊急修正用
+│   └── agent-codegen/          # CodeGenエージェント専用
 ```
 
-### .agent-context.json
-```json
-{
-  "agentType": "CodeGenAgent",
-  "agentStatus": "executing",
-  "task": { /* Task詳細 */ },
-  "issue": { /* Issue詳細 */ },
-  "config": { /* Agent設定 */ },
-  "promptPath": ".claude/agents/prompts/coding/codegen-agent-prompt.md",
-  "worktreeInfo": { /* Worktree情報 */ }
-}
-```
+---
 
-### EXECUTION_CONTEXT.md
-- Issue情報（タイトル、URL、ラベル）
-- Task情報（依存関係、推定時間）
-- Agent情報（種別、ステータス、プロンプトパス）
-- Worktree情報（パス、ブランチ、セッションID）
+## 🛠️ Worktree Commands
 
-## 🔄 Worktreeライフサイクルプロトコル
-
-**完全なシーケンスプロトコル**: `docs/WORKTREE_PROTOCOL.md`
-
-### Phase 1: Worktree Creation
+### 作成
 ```bash
-# CoordinatorAgentが実行
-git worktree add .worktrees/issue-270 -b worktree/issue-270
+# 新規ブランチ + ワークツリー作成
+git worktree add .worktrees/feature-XXX -b feature/issue-XXX
+
+# 既存ブランチからワークツリー作成
+git worktree add .worktrees/hotfix-YYY hotfix/issue-YYY
 ```
 
-### Phase 2: Agent Assignment
-- Task typeベースの自動Agent割り当て
-- `.agent-context.json` + `EXECUTION_CONTEXT.md` 生成
-
-### Phase 3: Execution
+### 一覧
 ```bash
-cd .worktrees/issue-270
-# Claude Code実行（Agent固有プロンプト使用）
-# git commit（Conventional Commits準拠）
-```
-
-### Phase 4: Cleanup
-```bash
-# Mainブランチにマージ
-git merge worktree/issue-270
-
-# Worktree削除
-git worktree remove .worktrees/issue-270
-```
-
-## 🚀 実行方法
-
-### CLI実行
-```bash
-# 単一Issue
-miyabi agent run coordinator --issue 270
-
-# 並列実行（Worktreeベース）
-miyabi agent run coordinator --issues 270,271,272 --concurrency 3
-```
-
-### Rust API
-```rust
-use miyabi_worktree::WorktreeManager;
-
-let manager = WorktreeManager::new(config);
-let worktree = manager.create_worktree(issue_number).await?;
-// Agent実行
-manager.merge_worktree(worktree).await?;
-manager.remove_worktree(worktree).await?;
-```
-
-## 📋 Agent状態管理
-
-**Agent状態遷移**:
-```
-idle → executing → completed / failed
-```
-
-**統計情報**:
-- Worktree統計: active, idle, completed, failed
-- Agent統計: byAgent, byStatus
-
-## ⚠️ トラブルシューティング
-
-### Worktreeが残った場合
-```bash
-# すべてのWorktreeを確認
+# ワークツリー一覧
 git worktree list
 
-# 不要なWorktreeを削除
-git worktree remove .worktrees/issue-270
+# MCP経由
+miyabi-git-inspector:git_worktree_list()
+```
 
-# すべてのstaleなWorktreeをクリーンアップ
+### 削除
+```bash
+# ワークツリー削除
+git worktree remove .worktrees/feature-XXX
+
+# 強制削除
+git worktree remove --force .worktrees/feature-XXX
+
+# 削除後のクリーンアップ
 git worktree prune
 ```
 
-### 並列実行数の調整
-```bash
-# 低スペックマシン: concurrency=1
-miyabi agent run coordinator --issues 270 --concurrency 1
+---
 
-# 高スペックマシン: concurrency=5
-miyabi agent run coordinator --issues 270,271,272,273,274 --concurrency 5
+## 🤖 Agent-Worktree Mapping
+
+各エージェントに専用のワークツリーを割り当てることで、並列作業が可能になります。
+
+| Agent | Worktree | Branch Pattern |
+|-------|----------|----------------|
+| CodeGen | .worktrees/codegen | feature/* |
+| Review | (main worktree) | - |
+| Hotfix | .worktrees/hotfix | hotfix/* |
+| Refactor | .worktrees/refactor | refactor/* |
+
+---
+
+## ⚠️ Best Practices
+
+### DO ✅
+- 長期作業には専用ワークツリー作成
+- 完了後は速やかに削除
+- ブランチ名を明確に
+
+### DON'T ❌
+- 同じブランチを複数ワークツリーで使用
+- 未マージのまま長期放置
+- mainブランチでのワークツリー作成
+
+---
+
+## 🔄 Workflow Example
+
+```bash
+# 1. Issue開始
+git worktree add .worktrees/feature-123 -b feature/issue-123
+
+# 2. 作業ディレクトリへ移動
+cd .worktrees/feature-123
+
+# 3. 開発作業
+# ... coding ...
+
+# 4. コミット & プッシュ
+git add .
+git commit -m "feat(dashboard): implement agent panel"
+git push -u origin feature/issue-123
+
+# 5. PR作成 (MCP経由)
+# miyabi-github:github_create_pr(...)
+
+# 6. マージ後、ワークツリー削除
+cd ../..
+git worktree remove .worktrees/feature-123
+git branch -d feature/issue-123
 ```
 
-## 🎯 メリット
+---
 
-1. **並列実行の真の実現** - 各IssueがWorktreeで独立
-2. **コンフリクトの最小化** - 独立したディレクトリ
-3. **簡単なロールバック** - Worktree単位で破棄可能
-4. **デバッグが容易** - 各Worktreeで独立したログ
-5. **スケーラビリティ** - Worktree数に制限なし
+## 🔧 Troubleshooting
 
-## 🔗 Related Modules
+### ロックされたワークツリー
+```bash
+# ロックファイル削除
+rm -rf .git/worktrees/feature-XXX/locked
+git worktree prune
+```
 
-- **Agents**: [agents.md](./agents.md) - Agent並列実行ルール
-- **Architecture**: [architecture.md](./architecture.md) - Worktree並列実行アーキテクチャ
-
-## 📖 Detailed Documentation
-
-- **Worktree Protocol**: `docs/WORKTREE_PROTOCOL.md` (完全仕様)
-- **Rust Implementation**: `crates/miyabi-worktree/src/lib.rs`
-- **WorktreeManager**: `packages/coding-agents/worktree/worktree-manager.ts` (TypeScript - レガシー)
+### 不整合な状態
+```bash
+# 強制リフレッシュ
+git worktree repair
+git worktree prune
+```
