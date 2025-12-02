@@ -5827,7 +5827,7 @@ async def github_login_redirect():
         provider="github",
         redirect_uri="/onboarding/",
         ttl_seconds=600,
-        extra={"scope": "repo,read:user,user:email"},
+        extra={"scope": "repo,user,read:org,admin:repo_hook,workflow"},
     )
 
     # Redirect to GitHub OAuth
@@ -5835,7 +5835,7 @@ async def github_login_redirect():
         f"https://github.com/login/oauth/authorize"
         f"?client_id={GITHUB_OAUTH_CLIENT_ID}"
         f"&redirect_uri={GITHUB_OAUTH_CALLBACK_URL}"
-        f"&scope=repo,read:user,user:email"
+        f"&scope=repo,user,read:org,admin:repo_hook,workflow"
         f"&state={state}"
     )
     return RedirectResponse(url=github_auth_url)

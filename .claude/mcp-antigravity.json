@@ -1,0 +1,42 @@
+{
+  "mcpServers": {
+    "miyabi-github": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/AntiGravity/mcp-servers/miyabi-github/dist/index.js"],
+      "env": {
+        "GITHUB_TOKEN": "YOUR_GITHUB_TOKEN_HERE",
+        "GITHUB_DEFAULT_OWNER": "ShunsukeHayashi",
+        "GITHUB_DEFAULT_REPO": "AntiGravity_miyabi_edition"
+      }
+    },
+    "miyabi-tmux": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/AntiGravity/mcp-servers/miyabi-tmux/dist/index.js"]
+    },
+    "miyabi-git-inspector": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/AntiGravity/mcp-servers/miyabi-git-inspector/dist/index.js"],
+      "env": {
+        "MIYABI_ROOT": "/Users/shunsuke/Dev/AntiGravity"
+      }
+    },
+    "miyabi-file-watcher": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/AntiGravity/mcp-servers/miyabi-file-watcher/dist/index.js"],
+      "env": {
+        "MIYABI_ROOT": "/Users/shunsuke/Dev/AntiGravity"
+      }
+    },
+    "miyabi-log-aggregator": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/AntiGravity/mcp-servers/miyabi-log-aggregator/dist/index.js"],
+      "env": {
+        "MIYABI_ROOT": "/Users/shunsuke/Dev/AntiGravity"
+      }
+    },
+    "miyabi-resource-monitor": {
+      "command": "node",
+      "args": ["/Users/shunsuke/Dev/AntiGravity/mcp-servers/miyabi-resource-monitor/dist/index.js"]
+    }
+  }
+}

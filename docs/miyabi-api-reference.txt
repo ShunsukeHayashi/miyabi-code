@@ -1,0 +1,362 @@
+# Miyabi MCP API Reference
+# Quick reference for all available MCP tools
+
+================================================================================
+MIYABI-GITHUB (GitHub Operations)
+================================================================================
+
+github_list_issues(state?, labels?, per_page?)
+  List repository issues
+  state: "open" | "closed" | "all" (default: "open")
+  labels: comma-separated label names
+  per_page: number (default: 30)
+
+github_get_issue(issue_number)
+  Get detailed issue information
+
+github_create_issue(title, body?, labels?, assignees?)
+  Create new issue
+
+github_update_issue(issue_number, title?, body?, state?, labels?)
+  Update existing issue
+
+github_add_comment(issue_number, body)
+  Add comment to issue or PR
+
+github_list_prs(state?, per_page?)
+  List pull requests
+
+github_get_pr(pull_number)
+  Get PR details
+
+github_create_pr(title, head, base?, body?, draft?)
+  Create pull request
+
+github_merge_pr(pull_number, merge_method?)
+  Merge PR (merge_method: "merge" | "squash" | "rebase")
+
+github_list_labels()
+  List repository labels
+
+github_add_labels(issue_number, labels[])
+  Add labels to issue/PR
+
+github_list_milestones(state?)
+  List milestones
+
+dev_issue_create(title, body?, labels?, priority?)
+  Create local DevIssue (offline queue)
+
+dev_issue_list(status?)
+  List local DevIssues
+
+dev_issue_sync(owner?, repo?)
+  Sync queued DevIssues to GitHub
+
+================================================================================
+MIYABI-OBSIDIAN (Knowledge Management)
+================================================================================
+
+obsidian_list_documents(category?, tags?, path?)
+  List vault documents with filters
+
+obsidian_read_document(path)
+  Read document content and frontmatter
+
+obsidian_create_document(path, content, frontmatter?)
+  Create new document
+
+obsidian_update_document(path, content?, frontmatter?)
+  Update existing document
+
+obsidian_search(query, category?, tags?, case_sensitive?)
+  Search documents by content
+
+obsidian_get_tags()
+  Get all unique tags
+
+obsidian_get_categories()
+  Get all unique categories
+
+obsidian_get_directory_tree(base_path?)
+  Get vault directory structure
+
+obsidian_get_backlinks(path)
+  Find documents linking to specified document
+
+================================================================================
+MIYABI-TMUX (Session Management)
+================================================================================
+
+tmux_list_sessions(include_windows?)
+  List all tmux sessions
+
+tmux_list_panes(session?)
+  List panes with details
+
+tmux_send_message(pane_id, message)
+  Send message to pane (A2A protocol)
+
+tmux_broadcast(message, from_source?)
+  Broadcast to all sessions
+
+tmux_pane_capture(pane_id, lines?)
+  Capture pane content
+
+tmux_pane_search(pane_id, pattern)
+  Search pane content
+
+tmux_pane_tail(pane_id, lines)
+  Get last N lines from pane
+
+tmux_pane_is_busy(pane_id)
+  Check if pane is running command
+
+tmux_pane_current_command(pane_id)
+  Get current command in pane
+
+tmux_join_commhub()
+  Join communication hub
+
+tmux_get_commhub_status()
+  Get CommHub status
+
+================================================================================
+MIYABI-GIT-INSPECTOR (Git Operations)
+================================================================================
+
+git_status()
+  Get repository status
+
+git_branch_list()
+  List branches with remote info
+
+git_current_branch()
+  Get current branch name
+
+git_log(limit?)
+  Get commit history
+
+git_worktree_list()
+  List git worktrees
+
+git_diff(file?)
+  Get unstaged changes diff
+
+git_staged_diff()
+  Get staged changes diff
+
+git_remote_list()
+  List remotes
+
+git_branch_ahead_behind(branch?)
+  Check commits ahead/behind origin
+
+git_file_history(file, limit?)
+  Get commit history for file
+
+================================================================================
+MIYABI-RESOURCE-MONITOR (System Monitoring)
+================================================================================
+
+resource_cpu()
+  Get CPU usage (overall and per-core)
+
+resource_memory()
+  Get memory usage (RAM and swap)
+
+resource_disk(path?)
+  Get disk usage
+
+resource_load()
+  Get system load average
+
+resource_overview()
+  Get comprehensive system overview
+
+resource_processes(limit?)
+  Get top processes by CPU
+
+resource_uptime()
+  Get system uptime
+
+resource_network_stats()
+  Get network interface statistics
+
+================================================================================
+MIYABI-LOG-AGGREGATOR (Log Management)
+================================================================================
+
+log_sources()
+  List available log sources
+
+log_get_recent(source?, level?, limit?, minutes?)
+  Get recent log entries
+
+log_search(query, source?, level?)
+  Search logs
+
+log_get_errors(minutes?)
+  Get error-level entries
+
+log_get_warnings(minutes?)
+  Get warning-level entries
+
+log_tail(source, lines)
+  Get last N lines from log
+
+================================================================================
+MIYABI-PROCESS-INSPECTOR (Process Management)
+================================================================================
+
+process_info(pid)
+  Get detailed process information
+
+process_list(sort_by?, limit?)
+  List processes (sort: cpu, memory, pid, name)
+
+process_search(query, limit?)
+  Search processes by name/command
+
+process_tree()
+  Get process tree
+
+process_file_descriptors(pid)
+  Get file descriptors for process
+
+process_environment(pid)
+  Get environment variables
+
+process_children(pid)
+  Get child processes
+
+process_top(limit?)
+  Get top processes by CPU/memory
+
+================================================================================
+MIYABI-NETWORK-INSPECTOR (Network Monitoring)
+================================================================================
+
+network_interfaces()
+  List network interfaces
+
+network_connections()
+  List active connections
+
+network_listening_ports(protocol?)
+  List listening ports (tcp, udp, all)
+
+network_stats()
+  Get network statistics
+
+network_gateway()
+  Get default gateway
+
+network_ping(host)
+  Ping host for reachability
+
+network_bandwidth()
+  Get current bandwidth usage
+
+network_overview()
+  Get comprehensive network overview
+
+================================================================================
+GEMINI3-UIUX-DESIGNER (Design Tools)
+================================================================================
+
+review_design(designCode, designDescription, context?)
+  Review UI/UX with 100-point scoring
+  Returns: score, feedback, rating
+
+generate_design_system(projectName, accentColor?, brandIdentity?)
+  Generate Ive-inspired design system
+
+create_wireframe(pageTitle, purpose, userFlow?)
+  Create minimalist wireframes
+
+generate_high_fidelity_mockup(pageTitle, content, designSystem?)
+  Generate full React mockup
+
+check_accessibility(designCode, wcagLevel?)
+  WCAG 2.1 accessibility audit
+
+analyze_usability(designDescription, userTask, designCode?)
+  Nielsen heuristics analysis
+
+optimize_ux_writing(originalText, context, tone?)
+  Optimize microcopy and UI text
+
+design_interaction_flow(flowName, objective, steps?)
+  Design interaction flows
+
+create_animation_specs(animationName, element, purpose)
+  Create subtle animation specifications
+
+evaluate_consistency(designs[], designSystem?)
+  Evaluate design consistency
+
+================================================================================
+MIYABI-COMMERCIAL-AGENTS (Marketing Tools)
+================================================================================
+
+tsubuyakun_generate_sns_strategy(platform, audience, goals, budget?, current_followers?)
+  Generate SNS strategy
+
+tsubuyakun_generate_x_post(topic?, content?, style?, language?, max_length?, include_hashtags?)
+  Generate optimized X/Twitter post
+
+tsubuyakun_post_to_x(topic?, content?, style?, language?, include_hashtags?)
+  Post directly to X (requires API credentials)
+
+tsubuyakun_analyze_x_account(account_url, analysis_depth?)
+  Analyze X account performance
+
+kakuchan_generate_content(topic, type, tone, target_audience, keywords?, length?)
+  Generate SEO-optimized content
+  type: blog, email, social, video-script, whitepaper
+
+dougakun_optimize_youtube(channel_name, niche, goals, current_subscribers?, upload_frequency?)
+  Optimize YouTube channel strategy
+
+hiromeru_create_marketing_plan(product, target_market, objectives, budget, duration_months)
+  Create comprehensive marketing plan
+
+kazoeru_analyze_data(data_source, metrics, time_period, goals?)
+  Advanced data analytics
+
+sasaeru_optimize_crm(company_name, industry, size, stage)
+  CRM optimization (Enterprise only)
+
+================================================================================
+MIYABI-RULES (Rule Engine)
+================================================================================
+
+miyabi_rules_list(priority?, category?)
+  List available rules
+
+miyabi_rules_validate(task_description, rule_ids?)
+  Validate task against rules
+
+miyabi_rules_execute(rule_id, context?)
+  Execute specific rule
+
+miyabi_rules_sync()
+  Sync local rules to cloud
+
+miyabi_rules_get_context(module_name)
+  Get context module content
+
+================================================================================
+CONTEXT7 (External Documentation)
+================================================================================
+
+resolve-library-id(libraryName)
+  Resolve package name to Context7 library ID
+
+get-library-docs(context7CompatibleLibraryID, topic?, tokens?)
+  Fetch library documentation
+
+================================================================================
+END OF API REFERENCE
+================================================================================

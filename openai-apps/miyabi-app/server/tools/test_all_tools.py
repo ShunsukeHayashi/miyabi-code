@@ -2,13 +2,13 @@
 """
 Comprehensive Tool Testing Script for Miyabi MCP Server
 
-This script tests all 63 tools with safe, read-only operations where possible.
+This script tests all 67+ tools with safe, read-only operations where possible.
 For write operations, it uses mock/test data that won't affect production.
 
 Usage:
     python test_all_tools.py [--verbose] [--category CATEGORY]
 
-Categories: data, ui, action, agent, all
+Categories: data, ui, action, agent, diagnostic, all
 """
 
 import asyncio
@@ -45,6 +45,12 @@ class ToolTest:
 
 # Safe test definitions for each tool
 TOOL_TESTS = [
+    # === DIAGNOSTIC Tools (Priority - Run these first) ===
+    ToolTest("miyabi_connector_ping", "diagnostic", {}, ["connector", "mcp_server", "version"]),
+    ToolTest("miyabi_tools_self_check", "diagnostic", {"category": "all", "verbose": False}),
+    ToolTest("miyabi_layer_diagnostics", "diagnostic", {"include_env": True}),
+    ToolTest("miyabi_suggest_fixes", "diagnostic", {}),
+
     # === DATA Tools (Read-only, safe to test) ===
     ToolTest("get_project_status", "data", {}, ["branch", "crates_count"]),
     ToolTest("list_issues", "data", {"state": "open", "limit": 3}),
@@ -228,11 +234,91 @@ async def run_tests(category: Optional[str] = None, verbose: bool = False):
     print(f"{'='*60}\n")
 
 
+async def run_diagnostic_only():
+    """Run only diagnostic tools for quick health check"""
+    print(f"\n{'='*60}")
+    print(f"  Miyabi Quick Health Check")
+    print(f"  Endpoint: {MCP_ENDPOINT}")
+    print(f"  Time: {datetime.now().isoformat()}")
+    print(f"{'='*60}\n")
+
+    diagnostic_tests = [t for t in TOOL_TESTS if t.category == "diagnostic"]
+
+    async with httpx.AsyncClient() as client:
+        # First check: miyabi_connector_ping
+        print("1. Testing connectivity...")
+        try:
+            result = await call_tool(client, "miyabi_connector_ping", {})
+            if result.get("result") and not result.get("error"):
+                content = result["result"].get("content", [])
+                if content:
+                    data = json.loads(content[0].get("text", "{}"))
+                    print(f"   ✅ Connector: {data.get('connector', 'unknown')}")
+                    print(f"   ✅ MCP Server: {data.get('mcp_server', 'unknown')}")
+                    print(f"   📦 Tools: {data.get('tools_count', '?')}")
+                    print(f"   🔖 Version: {data.get('version', '?')}")
+            else:
+                print(f"   ❌ Error: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            print(f"   ❌ Exception: {e}")
+
+        # Second check: miyabi_layer_diagnostics
+        print("\n2. Checking all layers...")
+        try:
+            result = await call_tool(client, "miyabi_layer_diagnostics", {"include_env": True})
+            if result.get("result") and not result.get("error"):
+                content = result["result"].get("content", [])
+                if content:
+                    data = json.loads(content[0].get("text", "{}"))
+                    layers = data.get("layers", {})
+                    for layer_name, layer_data in layers.items():
+                        status = layer_data.get("status", "unknown")
+                        symbol = "✅" if status == "ok" else "⚠️"
+                        print(f"   {symbol} {layer_name}: {status}")
+                    
+                    issues = data.get("issues", [])
+                    if issues:
+                        print("\n   ⚠️ Issues Found:")
+                        for issue in issues:
+                            print(f"      - {issue}")
+            else:
+                print(f"   ❌ Error: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            print(f"   ❌ Exception: {e}")
+
+        # Third check: miyabi_suggest_fixes
+        print("\n3. Getting fix suggestions...")
+        try:
+            result = await call_tool(client, "miyabi_suggest_fixes", {})
+            if result.get("result") and not result.get("error"):
+                content = result["result"].get("content", [])
+                if content:
+                    data = json.loads(content[0].get("text", "{}"))
+                    if data.get("status") == "all_clear":
+                        print(f"   ✅ {data.get('message', 'All systems configured!')}")
+                    else:
+                        fixes = data.get("fixes", [])
+                        print(f"   🔧 {len(fixes)} fix(es) recommended:")
+                        for fix in fixes:
+                            print(f"      [{fix.get('priority', '?')}] {fix.get('issue', '?')}")
+                            print(f"         → {fix.get('fix', '?')}")
+            else:
+                print(f"   ❌ Error: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            print(f"   ❌ Exception: {e}")
+
+    print(f"\n{'='*60}\n")
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Test Miyabi MCP tools")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed output")
-    parser.add_argument("--category", "-c", default="all", help="Category to test (data, ui, action, agent, all)")
+    parser.add_argument("--category", "-c", default="all", help="Category to test (data, ui, action, agent, diagnostic, all)")
+    parser.add_argument("--quick", "-q", action="store_true", help="Run quick diagnostic check only")
     args = parser.parse_args()
 
-    asyncio.run(run_tests(args.category, args.verbose))
+    if args.quick:
+        asyncio.run(run_diagnostic_only())
+    else:
+        asyncio.run(run_tests(args.category, args.verbose))

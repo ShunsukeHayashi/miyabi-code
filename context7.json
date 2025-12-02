@@ -1,0 +1,39 @@
+{
+  "name": "miyabi",
+  "description": "Autonomous AI-powered development framework with 15+ MCP servers, multi-agent orchestration, and comprehensive automation tools for GitHub, Obsidian, and tmux workflows.",
+  "folders": [
+    "docs",
+    ".claude/context",
+    ".claude/guides",
+    ".claude/Skills"
+  ],
+  "excludeFolders": [
+    "target",
+    "node_modules",
+    "dist",
+    ".git",
+    "crates",
+    "packages",
+    ".claude/archive",
+    ".claude/debug",
+    ".claude/legacy",
+    "test-results"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "package-lock.json",
+    "Cargo.lock"
+  ],
+  "rules": [
+    "Always use MCP tools before manual file operations (P0.1 MCP-First)",
+    "Use tmux send-keys with sleep 0.5 for agent-to-agent communication (P0.2 A2A Protocol)",
+    "Read relevant SKILL.md files before creating documents (P0.3 Context Check)",
+    "Create feature branches before making changes to main",
+    "Link all work to GitHub issues",
+    "Run cargo clippy and cargo test before commits",
+    "Use miyabi-* MCP servers for Obsidian, GitHub, and tmux operations",
+    "Follow commit convention: type(scope): description"
+  ],
+  "previousVersions": []
+}

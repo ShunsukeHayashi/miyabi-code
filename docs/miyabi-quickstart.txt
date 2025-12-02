@@ -1,0 +1,190 @@
+# Miyabi Quick Start Guide
+# Essential commands and patterns for immediate productivity
+
+================================================================================
+GETTING STARTED
+================================================================================
+
+1. Check System Status
+----------------------
+Use: resource_overview
+Returns: CPU, memory, disk usage, top processes
+
+2. Check Repository Status
+--------------------------
+Use: git_status
+Returns: modified, staged, untracked files
+
+3. List Available Issues
+------------------------
+Use: github_list_issues(state="open", per_page=10)
+Returns: open issues with labels and assignees
+
+================================================================================
+COMMON WORKFLOWS
+================================================================================
+
+Feature Development
+-------------------
+1. git_create_branch(name="feature/my-feature", from_branch="main")
+2. [make changes using appropriate tools]
+3. cargo_clippy(fix=true)
+4. cargo_test()
+5. git_commit(message="feat(scope): description")
+6. git_push(branch="feature/my-feature")
+7. github_create_pr(title="[feat] My Feature", head="feature/my-feature", body="...")
+
+Bug Fix
+-------
+1. github_get_issue(issue_number=XXX)
+2. git_create_branch(name="fix/issue-XXX")
+3. [fix the bug]
+4. cargo_test()
+5. git_commit(message="fix(scope): description (#XXX)")
+6. github_create_pr(...)
+
+Code Review
+-----------
+1. github_get_pr(pull_number=XXX)
+2. [review changes]
+3. github_add_comment(issue_number=XXX, body="Review feedback...")
+4. github_merge_pr(pull_number=XXX, merge_method="squash")
+
+================================================================================
+AGENT COMMUNICATION (A2A)
+================================================================================
+
+Send Task to Agent
+------------------
+tmux_send_message(
+  pane_id="%50",
+  message="[FROM:coordinator][TO:codegen][TYPE:TASK]Implement feature X"
+)
+
+Check Agent Status
+------------------
+tmux_pane_tail(pane_id="%50", lines=20)
+tmux_pane_is_busy(pane_id="%50")
+
+Broadcast to All
+----------------
+tmux_broadcast(message="System update in progress", from_source="coordinator")
+
+================================================================================
+DOCUMENTATION
+================================================================================
+
+Create New Document
+-------------------
+obsidian_create_document(
+  path="reports/2025-01-15-status.md",
+  content="# Status Report\n\n...",
+  frontmatter={
+    "title": "Status Report",
+    "category": "reports",
+    "tags": ["status", "weekly"],
+    "status": "active"
+  }
+)
+
+Search Documents
+----------------
+obsidian_search(query="deployment", category="guides")
+
+================================================================================
+MONITORING
+================================================================================
+
+Quick Health Check
+------------------
+resource_overview()  → System resources
+git_status()         → Repository state
+github_list_issues(state="open", labels="P0-Critical")  → Critical issues
+
+Log Analysis
+------------
+log_get_errors(minutes=60)    → Errors in last hour
+log_search(query="failed")    → Search for failures
+
+Network Status
+--------------
+network_overview()  → Full network status
+network_ping(host="github.com")  → Check connectivity
+
+================================================================================
+DESIGN TOOLS
+================================================================================
+
+UI Review
+---------
+review_design(
+  designCode="<button className='...'>Click</button>",
+  designDescription="Primary action button for checkout"
+)
+Returns: 100-point score with detailed feedback
+
+Generate Design System
+----------------------
+generate_design_system(
+  projectName="MyApp",
+  accentColor="#3B82F6"
+)
+Returns: Complete design system with colors, typography, spacing
+
+================================================================================
+MARKETING TOOLS
+================================================================================
+
+Generate Twitter Post
+---------------------
+tsubuyakun_generate_x_post(
+  topic="AI development tools",
+  style="engaging",
+  language="ja"
+)
+
+Create Marketing Plan
+---------------------
+hiromeru_create_marketing_plan(
+  product="Miyabi",
+  target_market="AI developers",
+  objectives=["awareness", "adoption"],
+  budget=10000,
+  duration_months=3
+)
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+MCP Not Responding
+------------------
+1. Check: process_search(query="mcp")
+2. Check: log_get_errors(minutes=10)
+3. Restart: [manual restart if needed]
+
+GitHub API Errors
+-----------------
+1. Check: GITHUB_TOKEN environment variable
+2. Check: github_list_issues() for rate limit info
+3. Wait or use different token
+
+Tmux Session Lost
+-----------------
+1. Check: tmux_list_sessions()
+2. Create: tmux new-session -d -s miyabi-orchestra
+3. Reconnect agents
+
+================================================================================
+KEYBOARD SHORTCUTS (Termux)
+================================================================================
+
+Volume Up + Q    → Exit app
+Volume Up + W    → Close tab
+Volume Up + T    → New tab
+Volume Up + N    → Drawer
+Ctrl + A         → tmux prefix
+
+================================================================================
+END OF QUICK START
+================================================================================

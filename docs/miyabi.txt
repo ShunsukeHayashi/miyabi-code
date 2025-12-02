@@ -1,0 +1,334 @@
+# Miyabi Context Documentation
+# Version: 5.2-External
+# Purpose: Externalized context for Context7 and LLM integration
+# Format: Plain text for maximum compatibility
+
+================================================================================
+SECTION 1: OVERVIEW
+================================================================================
+
+Miyabi (雅) is an autonomous AI-powered development and automation framework
+that orchestrates multi-agent workflows through MCP (Model Context Protocol)
+servers. The name "Miyabi" embodies Japanese aesthetic principles of elegance,
+refinement, and sophisticated simplicity.
+
+Key Characteristics:
+- 15+ MCP servers providing 100+ tools
+- Multi-environment support (Mac, Linux, Termux, EC2)
+- Agent orchestration via tmux sessions
+- GitHub-integrated development workflows
+- Obsidian-based knowledge management
+
+================================================================================
+SECTION 2: ARCHITECTURE
+================================================================================
+
+2.1 System Components
+---------------------
+- MCP Servers: Core tool providers (miyabi-*, gemini3-*, lark-*)
+- Agent Orchestrator: tmux-based multi-agent management
+- Knowledge Base: Obsidian vault integration
+- GitHub Integration: Issue/PR automation
+- Resource Monitor: CPU/Memory/Disk/Network tracking
+
+2.2 Environment Matrix
+----------------------
+| Environment | Role | Access |
+|-------------|------|--------|
+| Mac mini | Primary development | Local |
+| EC2 MUGEN | Production server | SSH |
+| EC2 MAJIN | Staging server | SSH |
+| Pixel/Termux | Mobile development | Local |
+
+2.3 Directory Structure
+-----------------------
+miyabi-private/
+├── crates/           # Rust crates
+│   ├── miyabi-cli/   # Main CLI
+│   ├── miyabi-core/  # Core library
+│   └── miyabi-mcp/   # MCP implementations
+├── packages/         # TypeScript packages
+│   └── mcp-servers/  # MCP server implementations
+├── .claude/          # Claude/AI context files
+│   ├── context/      # Modular context files
+│   └── configs/      # Configuration files
+└── docs/             # Documentation
+
+================================================================================
+SECTION 3: MCP SERVERS
+================================================================================
+
+3.1 Miyabi Core Tools (13 servers)
+----------------------------------
+miyabi-obsidian     - Obsidian vault operations (CRUD, search, tags)
+miyabi-github       - GitHub operations (issues, PRs, workflows, labels)
+miyabi-tmux         - tmux session management (create, send, capture)
+miyabi-file-access  - File operations (read, write, list)
+miyabi-file-watcher - File monitoring (changes, patterns)
+miyabi-git-inspector - Git inspection (status, diff, log, branches)
+miyabi-log-aggregator - Log aggregation (search, filter, tail)
+miyabi-network-inspector - Network monitoring (connections, ports)
+miyabi-process-inspector - Process monitoring (list, tree, info)
+miyabi-resource-monitor - Resource monitoring (CPU, memory, disk)
+miyabi-rules        - Rule engine (validation, execution)
+miyabi-sse-gateway  - SSE gateway for real-time events
+miyabi-mcp          - Main MCP server coordinator
+
+3.2 AI Integration (4 servers)
+------------------------------
+miyabi-codex        - Codex CLI integration (exec, reply, resume)
+miyabi-openai-assistant - OpenAI Assistant API integration
+miyabi-commercial-agents - Commercial agent tools (SNS, marketing)
+miyabi-claude-code  - Claude Code session management
+
+3.3 Gemini 3 Series (2 servers)
+-------------------------------
+gemini3-uiux-designer - UI/UX design review (Ive principles)
+  - review_design: 100-point scoring system
+  - generate_design_system: Grayscale + accent color systems
+  - create_wireframe: Minimalist wireframes
+  - check_accessibility: WCAG 2.1 compliance
+  - analyze_usability: Nielsen heuristics
+
+gemini3-adaptive-runtime - Adaptive runtime for dynamic execution
+
+3.4 Lark Integration (3 servers)
+--------------------------------
+lark-openapi-enhanced - Lark API (messages, documents, sheets)
+lark-wiki-agents      - Lark Wiki operations
+lark-mcp-enhanced     - Enhanced Lark features
+
+================================================================================
+SECTION 4: AGENT SYSTEM
+================================================================================
+
+4.1 Core Agents (指揮系)
+------------------------
+shikiroon (シキルーン) - Coordinator: Orchestrates all agents
+tsukuroon (ツクルーン) - CodeGen: Code generation and modification
+medaman (メダマン)     - Review: Code review and quality assurance
+
+4.2 Discovery Agents (発見系)
+-----------------------------
+mitsukeroon (ミツケルーン) - Issue: Issue discovery and triage
+matomeroon (マトメルーン)  - PR: Pull request management
+hakoboon (ハコブーン)      - Deploy: Deployment automation
+tsunagun (ツナグン)        - Refresher: Context refresh
+
+4.3 Commercial Agents (商用系)
+------------------------------
+tsubuyakun (つぶやくん)  - SNS Strategy (X/Twitter optimization)
+kakuchan (カクちゃん)    - Content Creation (SEO-optimized)
+dougakun (動画くん)      - YouTube optimization
+hiromeru (ヒロメル)      - Marketing campaign planning
+kazoeru (カゾエル)       - Data analytics
+sasaeru (ササエル)       - CRM optimization (Enterprise)
+
+4.4 Agent TCG Card System
+-------------------------
+Each agent has a trading card representation:
+- Rarity: R, SR, SSR, UR
+- Element: fire, water, earth, wind, light, dark, tech
+- Stats: ATK, DEF, INT, SPD
+- Skills: Unique abilities per agent
+
+================================================================================
+SECTION 5: PRIORITY SYSTEM
+================================================================================
+
+5.1 Priority Levels
+-------------------
+P0 - CRITICAL: MCP-first approach, always use tools before manual work
+P1 - HIGH: A2A protocol compliance, tmux session management
+P2 - MEDIUM: Code quality, testing, documentation
+P3 - LOW: Optimization, refactoring, nice-to-have features
+
+5.2 P0 Rules (Must Follow)
+--------------------------
+P0.1: MCP First - Always check available MCP tools before any task
+P0.2: A2A Protocol - Use tmux send-keys with sleep 0.5 for inter-agent
+P0.3: Context Check - Read relevant SKILL.md before document creation
+P0.4: Error Recovery - Retry failed operations up to 3 times
+
+5.3 P1 Rules (Should Follow)
+----------------------------
+P1.1: Git Workflow - Create branch before changes, commit atomically
+P1.2: Issue Tracking - Link all work to GitHub issues
+P1.3: Documentation - Update docs when changing functionality
+P1.4: Testing - Add tests for new features
+
+================================================================================
+SECTION 6: DEVELOPMENT WORKFLOW
+================================================================================
+
+6.1 Standard Workflow
+---------------------
+1. Check GitHub issues (miyabi-github:list_issues)
+2. Create feature branch (git_create_branch)
+3. Make changes using MCP tools
+4. Run tests (cargo_test)
+5. Run linter (cargo_clippy)
+6. Commit changes (git_commit)
+7. Create PR (create_pr)
+8. Request review
+
+6.2 Rust Development
+--------------------
+Build: cargo build --release
+Test: cargo test
+Lint: cargo clippy
+Format: cargo fmt
+
+6.3 TypeScript Development
+--------------------------
+Install: npm install
+Build: npm run build
+Test: npm run test
+Lint: npm run lint
+
+================================================================================
+SECTION 7: COMMUNICATION PROTOCOLS
+================================================================================
+
+7.1 A2A (Agent-to-Agent) Protocol
+---------------------------------
+Synchronous (tmux send-keys):
+  tmux send-keys -t {session}:{window}.{pane} "{message}" Enter
+  sleep 0.5  # REQUIRED for message processing
+
+Asynchronous (miyabi-a2a):
+  PUSH messages to central queue
+  Conductor processes and routes
+
+7.2 Message Format
+------------------
+[FROM:{source}][TO:{target}][TYPE:{type}]{content}
+
+Types:
+- TASK: New task assignment
+- STATUS: Status update
+- RESULT: Task completion result
+- ERROR: Error notification
+- QUERY: Information request
+
+================================================================================
+SECTION 8: OBSIDIAN INTEGRATION
+================================================================================
+
+8.1 Vault Structure
+-------------------
+MiyabiVault/
+├── agents/          # Agent documentation
+├── architecture/    # System architecture
+├── daily/           # Daily notes
+├── projects/        # Project documentation
+├── reports/         # Generated reports
+└── templates/       # Note templates
+
+8.2 Frontmatter Schema
+----------------------
+---
+title: Document Title
+category: agents|architecture|reports|projects
+tags: [tag1, tag2]
+status: draft|active|archived
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+---
+
+8.3 MCP Operations
+------------------
+obsidian_list_documents - List all documents with filters
+obsidian_read_document  - Read document content
+obsidian_create_document - Create new document
+obsidian_update_document - Update existing document
+obsidian_search         - Search by content/tags
+
+================================================================================
+SECTION 9: GITHUB INTEGRATION
+================================================================================
+
+9.1 Issue Management
+--------------------
+Labels:
+- Priority: P0-Critical, P1-High, P2-Medium, P3-Low
+- Type: bug, enhancement, documentation, refactor
+- Status: in-progress, blocked, needs-review
+
+9.2 PR Conventions
+------------------
+Title: [type] Brief description
+Body: 
+  - Related issue: #XXX
+  - Changes summary
+  - Testing done
+
+Types: feat, fix, docs, refactor, test, chore
+
+9.3 Commit Convention
+---------------------
+Format: type(scope): description
+
+Types:
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation
+- refactor: Code refactoring
+- test: Adding tests
+- chore: Maintenance
+
+================================================================================
+SECTION 10: TROUBLESHOOTING
+================================================================================
+
+10.1 Common Issues
+------------------
+MCP Connection Failed:
+  - Check server is running
+  - Verify environment variables
+  - Check network connectivity
+
+GitHub API Error:
+  - Verify GITHUB_TOKEN is set
+  - Check rate limits
+  - Ensure correct permissions
+
+Tmux Session Not Found:
+  - List sessions: tmux list-sessions
+  - Create session: tmux new-session -d -s {name}
+
+10.2 Health Checks
+------------------
+resource_overview - System resource status
+claude_mcp_status - MCP server status
+git_status        - Repository status
+process_top       - Top processes by CPU/memory
+
+================================================================================
+SECTION 11: BEST PRACTICES
+================================================================================
+
+11.1 Code Quality
+-----------------
+- Run clippy before commits
+- Keep functions under 50 lines
+- Document public APIs
+- Write tests for new features
+
+11.2 Performance
+----------------
+- Use async/await for I/O operations
+- Batch API calls when possible
+- Cache frequently accessed data
+- Monitor resource usage
+
+11.3 Security
+-------------
+- Never commit secrets
+- Use environment variables for credentials
+- Validate all user inputs
+- Follow least privilege principle
+
+================================================================================
+END OF DOCUMENT
+================================================================================

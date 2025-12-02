@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Miyabi Context7 - Self-hosted documentation retrieval system
+
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, staging, prod]
+  
+  OpenSearchEndpoint:
+    Type: String
+    Description: OpenSearch Serverless collection endpoint
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.11
+    Architectures:
+      - arm64  # Graviton2 for cost savings
+    Environment:
+      Variables:
+        OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
+        INDEX_NAME: miyabi-docs
+
+Resources:
+  # S3 Bucket for documents
+  DocsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub miyabi-context7-docs-${Environment}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # Lambda Layer for dependencies
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: miyabi-context7-deps
+      ContentUri: ./layers/dependencies/
+      CompatibleRuntimes:
+        - python3.11
+      RetentionPolicy: Delete
+
+  # Indexer Lambda
+  IndexerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub miyabi-context7-indexer-${Environment}
+      Handler: indexer.handler
+      CodeUri: ./lambda/
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref DocsBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - aoss:APIAccessAll
+              Resource: '*'
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocsBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .txt
+                  - Name: suffix
+                    Value: .md
+
+  # Query Lambda
+  QueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub miyabi-context7-query-${Environment}
+      Handler: query.handler
+      CodeUri: ./lambda/
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - aoss:APIAccessAll
+              Resource: '*'
+      Events:
+        ResolveLibraryId:
+          Type: Api
+          Properties:
+            Path: /resolve-library-id
+            Method: POST
+            RestApiId: !Ref ApiGateway
+        GetLibraryDocs:
+          Type: Api
+          Properties:
+            Path: /get-library-docs
+            Method: POST
+            RestApiId: !Ref ApiGateway
+        ToolsList:
+          Type: Api
+          Properties:
+            Path: /tools/list
+            Method: GET
+            RestApiId: !Ref ApiGateway
+
+  # API Gateway
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub miyabi-context7-api-${Environment}
+      StageName: !Ref Environment
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Quota:
+            Limit: 10000
+            Period: MONTH
+          Throttle:
+            BurstLimit: 100
+            RateLimit: 50
+      Cors:
+        AllowMethods: "'POST, GET, OPTIONS'"
+        AllowHeaders: "'Content-Type, X-Api-Key'"
+        AllowOrigin: "'*'"
+
+  # API Key
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: !Sub miyabi-context7-key-${Environment}
+      Enabled: true
+      StageKeys:
+        - RestApiId: !Ref ApiGateway
+          StageName: !Ref Environment
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+  
+  DocsBucket:
+    Description: S3 bucket for documents
+    Value: !Ref DocsBucket
+  
+  ApiKeyId:
+    Description: API Key ID (get value from console)
+    Value: !Ref ApiKey
