@@ -1,16 +1,27 @@
 # 🎯 Miyabi Claude Code Skills
 
-**Version**: 2.0.0
-**Last Updated**: 2025-11-22
-**Priority**: ⭐⭐⭐⭐⭐ (P0 Level)
-**Total Skills**: 21 Skills (16 Technical + 5 Business)
+**Version**: 3.2.0
+**Last Updated**: 2025-12-03
+**Priority**: P0 (最優先)
+**Total Skills**: 28 Skills (22 Technical + 6 Core + 5 Business)
 
 ---
 
 ## 📋 概要
 
-このディレクトリには、Claude Codeの能力を拡張する**21個のSpecialized Skills**が格納されています。
+このディレクトリには、Claude Codeの能力を拡張する**28個のSpecialized Skills**が格納されています。
 Skillsは**model-invoked**（モデル自動呼び出し）で、タスクに応じて自動的にアクティベートされます。
+
+### 🆕 v3.2 新機能: 仕様駆動開発スキル
+
+| スキル | 説明 | トリガー例 |
+|-------|------|-----------|
+| **spec-driven-development** | 仕様→設計→実装の順序を強制 | Issue処理、「実装」「specify」 |
+| **natural-language-commands** | 自然言語を最適操作に変換 | 任意の入力 |
+| **mcp-discovery** | MCP優先ツール選択 | 「何ができる？」 |
+| **auto-agent-orchestration** | 複数Agent自動調整 | 「おまかせ」「全部」 |
+| **issue-to-pr-pipeline** | Issue→PR完全自動化 | 「#300」「Issue」 |
+| **dashboard-deployment** | クラウドデプロイ | 「デプロイ」「リリース」 |
 
 ---
 
@@ -66,36 +77,48 @@ graph TD
 
 ## 🔧 P1: Skill Category別一覧
 
-### Technical Skills (15個)
+### Core Skills (6個) - 🆕 自然発動・仕様駆動
 
 | # | Skill | 用途 | 主要ツール | 呼び出しトリガー |
 |---|-------|------|-----------|----------------|
-| 1 | **rust-development** | Rustビルド・テスト・品質 | Bash, Cargo | "build", "test", "clippy" |
-| 2 | **agent-execution** | Agent実行・Worktree管理 | Bash, Git | "run agent", "process issue" |
-| 3 | **issue-analysis** | Issue分析・ラベル推論 | Read, Grep | "analyze issue", "what labels" |
-| 4 | **documentation-generation** | ドキュメント自動生成 | Read, Write | "document", "explain how" |
-| 5 | **git-workflow** | Git操作・PR作成 | Bash, Git | "commit", "create PR" |
-| 6 | **project-setup** | プロジェクト初期化 | Bash, Write | "new project", "integrate Miyabi" |
-| 7 | **debugging-troubleshooting** | デバッグ・エラー解析 | Bash, Read | "debug", "why failing" |
-| 8 | **performance-analysis** | パフォーマンス分析 | Bash, Profiler | "optimize", "slow" |
-| 9 | **security-audit** | セキュリティ監査 | Bash, Audit | "scan vulnerabilities", "CVE" |
-| 10 | **dependency-management** | 依存関係管理 | Bash, Cargo | "update dependencies" |
-| 11 | **tmux-iterm-integration** | tmux×iTerm2統合 | Bash, tmux | "create session", "agent pane" |
-| 12 | **context-eng** | コンテキストエンジニアリング | Read, Write | "context", "knowledge" |
-| 13 | **claude-code-x** | Claude Code拡張機能 | Bash, API | "parallel", "headless" |
-| 14 | **voicevox** | 音声合成統合 | Bash, API | "speak", "narrate" |
-| 15 | **paper2agent** | 論文→Agent変換 | Read, Write | "paper to agent", "research" |
-| 16 | **tdd-workflow** | TDD Red-Green-Refactor | Bash, Write | "TDD", "write tests first" |
+| 1 | **spec-driven-development** | 仕様駆動開発ワークフロー | All | Issue処理、「実装」「specify」「設計」 |
+| 2 | **natural-language-commands** | 自然言語→操作変換 | All | 任意の入力（自動発動） |
+| 3 | **mcp-discovery** | MCP優先ツール選択 | MCP | "何ができる？", "tools" |
+| 4 | **auto-agent-orchestration** | 複数Agent自動調整 | Task | "おまかせ", "全自動" |
+| 5 | **issue-to-pr-pipeline** | Issue→PR完全自動化 | All | "#XXX", "Issue" |
+| 6 | **dashboard-deployment** | クラウドデプロイ | Bash, AWS | "deploy", "リリース" |
+
+### Technical Skills (17個)
+
+| # | Skill | 用途 | 主要ツール | 呼び出しトリガー |
+|---|-------|------|-----------|----------------|
+| 7 | **rust-development** | Rustビルド・テスト・品質 | Bash, Cargo | "build", "test", "clippy" |
+| 8 | **agent-execution** | Agent実行・Worktree管理 | Bash, Git | "run agent", "process issue" |
+| 9 | **issue-analysis** | Issue分析・ラベル推論 | Read, Grep | "analyze issue", "what labels" |
+| 10 | **documentation-generation** | ドキュメント自動生成 | Read, Write | "document", "explain how" |
+| 11 | **git-workflow** | Git操作・PR作成 | Bash, Git | "commit", "create PR" |
+| 12 | **project-setup** | プロジェクト初期化 | Bash, Write | "new project", "integrate Miyabi" |
+| 13 | **debugging-troubleshooting** | デバッグ・エラー解析 | Bash, Read | "debug", "why failing" |
+| 14 | **performance-analysis** | パフォーマンス分析 | Bash, Profiler | "optimize", "slow" |
+| 15 | **security-audit** | セキュリティ監査 | Bash, Audit | "scan vulnerabilities", "CVE" |
+| 16 | **dependency-management** | 依存関係管理 | Bash, Cargo | "update dependencies" |
+| 17 | **tmux-iterm-integration** | tmux×iTerm2統合 | Bash, tmux | "create session", "agent pane" |
+| 18 | **context-eng** | コンテキストエンジニアリング | Read, Write | "context", "knowledge" |
+| 19 | **claude-code-x** | Claude Code拡張機能 | Bash, API | "parallel", "headless" |
+| 20 | **voicevox** | 音声合成統合 | Bash, API | "speak", "narrate" |
+| 21 | **paper2agent** | 論文→Agent変換 | Read, Write | "paper to agent", "research" |
+| 22 | **tdd-workflow** | TDD Red-Green-Refactor | Bash, Write | "TDD", "write tests first" |
+| 23 | **desktop-app-development** | デスクトップアプリ開発 | Bash, Cargo | "desktop", "Tauri", "GUI" |
 
 ### Business Skills (5個)
 
 | # | Skill | 用途 | 主要ツール | 呼び出しトリガー |
 |---|-------|------|-----------|----------------|
-| 16 | **business-strategy-planning** | 事業戦略立案 | Read, Write | "business plan", "strategy" |
-| 17 | **market-research-analysis** | 市場調査・競合分析 | WebFetch, Read | "market", "competitors" |
-| 18 | **content-marketing-strategy** | コンテンツマーケティング | Write, WebFetch | "content strategy", "social" |
-| 19 | **sales-crm-management** | 営業・CRM管理 | Read, Write | "sales process", "CRM" |
-| 20 | **growth-analytics-dashboard** | グロース分析・KPI | Read, Write | "analytics", "KPI dashboard" |
+| 24 | **business-strategy-planning** | 事業戦略立案 | Read, Write | "business plan", "strategy" |
+| 25 | **market-research-analysis** | 市場調査・競合分析 | WebFetch, Read | "market", "competitors" |
+| 26 | **content-marketing-strategy** | コンテンツマーケティング | Write, WebFetch | "content strategy", "social" |
+| 27 | **sales-crm-management** | 営業・CRM管理 | Read, Write | "sales process", "CRM" |
+| 28 | **growth-analytics-dashboard** | グロース分析・KPI | Read, Write | "analytics", "KPI dashboard" |
 
 ---
 
