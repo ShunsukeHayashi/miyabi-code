@@ -7,8 +7,8 @@ For CLI/MCP clients that cannot use browser redirects
 import os
 import time
 import httpx
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException
+from typing import Dict, Any, Optional, List
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth/github/device", tags=["GitHub Device Flow"])
@@ -39,6 +39,16 @@ class DeviceFlowPollResponse(BaseModel):
     user: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     message: Optional[str] = None
+
+
+class AuthStatusResponse(BaseModel):
+    """Response from checking auth status"""
+    authenticated: bool
+    user: Optional[str] = None
+    user_id: Optional[int] = None
+    name: Optional[str] = None
+    scopes: Optional[List[str]] = None
+    error: Optional[str] = None
 
 
 @router.post("/start", response_model=DeviceFlowStartResponse)
@@ -247,3 +257,70 @@ async def device_flow_status(device_code: str):
         "expires_in": remaining,
         "interval": state["interval"],
     }
+
+
+@router.get("/check", response_model=AuthStatusResponse)
+async def check_auth_status(
+    authorization: Optional[str] = Header(None, description="Bearer token")
+):
+    """
+    Check if a GitHub access token is valid
+
+    Pass the token via Authorization header: `Bearer <token>`
+
+    Returns:
+    - authenticated: True if token is valid
+    - user: GitHub username
+    - scopes: List of granted OAuth scopes
+    """
+    if not authorization:
+        return AuthStatusResponse(
+            authenticated=False,
+            error="Authorization header required"
+        )
+
+    # Extract token from "Bearer <token>" format
+    token = authorization
+    if authorization.lower().startswith("bearer "):
+        token = authorization[7:]
+
+    if not token:
+        return AuthStatusResponse(
+            authenticated=False,
+            error="Empty token"
+        )
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://api.github.com/user",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github.v3+json",
+                },
+            )
+
+            if response.status_code != 200:
+                return AuthStatusResponse(
+                    authenticated=False,
+                    error=f"GitHub API returned {response.status_code}"
+                )
+
+            user_data = response.json()
+
+            # Get scopes from response header
+            scope_header = response.headers.get("X-OAuth-Scopes", "")
+            scopes = [s.strip() for s in scope_header.split(",") if s.strip()]
+
+            return AuthStatusResponse(
+                authenticated=True,
+                user=user_data.get("login"),
+                user_id=user_data.get("id"),
+                name=user_data.get("name"),
+                scopes=scopes if scopes else None,
+            )
+    except httpx.RequestError as e:
+        return AuthStatusResponse(
+            authenticated=False,
+            error=f"Request failed: {str(e)}"
+        )
