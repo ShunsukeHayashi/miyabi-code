@@ -53,3 +53,5 @@ pub mod mcp_claude_code;
 pub use mcp_claude_code::{ClaudeCodeMcpServer, ServerCapabilities};
 pub mod benchmark;
 pub use benchmark::{BenchmarkResult, ProductionTestSuite, TestSummary, ParallelExecutionTest, HealthCheck, HealthStatus, SystemHealthReport};
+pub mod live_runner;
+pub use live_runner::{LiveAgentRunner, LiveAgent, LiveAgentStatus};

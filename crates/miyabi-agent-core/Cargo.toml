@@ -39,3 +39,7 @@ path = "src/bin/benchmark.rs"
 [[bin]]
 name = "mcp-server"
 path = "src/bin/mcp-server.rs"
+
+[[bin]]
+name = "e2e-demo"
+path = "src/bin/e2e-demo.rs"
