@@ -657,6 +657,21 @@ def get_project_status() -> Dict[str, Any]:
     branch_output, _, _ = run_command(["git", "branch", "--show-current"])
     branch = branch_output.strip()
 
+    # Get repository info (Issue #1213)
+    remote_url_output, _, _ = run_command(["git", "config", "--get", "remote.origin.url"])
+    remote_url = remote_url_output.strip()
+
+    # Parse owner/repo from git URL (supports SSH and HTTPS)
+    repo_owner = ""
+    repo_name = ""
+    if remote_url:
+        # git@github.com:owner/repo.git or https://github.com/owner/repo.git
+        import re
+        match = re.search(r'github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$', remote_url)
+        if match:
+            repo_owner = match.group(1)
+            repo_name = match.group(2)
+
     # Get crates count
     crates_output, _, _ = run_command(["find", "crates", "-name", "Cargo.toml"])
     crates_count = len([l for l in crates_output.strip().split("\n") if l])
@@ -672,6 +687,12 @@ def get_project_status() -> Dict[str, Any]:
 
     return {
         "branch": branch,
+        "repository": {
+            "owner": repo_owner,
+            "name": repo_name,
+            "full_name": f"{repo_owner}/{repo_name}" if repo_owner and repo_name else "",
+            "remote_url": remote_url,
+        },
         "crates_count": crates_count,
         "mcp_servers": mcp_servers_count,
         "agents_total": len(AGENT_MAPPING),
