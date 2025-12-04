@@ -1,0 +1,124 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "mcpServer",
+      "type": "pickString",
+      "description": "監視するMCPサーバーを選択",
+      "options": [
+        "miyabi-github",
+        "miyabi-obsidian-server",
+        "miyabi-tmux-server",
+        "miyabi-file-watcher",
+        "miyabi-git-inspector",
+        "miyabi-resource-monitor",
+        "miyabi-process-inspector",
+        "miyabi-log-aggregator",
+        "miyabi-network-inspector",
+        "miyabi-claude-code",
+        "miyabi-codex",
+        "miyabi-rules-server",
+        "miyabi-commercial-agents",
+        "gemini3-uiux-designer",
+        "gemini3-general",
+        "lark-mcp-enhanced"
+      ],
+      "default": "miyabi-github"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "🔍 MCP: Watch TypeScript (選択)",
+      "type": "shell",
+      "command": "cd mcp-servers/${input:mcpServer} && npx tsc --watch",
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "mcp-watch"
+      }
+    },
+    {
+      "label": "🚀 MCP: Dev Mode (選択)",
+      "type": "shell",
+      "command": "cd mcp-servers/${input:mcpServer} && npm run dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "mcp-dev"
+      }
+    },
+    {
+      "label": "🔨 MCP: Build Single (選択)",
+      "type": "shell",
+      "command": "cd mcp-servers/${input:mcpServer} && npm run build",
+      "problemMatcher": "$tsc",
+      "group": "build"
+    },
+    {
+      "label": "📦 MCP: Build All Servers",
+      "type": "shell",
+      "command": "for dir in mcp-servers/miyabi-*; do echo \"Building $dir...\"; (cd \"$dir\" && npm run build 2>/dev/null || true); done",
+      "problemMatcher": "$tsc",
+      "group": "build"
+    },
+    {
+      "label": "🦀 Rust MCP: Watch Check",
+      "type": "shell",
+      "command": "cargo watch -w crates/miyabi-mcp-server -w crates/miyabi-discord-mcp-server -x check",
+      "isBackground": true,
+      "problemMatcher": "$rustc-watch",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "rust-watch"
+      }
+    },
+    {
+      "label": "🦀 Rust MCP: Watch Clippy",
+      "type": "shell",
+      "command": "cargo watch -w crates/miyabi-mcp-server -w crates/miyabi-discord-mcp-server -x clippy",
+      "isBackground": true,
+      "problemMatcher": "$rustc-watch",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "rust-watch"
+      }
+    },
+    {
+      "label": "🦀 Rust MCP: Watch Test",
+      "type": "shell",
+      "command": "cargo watch -w crates/miyabi-mcp-server -x 'test --package miyabi-mcp-server'",
+      "isBackground": true,
+      "problemMatcher": "$rustc-watch"
+    },
+    {
+      "label": "🔄 MCP: Install Dependencies (選択)",
+      "type": "shell",
+      "command": "cd mcp-servers/${input:mcpServer} && npm install",
+      "problemMatcher": []
+    },
+    {
+      "label": "📋 MCP: Show Server List",
+      "type": "shell",
+      "command": "ls -la mcp-servers/ | grep miyabi",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🧪 MCP: Health Check",
+      "type": "shell",
+      "command": "cd mcp-servers/miyabi-health-check && npm run dev 2>/dev/null || echo 'Health check server not configured'",
+      "problemMatcher": []
+    }
+  ]
+}
