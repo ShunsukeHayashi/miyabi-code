@@ -31,3 +31,7 @@ shellexpand = "3.1"
 tokio-test = "0.4"
 tempfile = "3.14"
 indicatif = "0.18"
+
+[[bin]]
+name = "benchmark"
+path = "src/bin/benchmark.rs"

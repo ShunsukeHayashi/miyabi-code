@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp-config.json",
+  "mcpServers": {
+    "miyabi-agent-sdk": {
+      "command": "cargo",
+      "args": ["run", "--release", "-p", "miyabi-mcp-server", "--", "--mode", "agent-sdk"],
+      "cwd": "/home/ubuntu/miyabi-private",
+      "env": {
+        "RUST_LOG": "info",
+        "MIYABI_CONFIG": "/home/ubuntu/miyabi-private/config/miyabi.toml"
+      }
+    },
+    "miyabi-github": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/home/ubuntu/miyabi-private/mcp-servers/miyabi-github",
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "miyabi-tmux": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/home/ubuntu/miyabi-private/mcp-servers/miyabi-tmux-server",
+      "env": {}
+    },
+    "miyabi-obsidian": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/home/ubuntu/miyabi-private/mcp-servers/miyabi-obsidian-server",
+      "env": {
+        "OBSIDIAN_VAULT_PATH": "${OBSIDIAN_VAULT_PATH}"
+      }
+    }
+  }
+}
