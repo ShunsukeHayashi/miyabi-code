@@ -49,3 +49,5 @@ pub use miyabi_adapter::{
     AgentCategory, SandboxSettings, CheckpointSettings,
     RunningAgent, AgentStatus, AdapterError
 };
+pub mod mcp_claude_code;
+pub use mcp_claude_code::{ClaudeCodeMcpServer, ServerCapabilities};
