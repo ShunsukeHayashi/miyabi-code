@@ -146,7 +146,7 @@ pub async fn create_pool(config: DatabaseConfig) -> Result<PgPool> {
         .acquire_timeout(config.acquire_timeout)
         .idle_timeout(config.idle_timeout)
         .max_lifetime(config.max_lifetime)
-        .connect_timeout(config.connect_timeout)
+        
         .test_before_acquire(config.test_before_acquire)
         .connect(&config.url)
         .await

@@ -78,11 +78,11 @@ impl DynamoDBConfig {
     /// Validate configuration
     pub fn validate(&self) -> Result<()> {
         if self.region.is_empty() {
-            return Err(AppError::Config("AWS region cannot be empty".to_string()));
+            return Err(AppError::Configuration("AWS region cannot be empty".to_string()));
         }
 
         if self.max_attempts == 0 {
-            return Err(AppError::Config("max_attempts must be > 0".to_string()));
+            return Err(AppError::Configuration("max_attempts must be > 0".to_string()));
         }
 
         Ok(())
@@ -147,7 +147,7 @@ pub async fn create_dynamodb_client(config: DynamoDBConfig) -> Result<Client> {
     );
 
     // Region provider
-    let region_provider = RegionProviderChain::first_try(Some(config.region.clone()))
+    let region_provider = RegionProviderChain::first_try(aws_sdk_dynamodb::config::Region::new(config.region.clone()))
         .or_default_provider()
         .or_else("ap-northeast-1");
 
@@ -197,7 +197,7 @@ async fn test_client_health(client: &Client) -> Result<()> {
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "DynamoDB health check failed");
-            AppError::Config(format!("DynamoDB connection failed: {}", e))
+            AppError::Configuration(format!("DynamoDB connection failed: {}", e))
         })?;
 
     tracing::info!("DynamoDB health check passed");

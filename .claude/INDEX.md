@@ -1,362 +1,154 @@
 # Miyabi Development - Quick Index
 
-**Version**: 5.0-Pixel
-**Last Updated**: 2025-11-19
-**Environment**: Termux on Pixel 9 Pro XL
+**Version**: 6.0-Universal
+**Last Updated**: 2025-12-03
+**Environment**: Multi-platform (Sandbox, MUGEN/MAJIN EC2, Mac mini, Pixel)
 
 ---
 
 ## 🚀 Quick Start
 
+### 環境セットアップ
 ```bash
-# Termux起動時に自動実行される
-# - ~/Dev/miyabi-private へ自動移動
-# - 24個の環境変数ロード
-# - 30+個のエイリアス有効化
-# - 24個のMCPサーバー利用可能
+# 1. 環境変数設定
+bash scripts/setup-env.sh
+
+# 2. 全問題修正
+bash scripts/fix-all.sh
+
+# 3. 開発サーバー起動
+bash scripts/dev-start.sh --attach
 ```
 
-**よく使うコマンド**:
+### よく使うコマンド
 ```bash
-mstatus       # プロジェクトステータス
-mcp-tools     # MCPサーバーリスト
-m             # プロジェクトルートへ
-c             # MUGEN Claude Code接続
+# ステータス確認
+mstatus        # プロジェクトステータス (alias)
+
+# 開発サーバー
+cd crates/miyabi-console && npm run dev  # Vite (port 5173)
+cd . && npm run dev                       # Next.js (port 3000)
+
+# テスト
+cargo test --all                          # Rust tests
+cd crates/miyabi-console && npm test      # Frontend tests
+
+# ビルド
+cargo build --release -p miyabi-mcp-server
 ```
 
 ---
 
 ## 📂 .claude ディレクトリ構造
 
-### 📋 ドキュメント (Top Level)
+### 📋 Core Documents
 
-| ファイル | 説明 |
-|---------|------|
-| `../CLAUDE.md` | **マスターマニュアル** - Pixel/Termux開発の全て |
-| `INDEX.md` | **このファイル** - クイックリファレンス |
-| `README.md` | .claudeディレクトリの説明 |
+| ファイル | 説明 | 更新頻度 |
+|---------|------|----------|
+| `../CLAUDE.md` | **マスターマニュアル** - P0-P3ルール | 週次 |
+| `INDEX.md` | **このファイル** | 随時 |
+| `TODO_ISSUES.md` | **未実装TODO追跡** | 随時 |
 
-### 🤖 Agents
+### 🤖 Agents (21エージェント)
 
 | パス | 説明 |
 |------|------|
-| `agents/AGENT_CHARACTERS.md` | Agentキャラクター定義 (14キャラ) |
-| `agents/specs/` | 各Agent詳細仕様書 |
-| `agents/prompts/` | Agentプロンプトテンプレート |
-| `agents/triggers.json` | Agentトリガー設定 |
-| `agents/agent-name-mapping.json` | Agent名マッピング |
+| `agents/` | Agent定義・設定 |
+| `../agents.yml` (`.miyabi/`) | Agent YAML設定 |
+
+**Coding Agents (7)**:
+- Coordinator (シキルーン), CodeGen (ツクルーン), Review (メダマン)
+- Issue (ミツケルーン), PR (マトメルーン), Deploy (ハコブーン), Refresher (ツナグン)
+
+**Business Agents (14)**:
+- AI Entrepreneur, Market Research, Persona, Product Concept/Design
+- Content Creation, Funnel Design, SNS Strategy, Marketing, Sales, CRM, Analytics, YouTube
 
 ### 📚 Context
 
-| ファイル | 説明 |
-|---------|------|
-| `context/agents.md` | Agent概要・一覧 |
-| `context/architecture.md` | システムアーキテクチャ |
-| `context/development.md` | 開発ガイドライン |
-| `context/protocols.md` | 通信プロトコル |
-| `context/rust.md` | **Rust開発規約** |
-| `context/typescript.md` | **TypeScript開発規約** |
-| `context/labels.md` | GitHubラベル体系 |
-| `context/worktree.md` | Git Worktree運用 |
-| `context/obsidian-integration.md` | **Obsidian連携詳細** |
-| `context/external-deps.md` | 外部依存関係 |
+| ファイル | 説明 | 重要度 |
+|---------|------|--------|
+| `context/agents.md` | Agent一覧・概要 | ⭐⭐⭐ |
+| `context/architecture.md` | システム構成 | ⭐⭐⭐ |
+| `context/development.md` | 開発ガイドライン | ⭐⭐ |
+| `context/rust.md` | Rust規約 | ⭐⭐ |
+| `context/typescript.md` | TypeScript規約 | ⭐⭐ |
+| `context/worktree.md` | Git Worktree | ⭐ |
 
-### 🎯 Skills (20+個)
+### 🎯 Skills
 
-| スキル | 説明 |
-|--------|------|
-| `Skills/agent-execution/` | Agent実行スキル |
-| `Skills/business-strategy-planning/` | ビジネス戦略立案 |
-| `Skills/content-marketing-strategy/` | コンテンツマーケティング |
-| `Skills/debugging-troubleshooting/` | デバッグ・トラブルシュート |
-| `Skills/documentation-generation/` | ドキュメント生成 |
-| `Skills/git-workflow/` | Git ワークフロー |
-| `Skills/issue-analysis/` | Issue分析 |
-| `Skills/market-research-analysis/` | 市場調査分析 |
-| ... | 他12個のスキル |
+| カテゴリ | スキル数 | 主要スキル |
+|---------|---------|-----------|
+| Development | 8 | debugging, git-workflow, issue-analysis |
+| Business | 6 | business-strategy, market-research, content-marketing |
+| Documentation | 4 | doc-generation, api-docs |
 
 ### 🔧 Configuration
 
 | ファイル | 説明 |
 |---------|------|
-| `mcp.json` | **MCP設定** (要Termux最適化) |
+| `mcp.json` | MCP設定 (環境別) |
 | `settings.json` | 開発環境設定 |
-| `orchestra-config.yaml` | オーケストラ設定 |
-| `hooks.json` | フック設定 |
+| `coordinator-config.json` | Coordinator設定 |
 
-### 📁 Other Directories
+### 📁 Archive (整理対象)
 
-| ディレクトリ | 説明 |
-|-------------|------|
-| `commands/` | カスタムコマンド |
-| `hooks/` | Git/開発フック |
-| `prompts/` | プロンプトテンプレート |
-| `templates/` | 各種テンプレート |
-| `workflows/` | ワークフロー定義 |
-| `scripts/` | 開発スクリプト |
-| `docs/` | ドキュメント |
-| `projects/` | プロジェクト固有設定 |
-| `systems/` | システム設定 |
-| `tasks/` | タスク定義 |
+以下のファイルはアーカイブ対象です：
+- `*_2025-11-*.md` - 古いハンドオフファイル
+- `PHASE_*_REPORT.md` - 完了したフェーズレポート
+- `SESSION_*.md` - 過去セッションログ
 
 ---
 
-## 🔌 MCP Servers (24個)
+## 🔌 MCP Servers (33サーバー)
 
-### Gemini 3 (2個)
-- `gemini3-uiux-designer` - UI/UX設計レビュー
-- `gemini3-adaptive-runtime` - 適応的ランタイム
+### Core (7)
+- miyabi-mcp-server (Rust) ← **要ビルド**
+- miyabi-github, miyabi-file-access, miyabi-tmux-server
+- miyabi-rules-server, miyabi-sse-gateway, miyabi-obsidian-server
 
-### Lark (3個)
-- `lark-openapi-enhanced` - Lark API統合
-- `lark-wiki-agents` - Lark Wiki
-- `lark-mcp-enhanced` - 拡張Lark
+### AI & LLM (6)
+- gemini3-adaptive-runtime, gemini3-uiux-designer, gemini3-general
+- miyabi-ollama, miyabi-openai-assistant, miyabi-chatgpt-app
 
-### Miyabi Core (13個)
-- `miyabi-obsidian` - Obsidian操作
-- `miyabi-github` - GitHub操作
-- `miyabi-tmux` - tmux管理
-- `miyabi-file-access` - ファイル操作
-- `miyabi-file-watcher` - ファイル監視
-- `miyabi-git-inspector` - Git検査
-- `miyabi-log-aggregator` - ログ集約
-- `miyabi-network-inspector` - ネットワーク監視
-- `miyabi-process-inspector` - プロセス監視
-- `miyabi-resource-monitor` - リソース監視
-- `miyabi-rules` - ルールエンジン
-- `miyabi-sse-gateway` - SSEゲートウェイ
-- `miyabi-mcp` - メインMCP
+### Monitoring (7)
+- health-check, log-aggregator, resource-monitor
+- network-inspector, process-inspector, git-inspector, file-watcher
 
-### AI Integration (3個)
-- `miyabi-codex` - Codex統合
-- `miyabi-openai-assistant` - OpenAI
-- `miyabi-commercial-agents` - 商用Agent
+### Business (6)
+- commercial-agents, lark-mcp-enhanced, lark-openapi
+- lark-wiki-mcp, context7, context7-cloud
 
-### Dev Tools (3個)
-- `context-engineering` - コンテキストエンジニアリング
-- `miyabi-claude-code` - Claude Code統合
-- `miyabi-pixel-mcp` - Pixel専用MCP
+### Development (7)
+- claude-code, codex, pixel-mcp
+- tool-search, mcp, context-engineering
 
 ---
 
-## 🎯 タスク別リファレンス
+## 📊 Current Issues
 
-### Issue管理
+### Critical (P0)
+- [ ] A2Aブリッジバイナリ未ビルド
+- [ ] JSON-RPC通信未実装 (TODO-001, TODO-002)
+- [ ] 環境変数未設定 (GITHUB_TOKEN等)
 
-**Issue確認**:
-```bash
-# MCP経由
-mcp-github list_issues
+### High (P1)
+- [ ] miyabi-consoleテスト未整備
+- [ ] IssueAgent A2A未実装 (TODO-003)
 
-# MUGEN経由
-ssh mugen -t "cd miyabi-private && gh issue list"
-```
-
-**Issue作成**:
-```bash
-mcp-github create_issue "タイトル" "本文"
-```
-
-**Issueに取り組む**:
-```bash
-mi 123    # MUGEN接続してIssue #123開始
-```
-
-### コード編集
-
-**軽微な編集 (Pixel)**:
-```bash
-nano <file>
-vim <file>
-```
-
-**大規模編集 (MUGEN)**:
-```bash
-c     # Claude Code起動
-```
-
-**高性能環境 (MAJIN)**:
-```bash
-jcc   # MAJIN CPU + Claude Code
-jgc   # MAJIN GPU + Claude Code
-```
-
-### ビルド & テスト
-
-**全てMUGENで実行**:
-```bash
-mb      # build
-mbt     # test
-mbc     # clippy
-mbr     # build --release
-```
-
-### Git操作
-
-**ステータス確認**:
-```bash
-mgit    # または mgs
-```
-
-**履歴**:
-```bash
-mgl     # log (直近10件)
-```
-
-**差分**:
-```bash
-mgd     # diff
-```
-
-**同期**:
-```bash
-mgp     # pull
-mgpu    # push
-```
-
-### ドキュメント
-
-**Obsidian**:
-```bash
-# MCP経由
-mcp-obsidian create_note "タイトル" "内容"
-mcp-obsidian search "キーワード"
-
-# Vault位置
-~/storage/shared/Obsidian/MiyabiVault/
-```
-
-**音声メモ**:
-```bash
-mvn     # 音声ノート (voice-notes.txt)
-vn      # タイムスタンプ付きボイスノート
-```
-
-### ファイル同期
-
-**MUGENから取得**:
-```bash
-msync   # miyabi-sync-from-mac
-```
-
-**MUGENへ送信**:
-```bash
-mpush   # miyabi-sync-to-mac
-```
+### Medium (P2)
+- [ ] ドキュメント整理必要
+- [ ] Disk使用量削減
 
 ---
 
-## 🔍 よくある質問
+## 🔗 Quick Links
 
-### Q: どのファイルを読めば良い?
-
-**初めての場合**:
-1. `../CLAUDE.md` - 全体像把握
-2. `context/architecture.md` - アーキテクチャ理解
-3. `context/development.md` - 開発規約確認
-
-**Agent開発する場合**:
-1. `agents/AGENT_CHARACTERS.md` - キャラクター理解
-2. `agents/specs/<agent名>/` - 仕様書確認
-3. `context/agents.md` - Agent概要
-
-**Rust開発する場合**:
-1. `context/rust.md` - Rust規約
-2. `context/development.md` - 一般開発規約
-3. `context/worktree.md` - Worktree運用
-
-**Obsidian連携する場合**:
-1. `context/obsidian-integration.md` - **最重要**
-2. Vault位置確認: `~/storage/shared/Obsidian/MiyabiVault/`
-
-### Q: MCPツールが動かない
-
-**確認項目**:
-```bash
-# Node.js確認
-which node && node --version
-
-# MCP servers確認
-ls -la ~/Dev/miyabi-private/mcp-servers/
-
-# 環境変数確認
-echo $MIYABI_MCP
-
-# Termux再起動
-exit  # 再度開く
-```
-
-### Q: MUGEN/MAJINに接続できない
-
-**確認**:
-```bash
-# SSH設定
-cat ~/.ssh/config | grep -A 5 "mugen\|majin"
-
-# 接続テスト
-ssh mugen echo "OK"
-ssh majin echo "OK"
-
-# 鍵権限
-chmod 600 ~/.ssh/id_ed25519
-```
-
-### Q: Obsidianで見えない
-
-**原因**: パスが間違っている
-
-**正解**:
-```bash
-~/storage/shared/Obsidian/MiyabiVault/
-```
-
-**不正解**:
-```bash
-~/Obsidian/MIYABI/  # ←Git管理用、アプリ非対応
-```
+- [CLAUDE.md](../CLAUDE.md) - マスターマニュアル
+- [TODO_ISSUES.md](TODO_ISSUES.md) - TODO追跡
+- [README.md](README.md) - ディレクトリ説明
+- [scripts/](../scripts/) - セットアップスクリプト
 
 ---
 
-## 📊 環境変数 (自動ロード済み)
-
-```bash
-# プロジェクト
-$MIYABI_ROOT          # ~/Dev/miyabi-private
-$MIYABI_MCP           # MCP servers dir
-$MIYABI_SCRIPTS       # scripts dir
-$MIYABI_DOCS          # docs dir
-$MIYABI_CRATES        # crates dir
-
-# Obsidian
-$OBSIDIAN_VAULT       # ~/storage/shared/Obsidian/MiyabiVault
-
-# API Keys
-$GEMINI_API_KEY       # Gemini API
-$GEMINI_MODEL         # gemini-2.0-flash-thinking-exp-01-21
-$LARK_APP_ID          # Lark App ID
-$LARK_APP_SECRET      # Lark Secret
-$XAI_API_KEY          # Grok API
-$GITHUB_TOKEN         # GitHub
-$GITHUB_OWNER         # customer-cloud
-$GITHUB_REPO          # miyabi-private
-$AWS_ACCESS_KEY_ID    # AWS
-$AWS_SECRET_ACCESS_KEY
-$AWS_DEFAULT_REGION   # us-east-2
-$AWS_ACCOUNT_ID       # 112530848482
-```
-
----
-
-## 🎬 開発体制
-
-| マシン | 役割 | 主な用途 |
-|--------|------|---------|
-| **Pixel (MAESTRO)** | 指揮官 | Issue管理、ドキュメント、音声入力 |
-| **MUGEN (ORCHESTRATOR)** | 開発環境 | コーディング、ビルド、テスト |
-| **MAJIN (COORDINATOR)** | 並列処理 | 高負荷処理、GPU処理、並列実行 |
-
----
-
-**詳細**: `../CLAUDE.md` を参照
-**更新**: 機能追加時または環境変更時
-**管理**: Claude Code on Pixel
+Last Updated: 2025-12-03

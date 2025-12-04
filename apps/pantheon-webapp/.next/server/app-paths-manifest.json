@@ -1,0 +1,12 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/auth/callback/page": "app/auth/callback/page.js",
+  "/advisors/page": "app/advisors/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/login/page": "app/login/page.js",
+  "/miyabi-integration/page": "app/miyabi-integration/page.js",
+  "/page": "app/page.js",
+  "/divisions/page": "app/divisions/page.js",
+  "/divisions/[id]/page": "app/divisions/[id]/page.js",
+  "/about/page": "app/about/page.js"
+}

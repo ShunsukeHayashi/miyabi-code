@@ -1,0 +1,2 @@
+# Run fix script immediately
+0 * * * * /home/ubuntu/miyabi-private/scripts/fix-all.sh >> /home/ubuntu/miyabi-private/logs/cron.log 2>&1
