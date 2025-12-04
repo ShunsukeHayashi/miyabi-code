@@ -35,3 +35,7 @@ indicatif = "0.18"
 [[bin]]
 name = "benchmark"
 path = "src/bin/benchmark.rs"
+
+[[bin]]
+name = "mcp-server"
+path = "src/bin/mcp-server.rs"
