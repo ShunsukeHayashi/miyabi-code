@@ -132,7 +132,9 @@ def get_user_github_repo() -> tuple[str, str]:
 app = FastAPI(title="Miyabi MCP Server", version="1.0.0")
 
 # Include Claude.ai Web MCP router (OAuth + SSE endpoints)
+from routers.github_device_flow import router as github_device_flow_router
 app.include_router(claude_router, tags=["Claude.ai Web MCP"])
+app.include_router(github_device_flow_router)
 
 # MCP-compliant Bearer token authentication (OAuth 2.1 subset)
 security = HTTPBearer(auto_error=False)
