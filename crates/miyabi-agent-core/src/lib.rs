@@ -43,3 +43,9 @@ pub use persistence::{BusinessAnalytics, ExecutionMetadata, ExecutionStatus, Per
 pub use sandbox::{SandboxConfig, SandboxManager, SandboxContext, PermissionLevel, NetworkPolicy, FilesystemPolicy, ResourceLimits, AuditEntry};
 pub use prompt_enhancement::{AgentPromptEnhancer, PromptEnhancementConfig, PromptTemplate};
 // pub use rules_context::RulesContext;
+pub mod miyabi_adapter;
+pub use miyabi_adapter::{
+    MiyabiAgentType, MiyabiAgentConfig, MiyabiAgentAdapter, 
+    AgentCategory, SandboxSettings, CheckpointSettings,
+    RunningAgent, AgentStatus, AdapterError
+};
