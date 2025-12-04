@@ -17,6 +17,7 @@ pub mod sandbox;
 pub mod checkpoint;
 pub mod subagent;
 pub mod tmux_integration;
+pub mod mcp_server;
 // TODO: Re-enable after miyabi_core::rules is implemented
 // pub mod rules_context;
 
