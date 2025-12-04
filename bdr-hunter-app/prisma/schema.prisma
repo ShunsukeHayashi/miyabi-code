@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Analysis {
+  id             String    @id @default(uuid())
+  companyName    String
+  companyUrl     String?
+  status         String    @default("pending")
+  companyProfile Json?
+  decisionMakers Json?
+  strategy       Json?
+  deepResearch   Json?
+  error          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  completedAt    DateTime?
+
+  @@map("analyses")
+}
