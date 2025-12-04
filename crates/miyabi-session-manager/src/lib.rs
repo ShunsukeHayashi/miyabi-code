@@ -48,12 +48,14 @@
 //! }
 //! ```
 
+mod checkpoint;
 mod error;
 mod message;
 mod queue;
 mod session;
 mod storage;
 
+pub use checkpoint::{Checkpoint, CheckpointManager};
 pub use error::{Result, SessionError};
 pub use message::{
     CommandMessage, CustomMessage, ErrorMessage, LogMessage, Message, MessageBuilder, MessageType, Priority,
