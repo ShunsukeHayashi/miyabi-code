@@ -3,16 +3,21 @@
  *
  * ChatGPT Apps SDK integration for Miyabi
  * Provides project management, agent execution, and dashboard widgets
+ * 
+ * NEW: GitHub Device Flow authentication for MCP-based onboarding
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { registerAuthTools } from "./auth-tools.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Token persistence path
+const TOKEN_FILE = join(__dirname, "..", ".github-token");
 
 // Session state
 interface Session {
@@ -22,11 +27,32 @@ interface Session {
   githubToken: string | null;
 }
 
+// Load persisted token
+function loadPersistedToken(): string | null {
+  try {
+    if (existsSync(TOKEN_FILE)) {
+      return readFileSync(TOKEN_FILE, "utf8").trim();
+    }
+  } catch {
+    // Ignore errors
+  }
+  return null;
+}
+
+// Save token to file
+function persistToken(token: string) {
+  try {
+    writeFileSync(TOKEN_FILE, token, { mode: 0o600 });
+  } catch (error) {
+    console.error("Failed to persist token:", error);
+  }
+}
+
 const session: Session = {
   linkId: null,
   owner: null,
   repo: null,
-  githubToken: process.env.GITHUB_TOKEN || null
+  githubToken: process.env.GITHUB_TOKEN || loadPersistedToken()
 };
 
 // Widget HTML/JS loader
@@ -46,8 +72,20 @@ function loadWidget(name: string): { html: string; js: string; css: string } {
 // Create MCP Server
 const server = new McpServer({
   name: "miyabi-chatgpt-app",
-  version: "1.0.0"
+  version: "1.1.0"
 });
+
+// ============================================
+// Register GitHub Auth Tools (Device Flow)
+// ============================================
+registerAuthTools(
+  server,
+  () => session.githubToken,
+  (token: string) => {
+    session.githubToken = token;
+    persistToken(token);
+  }
+);
 
 // ============================================
 // Widget Templates (Resources)
@@ -151,26 +189,26 @@ server.tool(
     title: "List GitHub Repositories",
     description: "List available GitHub repositories for the authenticated user",
     inputSchema: {
-      type: "object",
+      type: "object" as const,
       properties: {
         filter: {
           type: "string",
           description: "Filter repos by name"
         }
       }
-    },
-    _meta: {
-      "openai/outputTemplate": "ui://widget/project-selector.html",
-      "openai/widgetAccessible": true,
-      "openai/toolInvocation/invoking": "Fetching repositories...",
-      "openai/toolInvocation/invoked": "Repositories loaded."
     }
   },
   async (args: { filter?: string }) => {
     if (!session.githubToken) {
       return {
-        structuredContent: { error: "GitHub token not configured" },
-        content: [{ type: "text", text: "Please configure GitHub token first." }]
+        structuredContent: { 
+          error: "not_authenticated",
+          message: "GitHub authentication required"
+        },
+        content: [{ 
+          type: "text" as const, 
+          text: "❌ GitHub認証が必要です。\n\n`github_auth_start` を使って認証を開始してください。" 
+        }]
       };
     }
 
@@ -182,18 +220,29 @@ server.tool(
         }
       });
 
-      const repos = await response.json();
+      if (response.status === 401) {
+        session.githubToken = null;
+        return {
+          structuredContent: { error: "token_expired" },
+          content: [{ 
+            type: "text" as const, 
+            text: "❌ トークンが無効です。`github_auth_start` で再認証してください。" 
+          }]
+        };
+      }
+
+      const repos = await response.json() as any[];
 
       let filtered = repos;
       if (args.filter) {
-        filtered = repos.filter((r: any) =>
+        filtered = repos.filter((r) =>
           r.full_name.toLowerCase().includes(args.filter!.toLowerCase())
         );
       }
 
       return {
         structuredContent: {
-          repos: filtered.slice(0, 20).map((r: any) => ({
+          repos: filtered.slice(0, 20).map((r) => ({
             id: r.id,
             name: r.name,
             fullName: r.full_name,
@@ -207,17 +256,15 @@ server.tool(
           currentProject: session.repo ? `${session.owner}/${session.repo}` : null
         },
         content: [{
-          type: "text",
+          type: "text" as const,
           text: `Found ${filtered.length} repositories. Select one to switch projects.`
-        }],
-        _meta: {
-          allRepos: repos
-        }
+        }]
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
       return {
-        structuredContent: { error: error.message },
-        content: [{ type: "text", text: `Error: ${error.message}` }]
+        structuredContent: { error: message },
+        content: [{ type: "text" as const, text: `Error: ${message}` }]
       };
     }
   }
@@ -230,23 +277,17 @@ server.tool(
     title: "Switch Project",
     description: "Switch to a different GitHub repository",
     inputSchema: {
-      type: "object",
+      type: "object" as const,
       properties: {
         owner: { type: "string", description: "Repository owner" },
         repo: { type: "string", description: "Repository name" }
       },
       required: ["owner", "repo"]
-    },
-    _meta: {
-      "openai/widgetAccessible": true,
-      "openai/toolInvocation/invoking": "Switching project...",
-      "openai/toolInvocation/invoked": "Project switched successfully."
     }
   },
   async (args: { owner: string; repo: string }) => {
     const { owner, repo } = args;
 
-    // Update session
     session.owner = owner;
     session.repo = repo;
     session.linkId = `link_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -255,11 +296,10 @@ server.tool(
       structuredContent: {
         success: true,
         project: `${owner}/${repo}`,
-        linkId: session.linkId,
-        previousProject: session.repo ? `${session.owner}/${session.repo}` : null
+        linkId: session.linkId
       },
       content: [{
-        type: "text",
+        type: "text" as const,
         text: `Switched to ${owner}/${repo}. You can now use Miyabi agents on this project.`
       }]
     };
@@ -273,21 +313,15 @@ server.tool(
     title: "Get Project Status",
     description: "Get current project status including issues, PRs, and recent activity",
     inputSchema: {
-      type: "object",
+      type: "object" as const,
       properties: {}
-    },
-    _meta: {
-      "openai/outputTemplate": "ui://widget/dashboard.html",
-      "openai/widgetAccessible": true,
-      "openai/toolInvocation/invoking": "Loading project status...",
-      "openai/toolInvocation/invoked": "Status loaded."
     }
   },
   async () => {
     if (!session.owner || !session.repo) {
       return {
         structuredContent: { error: "No project selected" },
-        content: [{ type: "text", text: "Please select a project first using list_repos." }]
+        content: [{ type: "text" as const, text: "Please select a project first using list_repos." }]
       };
     }
 
@@ -297,21 +331,17 @@ server.tool(
         Accept: "application/vnd.github.v3+json"
       };
 
-      // Fetch issues and PRs in parallel
       const [issuesRes, prsRes, repoRes] = await Promise.all([
         fetch(`https://api.github.com/repos/${session.owner}/${session.repo}/issues?state=open&per_page=10`, { headers }),
         fetch(`https://api.github.com/repos/${session.owner}/${session.repo}/pulls?state=open&per_page=10`, { headers }),
         fetch(`https://api.github.com/repos/${session.owner}/${session.repo}`, { headers })
       ]);
 
-      const [issues, prs, repo] = await Promise.all([
-        issuesRes.json(),
-        prsRes.json(),
-        repoRes.json()
-      ]);
+      const issues = await issuesRes.json() as any[];
+      const prs = await prsRes.json() as any[];
+      const repo = await repoRes.json() as any;
 
-      // Filter out PRs from issues
-      const actualIssues = issues.filter((i: any) => !i.pull_request);
+      const actualIssues = issues.filter((i) => !i.pull_request);
 
       return {
         structuredContent: {
@@ -322,14 +352,14 @@ server.tool(
             forks: repo.forks_count,
             language: repo.language
           },
-          issues: actualIssues.slice(0, 5).map((i: any) => ({
+          issues: actualIssues.slice(0, 5).map((i) => ({
             number: i.number,
             title: i.title,
             state: i.state,
             labels: i.labels.map((l: any) => l.name),
             createdAt: i.created_at
           })),
-          pullRequests: prs.slice(0, 5).map((pr: any) => ({
+          pullRequests: prs.slice(0, 5).map((pr) => ({
             number: pr.number,
             title: pr.title,
             state: pr.state,
@@ -338,19 +368,15 @@ server.tool(
           }))
         },
         content: [{
-          type: "text",
+          type: "text" as const,
           text: `Project ${session.owner}/${session.repo}: ${actualIssues.length} open issues, ${prs.length} open PRs`
-        }],
-        _meta: {
-          fullIssues: issues,
-          fullPRs: prs,
-          repoDetails: repo
-        }
+        }]
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
       return {
-        structuredContent: { error: error.message },
-        content: [{ type: "text", text: `Error: ${error.message}` }]
+        structuredContent: { error: message },
+        content: [{ type: "text" as const, text: `Error: ${message}` }]
       };
     }
   }
@@ -363,7 +389,7 @@ server.tool(
     title: "Execute Miyabi Agent",
     description: "Execute a Miyabi agent (codegen, review, issue, pr, deployment)",
     inputSchema: {
-      type: "object",
+      type: "object" as const,
       properties: {
         agent: {
           type: "string",
@@ -380,19 +406,13 @@ server.tool(
         }
       },
       required: ["agent"]
-    },
-    _meta: {
-      "openai/outputTemplate": "ui://widget/dashboard.html",
-      "openai/widgetAccessible": true,
-      "openai/toolInvocation/invoking": "Executing agent...",
-      "openai/toolInvocation/invoked": "Agent execution complete."
     }
   },
   async (args: { agent: string; issueNumber?: number; instructions?: string }) => {
     if (!session.owner || !session.repo) {
       return {
         structuredContent: { error: "No project selected" },
-        content: [{ type: "text", text: "Please select a project first." }]
+        content: [{ type: "text" as const, text: "Please select a project first." }]
       };
     }
 
@@ -409,11 +429,10 @@ server.tool(
     if (!agent) {
       return {
         structuredContent: { error: `Unknown agent: ${args.agent}` },
-        content: [{ type: "text", text: `Unknown agent type: ${args.agent}` }]
+        content: [{ type: "text" as const, text: `Unknown agent type: ${args.agent}` }]
       };
     }
 
-    // Simulate agent execution (in real implementation, call Miyabi API)
     const executionId = `exec_${Date.now()}`;
 
     return {
@@ -426,13 +445,9 @@ server.tool(
         startedAt: new Date().toISOString()
       },
       content: [{
-        type: "text",
+        type: "text" as const,
         text: `Started ${agent.name}: ${agent.description}. Execution ID: ${executionId}`
-      }],
-      _meta: {
-        agentConfig: agent,
-        instructions: args.instructions
-      }
+      }]
     };
   }
 );
@@ -444,24 +459,20 @@ server.tool(
     title: "List Repository Files",
     description: "List files in the current repository",
     inputSchema: {
-      type: "object",
+      type: "object" as const,
       properties: {
         path: {
           type: "string",
           description: "Directory path (default: root)"
         }
       }
-    },
-    _meta: {
-      "openai/widgetAccessible": true,
-      "readOnlyHint": true
     }
   },
   async (args: { path?: string }) => {
     if (!session.owner || !session.repo) {
       return {
         structuredContent: { error: "No project selected" },
-        content: [{ type: "text", text: "Please select a project first." }]
+        content: [{ type: "text" as const, text: "Please select a project first." }]
       };
     }
 
@@ -478,19 +489,19 @@ server.tool(
         }
       );
 
-      const contents = await response.json();
+      const contents = await response.json() as any;
 
       if (!Array.isArray(contents)) {
         return {
           structuredContent: { error: "Path is not a directory" },
-          content: [{ type: "text", text: "The specified path is not a directory." }]
+          content: [{ type: "text" as const, text: "The specified path is not a directory." }]
         };
       }
 
       return {
         structuredContent: {
           path: path || "/",
-          files: contents.map((f: any) => ({
+          files: contents.map((f) => ({
             name: f.name,
             type: f.type,
             size: f.size,
@@ -498,14 +509,15 @@ server.tool(
           }))
         },
         content: [{
-          type: "text",
+          type: "text" as const,
           text: `Found ${contents.length} items in ${path || "root"}`
         }]
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
       return {
-        structuredContent: { error: error.message },
-        content: [{ type: "text", text: `Error: ${error.message}` }]
+        structuredContent: { error: message },
+        content: [{ type: "text" as const, text: `Error: ${message}` }]
       };
     }
   }
@@ -518,7 +530,8 @@ server.tool(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Miyabi ChatGPT App MCP Server running on stdio");
+  console.error("Miyabi ChatGPT App MCP Server v1.1.0 running on stdio");
+  console.error("GitHub Auth: " + (session.githubToken ? "Token present" : "Not authenticated"));
 }
 
 main().catch(console.error);
