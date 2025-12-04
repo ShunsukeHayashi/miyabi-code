@@ -39,7 +39,7 @@ impl DatabaseConfig {
     /// Create a new database configuration from environment variables
     pub fn from_env() -> Result<Self> {
         let url = std::env::var("DATABASE_URL")
-            .map_err(|_| AppError::Config("DATABASE_URL must be set".to_string()))?;
+            .map_err(|_| AppError::Configuration("DATABASE_URL must be set".to_string()))?;
 
         Ok(Self {
             url,
@@ -65,17 +65,17 @@ impl DatabaseConfig {
     /// Validate configuration values
     pub fn validate(&self) -> Result<()> {
         if self.max_connections == 0 {
-            return Err(AppError::Config("max_connections must be > 0".to_string()));
+            return Err(AppError::Configuration("max_connections must be > 0".to_string()));
         }
 
         if self.min_connections > self.max_connections {
-            return Err(AppError::Config(
+            return Err(AppError::Configuration(
                 "min_connections cannot exceed max_connections".to_string()
             ));
         }
 
         if self.url.is_empty() {
-            return Err(AppError::Config("database URL cannot be empty".to_string()));
+            return Err(AppError::Configuration("database URL cannot be empty".to_string()));
         }
 
         Ok(())
