@@ -1,23 +1,14 @@
 # Miyabi Sandbox Container
-# Multi-stage build for optimal size
+# Lightweight runtime environment (no heavy build tools in first stage)
 
 # ============================================
-# Stage 1: Build dependencies
-# ============================================
-FROM rust:1.75-bookworm AS rust-builder
-
-# Install Rust tools
-RUN rustup component add clippy rustfmt
-RUN cargo install cargo-watch cargo-nextest
-
-# ============================================
-# Stage 2: Runtime environment
+# Single-stage build (simpler, faster)
 # ============================================
 FROM ubuntu:24.04
 
 LABEL maintainer="Miyabi Team <support@miyabi-world.com>"
 LABEL description="Miyabi Sandbox Development Environment"
-LABEL version="1.0.0"
+LABEL version="1.0.1"
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
@@ -64,14 +55,15 @@ RUN npm install -g \
     yarn
 
 # ============================================
-# Rust
+# Rust (install via rustup - gets latest stable)
 # ============================================
-COPY --from=rust-builder /usr/local/cargo /usr/local/cargo
-COPY --from=rust-builder /usr/local/rustup /usr/local/rustup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && . "$HOME/.cargo/env" \
+    && rustup component add clippy rustfmt
 
-ENV RUSTUP_HOME=/usr/local/rustup
-ENV CARGO_HOME=/usr/local/cargo
-ENV PATH=/usr/local/cargo/bin:$PATH
+ENV RUSTUP_HOME=/root/.rustup
+ENV CARGO_HOME=/root/.cargo
+ENV PATH=/root/.cargo/bin:$PATH
 
 # ============================================
 # GitHub CLI
@@ -92,15 +84,13 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     && rm -rf awscliv2.zip aws
 
 # ============================================
-# Miyabi CLI
-# ============================================
-RUN npm install -g @miyabi/cli
-
-# ============================================
 # Create workspace user
 # ============================================
 RUN useradd -m -s /bin/bash -G sudo miyabi \
-    && echo "miyabi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    && echo "miyabi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+    && cp -r /root/.cargo /home/miyabi/.cargo \
+    && cp -r /root/.rustup /home/miyabi/.rustup \
+    && chown -R miyabi:miyabi /home/miyabi/.cargo /home/miyabi/.rustup
 
 # ============================================
 # Workspace setup
@@ -120,6 +110,9 @@ RUN mkdir -p /workspace/.miyabi \
 ENV HOME=/workspace
 ENV USER=miyabi
 ENV TERM=xterm-256color
+ENV RUSTUP_HOME=/home/miyabi/.rustup
+ENV CARGO_HOME=/home/miyabi/.cargo
+ENV PATH=/home/miyabi/.cargo/bin:$PATH
 
 # Miyabi defaults (overridden at runtime)
 ENV MIYABI_ENV=sandbox
