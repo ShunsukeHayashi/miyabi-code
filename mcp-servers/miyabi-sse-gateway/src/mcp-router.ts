@@ -72,17 +72,30 @@ export class MCPRouter {
       args: [path.join(mcpServersRoot, 'miyabi-obsidian-server/dist/index.js')]
     });
 
+    // Initialize ChatGPT App server (GitHub Device Flow auth)
+    const chatgptAppAdapter = new MCPAdapter({
+      name: 'miyabi-chatgpt-app',
+      command: 'node',
+      args: [path.join(mcpServersRoot, 'miyabi-chatgpt-app/dist/index.js')],
+      env: {
+        GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || '',
+        GITHUB_TOKEN: process.env.GITHUB_TOKEN || ''
+      }
+    });
+
     try {
       // Start all servers in parallel
       await Promise.all([
         tmuxAdapter.start(),
         rulesAdapter.start(),
-        obsidianAdapter.start()
+        obsidianAdapter.start(),
+        chatgptAppAdapter.start()
       ]);
 
       this.servers['tmux'] = tmuxAdapter;
       this.servers['rules'] = rulesAdapter;
       this.servers['obsidian'] = obsidianAdapter;
+      this.servers['chatgpt'] = chatgptAppAdapter;
 
       logger.info('All MCP servers started successfully', {
         servers: Object.keys(this.servers)
@@ -117,6 +130,19 @@ export class MCPRouter {
   }
 
   /**
+   * Get status of all servers
+   */
+  getStatus(): { initialized: boolean; servers: string[]; total: number; ready: number } {
+    const serverCount = Object.keys(this.servers).length;
+    return {
+      initialized: this.initialized,
+      servers: Object.keys(this.servers),
+      total: serverCount,
+      ready: this.initialized ? serverCount : 0
+    };
+  }
+
+  /**
    * List all available tools from all servers
    */
   async listAllTools(): Promise<any> {
@@ -148,75 +174,30 @@ export class MCPRouter {
     const adapter = this.servers[serverName];
 
     if (!adapter) {
-      throw new Error(`Server ${serverName} not found. Available: ${Object.keys(this.servers).join(', ')}`);
+      throw new Error(`Server '${serverName}' not found. Available: ${Object.keys(this.servers).join(', ')}`);
     }
 
-    if (!adapter.ready()) {
-      throw new Error(`Server ${serverName} is not ready`);
-    }
-
-    logger.info('Calling tool', {
-      server: serverName,
-      tool: toolName,
-      args
-    });
-
-    try {
-      const result = await adapter.callTool(toolName, args);
-      logger.info('Tool call successful', {
-        server: serverName,
-        tool: toolName
-      });
-      return result;
-    } catch (error) {
-      logger.error('Tool call failed', {
-        server: serverName,
-        tool: toolName,
-        error: error instanceof Error ? error.message : String(error)
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Get status of all servers
-   */
-  getStatus(): any {
-    const status: Record<string, any> = {};
-
-    for (const [name, adapter] of Object.entries(this.servers)) {
-      status[name] = {
-        ready: adapter.ready(),
-        name: adapter['config'].name
-      };
-    }
-
-    return {
-      initialized: this.initialized,
-      servers: status,
-      total: Object.keys(this.servers).length,
-      ready: Object.values(this.servers).filter(a => a.ready()).length
-    };
+    return adapter.callTool(toolName, args);
   }
 
   /**
    * Shutdown all servers
    */
-  shutdown(): void {
+  async shutdown(): Promise<void> {
     logger.info('Shutting down all MCP servers');
 
-    for (const [name, adapter] of Object.entries(this.servers)) {
+    const shutdownPromises = Object.entries(this.servers).map(async ([name, adapter]) => {
       try {
-        adapter.stop();
-        logger.info('Stopped MCP server', { server: name });
+        await adapter.stop();
+        logger.info(`Server ${name} stopped`);
       } catch (error) {
-        logger.error('Error stopping server', {
-          server: name,
+        logger.error(`Failed to stop server ${name}`, {
           error: error instanceof Error ? error.message : String(error)
         });
       }
-    }
+    });
 
+    await Promise.all(shutdownPromises);
     this.servers = {};
     this.initialized = false;
   }
