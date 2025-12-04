@@ -13,6 +13,7 @@ pub mod observable;
 pub mod orchestration;
 pub mod persistence;
 pub mod prompt_enhancement;
+pub mod sandbox;
 // TODO: Re-enable after miyabi_core::rules is implemented
 // pub mod rules_context;
 
@@ -34,5 +35,6 @@ pub use miyabi_core::ExecutionMode;
 pub use observable::{LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate};
 pub use orchestration::{Orchestrated, OrchestrationEngine};
 pub use persistence::{BusinessAnalytics, ExecutionMetadata, ExecutionStatus, PersistableAgent, PersistableResult};
+pub use sandbox::{SandboxConfig, SandboxManager, SandboxContext, PermissionLevel, NetworkPolicy, FilesystemPolicy, ResourceLimits, AuditEntry};
 pub use prompt_enhancement::{AgentPromptEnhancer, PromptEnhancementConfig, PromptTemplate};
 // pub use rules_context::RulesContext;
