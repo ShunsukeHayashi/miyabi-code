@@ -1,0 +1,72 @@
+# Miyabi Task Progress
+
+## Session Info
+- **Session**: claude-agent-sdk-integration
+- **Started**: 2025-12-04T00:50:00Z
+- **Last Updated**: 2025-12-04T00:55:00Z
+
+---
+
+## Phase 1: SDK導入・基本検証 ✅
+
+### Completed ✅
+- [x] 統合設計書の作成
+- [x] サブエージェント定義の作成
+  - miyabi-codegen.md
+  - miyabi-reviewer.md  
+  - miyabi-tester.md
+  - miyabi-coordinator.md
+  - miyabi-deployer.md
+- [x] MUGENへのデプロイ
+
+### Verification
+- [ ] サブエージェントの動作確認
+- [ ] claude --dangerously-skip-permissions での実行テスト
+
+---
+
+## Phase 2: 21エージェントのサブエージェント化 🔄
+
+### In Progress
+- [ ] Business Agents (9個)
+  - [ ] Finance Agent
+  - [ ] HR Agent
+  - [ ] Legal Agent
+  - [ ] Sales Agent
+  - [ ] Operations Agent
+  - [ ] Customer Success Agent
+  - [ ] R&D Agent
+  - [ ] Marketing Agent
+  - [ ] Admin Agent
+
+- [ ] Infrastructure Agents (5個)
+  - [ ] Monitor Agent
+  - [ ] Logger Agent
+  - [ ] Watcher Agent
+  - [ ] Inspector Agent
+  - [ ] Aggregator Agent
+
+### Pending ⏳
+- [ ] TCG Agent統合 (8個)
+- [ ] 既存プロンプトの移行
+
+---
+
+## Phase 3-5: 予定
+
+- [ ] Phase 3: tmux → SDK並列実行移行
+- [ ] Phase 4: サンドボックス・チェックポイント統合
+- [ ] Phase 5: MCPサーバー最適化
+
+---
+
+## Handoff Notes
+
+### 注意事項
+- miyabi-web-api にビルドエラーあり（DynamoDB region設定）
+- ディスク使用率 93.4% - クリーンアップ推奨
+
+### 次のエージェントへの指示
+1. `cargo check --all` でビルド状態を確認
+2. `.claude/agents/` のファイルを確認
+3. Phase 2のBusiness Agentsから作成開始
