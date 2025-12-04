@@ -17,6 +17,15 @@ export declare class MCPRouter {
      */
     getServer(name: string): MCPAdapter | undefined;
     /**
+     * Get status of all servers
+     */
+    getStatus(): {
+        initialized: boolean;
+        servers: string[];
+        total: number;
+        ready: number;
+    };
+    /**
      * List all available tools from all servers
      */
     listAllTools(): Promise<any>;
@@ -25,12 +34,8 @@ export declare class MCPRouter {
      */
     callTool(serverName: string, toolName: string, args?: any): Promise<any>;
     /**
-     * Get status of all servers
-     */
-    getStatus(): any;
-    /**
      * Shutdown all servers
      */
-    shutdown(): void;
+    shutdown(): Promise<void>;
 }
 export declare function getMCPRouter(): MCPRouter;
