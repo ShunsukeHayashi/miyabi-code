@@ -1,10 +1,5 @@
 /**
- * Miyabi ChatGPT App - MCP Server
- *
- * ChatGPT Apps SDK integration for Miyabi
- * Provides project management, agent execution, and dashboard widgets
- *
- * NEW: GitHub Device Flow authentication for MCP-based onboarding
+ * Miyabi ChatGPT App - MCP Server (Simplified for OAuth Test)
  */
 export {};
 //# sourceMappingURL=index.d.ts.map

@@ -23,25 +23,16 @@ export function registerAuthTools(
   // ============================================
   // GitHub Auth Start
   // ============================================
-  server.tool(
+  server.registerTool(
     "github_auth_start",
     {
-      title: "Start GitHub Authentication",
-      description: "Start GitHub OAuth authentication using Device Flow. Returns a code to enter at github.com/login/device",
-      inputSchema: {
-        type: "object" as const,
-        properties: {}
-      }
+      description: "Start GitHub OAuth authentication using Device Flow. Returns a code to enter at github.com/login/device"
     },
     async () => {
       // Check if already authenticated
       const currentStatus = await checkAuthStatus(getToken());
       if (currentStatus.authenticated) {
         return {
-          structuredContent: {
-            alreadyAuthenticated: true,
-            user: currentStatus.user
-          },
           content: [{
             type: "text" as const,
             text: `✅ Already authenticated as ${currentStatus.user}. Use github_auth_status to check details.`
@@ -53,12 +44,6 @@ export function registerAuthTools(
       const pending = getPendingAuth();
       if (pending.pending) {
         return {
-          structuredContent: {
-            pending: true,
-            userCode: pending.userCode,
-            verificationUri: pending.verificationUri,
-            expiresIn: pending.expiresIn
-          },
           content: [{
             type: "text" as const,
             text: `⏳ Authentication already in progress!\n\n` +
@@ -73,12 +58,6 @@ export function registerAuthTools(
         const result = await startDeviceFlow();
 
         return {
-          structuredContent: {
-            userCode: result.userCode,
-            verificationUri: result.verificationUri,
-            expiresIn: result.expiresIn,
-            interval: result.interval
-          },
           content: [{
             type: "text" as const,
             text: `🔐 **GitHub Authentication Started**\n\n` +
@@ -92,7 +71,6 @@ export function registerAuthTools(
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
         return {
-          structuredContent: { error: message },
           content: [{ type: "text" as const, text: `❌ Error: ${message}` }]
         };
       }
@@ -102,103 +80,45 @@ export function registerAuthTools(
   // ============================================
   // GitHub Auth Poll
   // ============================================
-  server.tool(
+  server.registerTool(
     "github_auth_poll",
     {
-      title: "Check GitHub Authentication",
-      description: "Check if GitHub authentication is complete. Call this after entering the code at GitHub.",
-      inputSchema: {
-        type: "object" as const,
-        properties: {}
-      }
+      description: "Check if GitHub authentication is complete. Call after user authorizes at github.com"
     },
     async () => {
-      const pending = getPendingAuth();
-      if (!pending.pending) {
-        // Check if already have token
-        const currentStatus = await checkAuthStatus(getToken());
-        if (currentStatus.authenticated) {
-          return {
-            structuredContent: {
-              status: "complete",
-              user: currentStatus.user,
-              scopes: currentStatus.scopes
-            },
-            content: [{
-              type: "text" as const,
-              text: `✅ Authenticated as **${currentStatus.user}**!`
-            }]
-          };
-        }
-
-        return {
-          structuredContent: { status: "no_pending" },
-          content: [{
-            type: "text" as const,
-            text: `No pending authentication. Use github_auth_start to begin.`
-          }]
-        };
-      }
-
       try {
         const result = await pollDeviceFlow();
 
-        if (result.status === "pending") {
-          return {
-            structuredContent: {
-              status: "pending",
-              userCode: pending.userCode,
-              verificationUri: pending.verificationUri
-            },
-            content: [{
-              type: "text" as const,
-              text: `⏳ Waiting for authorization...\n\n` +
-                `Please enter code **${pending.userCode}** at ${pending.verificationUri}`
-            }]
-          };
-        }
-
         if (result.status === "complete" && result.token) {
-          // Save token
           setToken(result.token);
-
           return {
-            structuredContent: {
-              status: "complete",
-              user: result.user,
-              authenticated: true
-            },
             content: [{
               type: "text" as const,
-              text: `🎉 **GitHub Authentication Complete!**\n\n` +
-                `Welcome, **${result.user}**!\n\n` +
-                `You can now use:\n` +
-                `- list_repos - リポジトリ一覧\n` +
-                `- switch_project - プロジェクト切替\n` +
-                `- execute_agent - エージェント実行`
+              text: `✅ **認証成功！**\n\n` +
+                `GitHub アカウント: ${result.user}\n` +
+                `Miyabi を使用する準備ができました。`
+            }]
+          };
+        } else if (result.status === "pending") {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `⏳ まだ認証が完了していません。\n\n` +
+                `GitHub で認証を完了してから、もう一度 github_auth_poll を呼んでください。`
+            }]
+          };
+        } else {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `❌ 認証に失敗しました: ${result.error}\n\n` +
+                `github_auth_start で再度開始してください。`
             }]
           };
         }
-
-        if (result.status === "expired") {
-          return {
-            structuredContent: { status: "expired" },
-            content: [{
-              type: "text" as const,
-              text: `⏰ Authentication expired. Use github_auth_start to try again.`
-            }]
-          };
-        }
-
-        return {
-          structuredContent: { status: "error", error: result.error },
-          content: [{ type: "text" as const, text: `❌ Error: ${result.error}` }]
-        };
-
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
         return {
-          structuredContent: { error: message },
           content: [{ type: "text" as const, text: `❌ Error: ${message}` }]
         };
       }
@@ -208,61 +128,32 @@ export function registerAuthTools(
   // ============================================
   // GitHub Auth Status
   // ============================================
-  server.tool(
+  server.registerTool(
     "github_auth_status",
     {
-      title: "GitHub Authentication Status",
-      description: "Check current GitHub authentication status",
-      inputSchema: {
-        type: "object" as const,
-        properties: {}
-      }
+      description: "Check current GitHub authentication status"
     },
     async () => {
-      const token = getToken();
-      const status = await checkAuthStatus(token);
-      const pending = getPendingAuth();
+      const status = await checkAuthStatus(getToken());
 
       if (status.authenticated) {
         return {
-          structuredContent: {
-            authenticated: true,
-            user: status.user,
-            scopes: status.scopes
-          },
           content: [{
             type: "text" as const,
-            text: `✅ **Authenticated**\n\n` +
-              `User: ${status.user}\n` +
+            text: `✅ **認証済み**\n\n` +
+              `GitHub User: ${status.user}\n` +
               `Scopes: ${status.scopes?.join(", ") || "N/A"}`
           }]
         };
-      }
-
-      if (pending.pending) {
+      } else {
         return {
-          structuredContent: {
-            authenticated: false,
-            pending: true,
-            userCode: pending.userCode,
-            expiresIn: pending.expiresIn
-          },
           content: [{
             type: "text" as const,
-            text: `⏳ **Authentication Pending**\n\n` +
-              `Enter code **${pending.userCode}** at ${pending.verificationUri}\n` +
-              `Expires in ${pending.expiresIn} seconds.`
+            text: `❌ **未認証**\n\n` +
+              `github_auth_start を使用して GitHub 認証を開始してください。`
           }]
         };
       }
-
-      return {
-        structuredContent: { authenticated: false },
-        content: [{
-          type: "text" as const,
-          text: `❌ **Not authenticated**\n\nUse github_auth_start to begin authentication.`
-        }]
-      };
     }
   );
 }

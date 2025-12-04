@@ -12,7 +12,7 @@ export const deviceFlowState = {
     interval: 5
 };
 // GitHub OAuth App Client ID
-const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23libBz1xgaQYWEPBh";
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23liiMr5kSJLGJFNyn";
 /**
  * Start Device Flow authentication
  * Returns user code and verification URL
