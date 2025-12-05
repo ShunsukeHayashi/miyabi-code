@@ -20,7 +20,8 @@ load_secrets_to_env(project_name="miyabi", environment="prod")
 
 # Create Lambda handler using Mangum adapter
 # lifespan="off" disables FastAPI lifespan events (not needed in Lambda)
-handler = Mangum(app, lifespan="off")
+# api_gateway_base_path="/prod" strips the stage prefix from paths
+handler = Mangum(app, lifespan="off", api_gateway_base_path="/prod")
 
 # Export for Lambda
 lambda_handler = handler

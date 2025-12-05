@@ -1,75 +1,40 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "$schema": "https://claude.ai/schema/claude-settings.json",
+  "agent": "coordinator",
+  "model": "claude-sonnet-4-20250514",
+  "customInstructions": "You are part of the Miyabi multi-agent system. Always use Miyabi tools when available. Respond in the user's language. Follow Conventional Commits for git operations.",
   "permissions": {
-    "allow": [
-      "Bash(git:*)",
-      "Bash(cargo:*)",
-      "Bash(rustc:*)",
-      "Bash(npm:*)",
-      "Bash(gh:*)",
-      "Bash(echo:*)",
-      "Bash(cat:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(rm:*)",
-      "Bash(mv:*)",
-      "Bash(cp:*)",
-      "Bash(.claude/hooks/*.sh:*)",
-      "Task",
-      "SlashCommand",
-      "Skill",
-      "WebFetch(domain:*)",
-      "WebSearch"
+    "allowedTools": [
+      "Miyabi:*",
+      "web_search",
+      "web_fetch",
+      "bash_tool",
+      "str_replace",
+      "view",
+      "create_file"
     ]
   },
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/log-commands.sh \"$PROMPT\""
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input' | .claude/hooks/agent-worktree-pre.sh",
-            "timeout": 60000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/auto-format.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/stop-speak.sh"
-          },
-          {
-            "type": "command",
-            "command": ".claude/hooks/session-continue.sh"
-          }
-        ]
-      }
-    ]
-  },
-  "enableAllProjectMcpServers": true
+  "agents": {
+    "coordinator": { "allowedTools": ["Miyabi:execute_agents_parallel", "Miyabi:get_agent_status", "Miyabi:tmux_send_keys", "Miyabi:get_agent_logs", "Miyabi:get_issue", "Miyabi:list_issues"] },
+    "codegen": { "allowedTools": ["Miyabi:*", "bash_tool", "str_replace", "view", "create_file"] },
+    "review": { "allowedTools": ["Miyabi:get_pr", "Miyabi:git_diff", "Miyabi:read_file", "Miyabi:search_code", "Miyabi:cargo_clippy", "Miyabi:cargo_test"] },
+    "issue": { "allowedTools": ["Miyabi:get_issue", "Miyabi:list_issues", "Miyabi:update_issue", "Miyabi:search_code"] },
+    "pr": { "allowedTools": ["Miyabi:create_pr", "Miyabi:get_pr", "Miyabi:list_prs", "Miyabi:merge_pr", "Miyabi:git_diff", "Miyabi:git_log"] },
+    "deploy": { "allowedTools": ["Miyabi:cargo_build", "Miyabi:cargo_test", "Miyabi:system_resources", "Miyabi:network_status", "Miyabi:git_push", "Miyabi:show_notification"] },
+    "refresher": { "allowedTools": ["Miyabi:read_file", "Miyabi:write_file", "Miyabi:cargo_build", "Miyabi:cargo_test", "Miyabi:npm_install", "Miyabi:git_commit"] },
+    "ai_entrepreneur": { "allowedTools": ["Miyabi:execute_agents_parallel", "web_search", "Miyabi:obsidian_*", "Miyabi:gemini_*"] },
+    "market_research": { "allowedTools": ["web_search", "web_fetch", "Miyabi:obsidian_*"] },
+    "persona": { "allowedTools": ["web_search", "Miyabi:obsidian_*", "Miyabi:gemini_generate_image"] },
+    "product_concept": { "allowedTools": ["Miyabi:obsidian_*", "Miyabi:gemini_generate_image", "web_search"] },
+    "product_design": { "allowedTools": ["Miyabi:gemini_*", "Miyabi:obsidian_*"] },
+    "content_creation": { "allowedTools": ["Miyabi:write_file", "Miyabi:obsidian_*", "web_search"] },
+    "funnel_design": { "allowedTools": ["Miyabi:obsidian_*", "web_search"] },
+    "sns_strategy": { "allowedTools": ["web_search", "Miyabi:obsidian_*"] },
+    "marketing": { "allowedTools": ["Miyabi:execute_agents_parallel", "web_search", "Miyabi:obsidian_*"] },
+    "sales": { "allowedTools": ["web_search", "Miyabi:obsidian_*"] },
+    "crm": { "allowedTools": ["Miyabi:obsidian_*"] },
+    "analytics": { "allowedTools": ["Miyabi:read_file", "Miyabi:obsidian_*", "web_search"] },
+    "youtube": { "allowedTools": ["web_search", "Miyabi:obsidian_*", "Miyabi:gemini_*"] },
+    "self_analysis": { "allowedTools": ["Miyabi:obsidian_*"] }
+  }
 }
