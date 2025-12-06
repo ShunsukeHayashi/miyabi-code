@@ -1,0 +1,46 @@
+{
+  "name": "bdr-hunter-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed"
+  },
+  "dependencies": {
+    "@heroui/react": "^2.8.3",
+    "@iconify/react": "^5.0.2",
+    "@prisma/client": "^6.19.0",
+    "@supabase/supabase-js": "^2.86.0",
+    "framer-motion": "^11.18.2",
+    "next": "14.2.33",
+    "next-auth": "^5.0.0-beta.30",
+    "prisma": "^6.19.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^20",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.33",
+    "jsdom": "^27.2.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5",
+    "vitest": "^4.0.15"
+  }
+}
