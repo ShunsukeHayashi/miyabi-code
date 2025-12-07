@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "entities/INDEX.md",
+                "file": "reports/2025-12-07-dioxus-strategy-analysis.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "INDEX"
+              "title": "2025-12-07-dioxus-strategy-analysis"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "entities/INDEX.md",
+                "file": "reports/2025-12-07-dioxus-strategy-analysis.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for INDEX"
+              "title": "Backlinks for 2025-12-07-dioxus-strategy-analysis"
             }
           },
           {
@@ -194,6 +194,10 @@
   },
   "active": "5c1749d49c211330",
   "lastOpenFiles": [
+    "reports/2025-12-07-tmux-orchestration-status.md",
+    "reports/2025-12-07-rust-claude-opensource-strategy.md",
+    "entities/INDEX.md",
+    "reports/2025-12-07-dioxus-strategy-analysis.md",
     "agents/Refresher-Agent-Detailed.md",
     "MAINTENANCE_GUIDE.md",
     "workflows/W5.md",
@@ -222,10 +226,6 @@
     "reports/2025-11-22-layer-architecture-status.md",
     "reports/2025-11-17-miyabi-latest-complete-overview.md",
     "reports",
-    "relations/R9.md",
-    "relations/R8.md",
-    "relations/R7.md",
-    "relations/R6.md",
     "relations",
     "planning/validation-report.json",
     "planning/validate-graph.js",
