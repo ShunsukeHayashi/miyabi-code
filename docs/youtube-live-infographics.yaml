@@ -1,0 +1,235 @@
+# ==============================================================================
+# Miyabi OSS - YouTube Live Infographic Sequence
+# Rust + Claude AI 開発ベストプラクティス
+# ==============================================================================
+
+visual_communication_format:
+  metadata:
+    format_name: "Miyabi OSS Hand-Drawn Infographic Sequence"
+    description: "YouTube Live配信用の手書き風インフォグラフィックシーケンス。Rust + Claude AI開発のベストプラクティスを視覚的に解説。"
+    target_audience: "エンジニア、AI開発者、Rustに興味がある開発者"
+    language: "Japanese"
+    total_images: 6
+
+  global_style_definition:
+    art_style:
+      primary_aesthetic: "Graphic Recording / Whiteboard Art"
+      texture_reference: "Marker pens and colored pencils on white paper"
+      overall_vibe: "Friendly, tech-savvy, approachable engineering notebook feel"
+      imperfection_level: "Medium-High - embrace hand-drawn authenticity"
+    color_palette:
+      background: "Clean white paper texture"
+      primary_colors:
+        text_and_outlines: "Black marker"
+        emphasis_rust: "Orange (Rust crab color)"
+        emphasis_claude: "Purple/Violet (Claude brand)"
+        structure_tmux: "Green"
+        critical_warning: "Red"
+      color_usage_rule: "Use orange for Rust elements, purple for AI/Claude elements, green for tmux/infrastructure"
+
+  # ============================================================================
+  # Image 1: タイトル / オープニング
+  # ============================================================================
+  image_01_title:
+    image_id: "Step_01_Title"
+    concept_title: "Miyabi OSS - Rust × Claude AI 開発革命"
+    prompt_description:
+      visual_elements:
+        main_subject_metaphor: "A large open notebook/whiteboard with 'Miyabi' written in stylized Japanese calligraphy at the top. A friendly Rust crab mascot (Ferris) and a simple AI robot character standing together, shaking hands."
+        supporting_elements: "Scattered around: code snippets floating, tmux terminal windows sketched, gear icons. A 'LIVE' badge in the corner with red circle."
+        background_setting: "Clean white paper with subtle grid lines like engineering paper"
+        state_description: "Energetic, welcoming, collaborative atmosphere"
+      text_elements:
+        main_labels:
+          - text: "Miyabi OSS"
+            attached_to: "Top center, large calligraphy style"
+          - text: "Rust × Claude AI"
+            attached_to: "Below main title"
+          - text: "開発ベストプラクティス"
+            attached_to: "Subtitle area"
+          - text: "🦀 + 🤖 = 💪"
+            attached_to: "Near the mascots"
+        explanatory_annotation: "「58クレートの実績から生まれた、AI開発の新常識」"
+      composition_and_emphasis:
+        layout_structure: "Center-focused with radiating elements"
+        focal_point: "The handshake between Ferris and AI robot"
+        emphasis_technique: "Orange and purple color accents on the mascots, yellow highlight behind title"
+      style_application_notes:
+        texture_focus: "Bold marker strokes for title, lighter pencil for details"
+        color_palette_usage: "Orange dominant for Rust, purple accents for AI"
+        mood_direction: "Exciting, innovative, welcoming"
+
+  # ============================================================================
+  # Image 2: 問題提起 - なぜ必要？
+  # ============================================================================
+  image_02_problem:
+    image_id: "Step_02_Problem"
+    concept_title: "従来のAI開発の課題"
+    prompt_description:
+      visual_elements:
+        main_subject_metaphor: "A confused stick figure developer surrounded by scattered papers, multiple chat windows, and tangled code. Speech bubbles with '?' marks floating around."
+        supporting_elements: "Broken arrows pointing in different directions. A clock showing spinning time. Multiple Claude chat windows stacked chaotically."
+        background_setting: "Messy desk environment sketch"
+        state_description: "Chaotic, frustrated, overwhelmed"
+      text_elements:
+        main_labels:
+          - text: "毎回コンテキストを説明..."
+            attached_to: "Speech bubble from developer"
+          - text: "コードがバラバラ"
+            attached_to: "Scattered papers"
+          - text: "時間がかかる！"
+            attached_to: "Spinning clock"
+          - text: "どのファイル？"
+            attached_to: "Question marks"
+        explanatory_annotation: "「大規模Rustプロジェクトでの悩み：コンテキスト共有の難しさ」"
+      composition_and_emphasis:
+        layout_structure: "Chaos radiating from center figure"
+        focal_point: "The overwhelmed developer in the center"
+        emphasis_technique: "Red circles around pain points, messy scribbles"
+      style_application_notes:
+        texture_focus: "Rough, hurried sketch lines to convey frustration"
+        color_palette_usage: "Mostly black with red accents for pain points"
+        mood_direction: "Frustrated, chaotic, relatable"
+
+  # ============================================================================
+  # Image 3: 解決策 - Dioxus Labs戦略
+  # ============================================================================
+  image_03_solution:
+    image_id: "Step_03_Solution"
+    concept_title: "Dioxus Labs戦略 - 6時間でvSphere"
+    prompt_description:
+      visual_elements:
+        main_subject_metaphor: "A simple funnel diagram: at the top, a thick book labeled 'overview.md' pouring structured information into Claude (represented as a friendly robot head). Output: clean, organized code blocks."
+        supporting_elements: "A stopwatch showing '6時間', a checkmark list, the Dioxus logo hint. Before/After comparison arrows."
+        background_setting: "Clean organized workspace"
+        state_description: "Streamlined, efficient, organized"
+      text_elements:
+        main_labels:
+          - text: "overview.md"
+            attached_to: "Input document at top"
+          - text: "コンテキスト注入"
+            attached_to: "Arrow going into funnel"
+          - text: "Claude Opus"
+            attached_to: "Robot head in middle"
+          - text: "イディオマティックなRust"
+            attached_to: "Output code"
+          - text: "6時間でvSphereクローン！"
+            attached_to: "Stopwatch with exclamation"
+        explanatory_annotation: "「鍵は『概要ドキュメントの集約』と『高速イテレーション』」"
+      composition_and_emphasis:
+        layout_structure: "Top-to-bottom flow diagram"
+        focal_point: "The funnel transformation process"
+        emphasis_technique: "Green checkmarks, orange highlight on '6時間'"
+      style_application_notes:
+        texture_focus: "Clean lines for the process flow, hand-drawn arrows"
+        color_palette_usage: "Green for success, orange for Rust output"
+        mood_direction: "Enlightened, efficient, 'aha moment'"
+
+  # ============================================================================
+  # Image 4: Miyabi構成 - マルチエージェント
+  # ============================================================================
+  image_04_agents:
+    image_id: "Step_04_Agents"
+    concept_title: "Miyabiエージェント構成"
+    prompt_description:
+      visual_elements:
+        main_subject_metaphor: "An organizational chart drawn as a tree. At the top, a conductor figure (しきるん) with a baton. Below, branches connecting to worker agents represented as cute character icons: maple leaf (カエデ), cherry blossom (サクラ), camellia (ツバキ), peony (ボタン)."
+        supporting_elements: "Each agent has a small terminal window icon next to them. Dotted lines showing communication paths. Japanese flower icons for each agent."
+        background_setting: "Clean whiteboard with organizational structure"
+        state_description: "Organized, hierarchical, collaborative team"
+      text_elements:
+        main_labels:
+          - text: "しきるん (Conductor)"
+            attached_to: "Top conductor figure"
+          - text: "カエデ ×3 (CodeGen)"
+            attached_to: "Three maple leaf icons"
+          - text: "サクラ (Review)"
+            attached_to: "Cherry blossom icon"
+          - text: "ツバキ (PR)"
+            attached_to: "Camellia icon"
+          - text: "ボタン (Deploy)"
+            attached_to: "Peony icon"
+        explanatory_annotation: "「専門エージェントが協調して開発タスクを完遂」"
+      composition_and_emphasis:
+        layout_structure: "Hierarchical tree from top to bottom"
+        focal_point: "The conductor at the top orchestrating"
+        emphasis_technique: "Color coding each agent type, connecting lines"
+      style_application_notes:
+        texture_focus: "Cute character icons with hand-drawn feel"
+        color_palette_usage: "Each agent has distinct color: orange for CodeGen, pink for Review, purple for PR, red for Deploy"
+        mood_direction: "Teamwork, organization, harmony"
+
+  # ============================================================================
+  # Image 5: P0.2プロトコル - 通信ルール
+  # ============================================================================
+  image_05_protocol:
+    image_id: "Step_05_Protocol"
+    concept_title: "P0.2通信プロトコル - PUSHルール"
+    prompt_description:
+      visual_elements:
+        main_subject_metaphor: "Two panels side by side. LEFT (marked with ✓): Workers actively sending messages (arrows pointing UP) to a central Conductor inbox. RIGHT (marked with ✗): Conductor trying to pull/poll workers (arrows pointing DOWN, crossed out)."
+        supporting_elements: "Speech bubbles with message snippets. A code block showing the tmux send-keys command. A magnified 'sleep 0.5' with emphasis."
+        background_setting: "Split comparison layout"
+        state_description: "Clear contrast between correct and incorrect patterns"
+      text_elements:
+        main_labels:
+          - text: "✅ PUSH (正解)"
+            attached_to: "Left panel header"
+          - text: "❌ PULL (禁止)"
+            attached_to: "Right panel header"
+          - text: "Worker → Conductor"
+            attached_to: "Left panel arrows"
+          - text: "Conductor → Worker"
+            attached_to: "Right panel crossed arrows"
+          - text: "sleep 0.5 必須！"
+            attached_to: "Highlighted code snippet"
+        explanatory_annotation: "「ワーカーが能動的に報告 = スケーラブルな設計」"
+      composition_and_emphasis:
+        layout_structure: "Left-Right comparison split"
+        focal_point: "The contrast between ✓ and ✗ patterns"
+        emphasis_technique: "Green for correct, red X for incorrect"
+      style_application_notes:
+        texture_focus: "Clear diagram lines, code block with monospace feel"
+        color_palette_usage: "Green vs Red for clear contrast"
+        mood_direction: "Educational, clear rules, 'now I understand'"
+
+  # ============================================================================
+  # Image 6: まとめ / CTA
+  # ============================================================================
+  image_06_summary:
+    image_id: "Step_06_Summary"
+    concept_title: "OSS公開 - 一緒に作ろう！"
+    prompt_description:
+      visual_elements:
+        main_subject_metaphor: "A treasure chest opening with light rays coming out, containing: MIYABI_OVERVIEW.md, RUST_CHEATSHEET.md, tmux scripts. Multiple developer stick figures approaching with excited expressions. GitHub logo and star icons."
+        supporting_elements: "A world map hint showing global community. Japanese and English flags. Discord/community icons."
+        background_setting: "Celebratory, open source community feel"
+        state_description: "Generous, community-focused, exciting launch"
+      text_elements:
+        main_labels:
+          - text: "miyabi-rust-claude-guide"
+            attached_to: "Repository name banner"
+          - text: "⭐ Star お願いします！"
+            attached_to: "GitHub star icon"
+          - text: "日英バイリンガル"
+            attached_to: "Flag icons"
+          - text: "コントリビュート歓迎"
+            attached_to: "Open arms gesture"
+        explanatory_annotation: "「58クレートの実績をコミュニティへ。一緒にRust×AI開発を進化させよう！」"
+      composition_and_emphasis:
+        layout_structure: "Center treasure chest with radiating community"
+        focal_point: "The open treasure chest with valuable contents"
+        emphasis_technique: "Golden/yellow highlight on the chest, purple glow"
+      style_application_notes:
+        texture_focus: "Celebratory, slightly sparkly hand-drawn effects"
+        color_palette_usage: "Golden yellow for treasure, purple for AI, orange for Rust"
+        mood_direction: "Generous, exciting, community-building, call-to-action"
+
+# ==============================================================================
+# Generation Instructions
+# ==============================================================================
+generation_instructions:
+  order: "Generate images in sequence from 01 to 06"
+  consistency: "Maintain consistent character designs and color coding across all images"
+  output_format: "PNG, 1920x1080 (16:9 aspect ratio)"
+  save_location: "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/docs/youtube-live-infographics/"

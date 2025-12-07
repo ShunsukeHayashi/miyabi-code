@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi YouTube Live Slides - Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .metadata {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .metadata-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .slides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .slide-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .slide-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .slide-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #f5f5f5;
+        }
+
+        .slide-info {
+            padding: 20px;
+        }
+
+        .slide-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .slide-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .slide-description {
+            color: #718096;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 30px;
+            right: 50px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .modal-close:hover {
+            transform: scale(1.2);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #718096;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .slides-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metadata {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Miyabi YouTube Live Slides</h1>
+            <div class="subtitle">Hand-drawn Infographic Presentation</div>
+            <div class="metadata">
+                <div class="metadata-item">📅 Generated: 2025-12-07</div>
+                <div class="metadata-item">🤖 Model: Gemini 2.5 Flash Image</div>
+                <div class="metadata-item">📐 Format: 1920x1080 PNG</div>
+                <div class="metadata-item">🎨 Style: Whiteboard Marker</div>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">13</div>
+                <div class="stat-label">Total Slides</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~20 MB</div>
+                <div class="stat-label">Total Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">16:9</div>
+                <div class="stat-label">Aspect Ratio</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+        </div>
+
+        <section class="section">
+            <h2 class="section-title">Part 1: tmux P0.2 Protocol (Slides 1-6)</h2>
+            <div class="slides-grid">
+                <div class="slide-card" onclick="openModal('01-tmux-system-overview.png')">
+                    <img src="01-tmux-system-overview.png" alt="tmux System Overview" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 1</span>
+                        <h3 class="slide-title">tmux System Overview</h3>
+                        <p class="slide-description">6-pane layout showing Shikirun conductor orchestrating 5 agent panes</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('02-p02-communication-flow.png')">
+                    <img src="02-p02-communication-flow.png" alt="P0.2 Communication Flow" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 2</span>
+                        <h3 class="slide-title">P0.2 Communication Flow</h3>
+                        <p class="slide-description">Flowchart showing GitHub Issue → Shikirun detection → Agent distribution → Review</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('03-permanent-pane-id.png')">
+                    <img src="03-permanent-pane-id.png" alt="Permanent Pane ID" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 3</span>
+                        <h3 class="slide-title">Permanent Pane ID Mapping</h3>
+                        <p class="slide-description">Session index (%0) vs Permanent ID (%27) comparison diagram</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('04-message-send-command.png')">
+                    <img src="04-message-send-command.png" alt="Message Send Command" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 4</span>
+                        <h3 class="slide-title">Message Send Command</h3>
+                        <p class="slide-description">Terminal visualization of miyabi_send command execution flow</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('05-mcp-ecosystem.png')">
+                    <img src="05-mcp-ecosystem.png" alt="MCP Ecosystem" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 5</span>
+                        <h3 class="slide-title">MCP Ecosystem Overview</h3>
+                        <p class="slide-description">Mind map showing 35 MCP servers across 5 categories</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('06-oss-strategy.png')">
+                    <img src="06-oss-strategy.png" alt="OSS Strategy" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 6</span>
+                        <h3 class="slide-title">OSS Release Strategy</h3>
+                        <p class="slide-description">3-phase roadmap: Core → Community → Ecosystem Growth</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Part 2: OSS Strategy (Slides 7-13)</h2>
+            <div class="slides-grid">
+                <div class="slide-card" onclick="openModal('07-growth-chart.png')">
+                    <img src="07-growth-chart.png" alt="Growth Chart" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 7</span>
+                        <h3 class="slide-title">OSS Impact Prediction</h3>
+                        <p class="slide-description">Growth chart: 50 → 5000 GitHub stars in 6 months</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('08-barriers-solutions.png')">
+                    <img src="08-barriers-solutions.png" alt="Barriers & Solutions" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 8</span>
+                        <h3 class="slide-title">Community Barriers & Solutions</h3>
+                        <p class="slide-description">Before/after comparison: Mountain climbing → Flat path</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('09-competitive-matrix.png')">
+                    <img src="09-competitive-matrix.png" alt="Competitive Matrix" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 9</span>
+                        <h3 class="slide-title">Competitive Analysis Matrix</h3>
+                        <p class="slide-description">2x2 matrix: Miyabi in the perfect sweet spot</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('10-tech-stack.png')">
+                    <img src="10-tech-stack.png" alt="Tech Stack" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 10</span>
+                        <h3 class="slide-title">Technical Stack Differentiation</h3>
+                        <p class="slide-description">Traditional vs Miyabi vs Benefits comparison</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('11-contribution-map.png')">
+                    <img src="11-contribution-map.png" alt="Contribution Map" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 11</span>
+                        <h3 class="slide-title">Contribution Opportunity Map</h3>
+                        <p class="slide-description">5 contributor types: Rust devs, Claude enthusiasts, DevOps, Writers, Designers</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('12-business-model.png')">
+                    <img src="12-business-model.png" alt="Business Model" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 12</span>
+                        <h3 class="slide-title">Open-Core Business Model</h3>
+                        <p class="slide-description">OSS (Free) core with Enterprise (Paid) outer ring</p>
+                    </div>
+                </div>
+
+                <div class="slide-card" onclick="openModal('13-roadmap.png')">
+                    <img src="13-roadmap.png" alt="Roadmap" class="slide-image">
+                    <div class="slide-info">
+                        <span class="slide-number">Slide 13</span>
+                        <h3 class="slide-title">6-Month Roadmap</h3>
+                        <p class="slide-description">Gantt-style timeline: Foundation → Community → Growth</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="modal" class="modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <div class="modal-content">
+            <img id="modalImage" class="modal-image" src="" alt="Full size slide">
+        </div>
+    </div>
+
+    <script>
+        function openModal(imageSrc) {
+            const modal = document.getElementById('modal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = imageSrc;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
