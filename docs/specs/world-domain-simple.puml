@@ -1,0 +1,90 @@
+@startuml World Domain Overview
+
+skinparam backgroundColor white
+skinparam roundcorner 10
+
+title World Domain - 80 AI Agents / 9 Societies
+
+package "Pantheon Council" #E8E5FF {
+    [Gates - CTO] as gates
+    [Jobs - CDO] as jobs
+    [Napoleon - CSO] as napoleon
+    [Kotler - CMO] as kotler
+}
+
+package "Finance (9)" #DBEAFE {
+    [CFO-Agent]
+    [AccountingBot]
+    [TaxAnalyzer]
+}
+
+package "HR (9)" #FCE7F3 {
+    [CHRO-Agent]
+    [RecruiterBot]
+    [PayrollBot]
+}
+
+package "Legal (8)" #F3F4F6 {
+    [CLO-Agent]
+    [ContractBot]
+    [ComplianceBot]
+}
+
+package "Sales (9)" #FFF7ED {
+    [CRO-Agent]
+    [LeadGenBot]
+    [DealCloser]
+}
+
+package "Operations (8)" #CCFBF1 {
+    [COO-Agent]
+    [SupplyChainBot]
+    [QualityBot]
+}
+
+package "Customer Success (8)" #EDE9FE {
+    [CCO-Agent]
+    [SupportBot]
+    [ChurnPredictor]
+}
+
+package "R&D (12)" #CFFAFE {
+    [CTO-Agent]
+    [CodeGenAgent]
+    [ReviewAgent]
+    [DevOpsBot]
+}
+
+package "Marketing (10)" #FFE4E6 {
+    [CMO-Agent]
+    [ContentBot]
+    [SEOBot]
+}
+
+package "Admin (7)" #F9FAFB {
+    [CAO-Agent]
+    [SchedulerBot]
+    [ITHelpdesk]
+}
+
+gates --> [CTO-Agent]
+gates --> [CFO-Agent]
+jobs --> [CMO-Agent]
+jobs --> [CCO-Agent]
+napoleon --> [CRO-Agent]
+napoleon --> [COO-Agent]
+kotler --> [CMO-Agent]
+
+database "PostgreSQL" as db
+cloud "AWS Lambda" as lambda
+[CodeGenAgent] --> lambda
+lambda --> db
+
+legend right
+|= Total |= Value |
+| AI Agents | 80 |
+| FTE Replaced | 170-281 |
+| Savings | 70-85% |
+endlegend
+
+@enduml

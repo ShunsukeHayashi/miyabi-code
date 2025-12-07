@@ -1,0 +1,851 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============================================================
+% パッケージ
+% ============================================================
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setCJKmainfont{Hiragino Mincho ProN}
+\setCJKsansfont{Hiragino Kaku Gothic ProN}
+\setCJKmonofont{Hiragino Kaku Gothic ProN}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
+
+% ============================================================
+% ページ設定
+% ============================================================
+\geometry{
+    top=25mm,
+    bottom=25mm,
+    left=20mm,
+    right=20mm
+}
+
+% ============================================================
+% カラー定義
+% ============================================================
+\definecolor{miyabiPrimary}{RGB}{79, 70, 229}      % Indigo
+\definecolor{miyabiSecondary}{RGB}{16, 185, 129}   % Emerald
+\definecolor{miyabiAccent}{RGB}{245, 158, 11}      % Amber
+\definecolor{miyabiDark}{RGB}{17, 24, 39}          % Gray-900
+\definecolor{miyabiLight}{RGB}{249, 250, 251}      % Gray-50
+\definecolor{codeBackground}{RGB}{243, 244, 246}   % Gray-100
+
+% ============================================================
+% ヘッダー・フッター
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{miyabiPrimary}{\textbf{Miyabi Society Specification}}}
+\fancyhead[R]{\textcolor{gray}{v1.0.0}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ============================================================
+% セクションスタイル
+% ============================================================
+\titleformat{\section}
+    {\Large\bfseries\color{miyabiPrimary}}
+    {\thesection}{1em}{}
+\titleformat{\subsection}
+    {\large\bfseries\color{miyabiDark}}
+    {\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+    {\normalsize\bfseries\color{miyabiDark}}
+    {\thesubsubsection}{1em}{}
+
+% ============================================================
+% コードブロック設定
+% ============================================================
+\lstset{
+    backgroundcolor=\color{codeBackground},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!30},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{miyabiPrimary}\bfseries,
+    commentstyle=\color{gray},
+    stringstyle=\color{miyabiSecondary},
+    showstringspaces=false
+}
+
+% ============================================================
+% ハイパーリンク設定
+% ============================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=miyabiPrimary,
+    urlcolor=miyabiSecondary,
+    citecolor=miyabiAccent
+}
+
+% ============================================================
+% ドキュメント開始
+% ============================================================
+\begin{document}
+
+% ------------------------------------------------------------
+% タイトルページ
+% ------------------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    {\Huge\bfseries\color{miyabiPrimary} Miyabi Society}\\[0.5cm]
+    {\Large\color{miyabiDark} Multi-Agent Autonomous System}\\[0.3cm]
+    {\large\color{gray} Technical Specification Document}
+
+    \vspace{2cm}
+
+    \begin{tikzpicture}[scale=0.8]
+        % Central node
+        \node[circle, draw=miyabiPrimary, fill=miyabiPrimary!10,
+              minimum size=3cm, line width=2pt] (center)
+              {\textbf{\color{miyabiPrimary}Society}};
+
+        % Surrounding nodes
+        \foreach \angle/\name/\color in {
+            90/Investment/miyabiSecondary,
+            162/Content/miyabiAccent,
+            234/Coding/miyabiPrimary,
+            306/Business/gray,
+            18/Pantheon/miyabiDark
+        } {
+            \node[circle, draw=\color, fill=\color!10,
+                  minimum size=1.8cm, line width=1pt]
+                  at (\angle:4cm) {\scriptsize\textbf{\name}};
+            \draw[->, \color, line width=1pt]
+                  (center) -- (\angle:2.8cm);
+        }
+    \end{tikzpicture}
+
+    \vspace{2cm}
+
+    \begin{tabular}{ll}
+        \textbf{Version:} & 1.0.0 \\
+        \textbf{Date:} & December 5, 2025 \\
+        \textbf{Status:} & Draft \\
+        \textbf{Author:} & Miyabi Development Team \\
+    \end{tabular}
+
+    \vfill
+
+    {\small\color{gray}
+    \textcopyright\ 2025 AntiGravity Miyabi Edition. All rights reserved.}
+\end{titlepage}
+
+% ------------------------------------------------------------
+% 目次
+% ------------------------------------------------------------
+\tableofcontents
+\newpage
+
+% ============================================================
+% 1. Executive Summary
+% ============================================================
+\section{Executive Summary}
+
+\subsection{Vision}
+
+Miyabi Societyは、\textbf{完全自律型AIエージェント集団}による
+ビジネス・開発オペレーションの自動化を目指すプラットフォームです。
+
+\begin{itemize}
+    \item \textbf{21+ AI Agents}: 専門分野に特化したエージェント群
+    \item \textbf{28+ MCP Servers}: Model Context Protocolによるツール統合
+    \item \textbf{Multi-Society}: ドメイン別の自律組織構造
+    \item \textbf{A2A Protocol}: エージェント間の標準化通信
+\end{itemize}
+
+\subsection{Key Objectives}
+
+\begin{enumerate}
+    \item \textbf{Autonomous Operation}: 人間の介入を最小化した24/7稼働
+    \item \textbf{Scalable Architecture}: 200+並列エージェントへのスケーリング
+    \item \textbf{Domain Specialization}: 9つの専門ドメインSociety
+    \item \textbf{Quality Assurance}: 自動レビュー・品質ゲート
+\end{enumerate}
+
+\subsection{Document Scope}
+
+本仕様書は以下を定義します：
+\begin{itemize}
+    \item Society アーキテクチャ設計
+    \item エージェント構成と役割
+    \item 通信プロトコル仕様
+    \item データベーススキーマ
+    \item 実装ロードマップ
+\end{itemize}
+
+% ============================================================
+% 2. Architecture Overview
+% ============================================================
+\section{Architecture Overview}
+
+\subsection{System Architecture}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    layer/.style={
+        rectangle,
+        draw=#1,
+        fill=#1!10,
+        minimum width=12cm,
+        minimum height=1.2cm,
+        font=\small\bfseries,
+        rounded corners=3pt
+    },
+    arrow/.style={->, thick, gray}
+]
+    % Layers
+    \node[layer=miyabiDark] (pantheon) {Pantheon Council (Strategic Governance)};
+    \node[layer=miyabiPrimary, below=0.8cm of pantheon] (societies)
+        {Domain Societies (Investment | Content | Coding | Business)};
+    \node[layer=miyabiSecondary, below=0.8cm of societies] (mcp)
+        {MCP Server Federation (28+ Servers)};
+    \node[layer=miyabiAccent, below=0.8cm of mcp] (persistence)
+        {Persistence Layer (PostgreSQL | SQLite)};
+    \node[layer=gray, below=0.8cm of persistence] (infra)
+        {Infrastructure (AWS Lambda | EC2 | RDS)};
+
+    % Arrows
+    \draw[arrow] (pantheon) -- (societies);
+    \draw[arrow] (societies) -- (mcp);
+    \draw[arrow] (mcp) -- (persistence);
+    \draw[arrow] (persistence) -- (infra);
+
+\end{tikzpicture}
+\caption{Miyabi Society 5-Layer Architecture}
+\end{figure}
+
+\subsection{Design Principles}
+
+\begin{enumerate}
+    \item \textbf{Coordinator-Centric}: 各SocietyにCoordinatorを配置
+    \item \textbf{Context Isolation}: Subagentごとに独立したコンテキスト窓
+    \item \textbf{Lazy Loading}: 必要時のみContextをロード
+    \item \textbf{Checkpoint Recovery}: 任意時点への状態復帰
+    \item \textbf{MCP First}: 外部ツール連携はMCP経由を優先
+\end{enumerate}
+
+% ============================================================
+% 3. Society Structure
+% ============================================================
+\section{Society Structure}
+
+\subsection{Society Types}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Society} & \textbf{Mission} & \textbf{Agents} & \textbf{Status} \\
+\midrule
+Investment & 投資分析・ポートフォリオ管理 & 21 & Active \\
+Content & コンテンツ制作・SNS戦略 & 5 & Design \\
+Coding & ソフトウェア開発自動化 & 7 & Active \\
+Business & ビジネス戦略・マーケティング & 14 & Active \\
+\midrule
+\multicolumn{2}{l}{\textit{Phase 2 (2026)}} & & \\
+Finance & 財務・会計自動化 & 9 & Planned \\
+HR \& People & 採用・人事管理 & 9 & Planned \\
+Sales & 営業・リード管理 & 9 & Planned \\
+Customer Success & 顧客満足度最大化 & 8 & Planned \\
+Legal & 法務・コンプライアンス & 8 & Planned \\
+\bottomrule
+\end{tabular}
+\caption{Society Types and Status}
+\end{table}
+
+\subsection{Investment Society (21 Agents)}
+
+\subsubsection{Hierarchical Structure}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    node distance=0.8cm,
+    agent/.style={
+        rectangle,
+        draw=#1,
+        fill=#1!15,
+        minimum width=2.2cm,
+        minimum height=0.7cm,
+        font=\tiny\bfseries,
+        rounded corners=2pt
+    }
+]
+    % Layer 1: Coordinator
+    \node[agent=miyabiPrimary] (coord) {InvestCoordinator};
+
+    % Layer 2: Watchers
+    \node[agent=miyabiSecondary, below left=1cm and 2cm of coord] (jp) {JP-Watcher};
+    \node[agent=miyabiSecondary, below left=1cm and 0cm of coord] (us) {US-Watcher};
+    \node[agent=miyabiSecondary, below=1cm of coord] (fx) {FX-Watcher};
+    \node[agent=miyabiSecondary, below right=1cm and 0cm of coord] (crypto) {Crypto-Watcher};
+    \node[agent=miyabiSecondary, below right=1cm and 2cm of coord] (global) {Global-Watcher};
+
+    % Layer 3: Analysts (simplified)
+    \node[agent=miyabiAccent, below=2.5cm of jp] (tech) {Tech-Analyst};
+    \node[agent=miyabiAccent, below=2.5cm of us] (fin) {Finance-Analyst};
+    \node[agent=miyabiAccent, below=2.5cm of fx] (health) {Healthcare-Analyst};
+    \node[agent=miyabiAccent, below=2.5cm of crypto] (consumer) {Consumer-Analyst};
+    \node[agent=miyabiAccent, below=2.5cm of global] (energy) {Energy-Analyst};
+
+    % Layer 4: Strategy (simplified)
+    \node[agent=gray, below=4cm of coord] (strategy) {Strategy \& Risk (9 agents)};
+
+    % Connections
+    \foreach \watcher in {jp, us, fx, crypto, global} {
+        \draw[->, gray, thin] (coord) -- (\watcher);
+    }
+    \foreach \analyst in {tech, fin, health, consumer, energy} {
+        \draw[->, gray!50, thin] (fx) -- (\analyst);
+    }
+    \draw[->, gray, thin] (health) -- (strategy);
+
+\end{tikzpicture}
+\caption{Investment Society Hierarchy}
+\end{figure}
+
+\subsubsection{Agent Roles}
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Layer} & \textbf{Agent} & \textbf{Responsibility} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Layer} & \textbf{Agent} & \textbf{Responsibility} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Command & InvestCoordinator & タスク分配・最終意思決定 \\
+\midrule
+Watchers & JP-Watcher & 日経225/TOPIX監視 \\
+ & US-Watcher & S\&P500/NASDAQ監視 \\
+ & FX-Watcher & 主要通貨ペア監視 \\
+ & Crypto-Watcher & BTC/ETH/主要コイン \\
+ & Global-Watcher & 世界指数・コモディティ \\
+\midrule
+Analysts & Tech-Analyst & テクノロジーセクター分析 \\
+ & Finance-Analyst & 金融セクター分析 \\
+ & Healthcare-Analyst & ヘルスケアセクター分析 \\
+ & Consumer-Analyst & 消費財セクター分析 \\
+ & Energy-Analyst & エネルギーセクター分析 \\
+ & Industrial-Analyst & 産業セクター分析 \\
+\midrule
+Strategy & Momentum-Trader & モメンタム戦略立案 \\
+ & Value-Hunter & バリュー投資銘柄発掘 \\
+ & Quant-Analyzer & 定量分析・バックテスト \\
+ & Risk-Manager & リスク評価・VaR計算 \\
+ & Executor & 売買執行・タイミング最適化 \\
+\end{longtable}
+
+\subsection{Content Society (5 Agents)}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Agent} & \textbf{Name} & \textbf{Responsibility} \\
+\midrule
+かぞえるん & Analytics & メトリクス収集・KPI追跡 \\
+つぶやくん & SNS Strategy & X/Twitter分析・投稿最適化 \\
+どうがくん & YouTube & 動画分析・SEO・サムネイル \\
+かくちゃん & Content Creator & レポート・記事・投稿文生成 \\
+ひろめるん & Marketing & 拡散戦略・インフルエンサー連携 \\
+\bottomrule
+\end{tabular}
+\caption{Content Society Agents}
+\end{table}
+
+\subsection{Coding Society (7 Agents)}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Agent} & \textbf{Name} & \textbf{Responsibility} \\
+\midrule
+しきるん & Coordinator & タスク分解・DAG構築・エージェント指揮 \\
+つくるん & CodeGen & AI駆動コード生成・テスト作成 \\
+めだまん & Review & 品質スコア算出・セキュリティ検査 \\
+みつけるん & Issue & Issue分析・57ラベル自動付与 \\
+まとめるん & PR & Pull Request自動作成・管理 \\
+はこぶん & Deployment & CI/CDデプロイ・ロールバック \\
+つなぐん & Refresher & Issue状態監視・コンテキスト同期 \\
+\bottomrule
+\end{tabular}
+\caption{Coding Society Agents}
+\end{table}
+
+% ============================================================
+% 4. Communication Protocol
+% ============================================================
+\section{Communication Protocol}
+
+\subsection{A2A Message Format}
+
+\begin{lstlisting}[language=Rust, caption=A2A Message Structure]
+pub struct A2AMessage {
+    pub id: Uuid,
+    pub session_id: Uuid,
+    pub from_agent: AgentId,
+    pub to_agent: AgentId,
+    pub message_type: MessageType,
+    pub content: serde_json::Value,
+    pub priority: Priority,
+    pub timestamp: DateTime<Utc>,
+}
+
+pub enum MessageType {
+    Signal,    // 売買シグナル
+    Alert,     // リスクアラート
+    Data,      // 市場データ
+    Report,    // 分析レポート
+    Sync,      // 死活監視
+    Command,   // コマンド発行
+    Response,  // 応答
+}
+
+pub enum Priority {
+    Critical,  // 即時処理必須
+    High,      // 優先処理
+    Medium,    // 通常処理
+    Low,       // バッチ処理可
+}
+\end{lstlisting}
+
+\subsection{Communication Layers}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{Layer} & \textbf{Protocol} & \textbf{Latency} & \textbf{Use Case} \\
+\midrule
+L1: tmux & send-keys & $\sim$100ms & ローカル開発 \\
+L2: MCP & JSON-RPC/SSE & $\sim$500ms & Claude Code統合 \\
+L3: A2A & HTTP/gRPC & $\sim$1-2s & 外部エージェント連携 \\
+\bottomrule
+\end{tabular}
+\caption{Communication Layer Comparison}
+\end{table}
+
+\subsection{Inter-Society Routing}
+
+\begin{lstlisting}[language=yaml, caption=Routing Rules]
+routing_rules:
+  - trigger: "market_alert"
+    from: "investment-society"
+    to: "content-society"
+    action: "generate_market_report"
+
+  - trigger: "content_ready"
+    from: "content-society"
+    to: "coding-society"
+    action: "commit_to_obsidian"
+
+  - trigger: "deployment_complete"
+    from: "coding-society"
+    to: "all"
+    action: "notify_stakeholders"
+\end{lstlisting}
+
+% ============================================================
+% 5. Database Schema
+% ============================================================
+\section{Database Schema}
+
+\subsection{Entity Relationship}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    entity/.style={
+        rectangle,
+        draw=miyabiPrimary,
+        fill=miyabiPrimary!10,
+        minimum width=2.5cm,
+        minimum height=1cm,
+        font=\small\bfseries
+    },
+    relation/.style={
+        diamond,
+        draw=miyabiAccent,
+        fill=miyabiAccent!10,
+        minimum width=1.5cm,
+        font=\tiny
+    }
+]
+    % Entities
+    \node[entity] (society) at (0,0) {societies};
+    \node[entity] (agent) at (4,0) {agents};
+    \node[entity] (task) at (8,0) {tasks};
+    \node[entity] (session) at (4,-3) {sessions};
+    \node[entity] (message) at (8,-3) {messages};
+
+    % Relations
+    \draw[->, thick, miyabiPrimary] (society) -- node[above, font=\tiny] {1:N} (agent);
+    \draw[->, thick, miyabiPrimary] (agent) -- node[above, font=\tiny] {1:N} (task);
+    \draw[->, thick, miyabiPrimary] (session) -- node[above, font=\tiny] {1:N} (message);
+    \draw[->, thick, miyabiPrimary] (agent) -- node[left, font=\tiny] {N:N} (session);
+    \draw[->, thick, miyabiAccent] (agent) -- node[right, font=\tiny] {from/to} (message);
+
+\end{tikzpicture}
+\caption{Entity Relationship Diagram}
+\end{figure}
+
+\subsection{Core Tables}
+
+\begin{lstlisting}[language=SQL, caption=PostgreSQL Schema]
+-- Society Management
+CREATE TABLE societies (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) UNIQUE NOT NULL,
+    coordinator_id UUID REFERENCES agents(id),
+    config JSONB DEFAULT '{}',
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Agent Registry
+CREATE TABLE agents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    agent_type VARCHAR(100) NOT NULL,
+    society_id UUID REFERENCES societies(id),
+    status VARCHAR(50) DEFAULT 'active',
+    config JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Task Management
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(500) NOT NULL,
+    description TEXT,
+    agent_id UUID REFERENCES agents(id),
+    status VARCHAR(50) DEFAULT 'pending',
+    priority VARCHAR(20) DEFAULT 'medium',
+    issue_number INTEGER,
+    result JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Session Tracking
+CREATE TABLE sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255),
+    status VARCHAR(50) DEFAULT 'active',
+    agents_count INTEGER DEFAULT 0,
+    metadata JSONB DEFAULT '{}',
+    started_at TIMESTAMPTZ DEFAULT NOW(),
+    ended_at TIMESTAMPTZ
+);
+
+-- A2A Messages
+CREATE TABLE messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id UUID REFERENCES sessions(id),
+    from_agent UUID REFERENCES agents(id),
+    to_agent UUID REFERENCES agents(id),
+    message_type VARCHAR(50) NOT NULL,
+    content JSONB NOT NULL,
+    priority VARCHAR(20) DEFAULT 'medium',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_agents_society ON agents(society_id);
+CREATE INDEX idx_tasks_agent ON tasks(agent_id);
+CREATE INDEX idx_tasks_status ON tasks(status);
+CREATE INDEX idx_messages_session ON messages(session_id);
+CREATE INDEX idx_messages_timestamp ON messages(created_at);
+\end{lstlisting}
+
+% ============================================================
+% 6. MCP Integration
+% ============================================================
+\section{MCP Integration}
+
+\subsection{Server Inventory}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Category} & \textbf{Server} & \textbf{Tools} \\
+\midrule
+Core & miyabi-mcp & 15 \\
+ & miyabi-github & 12 \\
+ & miyabi-tmux & 8 \\
+\midrule
+AI & gemini3-general & 6 \\
+ & gemini-image-gen & 5 \\
+ & miyabi-openai & 4 \\
+\midrule
+Society & miyabi-investment-society & 11 \\
+ & miyabi-content-society & 5 (planned) \\
+\midrule
+Business & lark-mcp-enhanced & 10 \\
+ & miyabi-commerce & 8 \\
+\bottomrule
+\end{tabular}
+\caption{MCP Server Inventory (Total: 28+)}
+\end{table}
+
+\subsection{Tool Examples}
+
+\begin{lstlisting}[language=TypeScript, caption=Investment Society Tools]
+const investmentTools = [
+    "invest_market_overview",      // 市場概要取得
+    "invest_quote",                // 株価取得
+    "invest_screen_stocks",        // 銘柄スクリーニング
+    "invest_technical_analysis",   // テクニカル分析
+    "invest_fundamental_analysis", // ファンダメンタル分析
+    "invest_risk_metrics",         // リスク指標
+    "invest_portfolio_analysis",   // ポートフォリオ分析
+    "invest_news_stock",           // 株別ニュース
+    "invest_news_market",          // 市場ニュース
+    "invest_news_search",          // ニュース検索
+    "invest_analyze",              // 総合分析
+];
+\end{lstlisting}
+
+% ============================================================
+% 7. Implementation Roadmap
+% ============================================================
+\section{Implementation Roadmap}
+
+\subsection{Phase Overview}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{Phase} & \textbf{Duration} & \textbf{Deliverable} & \textbf{Cost Est.} \\
+\midrule
+P0: Infrastructure & 1-2 days & RDS/Lambda稼働 & \$150 \\
+P1: Coordinator & 1 week & 3 Society Coordinator & \$500 \\
+P2: Content Society & 2 weeks & 5 Agent実装 & \$1,000 \\
+P3: A2A Integration & 1 month & Society間通信 & \$2,000 \\
+P4: 9 Domains & 2 months & Full Society & \$4,000 \\
+\midrule
+\textbf{Total} & \textbf{$\sim$3 months} & & \textbf{\$7,650} \\
+\bottomrule
+\end{tabular}
+\caption{Implementation Phases}
+\end{table}
+
+\subsection{Phase 0: Infrastructure (1-2 days)}
+
+\begin{enumerate}
+    \item AWS RDS PostgreSQL プロビジョニング
+    \begin{itemize}
+        \item Instance: db.t3.small
+        \item Engine: PostgreSQL 15.4
+        \item Storage: 20GB gp3
+    \end{itemize}
+    \item Lambda Function デプロイ
+    \item マイグレーション実行
+\end{enumerate}
+
+\subsection{Phase 1: Coordinator-Centric (1 week)}
+
+\begin{enumerate}
+    \item Subagent定義ファイル作成
+    \begin{itemize}
+        \item investment-coordinator.md
+        \item content-coordinator.md
+        \item coding-coordinator.md
+    \end{itemize}
+    \item Society Manager拡張
+    \item Checkpoint統合
+\end{enumerate}
+
+\subsection{Phase 2: Content Society (2 weeks)}
+
+\begin{enumerate}
+    \item miyabi-content-society MCP Server実装
+    \item 5 Agent定義・プロンプト作成
+    \item API連携（Twitter, YouTube, Gemini）
+    \item 統合テスト
+\end{enumerate}
+
+\subsection{Phase 3: A2A Integration (1 month)}
+
+\begin{enumerate}
+    \item Inter-Society Protocol実装
+    \item tmuxオーケストレーション
+    \item エラーハンドリング・リトライ
+    \item パフォーマンス最適化
+\end{enumerate}
+
+\subsection{Phase 4: 9 Domain Expansion (2 months)}
+
+\begin{enumerate}
+    \item Finance Society
+    \item HR \& People Society
+    \item Sales \& BizDev Society
+    \item Customer Success Society
+    \item Legal \& Compliance Society
+    \item 残り4ドメイン
+\end{enumerate}
+
+% ============================================================
+% 8. Quality Assurance
+% ============================================================
+\section{Quality Assurance}
+
+\subsection{Auto-Loop Pattern (Nacho's Pattern)}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    node distance=2cm,
+    block/.style={
+        rectangle,
+        draw=miyabiPrimary,
+        fill=miyabiPrimary!10,
+        minimum width=2.5cm,
+        minimum height=0.8cm,
+        font=\small
+    },
+    decision/.style={
+        diamond,
+        draw=miyabiAccent,
+        fill=miyabiAccent!10,
+        minimum width=1.5cm,
+        font=\small
+    }
+]
+    \node[block] (codegen) {CodeGen};
+    \node[block, right=of codegen] (review) {Review};
+    \node[decision, right=of review] (check) {Score $\geq$ 80?};
+    \node[block, right=of check] (done) {Complete};
+
+    \draw[->, thick] (codegen) -- (review);
+    \draw[->, thick] (review) -- (check);
+    \draw[->, thick] (check) -- node[above] {Yes} (done);
+    \draw[->, thick, miyabiAccent] (check) |- node[right, near start] {No} ++(0,-1.5) -| (codegen);
+
+\end{tikzpicture}
+\caption{Auto-Loop Quality Gate (Max 3 iterations)}
+\end{figure}
+
+\subsection{Test Coverage Requirements}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Test Type} & \textbf{Current} & \textbf{Target} \\
+\midrule
+Unit Tests & 98.1\% & $\geq$ 95\% \\
+Integration Tests & 96.7\% & $\geq$ 90\% \\
+E2E Tests & 94.2\% & $\geq$ 85\% \\
+\bottomrule
+\end{tabular}
+\caption{Test Coverage Requirements}
+\end{table}
+
+% ============================================================
+% 9. Security Considerations
+% ============================================================
+\section{Security Considerations}
+
+\subsection{MCP Security}
+
+\begin{itemize}
+    \item \textbf{Prompt Injection}: 入力サニタイズ必須
+    \item \textbf{Tool Chaining}: 意図しないツール連鎖を防止
+    \item \textbf{Credential Management}: 環境変数経由、コードに埋め込み禁止
+    \item \textbf{Audit Logging}: 全MCP呼び出しをログ記録
+\end{itemize}
+
+\subsection{Data Protection}
+
+\begin{lstlisting}[caption=.gitignore Security]
+# Secrets
+.env
+.env.local
+.env.production
+credentials.json
+private-keys/
+*.pem
+*.key
+
+# Audit
+audit-logs/
+\end{lstlisting}
+
+% ============================================================
+% 10. Appendix
+% ============================================================
+\section{Appendix}
+
+\subsection{Environment Variables}
+
+\begin{lstlisting}[caption=Required Environment Variables]
+# Database
+DATABASE_URL=postgresql://user:pass@host:5432/miyabi
+
+# Authentication
+JWT_SECRET=<secret>
+GITHUB_CLIENT_ID=<id>
+GITHUB_CLIENT_SECRET=<secret>
+
+# AWS
+AWS_REGION=ap-northeast-1
+AWS_ACCESS_KEY_ID=<key>
+AWS_SECRET_ACCESS_KEY=<secret>
+
+# AI APIs
+OPENAI_API_KEY=<key>
+GOOGLE_AI_API_KEY=<key>
+ANTHROPIC_API_KEY=<key>
+\end{lstlisting}
+
+\subsection{References}
+
+\begin{itemize}
+    \item Claude Code Documentation: \url{https://docs.anthropic.com/claude-code}
+    \item Model Context Protocol: \url{https://modelcontextprotocol.io}
+    \item A2A Protocol: \url{https://github.com/google/a2a-spec}
+    \item Miyabi Repository: Internal
+\end{itemize}
+
+% ============================================================
+% Document End
+% ============================================================
+\vfill
+\begin{center}
+\textcolor{gray}{\rule{0.5\textwidth}{0.5pt}}\\[0.5cm]
+{\small\textcolor{gray}{End of Document}}\\
+{\footnotesize\textcolor{gray}{Generated: December 5, 2025}}
+\end{center}
+
+\end{document}

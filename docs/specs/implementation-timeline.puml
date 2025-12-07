@@ -1,0 +1,131 @@
+@startuml Implementation Timeline
+
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title World Domain Society - 6-Month Implementation Roadmap
+
+' ============================================================
+' Gantt Chart
+' ============================================================
+@startgantt
+
+Project starts 2025-01-01
+
+-- Phase 0: Infrastructure --
+[AWS RDS Setup] lasts 3 days
+[Lambda Deploy] lasts 4 days
+[MCP Server Config] lasts 3 days
+[Infrastructure] lasts 14 days and is colored in #4F46E5
+[AWS RDS Setup] -> [Lambda Deploy]
+[Lambda Deploy] -> [MCP Server Config]
+
+-- Phase 1: Finance Society --
+[Finance Coordinator] lasts 5 days
+[Finance Coordinator] starts at [Infrastructure]'s end
+[Accounting Agents] lasts 7 days
+[Accounting Agents] starts at [Finance Coordinator]'s end
+[Tax & Audit Agents] lasts 7 days
+[Tax & Audit Agents] starts at [Accounting Agents]'s end
+[Finance Integration] lasts 5 days
+[Finance Integration] starts at [Tax & Audit Agents]'s end
+[Finance Society] lasts 28 days and is colored in #3B82F6
+[Finance Society] starts at [Infrastructure]'s end
+
+-- Phase 2: HR Society --
+[HR Coordinator] lasts 5 days
+[HR Coordinator] starts at [Finance Society]'s end
+[Recruiting Agents] lasts 7 days
+[Recruiting Agents] starts at [HR Coordinator]'s end
+[Payroll & Benefits] lasts 7 days
+[Payroll & Benefits] starts at [Recruiting Agents]'s end
+[HR Integration] lasts 5 days
+[HR Integration] starts at [Payroll & Benefits]'s end
+[HR Society] lasts 28 days and is colored in #EC4899
+[HR Society] starts at [Finance Society]'s end
+
+-- Phase 3: Sales Society --
+[Sales Coordinator] lasts 5 days
+[Sales Coordinator] starts at [HR Society]'s end
+[Lead Gen Agents] lasts 7 days
+[Lead Gen Agents] starts at [Sales Coordinator]'s end
+[Deal Agents] lasts 7 days
+[Deal Agents] starts at [Lead Gen Agents]'s end
+[Sales Integration] lasts 5 days
+[Sales Integration] starts at [Deal Agents]'s end
+[Sales Society] lasts 28 days and is colored in #F97316
+[Sales Society] starts at [HR Society]'s end
+
+-- Phase 4: R&D + Marketing (Parallel) --
+[R&D Coordinator] lasts 7 days
+[R&D Coordinator] starts at [Sales Society]'s end
+[Coding Agents] lasts 14 days
+[Coding Agents] starts at [R&D Coordinator]'s end
+[DevOps & Security] lasts 10 days
+[DevOps & Security] starts at [Coding Agents]'s end
+[R&D Integration] lasts 7 days
+[R&D Integration] starts at [DevOps & Security]'s end
+[R&D Society] lasts 42 days and is colored in #06B6D4
+[R&D Society] starts at [Sales Society]'s end
+
+[Marketing Coordinator] lasts 5 days
+[Marketing Coordinator] starts at [Sales Society]'s end
+[Content Agents] lasts 10 days
+[Content Agents] starts at [Marketing Coordinator]'s end
+[Analytics Agents] lasts 7 days
+[Analytics Agents] starts at [Content Agents]'s end
+[Marketing Integration] lasts 6 days
+[Marketing Integration] starts at [Analytics Agents]'s end
+[Marketing Society] lasts 28 days and is colored in #F43F5E
+[Marketing Society] starts at [Sales Society]'s end
+
+-- Phase 5: CS + Ops --
+[CS Coordinator] lasts 5 days
+[CS Coordinator] starts at [Marketing Society]'s end
+[Support Agents] lasts 10 days
+[Support Agents] starts at [CS Coordinator]'s end
+[Success Agents] lasts 7 days
+[Success Agents] starts at [Support Agents]'s end
+[CS Integration] lasts 6 days
+[CS Integration] starts at [Success Agents]'s end
+[CS Society] lasts 28 days and is colored in #8B5CF6
+[CS Society] starts at [Marketing Society]'s end
+
+[Ops Coordinator] lasts 5 days
+[Ops Coordinator] starts at [Marketing Society]'s end
+[Supply Chain Agents] lasts 10 days
+[Supply Chain Agents] starts at [Ops Coordinator]'s end
+[QC Agents] lasts 7 days
+[QC Agents] starts at [Supply Chain Agents]'s end
+[Ops Integration] lasts 6 days
+[Ops Integration] starts at [QC Agents]'s end
+[Ops Society] lasts 28 days and is colored in #14B8A6
+[Ops Society] starts at [Marketing Society]'s end
+
+-- Phase 6: Legal + Admin --
+[Legal Coordinator] lasts 5 days
+[Legal Coordinator] starts at [CS Society]'s end
+[Contract Agents] lasts 10 days
+[Contract Agents] starts at [Legal Coordinator]'s end
+[Compliance Agents] lasts 7 days
+[Compliance Agents] starts at [Contract Agents]'s end
+[Legal Society] lasts 21 days and is colored in #6B7280
+[Legal Society] starts at [CS Society]'s end
+
+[Admin Coordinator] lasts 3 days
+[Admin Coordinator] starts at [Legal Society]'s end
+[Admin Agents] lasts 7 days
+[Admin Agents] starts at [Admin Coordinator]'s end
+[Admin Society] lasts 14 days and is colored in #9CA3AF
+[Admin Society] starts at [Legal Society]'s end
+
+-- Milestones --
+[Core Complete] happens at [Sales Society]'s end
+[Core Complete] is colored in #F59E0B
+
+[Full Deploy] happens at [Admin Society]'s end
+[Full Deploy] is colored in #22C55E
+
+@endgantt
+
+@enduml

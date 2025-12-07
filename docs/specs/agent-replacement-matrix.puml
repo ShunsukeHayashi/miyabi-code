@@ -1,0 +1,133 @@
+@startuml Agent Replacement Matrix
+
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title Human Worker → AI Agent Replacement Matrix
+
+' ============================================================
+' Mindmap: 9 Domains Overview
+' ============================================================
+@startmindmap
+<style>
+mindmapDiagram {
+    node {
+        BackgroundColor white
+        LineColor #4F46E5
+        FontColor #1F2937
+    }
+    :depth(1) {
+        BackgroundColor #EEF2FF
+    }
+    :depth(2) {
+        BackgroundColor #DBEAFE
+        FontSize 10
+    }
+}
+</style>
+
+* World Domain\n**80 AI Agents**\n170-281 FTE Replaced
+
+** Finance (9→21-32)
+*** CFO-Agent
+*** AccountingBot
+*** TaxAnalyzer
+*** BudgetPlanner
+*** CashFlowManager
+*** AuditBot
+*** ReportGenerator
+*** ComplianceChecker
+*** InvestmentAnalyzer
+
+** HR (9→17-28)
+*** CHRO-Agent
+*** RecruiterBot
+*** OnboardingAgent
+*** PayrollProcessor
+*** BenefitsManager
+*** PerformanceTracker
+*** TrainingCoordinator
+*** EmployeeSupport
+*** OffboardingAgent
+
+** Legal (8→14-22)
+*** CLO-Agent
+*** ContractReviewer
+*** IPManager
+*** RegulatoryBot
+*** LitigationSupport
+*** PrivacyOfficer
+*** PolicyDrafter
+*** RiskAssessor
+
+** Sales (9→22-36)
+*** CRO-Agent
+*** LeadGenerator
+*** QualificationBot
+*** ProposalWriter
+*** NegotiationAgent
+*** DealCloser
+*** PartnerManager
+*** PipelineAnalyzer
+*** ForecastBot
+
+left side
+
+** Operations (8→16-27)
+*** COO-Agent
+*** SupplyChainBot
+*** InventoryManager
+*** VendorManager
+*** QualityController
+*** LogisticsPlanner
+*** FacilitiesBot
+*** ProcessOptimizer
+
+** Customer Success (8→17-31)
+*** CCO-Agent
+*** OnboardingSpecialist
+*** SupportBot
+*** SuccessManager
+*** ChurnPredictor
+*** UpsellAgent
+*** FeedbackAnalyzer
+*** HealthScoreBot
+
+** R&D (12→33-54)
+*** CTO-Agent
+*** ArchitectBot
+*** CodeGenAgent
+*** ReviewAgent
+*** TestAutomation
+*** DevOpsBot
+*** SecurityAgent
+*** DataScientist
+*** MLEngineer
+*** ResearchBot
+*** DocGenerator
+*** InnovationScout
+
+** Marketing (10→18-31)
+*** CMO-Agent
+*** ContentCreator
+*** SEOSpecialist
+*** SocialMediaBot
+*** AdManager
+*** EmailMarketer
+*** AnalyticsBot
+*** BrandManager
+*** EventPlanner
+*** PRAgent
+
+** Admin (7→12-20)
+*** CAO-Agent
+*** SchedulerBot
+*** ExpenseManager
+*** TravelAgent
+*** DocumentManager
+*** CommunicationHub
+*** ITHelpdesk
+
+@endmindmap
+
+@enduml

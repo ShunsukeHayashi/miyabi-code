@@ -1,0 +1,151 @@
+@startuml Society Communication Flow
+
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title Inter-Society A2A Communication Protocol
+
+' ============================================================
+' Participants
+' ============================================================
+participant "Pantheon\nCouncil" as pantheon #4F46E5
+participant "Finance\nSociety" as finance #3B82F6
+participant "Sales\nSociety" as sales #F97316
+participant "Marketing\nSociety" as marketing #F43F5E
+participant "R&D\nSociety" as rnd #06B6D4
+participant "Customer\nSuccess" as cs #8B5CF6
+participant "Operations\nSociety" as ops #14B8A6
+
+' ============================================================
+' Revenue Recognition Flow
+' ============================================================
+group Revenue Recognition
+    sales -> finance : **[Signal]** Deal Closed\n{deal_id, amount, customer}
+    finance -> finance : AccountingBot processes
+    finance --> sales : **[Response]** Recorded\n{invoice_id}
+end
+
+' ============================================================
+' Lead Generation Flow
+' ============================================================
+group Lead Generation
+    marketing -> sales : **[Data]** New MQL\n{lead_id, score, source}
+    sales -> sales : QualificationBot evaluates
+    sales --> marketing : **[Response]** SQL Converted\n{opportunity_id}
+
+    alt Lead Quality Low
+        sales --> marketing : **[Alert]** Quality Issue\n{feedback}
+    end
+end
+
+' ============================================================
+' Product Launch Flow
+' ============================================================
+group Product Launch
+    pantheon -> rnd : **[Command]** Launch Feature X
+    activate rnd
+
+    rnd -> rnd : CodeGenAgent implements
+    rnd -> rnd : ReviewAgent validates
+    rnd -> rnd : TestAutomation runs
+
+    rnd -> ops : **[Sync]** Deploy Request\n{version, artifacts}
+    ops -> ops : DevOpsBot deploys
+    ops --> rnd : **[Response]** Deployed\n{environment}
+
+    rnd -> marketing : **[Data]** Feature Ready\n{docs, screenshots}
+    marketing -> marketing : ContentCreator prepares
+
+    rnd -> cs : **[Data]** Training Materials\n{guides, videos}
+    cs -> cs : TrainingCoordinator updates
+
+    deactivate rnd
+end
+
+' ============================================================
+' Customer Churn Prevention
+' ============================================================
+group Churn Prevention
+    cs -> cs : ChurnPredictor detects\nrisk score > 0.7
+
+    cs -> sales : **[Alert]** High Churn Risk\n{customer_id, score}
+    cs -> finance : **[Alert]** Revenue at Risk\n{arr_amount}
+
+    sales -> cs : **[Command]** Schedule Call
+    cs --> sales : **[Response]** Call Scheduled
+
+    alt Save Successful
+        cs -> finance : **[Signal]** Churn Prevented\n{renewal_amount}
+    else Churned
+        cs -> finance : **[Signal]** Customer Lost\n{final_mrr}
+        cs -> marketing : **[Data]** Win-back Target\n{customer_profile}
+    end
+end
+
+' ============================================================
+' Budget Planning Flow
+' ============================================================
+group Quarterly Budget
+    pantheon -> finance : **[Command]** Q2 Budget Planning
+
+    finance -> sales : **[Request]** Revenue Forecast
+    finance -> marketing : **[Request]** Campaign Budget
+    finance -> rnd : **[Request]** R&D Investment
+    finance -> ops : **[Request]** OpEx Forecast
+    finance -> cs : **[Request]** CS Resources
+
+    sales --> finance : **[Report]** $5M Pipeline
+    marketing --> finance : **[Report]** $500K Request
+    rnd --> finance : **[Report]** $2M Request
+    ops --> finance : **[Report]** $1M OpEx
+    cs --> finance : **[Report]** $300K Request
+
+    finance -> finance : BudgetPlanner consolidates
+    finance -> pantheon : **[Report]** Budget Proposal\n{total: $8.8M}
+
+    pantheon --> finance : **[Command]** Approved with cuts
+
+    finance -> sales : **[Data]** Approved: $4.5M
+    finance -> marketing : **[Data]** Approved: $400K
+    finance -> rnd : **[Data]** Approved: $1.8M
+end
+
+' ============================================================
+' Compliance Check Flow
+' ============================================================
+group Compliance Audit
+    participant "Legal\nSociety" as legal #6B7280
+
+    legal -> finance : **[Request]** Financial Records
+    legal -> sales : **[Request]** Contract Archive
+    legal -> rnd : **[Request]** Security Audit
+
+    finance --> legal : **[Data]** Records Exported
+    sales --> legal : **[Data]** Contracts Sent
+    rnd --> legal : **[Data]** Audit Report
+
+    legal -> legal : ComplianceChecker validates
+
+    alt Issues Found
+        legal -> pantheon : **[Alert]** Compliance Issue\n{severity, details}
+        pantheon -> legal : **[Command]** Remediation Plan
+    else All Clear
+        legal -> pantheon : **[Report]** Compliance OK
+    end
+end
+
+' ============================================================
+' Message Type Legend
+' ============================================================
+legend bottom
+    |= Type |= Description |= Priority |
+    | **[Signal]** | Business event notification | High |
+    | **[Alert]** | Risk/Issue notification | Critical |
+    | **[Data]** | Information transfer | Medium |
+    | **[Report]** | Analysis/Summary | Medium |
+    | **[Sync]** | Health/Status check | Low |
+    | **[Command]** | Action request | High |
+    | **[Response]** | Reply to request | Varies |
+endlegend
+
+@enduml
