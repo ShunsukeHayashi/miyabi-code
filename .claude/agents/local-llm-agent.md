@@ -1,3 +1,8 @@
+---
+name: local-llm-tuner
+description: ローカルLLMの管理・ファインチューニング・最適化を担当するエージェント
+---
+
 # 🤖 ローカルLLM担当エージェント (LLMチューナー)
 
 ## 役割

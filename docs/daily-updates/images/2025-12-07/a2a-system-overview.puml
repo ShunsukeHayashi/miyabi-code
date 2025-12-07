@@ -1,0 +1,51 @@
+@startuml A2A_System_Overview
+!theme aws-orange
+
+title A2A自律型マルチエージェントシステム全体図
+
+package "A2A Core System" {
+  [Coordinator] as coord
+  [CodeGen] as cgen
+  [Review] as rev
+  [PR Agent] as pr
+  [Deploy] as deploy
+  [Issue] as issue
+}
+
+package "Communication Layer" {
+  [tmux Persistent Panes] as tmux
+  [Environment Variables] as env
+  [Message Bus] as bus
+}
+
+package "Integration" {
+  [Claude Code] as claude
+  [GitHub API] as github
+  [MCP Servers] as mcp
+}
+
+coord --> cgen : "Task Assignment"
+cgen --> rev : "Code Review Request"
+rev --> pr : "Approved Code"
+pr --> deploy : "Merge Complete"
+deploy --> issue : "Deployment Status"
+
+tmux <--> coord
+tmux <--> cgen
+tmux <--> rev
+tmux <--> pr
+tmux <--> deploy
+tmux <--> issue
+
+claude --> coord
+github <-- pr
+mcp <-- deploy
+
+note right of coord : "タスク分配・調整"
+note right of cgen : "自動コード生成"
+note right of rev : "品質チェック"
+note right of pr : "PR管理"
+note right of deploy : "自動デプロイ"
+note right of issue : "Issue追跡"
+
+@enduml

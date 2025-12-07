@@ -1,0 +1,71 @@
+@startuml A2A Four Phase Flow
+!theme sketchy-outline
+
+' カラーパレット
+!define PRIMARY_ORANGE #FF6B35
+!define PRIMARY_BLUE #004E89
+!define DARK_GRAY #1a1a1a
+!define ACCENT_GREEN #00D084
+!define WHITE #ffffff
+
+skinparam backgroundColor WHITE
+skinparam defaultFontName "Hiragino Sans"
+
+' 4 Phase開発フロー図
+
+start
+
+partition "Phase 1: Implementation" #ACCENT_GREEN {
+  :カエデがコード実装;
+  :Unit Test作成;
+  :ローカル動作確認;
+  :Commit & Push;
+  :<b>PUSH報告</b>\n[カエデ] 完了: Issue #270 実装完了]
+}
+
+partition "Phase 2: Review" #PRIMARY_BLUE {
+  :しきるんがサクラにアサイン;
+  :サクラがPR確認;
+  :コードレビュー実施;
+  if (修正必要?) then (Yes)
+    :フィードバック送信;
+    backward:カエデが修正;
+  else (No)
+    :LGTM承認;
+  endif
+  :<b>PUSH報告</b>\n[サクラ] 完了: PR #123 LGTM]
+}
+
+partition "Phase 3: PR Management" #PRIMARY_ORANGE {
+  :ツバキがPRマージ;
+  :CHANGELOG更新;
+  :ブランチクリーンアップ;
+  :<b>PUSH報告</b>\n[ツバキ] 完了: PR #123 マージ完了]
+}
+
+partition "Phase 4: Deployment" #ACCENT_GREEN {
+  :ボタンがデプロイ準備;
+  :CI/CD実行;
+  :本番環境デプロイ;
+  :ヘルスチェック;
+  :<b>PUSH報告</b>\n[ボタン] 完了: v1.2.0 デプロイ成功]
+}
+
+:しきるんが完了確認;
+:みつけるんがIssueクローズ;
+
+stop
+
+legend right
+  <b>Phase Color Code</b>
+  <color:ACCENT_GREEN>■</color> Implementation & Deployment
+  <color:PRIMARY_BLUE>■</color> Review & QA
+  <color:PRIMARY_ORANGE>■</color> PR Management
+
+  <b>Key Communication Points</b>
+  各Phaseで必ずPUSH報告を実施
+  しきるんが全体進捗を監視
+  エラー時はすぐにエスカレーション
+endlegend
+
+@enduml

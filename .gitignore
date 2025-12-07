@@ -86,3 +86,14 @@ miyabi-chat/
 
 # VS Code workspace-specific files
 .vscode/drawio-storage/
+
+# Zip archives (should not be in repo)
+*.zip
+
+# Build dist directories (MCP servers)
+mcp-servers/*/dist/
+
+# LaTeX auxiliary files
+*.aux
+*.out
+*.toc

@@ -1,0 +1,75 @@
+@startuml A2A System Architecture
+!theme sketchy-outline
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master
+
+' カラーパレット
+!define PRIMARY_ORANGE #FF6B35
+!define PRIMARY_BLUE #004E89
+!define DARK_GRAY #1a1a1a
+!define ACCENT_GREEN #00D084
+!define WHITE #ffffff
+
+skinparam backgroundColor WHITE
+skinparam defaultFontName "Hiragino Sans"
+skinparam defaultFontSize 14
+skinparam shadowing false
+
+' A2Aシステム全体図（6エージェント + Conductor）
+
+rectangle "<size:20><b>A2A Communication Protocol</b></size>\n<i>Agent-to-Agent Real-time Messaging</i>" as title #PRIMARY_BLUE/WHITE
+
+' Conductor（中央）
+actor "しきるん\n<b>Coordinator</b>" as conductor #PRIMARY_ORANGE/WHITE
+note right of conductor
+  **Pane ID**: %18
+  **Role**: Orchestrator
+  **Pattern**: Receive PUSH reports
+end note
+
+' Worker Agents（周囲に配置）
+actor "カエデ\n<b>CodeGen</b>" as codegen #ACCENT_GREEN/WHITE
+actor "サクラ\n<b>Review</b>" as review #PRIMARY_BLUE/WHITE
+actor "ツバキ\n<b>PR</b>" as pr #PRIMARY_ORANGE/WHITE
+actor "ボタン\n<b>Deploy</b>" as deploy #ACCENT_GREEN/WHITE
+actor "みつけるん\n<b>Issue</b>" as issue #PRIMARY_BLUE/WHITE
+
+' tmux Infrastructure
+rectangle "tmux Infrastructure" as tmux_infra #DARK_GRAY/WHITE {
+  rectangle "Permanent Pane IDs" as pane_ids #ACCENT_GREEN/WHITE
+  rectangle "P0.2 Protocol\n<i>send-keys + sleep 0.5</i>" as p02 #PRIMARY_BLUE/WHITE
+}
+
+' 通信フロー（PUSH型）
+codegen -up-> conductor : <color:ACCENT_GREEN>[カエデ] 完了\nPUSH Report</color>
+review -up-> conductor : <color:PRIMARY_BLUE>[サクラ] 完了\nPUSH Report</color>
+pr -down-> conductor : <color:PRIMARY_ORANGE>[ツバキ] 完了\nPUSH Report</color>
+deploy -down-> conductor : <color:ACCENT_GREEN>[ボタン] 完了\nPUSH Report</color>
+issue -down-> conductor : <color:PRIMARY_BLUE>[みつけるん] 完了\nPUSH Report</color>
+
+' タスク割り当て（Conductor → Worker）
+conductor -down-> codegen : <color:DARK_GRAY>Task Assignment</color>
+conductor -down-> review : <color:DARK_GRAY>Task Assignment</color>
+conductor -down-> pr : <color:DARK_GRAY>Task Assignment</color>
+conductor -down-> deploy : <color:DARK_GRAY>Task Assignment</color>
+conductor -down-> issue : <color:DARK_GRAY>Task Assignment</color>
+
+' tmuxとの接続
+conductor -down-> tmux_infra
+codegen -down-> tmux_infra
+review -down-> tmux_infra
+pr -down-> tmux_infra
+deploy -down-> tmux_infra
+issue -down-> tmux_infra
+
+legend right
+  <b>Color Legend</b>
+  <color:PRIMARY_ORANGE>■</color> Conductor/Orchestrator
+  <color:ACCENT_GREEN>■</color> Implementation Agents
+  <color:PRIMARY_BLUE>■</color> QA/Management Agents
+
+  <b>Communication Pattern</b>
+  <color:ACCENT_GREEN>→</color> PUSH (Worker → Conductor)
+  <color:DARK_GRAY>→</color> Task Assignment (Conductor → Worker)
+endlegend
+
+@enduml

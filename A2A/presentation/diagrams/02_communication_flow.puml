@@ -1,0 +1,82 @@
+@startuml A2A Communication Flow
+!theme sketchy-outline
+
+' カラーパレット
+!define PRIMARY_ORANGE #FF6B35
+!define PRIMARY_BLUE #004E89
+!define DARK_GRAY #1a1a1a
+!define ACCENT_GREEN #00D084
+!define WHITE #ffffff
+
+skinparam backgroundColor WHITE
+skinparam defaultFontName "Hiragino Sans"
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+' エージェント間通信シーケンス図
+
+participant "カエデ\n(CodeGen)\n%19" as kaede #ACCENT_GREEN/WHITE
+participant "しきるん\n(Conductor)\n%18" as shikiroon #PRIMARY_ORANGE/WHITE
+participant "サクラ\n(Review)\n%20" as sakura #PRIMARY_BLUE/WHITE
+
+== タスク実装フェーズ ==
+kaede -> kaede : Issue #270\n実装作業
+activate kaede #ACCENT_GREEN
+
+== PUSH報告（完了） ==
+kaede -> shikiroon : <b>[カエデ] 完了</b>:\nIssue #270 実装完了\n(15 files changed)
+activate shikiroon #PRIMARY_ORANGE
+note right of kaede #ACCENT_GREEN
+  <b>P0.2 Protocol</b>
+  tmux send-keys -t %18 \
+  '[カエデ] 完了: Issue #270 実装完了' \
+  && sleep 0.5 \
+  && tmux send-keys -t %18 Enter
+end note
+
+== Conductor判断 ==
+shikiroon -> shikiroon : タスク完了確認\nレビューアサイン決定
+deactivate kaede
+
+== タスク割り当て ==
+shikiroon -> sakura : <b>Task Assignment</b>:\nPR #123 レビュー依頼
+activate sakura #PRIMARY_BLUE
+note right of shikiroon #PRIMARY_ORANGE
+  <b>Relay Message</b>
+  [カエデ→サクラ] レビュー依頼:\nPR #123 ready for review
+end note
+
+== レビュー実行 ==
+sakura -> sakura : PR #123\nコードレビュー
+
+== PUSH報告（完了） ==
+sakura -> shikiroon : <b>[サクラ] 完了</b>:\nレビュー完了 LGTM
+deactivate sakura
+note right of sakura #PRIMARY_BLUE
+  <b>P0.2 Protocol</b>
+  tmux send-keys -t %18 \
+  '[サクラ] 完了: PR #123 LGTM' \
+  && sleep 0.5 \
+  && tmux send-keys -t %18 Enter
+end note
+
+== 次タスク判断 ==
+shikiroon -> shikiroon : マージ承認\n次タスク決定
+deactivate shikiroon
+
+legend right
+  <b>Communication Pattern</b>
+  <color:ACCENT_GREEN>→</color> Worker PUSH Report
+  <color:PRIMARY_ORANGE>→</color> Conductor Task Assignment
+
+  <b>Message Format</b>
+  [Agent] Status: Detail
+  [From→To] Action: Detail
+
+  <b>P0.2 Protocol</b>
+  • Use permanent pane ID (%N)
+  • Add sleep 0.5 for stability
+  • Structured message format
+endlegend
+
+@enduml

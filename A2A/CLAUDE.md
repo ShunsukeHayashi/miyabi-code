@@ -22,10 +22,10 @@ tmux send-keys -t %PANE_ID 'MESSAGE' && sleep 0.5 && tmux send-keys -t %PANE_ID 
 ## Message Format
 
 ```
-[Agent] �����: s0��
+[Agent] ステータス: 内容
 ```
 
-Status types: `��` (Started), `2L-` (Working), `��` (Complete), `���` (Error), `�_` (Waiting), `��` (Approval)
+Status types: `開始` (Started), `進行中` (Working), `完了` (Complete), `エラー` (Error), `待機` (Waiting), `確認` (Approval)
 
 Agent relay format: `[FromAgent→ToAgent] Action: Detail`
 

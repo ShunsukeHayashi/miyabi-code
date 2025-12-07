@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>A2A - Development Efficiency Growth</title>
+  <style>
+    body {
+      font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .chart-container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #1a1a1a;
+      font-size: 32px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .chart {
+      position: relative;
+      height: 400px;
+      background: linear-gradient(to right, #f5f5f5 0%, #f5f5f5 100%);
+      background-size: 100px 100px;
+      border-radius: 12px;
+      padding: 40px;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .milestone {
+      background: white;
+      border: 2px solid #004E89;
+      border-radius: 12px;
+      padding: 12px 20px;
+      position: absolute;
+      font-size: 14px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .milestone-title {
+      font-weight: bold;
+      color: #004E89;
+      margin-bottom: 4px;
+    }
+
+    .milestone-detail {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 30px;
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #004E89 0%, #0066CC 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      flex: 1;
+      box-shadow: 0 4px 8px rgba(0, 78, 137, 0.3);
+    }
+
+    .stat-value {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="chart-container">
+    <h1>開発効率向上カーブ</h1>
+    <p class="subtitle">A2A Protocol導入による生産性の指数的成長</p>
+
+    <div class="chart">
+      <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet">
+        <!-- Grid lines -->
+        <defs>
+          <linearGradient id="curveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#00D084;stop-opacity:0.3" />
+            <stop offset="100%" style="stop-color:#00D084;stop-opacity:0.8" />
+          </linearGradient>
+        </defs>
+
+        <!-- Y-axis labels -->
+        <text x="10" y="20" font-size="14" fill="#666">100%</text>
+        <text x="10" y="95" font-size="14" fill="#666">75%</text>
+        <text x="10" y="170" font-size="14" fill="#666">50%</text>
+        <text x="10" y="245" font-size="14" fill="#666">25%</text>
+        <text x="10" y="295" font-size="14" fill="#666">0%</text>
+
+        <!-- Grid lines -->
+        <line x1="80" y1="25" x2="980" y2="25" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
+        <line x1="80" y1="100" x2="980" y2="100" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
+        <line x1="80" y1="175" x2="980" y2="175" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
+        <line x1="80" y1="250" x2="980" y2="250" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
+
+        <!-- X-axis -->
+        <line x1="80" y1="275" x2="980" y2="275" stroke="#333" stroke-width="2"/>
+
+        <!-- X-axis labels (months) -->
+        <text x="130" y="295" font-size="12" fill="#666">1月</text>
+        <text x="280" y="295" font-size="12" fill="#666">3月</text>
+        <text x="430" y="295" font-size="12" fill="#666">6月</text>
+        <text x="580" y="295" font-size="12" fill="#666">9月</text>
+        <text x="880" y="295" font-size="12" fill="#666">12月</text>
+
+        <!-- Efficiency growth curve (exponential) -->
+        <path d="M 80,250 Q 200,240 300,200 T 500,100 T 900,25"
+              stroke="#00D084"
+              stroke-width="4"
+              fill="none"
+              stroke-linecap="round"/>
+
+        <!-- Fill area under curve -->
+        <path d="M 80,250 Q 200,240 300,200 T 500,100 T 900,25 L 900,275 L 80,275 Z"
+              fill="url(#curveGradient)"
+              opacity="0.3"/>
+
+        <!-- Key milestone points -->
+        <circle cx="150" cy="245" r="8" fill="#FF6B35"/>
+        <circle cx="400" cy="150" r="8" fill="#FF6B35"/>
+        <circle cx="650" cy="75" r="8" fill="#FF6B35"/>
+        <circle cx="900" cy="25" r="8" fill="#FF6B35"/>
+
+        <!-- Milestone labels -->
+        <text x="150" y="235" font-size="12" fill="#FF6B35" font-weight="bold" text-anchor="middle">20%</text>
+        <text x="400" y="140" font-size="12" fill="#FF6B35" font-weight="bold" text-anchor="middle">50%</text>
+        <text x="650" y="65" font-size="12" fill="#FF6B35" font-weight="bold" text-anchor="middle">75%</text>
+        <text x="900" y="15" font-size="12" fill="#FF6B35" font-weight="bold" text-anchor="middle">100%</text>
+      </svg>
+
+      <!-- Milestone annotations -->
+      <div class="milestone" style="top: 240px; left: 180px;">
+        <div class="milestone-title">A2A導入</div>
+        <div class="milestone-detail">1月 - 基礎プロトコル</div>
+      </div>
+
+      <div class="milestone" style="top: 120px; left: 430px;">
+        <div class="milestone-title">P0.2確立</div>
+        <div class="milestone-detail">6月 - 永続ID必須化</div>
+      </div>
+
+      <div class="milestone" style="top: 40px; left: 680px;">
+        <div class="milestone-title">フル稼働</div>
+        <div class="milestone-detail">9月 - 6 Agent協調</div>
+      </div>
+
+      <div class="milestone" style="top: 10px; left: 920px;">
+        <div class="milestone-title">完全自動化</div>
+        <div class="milestone-detail">12月 - 100%効率</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">5x</div>
+        <div class="stat-label">生産性向上倍率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">80%</div>
+        <div class="stat-label">手動作業削減率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">95%</div>
+        <div class="stat-label">通信成功率</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

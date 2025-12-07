@@ -17,31 +17,32 @@ fi
 # ------------------------------------------------------------
 # Configuration
 # ------------------------------------------------------------
-CONDUCTOR_PANE="${MIYABI_CONDUCTOR_PANE:-%18}"
+CONDUCTOR_PANE="${MIYABI_CONDUCTOR_PANE:-%101}"
 LOG_FILE="${MIYABI_A2A_LOG:-$HOME/.miyabi/logs/a2a.log}"
 RETRY_COUNT=3
 RETRY_DELAY=1
 
-# Agent Pane Mapping (miyabi-main:6)
+# Agent Pane Mapping (aa session - current)
 declare -A AGENT_PANES=(
-    ["しきるん"]="%18"
-    ["shikiroon"]="%18"
-    ["conductor"]="%18"
-    ["カエデ"]="%19"
-    ["kaede"]="%19"
-    ["codegen"]="%19"
-    ["サクラ"]="%20"
-    ["sakura"]="%20"
-    ["review"]="%20"
-    ["ツバキ"]="%21"
-    ["tsubaki"]="%21"
-    ["pr"]="%21"
-    ["ボタン"]="%22"
-    ["botan"]="%22"
-    ["deploy"]="%22"
-    ["みつけるん"]="%23"
-    ["mitsukeroon"]="%23"
-    ["issue"]="%23"
+    ["しきるん"]="%101"
+    ["shikiroon"]="%101"
+    ["conductor"]="%101"
+    ["楓"]="%102"
+    ["カエデ"]="%102"
+    ["kaede"]="%102"
+    ["codegen"]="%102"
+    ["桜"]="%103"
+    ["サクラ"]="%103"
+    ["sakura"]="%103"
+    ["review"]="%103"
+    ["椿"]="%104"
+    ["ツバキ"]="%104"
+    ["tsubaki"]="%104"
+    ["pr"]="%104"
+    ["牡丹"]="%105"
+    ["ボタン"]="%105"
+    ["botan"]="%105"
+    ["deploy"]="%105"
 )
 
 # ------------------------------------------------------------

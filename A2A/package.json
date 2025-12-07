@@ -1,0 +1,49 @@
+{
+  "name": "@miyabi/a2a",
+  "version": "1.0.0",
+  "description": "A2A (Agent-to-Agent) Multi-Agent Communication Protocol for Claude Code",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "a2a": "./bin/a2a.js",
+    "a2a-bootstrap": "./scripts/a2a_bootstrap.sh",
+    "a2a-health": "./scripts/a2a_health.sh",
+    "a2a-scale": "./scripts/a2a_scale.sh"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "bootstrap": "./scripts/a2a_bootstrap.sh",
+    "health": "./scripts/a2a_health.sh",
+    "scale": "./scripts/a2a_scale.sh",
+    "dashboard": "tsx src/dashboard.ts",
+    "state": "tsx src/state.ts",
+    "router": "tsx src/router.ts",
+    "slides": "npx tsx demo/generate_image_slides.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "a2a",
+    "agent-to-agent",
+    "multi-agent",
+    "claude-code",
+    "tmux",
+    "orchestration"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miyabi-dev/a2a.git"
+  },
+  "devDependencies": {
+    "@google/genai": "^1.31.0",
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

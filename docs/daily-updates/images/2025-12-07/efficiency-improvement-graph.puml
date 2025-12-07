@@ -1,0 +1,68 @@
+@startuml efficiency_improvement
+!theme carbon-gray
+
+title A2Aシステムの学習曲線と効率向上
+
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontSize 12
+
+rectangle "開発効率向上グラフ (2025年)" as title #lightblue {
+
+  package "開発効率 (%)" {
+    rectangle "Jan: 20%" as jan_eff
+    rectangle "Mar: 35%" as mar_eff
+    rectangle "Jun: 70%" as jun_eff
+    rectangle "Sep: 85%" as sep_eff
+    rectangle "Dec: 100%" as dec_eff
+  }
+
+  package "月次コミット数" {
+    rectangle "Jan: 50" as jan_com
+    rectangle "Mar: 80" as mar_com
+    rectangle "Jun: 150" as jun_com
+    rectangle "Sep: 230" as sep_com
+    rectangle "Dec: 300" as dec_com
+  }
+
+  package "主要マイルストーン" {
+    note as milestone1
+      **Q1 (Mar)**: エージェント基盤完成
+      - 6 Coding Agents 実装完了
+      - 基本通信プロトコル確立
+    end note
+
+    note as milestone2
+      **Q2 (Jun)**: 通信プロトコル実装
+      - tmux永続ペーン完成
+      - 環境変数ベース通信確立
+    end note
+
+    note as milestone3
+      **Q3 (Sep)**: 自律実行開始
+      - エージェント間協調動作実現
+      - タスク自動分配機能
+    end note
+
+    note as milestone4
+      **Q4 (Dec)**: A2A完全自動化達成
+      - 完全自律開発サイクル確立
+      - 人間介入最小化 🎉
+    end note
+  }
+}
+
+jan_eff -right-> mar_eff : "+75%"
+mar_eff -right-> jun_eff : "+100%"
+jun_eff -right-> sep_eff : "+21%"
+sep_eff -right-> dec_eff : "+18%"
+
+jan_com -right-> mar_com : "+60%"
+mar_com -right-> jun_com : "+88%"
+jun_com -right-> sep_com : "+53%"
+sep_com -right-> dec_com : "+30%"
+
+milestone1 -down-> milestone2
+milestone2 -down-> milestone3
+milestone3 -down-> milestone4
+
+@enduml

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(tmux:*)",
+      "Bash(source:*)",
+      "Bash(bash:*)",
+      "Bash(sh:*)",
+      "Bash(./a2a.sh:*)",
+      "Bash(./miyabi_cc_agents.sh:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(tail:*)",
+      "Bash(head:*)",
+      "Bash(watch:*)",
+      "Bash(sleep:*)",
+      "Bash(kill:*)",
+      "Task",
+      "SlashCommand",
+      "Skill",
+      "WebFetch(domain:*)",
+      "WebSearch"
+    ]
+  },
+  "env": {
+    "MIYABI_CONDUCTOR_PANE": "%18",
+    "MIYABI_A2A_LOG": "~/.miyabi/logs/a2a.log",
+    "A2A_PROJECT_ROOT": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/A2A"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[A2A] Bash command executed at $(date)\" >> ~/.miyabi/logs/a2a-commands.log"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/A2A/.claude/hooks/a2a_post_tool.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/A2A/.claude/hooks/a2a_stop_prevention.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enableAllProjectMcpServers": true
+}

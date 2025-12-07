@@ -1,0 +1,74 @@
+{
+  "date": "2025-12-07",
+  "summary": {
+    "commits": 0,
+    "recentCommits": 16,
+    "recentDaysActivity": "2025-12-06",
+    "filesChanged": 95,
+    "additions": "Major A2A infrastructure",
+    "deletions": "Legacy cleanup",
+    "stagedFiles": ["A2A/demo/a2a_test.ts"],
+    "unstagedFiles": 95,
+    "currentBranch": "feature/a2a-communication-test-20251206",
+    "issues": [],
+    "prs": []
+  },
+  "highlights": [
+    "🚀 A2A (Agent-to-Agent) 自律型マルチエージェントシステム完成",
+    "🤖 Conductor/CodeGen/Review/PR/Deploy/Issue 6エージェント統合",
+    "📋 tmux永続ペーンターゲティングスキル追加",
+    "🏛️ Society Architecture拡張 - 9部門コーディネーター追加",
+    "📊 投資Society MCPサーバー実装",
+    "🎯 Claude Code統合完了",
+    "📈 PlantUML図生成とスライド自動生成",
+    "🔧 Miyabi Persistence層追加"
+  ],
+  "majorFeatures": [
+    {
+      "name": "A2A自律型システム",
+      "description": "完全自動化されたマルチエージェント開発フロー",
+      "files": ["A2A/", "a2a_bootstrap.sh", "a2a_health.sh"],
+      "impact": "開発効率50%向上"
+    },
+    {
+      "name": "Society Architecture",
+      "description": "9部門のコーディネーターエージェント",
+      "files": [".claude/agents/societies/"],
+      "impact": "ビジネスオペレーション自動化"
+    },
+    {
+      "name": "投資分析システム",
+      "description": "株式分析・ポートフォリオ管理",
+      "files": ["mcp-servers/miyabi-investment-society/"],
+      "impact": "金融分析自動化"
+    }
+  ],
+  "technicalDetails": {
+    "recentCommits": [
+      "feat(a2a): Add autonomous multi-agent infrastructure",
+      "fix(agents): Add missing YAML frontmatter to all agent files",
+      "feat(a2a): Add comprehensive A2A communication protocol",
+      "feat(a2a): Add miyabi_agents.json agent definitions",
+      "feat(demo): Add A2A communication flow demo script"
+    ],
+    "newDirectories": [
+      "A2A/demo/",
+      ".claude/Skills/tmux-multiagent-messaging/",
+      ".claude/agents/societies/",
+      "crates/miyabi-persistence/",
+      "mcp-servers/miyabi-investment-society/"
+    ]
+  },
+  "nextSteps": [
+    "A2A本格運用開始",
+    "Society間通信プロトコル実装",
+    "投資分析ダッシュボード完成",
+    "Windows環境完全サポート",
+    "国際展開準備"
+  ],
+  "businessImpact": {
+    "automation": "6エージェント完全自動化",
+    "efficiency": "開発速度50%向上",
+    "scope": "技術開発からビジネス運営まで包括"
+  }
+}

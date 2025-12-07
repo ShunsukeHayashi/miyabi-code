@@ -1,0 +1,28 @@
+@startuml tmux_communication
+!theme blueprint
+
+title tmux永続ペーンターゲティングシステムの仕組み
+
+participant "Coordinator\n(Pane %1)" as coord
+participant "CodeGen\n(Pane %2)" as cgen
+participant "Review\n(Pane %3)" as rev
+participant "Environment\nVariables" as env
+
+coord -> env : export CODEGEN_PANE="%2"
+coord -> env : export REVIEW_PANE="%3"
+
+coord -> cgen : tmux send-keys -t "$CODEGEN_PANE" "Implement auth" Enter
+activate cgen
+cgen -> cgen : Generate code
+cgen -> coord : tmux send-keys -t "$COORDINATOR_PANE" "Code ready" Enter
+deactivate cgen
+
+coord -> rev : tmux send-keys -t "$REVIEW_PANE" "Review auth code" Enter
+activate rev
+rev -> rev : Analyze code
+rev -> coord : tmux send-keys -t "$COORDINATOR_PANE" "Review complete" Enter
+deactivate rev
+
+note over coord, rev : 環境変数により永続的なペーンIDを実現\n再起動後も通信が継続可能
+
+@enduml

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>A2A - Monthly Commit Statistics</title>
+  <style>
+    body {
+      font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .chart-container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #1a1a1a;
+      font-size: 32px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .chart {
+      position: relative;
+      height: 400px;
+    }
+
+    .bar-group {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      height: 100%;
+      padding: 20px 0;
+    }
+
+    .bar-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 80px;
+    }
+
+    .bar {
+      width: 60px;
+      background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+      border-radius: 8px 8px 0 0;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+    }
+
+    .bar:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 16px rgba(255, 107, 53, 0.5);
+    }
+
+    .bar-value {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 18px;
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+
+    .bar-label {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+      gap: 30px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .growth-badge {
+      background: #00D084;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .stat-card {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #FF6B35;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="chart-container">
+    <h1>月次コミット数推移</h1>
+    <p class="subtitle">A2A導入による開発効率向上 (2025年1月〜12月)</p>
+
+    <div class="chart">
+      <div class="bar-group">
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 17%">
+            <span class="bar-value">50</span>
+          </div>
+          <span class="bar-label">1月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 25%">
+            <span class="bar-value">75</span>
+          </div>
+          <span class="bar-label">2月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 33%">
+            <span class="bar-value">100</span>
+          </div>
+          <span class="bar-label">3月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 42%">
+            <span class="bar-value">125</span>
+          </div>
+          <span class="bar-label">4月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 50%">
+            <span class="bar-value">150</span>
+          </div>
+          <span class="bar-label">5月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 58%">
+            <span class="bar-value">175</span>
+          </div>
+          <span class="bar-label">6月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 67%">
+            <span class="bar-value">200</span>
+          </div>
+          <span class="bar-label">7月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 75%">
+            <span class="bar-value">225</span>
+          </div>
+          <span class="bar-label">8月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 83%">
+            <span class="bar-value">250</span>
+          </div>
+          <span class="bar-label">9月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 92%">
+            <span class="bar-value">275</span>
+          </div>
+          <span class="bar-label">10月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 96%">
+            <span class="bar-value">288</span>
+          </div>
+          <span class="bar-label">11月</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" style="height: 100%">
+            <span class="bar-value">300</span>
+          </div>
+          <span class="bar-label">12月</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <span class="growth-badge">📈 年間成長率: +500%</span>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">2,175</div>
+        <div class="stat-label">年間総コミット数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">181</div>
+        <div class="stat-label">月平均コミット数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">6.0</div>
+        <div class="stat-label">1日平均コミット数</div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);"></div>
+        <span>コミット数</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

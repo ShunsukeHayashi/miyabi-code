@@ -1,0 +1,167 @@
+{
+  "mcpServers": {
+    "miyabi-git-inspector": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-git-inspector/dist/index.js"],
+      "disabled": false,
+      "description": "Git repository inspection and analysis"
+    },
+
+    "miyabi-log-aggregator": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-log-aggregator/dist/index.js"],
+      "disabled": false,
+      "description": "Log aggregation and search"
+    },
+
+    "miyabi-resource-monitor": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-resource-monitor/dist/index.js"],
+      "disabled": false,
+      "description": "System resource monitoring (CPU, memory, disk)"
+    },
+
+    "miyabi-network-inspector": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-network-inspector/dist/index.js"],
+      "disabled": false,
+      "description": "Network inspection and monitoring"
+    },
+
+    "miyabi-file-watcher": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-file-watcher/dist/index.js"],
+      "disabled": false,
+      "description": "File system watching and change detection"
+    },
+
+    "miyabi-claude-code": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-claude-code/dist/index.js"],
+      "disabled": false,
+      "description": "Claude Code session management"
+    },
+
+    "miyabi-process-inspector": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-process-inspector/dist/index.js"],
+      "disabled": false,
+      "description": "Process inspection and monitoring"
+    },
+
+    "miyabi-commercial-agents": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-commercial-agents/dist/index.js"],
+      "env": {
+        "X_API_KEY": "${X_API_KEY}",
+        "X_API_SECRET": "${X_API_SECRET}",
+        "X_ACCESS_TOKEN": "${X_ACCESS_TOKEN}",
+        "X_ACCESS_SECRET": "${X_ACCESS_SECRET}"
+      },
+      "disabled": false,
+      "description": "Commercial agents (SNS, Marketing, YouTube)"
+    },
+
+    "miyabi-codex": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-codex/dist/index.js"],
+      "disabled": false,
+      "description": "Codex CLI integration"
+    },
+
+    "miyabi-investment-society": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-investment-society/dist/index.js"],
+      "env": {
+        "YAHOO_FINANCE_API_KEY": "${YAHOO_FINANCE_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Investment analysis multi-agent system"
+    },
+
+    "gemini3-general": {
+      "command": "node",
+      "args": ["../mcp-servers/gemini3-general/dist/index.js"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini 3 Pro general AI capabilities"
+    },
+
+    "gemini3-adaptive-runtime": {
+      "command": "node",
+      "args": ["../mcp-servers/gemini3-adaptive-runtime/dist/index.js"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini 3 adaptive runtime (UI generation, reasoning)"
+    },
+
+    "gemini3-uiux-designer": {
+      "command": "node",
+      "args": ["../mcp-servers/gemini3-uiux-designer/dist/index.js"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini 3 Pro UI/UX design review"
+    },
+
+    "gemini-slide-gen": {
+      "command": "node",
+      "args": ["../mcp-servers/gemini-slide-gen/dist/index.js"],
+      "env": {
+        "PROJECT_ROOT": "..",
+        "GOOGLE_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini slide generation (hand-drawn infographics)"
+    },
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-tmux-server/dist/index.js"],
+      "disabled": false,
+      "description": "Tmux session management"
+    },
+
+    "miyabi-github": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-github/dist/index.js"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_OWNER": "customer-cloud",
+        "GITHUB_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub operations (Issues, PRs, Labels)"
+    },
+
+    "miyabi-obsidian": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-obsidian/dist/index.js"],
+      "env": {
+        "OBSIDIAN_VAULT_PATH": "../docs/obsidian-vault"
+      },
+      "disabled": false,
+      "description": "Obsidian vault operations"
+    },
+
+    "miyabi-rules": {
+      "command": "node",
+      "args": ["../mcp-servers/miyabi-rules/dist/index.js"],
+      "disabled": false,
+      "description": "Miyabi rules and context management"
+    },
+
+    "ide": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/ide-mcp@latest"],
+      "disabled": false,
+      "description": "VS Code IDE integration"
+    }
+  }
+}
