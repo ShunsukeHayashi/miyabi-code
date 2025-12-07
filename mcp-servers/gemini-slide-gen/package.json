@@ -1,0 +1,30 @@
+{
+  "name": "miyabi-gemini-slide-gen",
+  "version": "1.0.0",
+  "description": "MCP server for generating hand-drawn infographic slides using Gemini 2.5 Flash Image",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "gemini",
+    "slide-generation",
+    "infographic",
+    "image-generation"
+  ],
+  "author": "Miyabi",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^0.7.0",
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}
