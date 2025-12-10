@@ -1,0 +1,16 @@
+name: tmux-permanent-pane-targeting
+description: |
+  Reliable tmux pane targeting using permanent IDs (%N) instead of unreliable index-based targeting.
+  Use this skill when sending commands to tmux panes, orchestrating multiple agents, or debugging pane issues.
+trigger_patterns:
+  - "send to pane"
+  - "target pane"
+  - "pane ID"
+  - "tmux targeting"
+  - "wrong pane"
+  - "pane mismatch"
+  - "Control Mode"
+  - "%0 vs index"
+  - "permanent pane"
+  - "pane_id"
+skill_path: .claude/Skills/tmux-permanent-pane-targeting/SKILL.md
