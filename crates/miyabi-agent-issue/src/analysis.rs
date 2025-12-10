@@ -381,9 +381,9 @@ fn infer_error_labels(text: &str, tool_name: &str) -> Vec<String> {
     } else if text_lower.contains("oauth")
         || text_lower.contains("authentication")
         || text_lower.contains("unauthorized")
+        || text_lower.contains("timeout")
+        || text_lower.contains("connection")
     {
-        labels.push("priority:P1-High".to_string());
-    } else if text_lower.contains("timeout") || text_lower.contains("connection") {
         labels.push("priority:P1-High".to_string());
     } else {
         labels.push("priority:P2-Medium".to_string());

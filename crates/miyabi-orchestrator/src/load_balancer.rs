@@ -189,6 +189,8 @@ pub struct LoadBalancerStats {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
+    use std::time::Duration;
 
     fn create_test_machines() -> Vec<Machine> {
         vec![
@@ -437,10 +439,10 @@ mod tests {
     async fn test_custom_ssh_config() {
         let machines = create_test_machines();
         let custom_config = SshConfig {
-            port: 2222,
             user: "testuser".to_string(),
-            identity_file: Some(PathBuf::from("/custom/key")),
-            connect_timeout: Duration::from_secs(10),
+            key_path: PathBuf::from("/custom/key"),
+            known_hosts: PathBuf::from("~/.ssh/known_hosts"),
+            timeout_secs: 10,
         };
 
         let lb = LoadBalancer::new(machines, custom_config);

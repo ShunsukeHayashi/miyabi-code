@@ -416,6 +416,8 @@ mod tests {
     #[tokio::test]
     async fn test_start_monitoring_initialization() {
         let config = DynamicScalerConfig { monitor_interval: Duration::from_millis(100), ..Default::default() };
+        let min = config.min_concurrent;
+        let max = config.max_concurrent;
         let scaler = DynamicScaler::new(config);
 
         // Start monitoring (non-blocking)
@@ -426,7 +428,7 @@ mod tests {
 
         // Verify scaler is still functional
         let limit = scaler.get_current_limit().await;
-        assert!(limit >= config.min_concurrent && limit <= config.max_concurrent);
+        assert!(limit >= min && limit <= max);
     }
 
     #[tokio::test]
@@ -523,18 +525,18 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_hardware_limits_default() {
-        let hardware = HardwareLimits::default();
-        assert!(hardware.total_memory_gb > 0);
-        assert!(hardware.total_cpu_cores > 0);
-        assert!(hardware.total_disk_gb > 0);
+    async fn test_hardware_limits_custom() {
+        let hardware = HardwareLimits::custom(32, 8, 500);
+        assert_eq!(hardware.total_memory_gb, 32);
+        assert_eq!(hardware.total_cpu_cores, 8);
+        assert_eq!(hardware.total_disk_gb, 500);
     }
 
     #[tokio::test]
     async fn test_per_worktree_limits_default() {
         let limits = PerWorktreeLimits::default();
         assert!(limits.memory_gb > 0);
-        assert!(limits.cpu_cores > 0);
+        assert!(limits.cpu_threads > 0);
         assert!(limits.disk_gb > 0);
     }
 }

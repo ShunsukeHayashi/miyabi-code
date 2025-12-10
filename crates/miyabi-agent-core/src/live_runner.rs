@@ -4,7 +4,6 @@
 
 use std::collections::HashMap;
 use std::process::Command;
-use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 /// Live agent runner that executes agents in tmux

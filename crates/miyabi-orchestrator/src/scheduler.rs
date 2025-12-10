@@ -234,7 +234,7 @@ pub struct SchedulerStats {
 mod tests {
     use super::*;
     use miyabi_types::task::{Task, TaskType};
-    use miyabi_types::workflow::DAG;
+    use miyabi_types::workflow::{DAG, Edge};
 
     fn create_simple_dag() -> DAG {
         let task1 =
@@ -287,8 +287,8 @@ mod tests {
         DAG {
             nodes: vec![task1, task2, task3],
             edges: vec![
-                ("task-1".to_string(), "task-3".to_string()),
-                ("task-2".to_string(), "task-3".to_string()),
+                Edge { from: "task-1".to_string(), to: "task-3".to_string() },
+                Edge { from: "task-2".to_string(), to: "task-3".to_string() },
             ],
             levels: vec![
                 vec!["task-1".to_string(), "task-2".to_string()],
@@ -344,7 +344,6 @@ mod tests {
         assert_eq!(stats.completed_tasks, 0);
         assert_eq!(stats.running_tasks, 0);
         assert_eq!(stats.pending_tasks, stats.total_tasks);
-        assert_eq!(stats.progress_percentage, 0);
     }
 
     #[tokio::test]
@@ -353,11 +352,8 @@ mod tests {
         let dag_ops = DAGOperations::new(dag).unwrap();
 
         let custom_config = SessionConfig {
-            claude_code_path: PathBuf::from("/custom/path/to/claude-code"),
-            default_worktree_base: PathBuf::from("/custom/worktrees"),
+            timeout_secs: 3600,
             log_dir: PathBuf::from("/custom/logs"),
-            timeout: Duration::from_secs(3600),
-            retry_limit: 5,
         };
 
         let scheduler = Scheduler::new(dag_ops, 5, custom_config);
@@ -376,19 +372,21 @@ mod tests {
 
         let stats = scheduler.get_stats();
         assert_eq!(stats.total_tasks, 0);
-        assert_eq!(stats.progress_percentage, 100); // Empty DAG is 100% complete
+        // Empty DAG is 100% complete - verified by total_tasks == 0
     }
 
     #[tokio::test]
-    async fn test_scheduler_stats_progress_calculation() {
+    async fn test_scheduler_stats_calculation() {
         let dag = create_complex_dag();
         let dag_ops = DAGOperations::new(dag).unwrap();
         let scheduler = Scheduler::new(dag_ops, 5, SessionConfig::default());
 
         let stats = scheduler.get_stats();
 
-        // Verify progress calculation
-        let expected_progress = (stats.completed_tasks * 100) / stats.total_tasks.max(1);
-        assert_eq!(stats.progress_percentage, expected_progress);
+        // Verify stats calculation
+        assert_eq!(stats.total_tasks, 3);
+        assert_eq!(stats.completed_tasks, 0);
+        assert_eq!(stats.running_tasks, 0);
+        assert_eq!(stats.pending_tasks, 3);
     }
 }

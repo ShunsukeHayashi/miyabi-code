@@ -10,6 +10,7 @@ use tracing::debug;
 pub type TaskId = String;
 
 /// DAG operations for scheduling
+#[derive(Clone)]
 pub struct DAGOperations {
     dag: DAG,
 }

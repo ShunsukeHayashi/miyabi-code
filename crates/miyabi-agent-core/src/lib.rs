@@ -19,6 +19,7 @@ pub mod subagent;
 pub mod tmux_integration;
 pub mod mcp_server;
 pub mod checkpoint_storage;
+pub mod utils;
 // TODO: Re-enable after miyabi_core::rules is implemented
 // pub mod rules_context;
 
@@ -55,3 +56,4 @@ pub mod benchmark;
 pub use benchmark::{BenchmarkResult, ProductionTestSuite, TestSummary, ParallelExecutionTest, HealthCheck, HealthStatus, SystemHealthReport};
 pub mod live_runner;
 pub use live_runner::{LiveAgentRunner, LiveAgent, LiveAgentStatus};
+pub use utils::greet;

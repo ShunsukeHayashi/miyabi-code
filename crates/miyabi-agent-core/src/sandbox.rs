@@ -31,9 +31,10 @@ pub enum PermissionLevel {
 }
 
 /// Network access policy
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum NetworkPolicy {
     /// Allow all network access
+    #[default]
     AllowAll,
     /// Deny all network access
     DenyAll,
@@ -41,12 +42,6 @@ pub enum NetworkPolicy {
     AllowList(Vec<String>),
     /// Deny specific domains
     DenyList(Vec<String>),
-}
-
-impl Default for NetworkPolicy {
-    fn default() -> Self {
-        Self::AllowAll
-    }
 }
 
 /// Filesystem access policy

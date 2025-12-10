@@ -292,7 +292,7 @@ impl ParallelExecutionTest {
     pub fn expected_startup_time(&self) -> Duration {
         // Parallel startup, so divide by concurrency
         let sequential_time_ms = (self.agent_count as u64) * 500;
-        let parallel_batches = (self.agent_count + self.max_concurrent - 1) / self.max_concurrent;
+        let parallel_batches = self.agent_count.div_ceil(self.max_concurrent);
         Duration::from_millis(sequential_time_ms / self.max_concurrent as u64 * parallel_batches as u64)
     }
 }

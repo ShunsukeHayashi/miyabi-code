@@ -176,7 +176,7 @@ impl CheckpointManager {
         // Add to in-memory cache
         self.checkpoints
             .entry(session_id.to_string())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(checkpoint.clone());
         
         // Trim old checkpoints
