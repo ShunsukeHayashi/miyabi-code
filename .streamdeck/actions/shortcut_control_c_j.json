@@ -1,0 +1,17 @@
+{
+  "name": "Control+C+J Shortcut",
+  "description": "Send Control+C+J keyboard shortcut",
+  "icon": "⌨️",
+  "type": "script",
+  "action": {
+    "type": "shell",
+    "command": "./scripts/control_c_j.sh",
+    "workingDirectory": ".streamdeck"
+  },
+  "settings": {
+    "showTitle": true,
+    "titleColor": "#FFFFFF",
+    "backgroundColor": "#4A90E2",
+    "fontSize": 12
+  }
+}

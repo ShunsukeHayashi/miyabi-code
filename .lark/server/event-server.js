@@ -10,11 +10,37 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-// 設定
+// 設定（環境変数から取得 - ハードコードされたデフォルト値は削除）
 const PORT = process.env.PORT || 3000;
-const APP_ID = process.env.APP_ID || 'cli_a994d7e3b8789e1a';
-const APP_SECRET = process.env.APP_SECRET || 'rNrwfiZCD9aRCCrQY5E1OeifhDg2kZJL';
-const WEBHOOK_URL = 'https://open.larksuite.com/open-apis/bot/v2/hook/37b6a36e-677a-4f8f-b89c-b04b51265a25';
+const APP_ID = process.env.APP_ID;
+const APP_SECRET = process.env.APP_SECRET;
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
+
+// 環境変数の検証
+function validateEnvironment() {
+  const requiredVars = {
+    APP_ID: 'Lark App ID',
+    APP_SECRET: 'Lark App Secret',
+  };
+
+  const missing = [];
+  for (const [key, description] of Object.entries(requiredVars)) {
+    if (!process.env[key]) {
+      missing.push(`${key} (${description})`);
+    }
+  }
+
+  if (missing.length > 0) {
+    console.error('\n❌ 必須環境変数が設定されていません:\n');
+    missing.forEach(m => console.error(`   - ${m}`));
+    console.error('\n.env ファイルを作成するか、環境変数を設定してください。');
+    console.error('詳細は .env.example を参照してください。\n');
+    process.exit(1);
+  }
+}
+
+// 起動時に環境変数を検証
+validateEnvironment();
 
 // Tenant Access Token取得
 let tenantAccessToken = null;
@@ -135,7 +161,7 @@ app.listen(PORT, () => {
   console.log(`📡 Event Endpoint: http://localhost:${PORT}/webhook/events`);
   console.log(`❤️  Health Check: http://localhost:${PORT}/health`);
   console.log(`\n⚙️  設定:`);
-  console.log(`   - APP_ID: ${APP_ID}`);
+  console.log(`   - APP_ID: ${APP_ID?.substring(0, 8)}...`);
   console.log(`   - Port: ${PORT}`);
   console.log(`\n待機中...\n`);
 });

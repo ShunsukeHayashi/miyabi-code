@@ -1,0 +1,21 @@
+{
+  "profileName": "Miyabi Development",
+  "version": "1.0.0",
+  "description": "Stream Deck profile for Miyabi development shortcuts",
+  "buttons": [
+    {
+      "position": "0,0",
+      "action": "shortcut_control_c_j",
+      "title": "Ctrl+C+J",
+      "icon": "⌨️"
+    }
+  ],
+  "folders": [
+    {
+      "name": "Development",
+      "buttons": [
+        "shortcut_control_c_j"
+      ]
+    }
+  ]
+}
