@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
     "start": "next start",
     "lint": "next lint",
     "test:e2e": "playwright test",
@@ -17,18 +17,34 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^1.31.0",
+    "@google/generative-ai": "^0.24.1",
+    "@sentry/nextjs": "^10.29.0",
+    "@sentry/react": "^10.29.0",
+    "@sentry/webpack-plugin": "^4.6.1",
+    "@tailwindcss/postcss": "^4.1.17",
     "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",
-    "autoprefixer": "^10.4.21",
     "next": "^14.2.33",
-    "postcss": "^8.5.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "yjs": "^13.6.20",
+    "y-websocket": "^2.1.0",
+    "y-indexeddb": "^9.0.12"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "lighthouse": "^13.0.1"
+    "@tailwindcss/vite": "^4.1.17",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.33",
+    "eslint-plugin-storybook": "^10.1.4",
+    "lighthouse": "^13.0.1",
+    "postcss": "^8.5.6",
+    "storybook": "^10.1.4",
+    "tailwindcss": "^4.1.17"
   }
 }

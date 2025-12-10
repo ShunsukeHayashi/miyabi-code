@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // React Strict Mode
@@ -34,4 +36,29 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry Webpack Plugin Options
+const sentryWebpackPluginOptions = {
+  org: process.env.SENTRY_ORG || 'miyabi',
+  project: process.env.SENTRY_PROJECT || 'dashboard',
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // ソースマップアップロード設定
+  silent: true,
+  hideSourceMaps: process.env.NODE_ENV === 'production',
+  widenClientFileUpload: true,
+
+  // デバッグ設定
+  debug: process.env.NODE_ENV === 'development',
+
+  // 除外パターン
+  ignore: [
+    'node_modules',
+    '.next',
+    'public',
+  ],
+};
+
+// Sentryで設定をラップ（本番環境またはSENTRY_DSNがある場合のみ）
+module.exports = process.env.SENTRY_DSN || process.env.NODE_ENV === 'production'
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+  : nextConfig;
