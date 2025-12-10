@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A2A Multi-Agent Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .agent-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .agent-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .status-indicator {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .code-block {
+            font-family: 'Fira Code', 'Monaco', 'Cascadia Code', monospace;
+        }
+
+        .message-bubble {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .chart-container {
+            height: 200px;
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg text-white">
+    <!-- Header -->
+    <header class="glass border-b border-white border-opacity-20">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="text-3xl">🤖</div>
+                    <div>
+                        <h1 class="text-2xl font-bold">A2A Multi-Agent Dashboard</h1>
+                        <p class="text-white text-opacity-70">Real-time Agent Orchestration Platform</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm">
+                        <div class="text-white text-opacity-70">Last Updated</div>
+                        <div id="last-updated" class="font-mono">Loading...</div>
+                    </div>
+                    <button onclick="refreshData()" class="glass px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-all">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <!-- System Overview -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-tachometer-alt mr-3"></i>
+                System Overview
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="glass rounded-xl p-6 agent-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl">⚡</div>
+                        <div class="status-indicator text-green-400 text-xl">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value text-2xl font-bold" id="total-messages">0</div>
+                    <div class="text-white text-opacity-70">Total Messages</div>
+                </div>
+
+                <div class="glass rounded-xl p-6 agent-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl">🎯</div>
+                        <div class="status-indicator text-green-400 text-xl">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value text-2xl font-bold" id="success-rate">0%</div>
+                    <div class="text-white text-opacity-70">Success Rate</div>
+                </div>
+
+                <div class="glass rounded-xl p-6 agent-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl">🧠</div>
+                        <div class="status-indicator text-blue-400 text-xl">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value text-2xl font-bold" id="active-agents">0</div>
+                    <div class="text-white text-opacity-70">Active Agents</div>
+                </div>
+
+                <div class="glass rounded-xl p-6 agent-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl">🚀</div>
+                        <div class="status-indicator text-purple-400 text-xl">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value text-2xl font-bold" id="avg-response">0ms</div>
+                    <div class="text-white text-opacity-70">Avg Response</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agent Status Grid -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-users mr-3"></i>
+                Agent Status
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="agent-grid">
+                <!-- Agent cards will be dynamically generated -->
+            </div>
+        </section>
+
+        <!-- AI Services Status -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-robot mr-3"></i>
+                AI Services
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="text-3xl">🤖</div>
+                            <div>
+                                <div class="font-semibold">Claude Code</div>
+                                <div class="text-sm text-white text-opacity-70">v2.0.60</div>
+                            </div>
+                        </div>
+                        <div class="text-green-400 text-xl">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="text-sm text-white text-opacity-70 mb-2">Authentication: Valid</div>
+                    <div class="bg-green-500 bg-opacity-30 rounded-full h-2">
+                        <div class="bg-green-500 rounded-full h-2 w-full"></div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="text-3xl">⚡</div>
+                            <div>
+                                <div class="font-semibold">OpenAI Codex</div>
+                                <div class="text-sm text-white text-opacity-70">v0.65.0</div>
+                            </div>
+                        </div>
+                        <div class="text-yellow-400 text-xl">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="text-sm text-white text-opacity-70 mb-2">API Access: Limited</div>
+                    <div class="bg-yellow-500 bg-opacity-30 rounded-full h-2">
+                        <div class="bg-yellow-500 rounded-full h-2 w-3/4"></div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="text-3xl">🧠</div>
+                            <div>
+                                <div class="font-semibold">Google Gemini</div>
+                                <div class="text-sm text-white text-opacity-70">v0.19.4</div>
+                            </div>
+                        </div>
+                        <div class="text-yellow-400 text-xl">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="text-sm text-white text-opacity-70 mb-2">API Key: Not set</div>
+                    <div class="bg-yellow-500 bg-opacity-30 rounded-full h-2">
+                        <div class="bg-yellow-500 rounded-full h-2 w-1/2"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Message Timeline -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-comments mr-3"></i>
+                Message Timeline
+            </h2>
+            <div class="glass rounded-xl p-6">
+                <div class="space-y-4" id="message-timeline">
+                    <!-- Messages will be dynamically loaded -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Charts -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-chart-line mr-3"></i>
+                Performance Metrics
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-lg font-medium mb-4">Message Throughput</h3>
+                    <div class="chart-container">
+                        <canvas id="throughput-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-lg font-medium mb-4">Response Time Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="response-time-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Command Interface -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-terminal mr-3"></i>
+                A2A Command Interface
+            </h2>
+            <div class="glass rounded-xl p-6">
+                <div class="mb-4">
+                    <input type="text"
+                           id="command-input"
+                           placeholder="Enter A2A command (e.g., send %0 'Hello World')"
+                           class="w-full bg-black bg-opacity-30 border border-white border-opacity-30 rounded-lg px-4 py-3 text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 code-block">
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="executeCommand()"
+                            class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-play mr-2"></i>Execute
+                    </button>
+                    <button onclick="clearOutput()"
+                            class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-trash mr-2"></i>Clear
+                    </button>
+                </div>
+                <div class="mt-4 bg-black bg-opacity-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                    <pre id="command-output" class="text-green-400 text-sm code-block">A2A Command Interface Ready
+> Type your commands above and press Execute</pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Dashboard JavaScript -->
+    <script>
+        // Dashboard State
+        let dashboardData = {
+            agents: {},
+            messages: [],
+            metrics: {
+                totalMessages: 0,
+                successRate: 95,
+                activeAgents: 5,
+                avgResponseTime: 150
+            }
+        };
+
+        // Initialize Dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAgents();
+            loadMockData();
+            initializeCharts();
+            updateLastUpdated();
+
+            // Auto-refresh every 5 seconds
+            setInterval(refreshData, 5000);
+        });
+
+        function initializeAgents() {
+            const agents = [
+                { id: 'conductor', name: 'Conductor (しきるん)', icon: '🎭', pane: '%101', status: 'healthy' },
+                { id: 'codegen', name: 'CodeGen (楓)', icon: '💻', pane: '%102', status: 'healthy' },
+                { id: 'review', name: 'Review (桜)', icon: '🔍', pane: '%103', status: 'healthy' },
+                { id: 'pr', name: 'PR (椿)', icon: '🔄', pane: '%104', status: 'warning' },
+                { id: 'deploy', name: 'Deploy (牡丹)', icon: '🚀', pane: '%105', status: 'healthy' },
+                { id: 'monitor', name: 'Monitor (観察)', icon: '👁️', pane: '%106', status: 'offline' }
+            ];
+
+            const agentGrid = document.getElementById('agent-grid');
+            agentGrid.innerHTML = agents.map(agent => createAgentCard(agent)).join('');
+        }
+
+        function createAgentCard(agent) {
+            const statusColors = {
+                healthy: 'text-green-400',
+                warning: 'text-yellow-400',
+                offline: 'text-red-400'
+            };
+
+            const statusIcons = {
+                healthy: 'fas fa-check-circle',
+                warning: 'fas fa-exclamation-triangle',
+                offline: 'fas fa-times-circle'
+            };
+
+            return `
+                <div class="glass rounded-xl p-6 agent-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="text-3xl">${agent.icon}</div>
+                            <div>
+                                <div class="font-semibold">${agent.name}</div>
+                                <div class="text-sm text-white text-opacity-70">${agent.pane}</div>
+                            </div>
+                        </div>
+                        <div class="status-indicator ${statusColors[agent.status]} text-xl">
+                            <i class="${statusIcons[agent.status]}"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-white text-opacity-70">Messages</span>
+                            <span id="${agent.id}-messages">${Math.floor(Math.random() * 100)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white text-opacity-70">Uptime</span>
+                            <span>${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex space-x-2">
+                            <button onclick="sendTestMessage('${agent.pane}')"
+                                    class="flex-1 bg-blue-600 bg-opacity-50 hover:bg-opacity-70 px-3 py-1 rounded text-sm transition-all">
+                                Test
+                            </button>
+                            <button onclick="viewAgentLogs('${agent.id}')"
+                                    class="flex-1 bg-purple-600 bg-opacity-50 hover:bg-opacity-70 px-3 py-1 rounded text-sm transition-all">
+                                Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadMockData() {
+            // Update metrics
+            document.getElementById('total-messages').textContent = dashboardData.metrics.totalMessages;
+            document.getElementById('success-rate').textContent = dashboardData.metrics.successRate + '%';
+            document.getElementById('active-agents').textContent = dashboardData.metrics.activeAgents;
+            document.getElementById('avg-response').textContent = dashboardData.metrics.avgResponseTime + 'ms';
+
+            // Load recent messages
+            loadRecentMessages();
+        }
+
+        function loadRecentMessages() {
+            const timeline = document.getElementById('message-timeline');
+            const mockMessages = [
+                { from: 'Conductor', to: 'CodeGen', message: 'Start implementation of Issue #123', time: '2 minutes ago', type: 'command' },
+                { from: 'CodeGen', to: 'Review', message: 'Code ready for review: auth module', time: '5 minutes ago', type: 'handoff' },
+                { from: 'Review', to: 'PR', message: 'Review approved, ready for PR', time: '8 minutes ago', type: 'approval' },
+                { from: 'PR', to: 'Deploy', message: 'PR #456 merged successfully', time: '12 minutes ago', type: 'success' },
+                { from: 'Monitor', to: 'ALL', message: 'System health check: All agents operational', time: '15 minutes ago', type: 'broadcast' }
+            ];
+
+            timeline.innerHTML = mockMessages.map(msg => createMessageBubble(msg)).join('');
+        }
+
+        function createMessageBubble(msg) {
+            const typeColors = {
+                command: 'bg-blue-600',
+                handoff: 'bg-purple-600',
+                approval: 'bg-green-600',
+                success: 'bg-emerald-600',
+                broadcast: 'bg-yellow-600'
+            };
+
+            const typeIcons = {
+                command: 'fas fa-terminal',
+                handoff: 'fas fa-hand-point-right',
+                approval: 'fas fa-check',
+                success: 'fas fa-star',
+                broadcast: 'fas fa-bullhorn'
+            };
+
+            return `
+                <div class="message-bubble flex items-start space-x-4">
+                    <div class="${typeColors[msg.type]} bg-opacity-20 p-3 rounded-full">
+                        <i class="${typeIcons[msg.type]} text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="font-semibold text-sm">${msg.from}</span>
+                            <span class="text-white text-opacity-50">→</span>
+                            <span class="font-semibold text-sm">${msg.to}</span>
+                            <span class="text-white text-opacity-50 text-xs">${msg.time}</span>
+                        </div>
+                        <div class="text-white text-opacity-90 text-sm">${msg.message}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initializeCharts() {
+            // Throughput Chart
+            const throughputCtx = document.getElementById('throughput-chart').getContext('2d');
+            new Chart(throughputCtx, {
+                type: 'line',
+                data: {
+                    labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+                    datasets: [{
+                        label: 'Messages/min',
+                        data: [12, 18, 15, 22, 20, 25],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Response Time Chart
+            const responseCtx = document.getElementById('response-time-chart').getContext('2d');
+            new Chart(responseCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['<100ms', '100-500ms', '500ms-1s', '>1s'],
+                    datasets: [{
+                        data: [45, 35, 15, 5],
+                        backgroundColor: [
+                            '#10B981',
+                            '#3B82F6',
+                            '#F59E0B',
+                            '#EF4444'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function executeCommand() {
+            const input = document.getElementById('command-input');
+            const output = document.getElementById('command-output');
+            const command = input.value.trim();
+
+            if (!command) return;
+
+            // Add command to output
+            output.textContent += `\n> ${command}`;
+
+            // Simulate command execution
+            setTimeout(() => {
+                const responses = [
+                    'Message sent successfully',
+                    'Agent responded: Task started',
+                    'Health check completed: 5/5 agents healthy',
+                    'Queue processed: 3 messages delivered',
+                    'Metrics updated: Success rate 95%'
+                ];
+
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                output.textContent += `\n✅ ${response}`;
+                output.scrollTop = output.scrollHeight;
+            }, 500);
+
+            input.value = '';
+        }
+
+        function clearOutput() {
+            document.getElementById('command-output').textContent = 'A2A Command Interface Ready\n> Type your commands above and press Execute';
+        }
+
+        function sendTestMessage(pane) {
+            const output = document.getElementById('command-output');
+            output.textContent += `\n> Sending test message to ${pane}`;
+            output.textContent += `\n✅ Test message delivered successfully`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function viewAgentLogs(agentId) {
+            alert(`Viewing logs for agent: ${agentId}\n(Feature under development)`);
+        }
+
+        function refreshData() {
+            // Simulate data refresh
+            dashboardData.metrics.totalMessages += Math.floor(Math.random() * 5);
+            dashboardData.metrics.successRate = 95 + Math.floor(Math.random() * 5);
+            dashboardData.metrics.avgResponseTime = 120 + Math.floor(Math.random() * 60);
+
+            loadMockData();
+            updateLastUpdated();
+        }
+
+        function updateLastUpdated() {
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Handle command input enter key
+        document.getElementById('command-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeCommand();
+            }
+        });
+    </script>
+</body>
+</html>
