@@ -9,6 +9,7 @@ import TMAXLView from '@/components/TMAXLView'
 import { Timeline } from '@/components/Timeline'
 import type { Agent, AgentStatus, TmuxPane, TmuxSession } from '@/components/dashboardData'
 import { mockAgents, mockTmuxSession, mockIssues, IssueSummary } from '@/components/dashboardData'
+import { useErrorHandler } from '@/components/errors/ErrorHandler'
 
 interface DashboardStats {
   totalAgents: number
@@ -38,23 +39,37 @@ export default function Dashboard() {
   )
   const [issues] = useState<IssueSummary[]>(mockIssues)
 
+  // エラーハンドリングフック
+  const { handleError, handleUserActionError } = useErrorHandler({
+    feature: 'dashboard',
+    userId: 'dashboard-user', // 実際のアプリでは認証されたユーザーIDを使用
+  })
+
   const agentMap = useMemo(() => new Map(agents.map((agent) => [agent.id, agent])), [agents])
   const stats = useMemo(() => computeStats(agents), [agents])
 
   const handleAgentStatusChange = (agentId: string, status: AgentStatus) => {
-    const timestamp = new Date().toISOString()
+    try {
+      const timestamp = new Date().toISOString()
 
-    setAgents((previous) =>
-      previous.map((agent) =>
-        agent.id === agentId
-          ? {
-              ...agent,
-              status,
-              lastUpdated: timestamp,
-            }
-          : agent,
-      ),
-    )
+      setAgents((previous) =>
+        previous.map((agent) =>
+          agent.id === agentId
+            ? {
+                ...agent,
+                status,
+                lastUpdated: timestamp,
+              }
+            : agent,
+        ),
+      )
+    } catch (error) {
+      handleUserActionError(
+        'agent_status_change',
+        error as Error,
+        { agentId, targetStatus: status }
+      )
+    }
   }
 
   const appendPaneLog = (session: TmuxSession, paneId: string, message: string): TmuxSession => {
