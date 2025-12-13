@@ -3,9 +3,56 @@ UI Tools - UI component rendering tools
 
 These tools return UI components (widgets, quick actions, onboarding flows).
 They are the "presentation" layer of the App SDK pattern.
+
+IMPORTANT: Widget file names MUST match files in server/widgets/ directory.
+All widget files use snake_case naming convention.
 """
 
 from .registry import ToolDefinition, ToolCategory
+
+# =============================================================================
+# Widget Name Mapping (PR-2: Naming Convention Enforcement)
+# =============================================================================
+# This mapping ensures consistency between tool definitions and actual widget files.
+# All widget files in server/widgets/ use snake_case naming.
+#
+# Usage: WIDGET_MAP["tool_name"] -> "actual_file.html"
+# =============================================================================
+WIDGET_MAP = {
+    "onboarding": "onboarding_wizard.html",
+    "quick_actions": "quick_actions.html",
+    "agent_cards": "agent_cards.html",
+    "agent_card_detail": "agent_tcg.html",
+    "agent_collection": "agent_cards.html",
+    "agent_tcg": "agent_tcg.html",
+    "notification": "toast_notification.html",
+    "subscription": "subscription_manager.html",
+    "project_status": "project_status.html",
+    "git_status": "git_status.html",
+    "issue_list": "issue_list.html",
+    "pr_list": "pr_list.html",
+    "agent_selector": "agent_selector.html",
+    "agent_execution": "agent_execution.html",
+    "build_output": "build_output.html",
+    "code_search": "code_search.html",
+    "commit_history": "commit_history.html",
+    "file_viewer": "file_viewer.html",
+    "image_analysis": "image_analysis.html",
+    "image_generation": "image-generation.html",  # Note: legacy naming
+    "repository_selector": "repository_selector.html",
+    "resource_settings": "resource_settings.html",
+    "system_resources": "system_resources.html",
+    "user_profile": "user_profile.html",
+}
+
+
+def widget_uri(name: str) -> str:
+    """Get the correct widget URI for a given widget name."""
+    if name in WIDGET_MAP:
+        return f"ui://widget/{WIDGET_MAP[name]}"
+    # Fallback: assume snake_case with .html
+    return f"ui://widget/{name}.html"
+
 
 # Widget meta template
 WIDGET_META = {
@@ -32,7 +79,7 @@ UI_TOOLS = [
             "required": [],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/onboarding.html",
+            "openai/outputTemplate": widget_uri("onboarding"),
             "openai/toolInvocation/invoking": "Loading onboarding...",
             "openai/toolInvocation/invoked": "Onboarding ready.",
             **WIDGET_META,
@@ -56,7 +103,7 @@ UI_TOOLS = [
             "required": [],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/quick-actions.html",
+            "openai/outputTemplate": widget_uri("quick_actions"),
             "openai/toolInvocation/invoking": "Loading quick actions...",
             "openai/toolInvocation/invoked": "Quick actions ready.",
             **WIDGET_META,
@@ -81,7 +128,7 @@ UI_TOOLS = [
             "required": [],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/agent-cards.html",
+            "openai/outputTemplate": widget_uri("agent_cards"),
             "openai/toolInvocation/invoking": "Loading agent cards...",
             "openai/toolInvocation/invoked": "Agent cards displayed.",
             **WIDGET_META,
@@ -103,7 +150,7 @@ UI_TOOLS = [
             "required": ["agent"],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/agent-card-detail.html",
+            "openai/outputTemplate": widget_uri("agent_card_detail"),
             **WIDGET_META,
         },
     ),
@@ -118,7 +165,7 @@ UI_TOOLS = [
             "required": [],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/agent-collection.html",
+            "openai/outputTemplate": widget_uri("agent_collection"),
             **WIDGET_META,
         },
     ),
@@ -138,7 +185,7 @@ UI_TOOLS = [
             "required": ["agent"],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/tcg-card.html",
+            "openai/outputTemplate": widget_uri("agent_tcg"),
             **WIDGET_META,
         },
     ),
@@ -169,7 +216,7 @@ UI_TOOLS = [
             "required": ["message"],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/notification.html",
+            "openai/outputTemplate": widget_uri("notification"),
             **WIDGET_META,
         },
     ),
@@ -186,7 +233,7 @@ UI_TOOLS = [
             "required": [],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/subscription.html",
+            "openai/outputTemplate": widget_uri("subscription"),
             **WIDGET_META,
         },
     ),

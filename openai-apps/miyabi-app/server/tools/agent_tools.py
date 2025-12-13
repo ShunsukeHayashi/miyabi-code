@@ -3,9 +3,15 @@ AGENT Tools - AI agent execution tools
 
 These tools execute Miyabi AI agents for complex tasks.
 They are the "intelligence" layer of the App SDK pattern.
+
+IMPORTANT: Widget file names MUST match files in server/widgets/ directory.
+All widget files use snake_case naming convention.
 """
 
 from .registry import ToolDefinition, ToolCategory
+
+# Import widget_uri from ui_tools for consistency
+from .ui_tools import widget_uri, WIDGET_META
 
 # Available agents
 CODING_AGENTS = [
@@ -49,10 +55,10 @@ AGENT_TOOLS = [
             "required": ["agent"],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/agent-execution.html",
+            "openai/outputTemplate": "ui://widget/agent_execution.html",
             "openai/toolInvocation/invoking": "Executing agent...",
             "openai/toolInvocation/invoked": "Agent execution complete.",
-            "openai/widgetAccessible": True,
+            **WIDGET_META,
         },
     ),
 
@@ -89,10 +95,11 @@ AGENT_TOOLS = [
             "required": ["agents"],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/parallel-execution.html",
+            # Reuse agent_execution.html for parallel execution display
+            "openai/outputTemplate": "ui://widget/agent_execution.html",
             "openai/toolInvocation/invoking": "Executing agents in parallel...",
             "openai/toolInvocation/invoked": "Parallel execution complete.",
-            "openai/widgetAccessible": True,
+            **WIDGET_META,
         },
     ),
 
@@ -201,8 +208,9 @@ AGENT_TOOLS = [
             "required": ["agent"],
         },
         meta={
-            "openai/outputTemplate": "ui://widget/agent-card-generated.html",
-            "openai/widgetAccessible": True,
+            # Use agent_tcg.html for generated card display
+            "openai/outputTemplate": "ui://widget/agent_tcg.html",
+            **WIDGET_META,
         },
     ),
 ]

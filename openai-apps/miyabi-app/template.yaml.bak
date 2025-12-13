@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Miyabi MCP Server - FastAPI on AWS Lambda
+
+# ==============================================================================
+# Global Configuration
+# ==============================================================================
+Globals:
+  Function:
+    Timeout: 900  # 15 minutes (max for Lambda)
+    MemorySize: 2048
+    Runtime: python3.10
+    Environment:
+      Variables:
+        MIYABI_ROOT: /tmp/miyabi-private
+        BASE_URL: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+        GITHUB_TOKEN: !Ref GitHubToken
+        MIYABI_REPO_OWNER: customer-cloud
+        MIYABI_REPO_NAME: miyabi-private
+        MIYABI_ACCESS_TOKEN: !Ref MiyabiAccessToken
+        OBSIDIAN_VAULT: /tmp/obsidian
+        AWS_DEFAULT_REGION: !Ref AWS::Region
+
+# ==============================================================================
+# Parameters
+# ==============================================================================
+Parameters:
+  GitHubToken:
+    Type: String
+    NoEcho: true
+    Description: GitHub Personal Access Token for API access
+    Default: ""
+
+  MiyabiAccessToken:
+    Type: String
+    NoEcho: true
+    Description: Miyabi MCP Server Access Token (Bearer token for authentication)
+    Default: ""
+
+  Stage:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Deployment stage
+
+# ==============================================================================
+# Resources
+# ==============================================================================
+Resources:
+  # Lambda Function
+  MiyabiMCPFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "miyabi-mcp-server-${Stage}"
+      Description: Miyabi MCP Server - FastAPI on Lambda with Mangum adapter
+      CodeUri: server/
+      Handler: lambda_handler.lambda_handler
+      Layers:
+        - !Ref PythonDependenciesLayer
+      Events:
+        ApiRoot:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+            ApiId: !Ref ServerlessHttpApi
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            ApiId: !Ref ServerlessHttpApi
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            # CloudWatch Logs
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/miyabi-mcp-server-${Stage}:*"
+            # Secrets Manager (if needed for tokens)
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:miyabi/*"
+      Tags:
+        Project: Miyabi
+        Environment: !Ref Stage
+        ManagedBy: SAM
+
+  # Python Dependencies Layer
+  PythonDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "miyabi-mcp-dependencies-${Stage}"
+      Description: Python dependencies for Miyabi MCP Server
+      ContentUri: .aws-sam/dependencies/
+      CompatibleRuntimes:
+        - python3.10
+        - python3.10
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: python3.10
+
+  # HTTP API Gateway
+  ServerlessHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref Stage
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - "*"
+        MaxAge: 600
+      Tags:
+        Project: Miyabi
+        Environment: !Ref Stage
+
+  # CloudWatch Log Group
+  MiyabiMCPLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/miyabi-mcp-server-${Stage}"
+      RetentionInDays: 30
+
+# ==============================================================================
+# Outputs
+# ==============================================================================
+Outputs:
+  MiyabiMCPApiUrl:
+    Description: Miyabi MCP Server API Gateway URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiUrl"
+
+  MiyabiMCPFunctionArn:
+    Description: Miyabi MCP Server Lambda Function ARN
+    Value: !GetAtt MiyabiMCPFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-FunctionArn"
+
+  MiyabiMCPFunctionName:
+    Description: Miyabi MCP Server Lambda Function Name
+    Value: !Ref MiyabiMCPFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-FunctionName"
+
+  HealthCheckUrl:
+    Description: Health check endpoint
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+
+  MCPEndpointUrl:
+    Description: MCP protocol endpoint
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/mcp"
