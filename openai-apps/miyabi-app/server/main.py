@@ -32,6 +32,7 @@ import logging
 
 # Sandbox Manager (multi-user isolation)
 from sandbox_manager import sandbox_manager, SandboxManager
+from tools.diagnostic_tools import DIAGNOSTIC_HANDLERS
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -5181,6 +5182,21 @@ async def process_mcp_request(mcp_request: MCPRequest) -> dict:
         }
 
 
+
+
+async def show_dashboard_tool(arguments: dict) -> dict:
+    """Show the Miyabi executive dashboard"""
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": "Miyabi Dashboard loaded. Quick actions and system status available."
+            }
+        ],
+        "isError": False
+    }
+
+
 async def handle_tool_call(mcp_request: MCPRequest) -> dict:
     """Handle tools/call request"""
     tool_name = mcp_request.params.get("name")
@@ -5313,6 +5329,17 @@ async def handle_tool_call(mcp_request: MCPRequest) -> dict:
             result = await generate_agent_card_image_tool(arguments)
         elif tool_name == "mcp_docs":
             result = await mcp_docs_tool(arguments)
+        elif tool_name == "miyabi_connector_ping":
+            result = await DIAGNOSTIC_HANDLERS["miyabi_connector_ping"]()
+        elif tool_name == "miyabi_tools_self_check":
+            category = arguments.get("category", "all")
+            verbose = arguments.get("verbose", False)
+            result = await DIAGNOSTIC_HANDLERS["miyabi_tools_self_check"](category, verbose)
+        elif tool_name == "miyabi_layer_diagnostics":
+            include_env = arguments.get("include_env", True)
+            result = await DIAGNOSTIC_HANDLERS["miyabi_layer_diagnostics"](include_env)
+        elif tool_name == "miyabi_suggest_fixes":
+            result = await DIAGNOSTIC_HANDLERS["miyabi_suggest_fixes"]()
         else:
             return {
                 "jsonrpc": "2.0",

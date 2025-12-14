@@ -43,6 +43,7 @@ WIDGET_MAP = {
     "resource_settings": "resource_settings.html",
     "system_resources": "system_resources.html",
     "user_profile": "user_profile.html",
+    "dashboard": "dashboard.html",
 }
 
 
@@ -237,4 +238,23 @@ UI_TOOLS = [
             **WIDGET_META,
         },
     ),
+    # === Dashboard ===
+    ToolDefinition(
+        name="show_dashboard",
+        title="Show Dashboard",
+        description="Display the Miyabi executive dashboard with quick actions, active agents, and system status",
+        category=ToolCategory.UI,
+        input_schema={
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        meta={
+            "openai/outputTemplate": widget_uri("dashboard"),
+            "openai/toolInvocation/invoking": "Loading Miyabi Dashboard...",
+            "openai/toolInvocation/invoked": "Dashboard ready.",
+            **WIDGET_META,
+        },
+    ),
+
 ]

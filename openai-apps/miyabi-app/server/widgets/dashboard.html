@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+        * { font-family: 'Noto Sans JP', sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .gradient-text { background: linear-gradient(135deg, #e94560, #f5b041); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(233, 69, 96, 0.2); }
+    </style>
+</head>
+<body class="bg-[#0a0a0f] text-white min-h-screen">
+    <div class="fixed inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#0a0a0f]"></div>
+    
+    <div id="app" class="relative z-10 max-w-6xl mx-auto px-6 py-8">
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#e94560] to-[#f5b041] flex items-center justify-center text-3xl shadow-lg shadow-[#e94560]/20">
+                    🏯
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight gradient-text">Miyabi</h1>
+                    <p class="text-sm text-gray-400">AI経営参謀</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="status" class="flex items-center gap-2 px-4 py-2 rounded-full glass">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+                    <span class="text-sm text-gray-300">接続中</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Quick Actions -->
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold mb-4 text-gray-300">クイックアクション</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <button onclick="action('market')" class="glass rounded-xl p-4 card-hover text-center">
+                    <div class="text-2xl mb-2">📈</div>
+                    <div class="text-sm font-medium">市場分析</div>
+                    <div class="text-xs text-gray-500">競合・トレンド</div>
+                </button>
+                <button onclick="action('plan')" class="glass rounded-xl p-4 card-hover text-center">
+                    <div class="text-2xl mb-2">📝</div>
+                    <div class="text-sm font-medium">企画立案</div>
+                    <div class="text-xs text-gray-500">提案書作成</div>
+                </button>
+                <button onclick="action('finance')" class="glass rounded-xl p-4 card-hover text-center">
+                    <div class="text-2xl mb-2">💰</div>
+                    <div class="text-sm font-medium">財務分析</div>
+                    <div class="text-xs text-gray-500">収支・KPI</div>
+                </button>
+                <button onclick="action('strategy')" class="glass rounded-xl p-4 card-hover text-center">
+                    <div class="text-2xl mb-2">🎯</div>
+                    <div class="text-sm font-medium">戦略策定</div>
+                    <div class="text-xs text-gray-500">中長期計画</div>
+                </button>
+                <button onclick="action('hiring')" class="glass rounded-xl p-4 card-hover text-center">
+                    <div class="text-2xl mb-2">👥</div>
+                    <div class="text-sm font-medium">採用支援</div>
+                    <div class="text-xs text-gray-500">人材要件</div>
+                </button>
+                <button onclick="action('marketing')" class="glass rounded-xl p-4 card-hover text-center">
+                    <div class="text-2xl mb-2">📢</div>
+                    <div class="text-sm font-medium">マーケ</div>
+                    <div class="text-xs text-gray-500">SNS・広告</div>
+                </button>
+            </div>
+        </section>
+
+        <!-- Active Agents -->
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold mb-4 text-gray-300">アクティブエージェント</h2>
+            <div class="glass rounded-2xl p-6">
+                <div id="agents" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- System Status -->
+        <section>
+            <h2 class="text-lg font-semibold mb-4 text-gray-300">システム状態</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold gradient-text" id="crates">59</div>
+                    <div class="text-sm text-gray-400">Crates</div>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold gradient-text" id="mcp">39</div>
+                    <div class="text-sm text-gray-400">MCP Servers</div>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold gradient-text" id="tools">67</div>
+                    <div class="text-sm text-gray-400">Tools</div>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold gradient-text" id="agents-count">21</div>
+                    <div class="text-sm text-gray-400">Agents</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const agents = [
+            { name: 'しきるん', role: 'Conductor', status: 'active', task: 'タスク調整中' },
+            { name: 'カエデ', role: 'CodeGen', status: 'idle', task: null },
+            { name: 'サクラ', role: 'Review', status: 'idle', task: null }
+        ];
+
+        function renderAgents() {
+            const container = document.getElementById('agents');
+            container.innerHTML = agents.map(a => \`
+                <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl
+                        \${a.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-600/20 text-gray-400'}">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium">\${a.name}</div>
+                        <div class="text-sm text-gray-400">\${a.role}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full \${a.status === 'active' ? 'bg-emerald-500 pulse-dot' : 'bg-gray-500'}"></span>
+                            <span class="text-sm \${a.status === 'active' ? 'text-emerald-400' : 'text-gray-500'}">\${a.status === 'active' ? '稼働中' : '待機中'}</span>
+                        </div>
+                        \${a.task ? \`<div class="text-xs text-gray-500 mt-1">\${a.task}</div>\` : ''}
+                    </div>
+                </div>
+            \`).join('');
+        }
+
+        function action(type) {
+            const messages = {
+                market: '市場分析を開始します。競合と最新トレンドを調査中...',
+                plan: '企画立案モードを起動。要件をお聞かせください。',
+                finance: '財務分析ダッシュボードを準備中...',
+                strategy: '戦略策定アシスタントを起動します。',
+                hiring: '採用支援モジュールを準備中...',
+                marketing: 'マーケティング戦略ツールを起動します。'
+            };
+            alert(messages[type] || 'アクションを実行中...');
+        }
+
+        renderAgents();
+    </script>
+</body>
+</html>
