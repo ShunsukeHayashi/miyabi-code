@@ -3,7 +3,7 @@
  * Phase 3: MCPサーバーテスト - テストセットアップ
  */
 
-import { beforeAll, afterAll } from 'vitest';
+// Jest globals are available automatically
 
 // テスト用の環境変数設定
 beforeAll(() => {
@@ -14,6 +14,9 @@ beforeAll(() => {
   // MCPテスト用の環境変数
   process.env.GITHUB_TOKEN = process.env.GITHUB_TOKEN || 'test-token';
   process.env.REPOSITORY = process.env.REPOSITORY || 'test-repo';
+
+  // AI テスト用の環境変数
+  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'test-api-key';
   
   // テスト用のタイムアウト設定
   process.env.TEST_TIMEOUT = '30000'; // 30秒
