@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Generate lesson content
-    const result = await geminiClient.generateLesson(geminiRequest);
+    const result = await geminiClient.instance.generateLesson(geminiRequest);
 
     // Calculate processing time
     const processingTime = Date.now() - startTime;

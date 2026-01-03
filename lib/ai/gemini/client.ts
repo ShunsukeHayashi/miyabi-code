@@ -456,19 +456,18 @@ export class GeminiClient {
   /**
    * Error handling helpers
    */
-  private createError(code: GeminiError['code'], message: string, request?: any): GeminiError {
-    return {
-      code,
-      message,
-      details: {
-        requestId: this.generateRequestId(),
-        timestamp: new Date().toISOString(),
-        suggestion: this.getErrorSuggestion(code)
-      }
+  private createError(code: GeminiError['code'], message: string, request?: any): Error {
+    const error = new Error(message);
+    (error as any).code = code;
+    (error as any).details = {
+      requestId: this.generateRequestId(),
+      timestamp: new Date().toISOString(),
+      suggestion: this.getErrorSuggestion(code)
     };
+    return error;
   }
 
-  private handleGenerationError(error: any, requestId: string): GeminiError {
+  private handleGenerationError(error: any, requestId: string): Error {
     if (error.message?.includes('quota')) {
       return this.createError('API_LIMIT', 'API quota exceeded');
     }
