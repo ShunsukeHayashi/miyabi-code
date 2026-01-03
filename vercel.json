@@ -1,30 +1,16 @@
 {
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": "public",
-  "installCommand": null,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/sekai/index.html"
-    },
-    {
-      "source": "/sekai",
-      "destination": "/sekai/index.html"
-    },
-    {
-      "source": "/sekai/original",
-      "destination": "/sekai/original.html"
-    },
-    {
-      "source": "/sekai/en",
-      "destination": "/sekai/en.html"
-    },
-    {
-      "source": "/pitch-deck",
-      "destination": "/pitch-deck/output/miyabi-pitch-deck-jony-v2.html"
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "functions": {
+    "app/api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 30
     }
-  ],
+  },
+  "env": {
+    "NODE_ENV": "production"
+  },
   "headers": [
     {
       "source": "/(.*)",
@@ -44,11 +30,32 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
         }
       ]
     },
     {
-      "source": "/(.*)\\.(html|css|js|svg|webp|png|jpg|jpeg|pdf|md)",
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Accept, Authorization"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(js|css|svg|webp|png|jpg|jpeg|woff|woff2|ttf|eot)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request parameters',
-          details: error.errors
+          details: error.issues
         },
         metadata: {
           requestId,

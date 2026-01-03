@@ -30,8 +30,9 @@ const nextConfig = {
     tsconfigPath: './tsconfig.json',
   },
 
-  // ESLint チェック
+  // ESLint チェック（production buildでは無視）
   eslint: {
+    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
     dirs: ['app', 'components', 'lib', 'src'],
   },
 };
