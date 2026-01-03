@@ -21,7 +21,7 @@ export class Gemini3Client {
 
   constructor(config: Gemini3Config) {
     this.config = {
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-1.5-pro',
       thinkingLevel: 'high',
       temperature: 0.3,
       topP: 0.95,

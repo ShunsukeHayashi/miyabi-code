@@ -1,0 +1,496 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// USER MANAGEMENT
+// =====================================================
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  username    String?  @unique
+  displayName String?
+  avatar      String?
+  role        UserRole @default(STUDENT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  enrollments       Enrollment[]
+  userAnswers       UserAnswer[]
+  createdCourses    Course[]            @relation("CourseCreator")
+  instructorCourses CourseInstructor[]
+  userProgress      UserProgress[]
+  certificates      Certificate[]
+  courseReviews     CourseReview[]
+
+  @@map("users")
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+// =====================================================
+// COURSE STRUCTURE
+// =====================================================
+
+model Course {
+  id            String        @id @default(uuid())
+  title         String
+  description   String
+  thumbnail     String?
+  status        CourseStatus  @default(DRAFT)
+  level         CourseLevel   @default(BEGINNER)
+  language      String        @default("en")
+  estimatedTime Int?          // in minutes
+  price         Decimal?      @db.Decimal(10, 2)
+  featured      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  publishedAt   DateTime?
+  creatorId     String
+
+  // SEO and metadata
+  slug          String        @unique
+  metaTitle     String?
+  metaDescription String?
+  tags          String[]      // Array of tags
+
+  // Creator relationship
+  creator       User          @relation("CourseCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Relationships
+  lessons           Lesson[]
+  enrollments       Enrollment[]
+  categories        CourseCategory[]
+  instructors       CourseInstructor[]
+  prerequisites     CoursePrerequisite[] @relation("PrerequisiteCourse")
+  dependentCourses  CoursePrerequisite[] @relation("RequiredCourse")
+  learningPaths     LearningPathCourse[]
+  userProgress      UserProgress[]
+  certificates      Certificate[]
+  reviews           CourseReview[]
+
+  @@map("courses")
+  @@index([status, publishedAt])
+  @@index([creatorId])
+  @@index([slug])
+  @@index([featured])
+  @@index([level])
+}
+
+enum CourseStatus {
+  DRAFT
+  UNDER_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  slug        String   @unique
+  color       String?  // Hex color for UI
+  icon        String?  // Icon name or SVG
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Self-referential relationship for subcategories
+  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  // Relationships
+  courses CourseCategory[]
+
+  @@map("categories")
+  @@index([parentId])
+  @@index([slug])
+}
+
+model CourseCategory {
+  id         String   @id @default(uuid())
+  courseId   String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, categoryId])
+  @@map("course_categories")
+}
+
+// =====================================================
+// LESSON STRUCTURE
+// =====================================================
+
+model Lesson {
+  id          String      @id @default(uuid())
+  courseId    String
+  title       String
+  description String?
+  content     String      // Rich text content
+  videoUrl    String?
+  duration    Int?        // in seconds
+  order       Int
+  type        LessonType  @default(TEXT)
+  isPreview   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Additional content
+  attachments Json?       // Array of file attachments
+  notes       String?     // Instructor notes
+
+  course      Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // Relationships
+  assessments   Assessment[]
+  userProgress  UserProgress[]
+
+  @@unique([courseId, order])
+  @@map("lessons")
+  @@index([courseId, order])
+}
+
+enum LessonType {
+  TEXT
+  VIDEO
+  AUDIO
+  INTERACTIVE
+  QUIZ
+  ASSIGNMENT
+}
+
+// =====================================================
+// ASSESSMENT SYSTEM
+// =====================================================
+
+model Assessment {
+  id          String         @id @default(uuid())
+  lessonId    String?
+  courseId    String?        // For final course assessments
+  title       String
+  description String?
+  questions   Json           // Array of question objects
+  maxScore    Int
+  passingScore Int?
+  timeLimit   Int?           // in minutes
+  attempts    Int            @default(3)
+  type        AssessmentType @default(QUIZ)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  lesson      Lesson?        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  // Relationships
+  userAnswers UserAnswer[]
+
+  @@map("assessments")
+  @@index([lessonId])
+  @@index([type])
+}
+
+enum AssessmentType {
+  QUIZ
+  ASSIGNMENT
+  PROJECT
+  FINAL_EXAM
+}
+
+model UserAnswer {
+  id           String    @id @default(uuid())
+  userId       String
+  assessmentId String
+  answers      Json      // User's answers
+  score        Int?
+  passed       Boolean?
+  completedAt  DateTime?
+  attemptNumber Int      @default(1)
+  feedback     String?   // Automated or instructor feedback
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, assessmentId, attemptNumber])
+  @@map("user_answers")
+  @@index([userId])
+  @@index([assessmentId])
+}
+
+// =====================================================
+// ENROLLMENT & PROGRESS
+// =====================================================
+
+model Enrollment {
+  id          String           @id @default(uuid())
+  userId      String
+  courseId    String
+  status      EnrollmentStatus @default(ACTIVE)
+  progress    Int              @default(0) // 0-100 percentage
+  enrolledAt  DateTime         @default(now())
+  completedAt DateTime?
+
+  // Payment information
+  paymentId   String?
+  paymentStatus PaymentStatus? @default(PENDING)
+  amount      Decimal?         @db.Decimal(10, 2)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  SUSPENDED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model UserProgress {
+  id               String    @id @default(uuid())
+  userId           String
+  courseId         String
+  lessonId         String?
+  completedAt      DateTime?
+  timeSpent        Int?      // in seconds
+  lastAccessedAt   DateTime  @default(now())
+  bookmarked       Boolean   @default(false)
+  notes            String?   // User's personal notes
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, lessonId])
+  @@map("user_progress")
+  @@index([userId, courseId])
+}
+
+// =====================================================
+// INSTRUCTOR MANAGEMENT
+// =====================================================
+
+model CourseInstructor {
+  id         String           @id @default(uuid())
+  courseId   String
+  userId     String
+  role       InstructorRole   @default(INSTRUCTOR)
+  permissions InstructorPermission[] // Array of permissions
+  assignedAt DateTime         @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@map("course_instructors")
+}
+
+enum InstructorRole {
+  INSTRUCTOR
+  ASSISTANT
+  MODERATOR
+}
+
+enum InstructorPermission {
+  CREATE_LESSON
+  EDIT_LESSON
+  DELETE_LESSON
+  GRADE_ASSESSMENT
+  VIEW_ANALYTICS
+  MANAGE_STUDENTS
+}
+
+// =====================================================
+// COURSE PREREQUISITES
+// =====================================================
+
+model CoursePrerequisite {
+  id                String @id @default(uuid())
+  courseId          String // The course that has prerequisites
+  prerequisiteCourseId String // The required prerequisite course
+  required          Boolean @default(true)
+  createdAt         DateTime @default(now())
+
+  course            Course @relation("PrerequisiteCourse", fields: [courseId], references: [id], onDelete: Cascade)
+  prerequisiteCourse Course @relation("RequiredCourse", fields: [prerequisiteCourseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, prerequisiteCourseId])
+  @@map("course_prerequisites")
+}
+
+// =====================================================
+// LEARNING PATHS
+// =====================================================
+
+model LearningPath {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  thumbnail   String?
+  level       CourseLevel @default(BEGINNER)
+  estimatedTime Int?   // Total time in minutes
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  courses LearningPathCourse[]
+
+  @@map("learning_paths")
+  @@index([featured])
+  @@index([level])
+}
+
+model LearningPathCourse {
+  id              String @id @default(uuid())
+  learningPathId  String
+  courseId        String
+  order           Int
+  required        Boolean @default(true)
+  createdAt       DateTime @default(now())
+
+  learningPath LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([learningPathId, courseId])
+  @@unique([learningPathId, order])
+  @@map("learning_path_courses")
+}
+
+// =====================================================
+// CERTIFICATES & ACHIEVEMENTS
+// =====================================================
+
+model Certificate {
+  id          String   @id @default(uuid())
+  userId      String
+  courseId    String
+  templateId  String?
+  issuedAt    DateTime @default(now())
+
+  // Certificate content
+  title       String
+  description String?
+  imageUrl    String?
+
+  // Verification
+  verificationHash String @unique
+  verified    Boolean  @default(true)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("certificates")
+  @@index([verificationHash])
+}
+
+// =====================================================
+// REVIEWS & FEEDBACK
+// =====================================================
+
+model CourseReview {
+  id        String   @id @default(uuid())
+  userId    String
+  courseId  String
+  rating    Int      // 1-5 stars
+  title     String?
+  comment   String?
+  helpful   Int      @default(0) // Number of helpful votes
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("course_reviews")
+  @@index([courseId, rating])
+}
+
+// =====================================================
+// ANALYTICS & REPORTING
+// =====================================================
+
+model CourseAnalytics {
+  id                String   @id @default(uuid())
+  courseId          String   @unique
+  totalEnrollments  Int      @default(0)
+  totalCompletions  Int      @default(0)
+  averageRating     Float?
+  totalRevenue      Decimal? @db.Decimal(15, 2)
+
+  // Time-based metrics
+  avgCompletionTime Int?     // in minutes
+  dropoffRate       Float?   // 0-100 percentage
+
+  lastUpdated       DateTime @updatedAt
+  createdAt         DateTime @default(now())
+
+  @@map("course_analytics")
+}
+
+// =====================================================
+// SYSTEM SETTINGS
+// =====================================================
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  type        SettingType @default(STRING)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+  @@index([key])
+}
+
+enum SettingType {
+  STRING
+  INTEGER
+  FLOAT
+  BOOLEAN
+  JSON
+}

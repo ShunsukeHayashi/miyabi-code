@@ -1,66 +1,22 @@
 {
   "mcpServers": {
-    "miyabi-obsidian": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-obsidian-server/dist/index.js"
-      ],
-      "env": {}
-    },
     "gemini3-adaptive-runtime": {
       "type": "stdio",
       "command": "node",
       "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/gemini3-adaptive-runtime/dist/index.js"
+        "/Users/shunsukehayashi/dev/miyabi-private/mcp-servers/gemini3-adaptive-runtime/dist/index.js"
       ],
       "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}",
         "GEMINI_MODEL": "gemini-3-pro-preview",
         "GEMINI_THINKING_LEVEL": "high"
       }
-    },
-    "gemini3-uiux-designer": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/gemini3-uiux-designer/dist/index.js"
-      ],
-      "env": {
-        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
-        "GEMINI_MODEL": "gemini-3-pro-preview",
-        "GEMINI_THINKING_LEVEL": "high"
-      }
-    },
-    "miyabi-tmux": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-tmux-server/dist/index.js"
-      ],
-      "env": {}
-    },
-    "miyabi-rules": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-rules-server/dist/index.js"
-      ],
-      "env": {}
-    },
-    "miyabi-sse-gateway": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-sse-gateway/dist/index.js"
-      ],
-      "env": {}
     },
     "miyabi-github": {
       "type": "stdio",
       "command": "node",
       "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-github/dist/index.js"
+        "/Users/shunsukehayashi/dev/miyabi-private/mcp-servers/miyabi-github/dist/index.js"
       ],
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}"
@@ -70,23 +26,9 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-file-access/dist/index.js"
+        "/Users/shunsukehayashi/dev/miyabi-private/mcp-servers/miyabi-file-access/dist/index.js"
       ],
       "env": {}
-    },
-    "miyabi-pixel-mcp": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-pixel-mcp/dist/index.js"
-      ],
-      "env": {}
-    },
-    "miyabi-ollama": {
-      "command": "node",
-      "args": [
-        "/home/ubuntu/miyabi-private/mcp-servers/miyabi-ollama/dist/index.js"
-      ]
     }
   }
 }

@@ -1,0 +1,173 @@
+{
+  "total_duration_secs": 648,
+  "total_sprints": 3,
+  "total_issues": 15,
+  "successful_issues": 0,
+  "failed_issues": 15,
+  "success_rate": 0.0,
+  "sprints": [
+    {
+      "id": 1,
+      "issues": [
+        1275,
+        1274,
+        1271,
+        1263,
+        1269
+      ],
+      "start_time": "2026-01-02T07:42:06.805713Z",
+      "end_time": "2026-01-02T07:47:25.269149Z",
+      "results": [
+        {
+          "issue_number": 1275,
+          "success": false,
+          "duration_secs": 1,
+          "error": "Escalated: High complexity: 7.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1274,
+          "success": false,
+          "duration_secs": 311,
+          "error": "Git error: Failed to create worktree: Preparing worktree (checking out 'feature/issue-1274')\nfatal: 'feature/issue-1274' is already used by worktree at '/Users/shunsukehayashi/dev/miyabi-private/.worktrees/issue-1274-24c921e8'\n",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1271,
+          "success": false,
+          "duration_secs": 1,
+          "error": "Escalated: High complexity: 10.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1263,
+          "success": false,
+          "duration_secs": 1,
+          "error": "Escalated: High complexity: 7.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1269,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 10.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "issues": [
+        1265,
+        1262,
+        1260,
+        1259,
+        1255
+      ],
+      "start_time": "2026-01-02T07:47:27.270724Z",
+      "end_time": "2026-01-02T07:52:44.328097Z",
+      "results": [
+        {
+          "issue_number": 1265,
+          "success": false,
+          "duration_secs": 1,
+          "error": "Escalated: High complexity: 9.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1262,
+          "success": false,
+          "duration_secs": 1,
+          "error": "Escalated: High complexity: 8.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1260,
+          "success": false,
+          "duration_secs": 310,
+          "error": "Git error: Failed to create worktree: Preparing worktree (checking out 'feature/issue-1260')\nfatal: 'feature/issue-1260' is already used by worktree at '/Users/shunsukehayashi/dev/miyabi-private/.worktrees/issue-1260-ce27d921'\n",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1259,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 8.5 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1255,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 10.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "issues": [
+        1270,
+        1268,
+        1267,
+        1266,
+        1264
+      ],
+      "start_time": "2026-01-02T07:52:46.331648Z",
+      "end_time": "2026-01-02T07:52:54.285887Z",
+      "results": [
+        {
+          "issue_number": 1270,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 9.5 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1268,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 9.5 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1267,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 8.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1266,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 8.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1264,
+          "success": false,
+          "duration_secs": 0,
+          "error": "Escalated: High complexity: 8.0 (threshold: 7)",
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    }
+  ],
+  "stop_reason": "ConsecutiveFailures"
+}

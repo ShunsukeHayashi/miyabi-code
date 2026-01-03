@@ -1,0 +1,18 @@
+# Miyabi Mission Control - SEO Optimization
+# Issue #1267: Comprehensive SEO optimization for better discoverability
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: /sitemap.xml
+
+# Disallow sensitive areas (if any)
+Disallow: /api/
+Disallow: /private/
+Disallow: /_next/
+Disallow: /test-error/
+
+# Allow important assets
+Allow: /assets/
+Allow: /public/

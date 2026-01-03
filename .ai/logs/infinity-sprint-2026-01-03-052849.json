@@ -1,0 +1,335 @@
+{
+  "total_duration_secs": 34,
+  "total_sprints": 6,
+  "total_issues": 30,
+  "successful_issues": 30,
+  "failed_issues": 0,
+  "success_rate": 1.0,
+  "sprints": [
+    {
+      "id": 1,
+      "issues": [
+        1296,
+        1295,
+        1275,
+        1274,
+        1271
+      ],
+      "start_time": "2026-01-03T05:28:16.480676Z",
+      "end_time": "2026-01-03T05:28:20.200005Z",
+      "results": [
+        {
+          "issue_number": 1296,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1295,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1275,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1274,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1271,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "issues": [
+        1263,
+        1294,
+        1269,
+        1265,
+        1262
+      ],
+      "start_time": "2026-01-03T05:28:22.202308Z",
+      "end_time": "2026-01-03T05:28:25.628932Z",
+      "results": [
+        {
+          "issue_number": 1263,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": 1293,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1294,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1269,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1265,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1262,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": 1292,
+          "quality_score": null
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "issues": [
+        1260,
+        1270,
+        1268,
+        1267,
+        1266
+      ],
+      "start_time": "2026-01-03T05:28:27.631881Z",
+      "end_time": "2026-01-03T05:28:31.487382Z",
+      "results": [
+        {
+          "issue_number": 1260,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1270,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1268,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1267,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1266,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "issues": [
+        1264,
+        1261,
+        1293,
+        1292,
+        1291
+      ],
+      "start_time": "2026-01-03T05:28:33.488753Z",
+      "end_time": "2026-01-03T05:28:37.277911Z",
+      "results": [
+        {
+          "issue_number": 1264,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1261,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1293,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1292,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1291,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "issues": [
+        1290,
+        1289,
+        1288,
+        1287,
+        1286
+      ],
+      "start_time": "2026-01-03T05:28:39.279533Z",
+      "end_time": "2026-01-03T05:28:42.350317Z",
+      "results": [
+        {
+          "issue_number": 1290,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1289,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1288,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1287,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1286,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "issues": [
+        1285,
+        1284,
+        1283,
+        1282,
+        1281
+      ],
+      "start_time": "2026-01-03T05:28:44.352256Z",
+      "end_time": "2026-01-03T05:28:47.530529Z",
+      "results": [
+        {
+          "issue_number": 1285,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1284,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1283,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1282,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        },
+        {
+          "issue_number": 1281,
+          "success": true,
+          "duration_secs": 0,
+          "error": null,
+          "pr_number": null,
+          "quality_score": null
+        }
+      ]
+    }
+  ],
+  "stop_reason": "AllCompleted"
+}
