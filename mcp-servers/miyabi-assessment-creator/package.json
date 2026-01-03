@@ -1,0 +1,50 @@
+{
+  "name": "miyabi-assessment-creator",
+  "version": "1.0.0",
+  "description": "Miyabi AssessmentCreator Agent - AI-powered assessment and quiz generation with auto-grading capabilities using Google Generative AI",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.3",
+    "@google/generative-ai": "^0.21.0",
+    "zod": "^3.23.8",
+    "uuid": "^11.0.3",
+    "winston": "^3.15.0",
+    "natural": "^6.12.0",
+    "diff": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/uuid": "^10.0.0",
+    "@types/diff": "^5.0.9",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8"
+  },
+  "keywords": [
+    "miyabi",
+    "mcp",
+    "assessment",
+    "quiz",
+    "auto-grading",
+    "ai",
+    "education",
+    "rubric",
+    "analytics",
+    "google-generative-ai"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "miyabi-progress-tracker",
+  "version": "1.0.0",
+  "description": "AI-powered learning analytics and progress optimization for Miyabi Course Platform",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx --watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.0.0",
+    "winston": "^3.11.0",
+    "zod": "^3.22.0",
+    "ml-matrix": "^6.12.1",
+    "ml-regression": "^6.3.0",
+    "ml-kmeans": "^6.0.0",
+    "lodash": "^4.17.21",
+    "date-fns": "^2.30.0",
+    "sqlite3": "^5.1.6",
+    "d3-scale": "^4.0.2",
+    "simple-statistics": "^7.8.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.6.0",
+    "vitest": "^1.0.0",
+    "@types/lodash": "^4.14.202",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "keywords": [
+    "miyabi",
+    "education",
+    "analytics",
+    "machine-learning",
+    "progress-tracking",
+    "learning-optimization",
+    "ai-agent"
+  ],
+  "author": "Miyabi Platform",
+  "license": "MIT"
+}

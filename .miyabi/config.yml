@@ -85,6 +85,17 @@ mcp:
       enabled: true
       priority: 3
 
+    # Education
+    miyabi-course-designer:
+      port: 3113
+      enabled: true
+      priority: 3
+
+    miyabi-progress-tracker:
+      port: 3114
+      enabled: true
+      priority: 3
+
 # ビルド設定
 build:
   rust:

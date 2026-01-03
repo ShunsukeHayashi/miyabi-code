@@ -293,6 +293,159 @@ export const HonokaAgent: AgentDefinition = {
   outputSchema: z.object({ courseOutline: z.array(z.object({ module: z.string(), lessons: z.array(z.string()) })), pricing: z.number() }),
 };
 
+export const CourseDesignerAgent: AgentDefinition = {
+  name: 'CourseDesignerAgent',
+  category: 'business',
+  description: 'AI-powered comprehensive course content generation using Google Generative AI',
+  capabilities: [
+    'Intelligent course structure generation',
+    'Multi-modal content creation (text, video scripts, exercises)',
+    'Assessment and quiz generation',
+    'Adaptive content optimization',
+    'Learning analytics integration',
+    'SCORM compatibility',
+    'Multi-language support',
+    'Accessibility compliance (WCAG 2.1)',
+  ],
+  inputSchema: z.object({
+    topic: z.string().describe('Main course topic'),
+    targetAudience: z.string().describe('Target student demographic and skill level'),
+    duration: z.object({
+      weeks: z.number().min(1).max(52).default(8),
+      hoursPerWeek: z.number().min(1).max(40).default(3),
+    }).optional().describe('Course duration and time commitment'),
+    learningObjectives: z.array(z.string()).optional().describe('Specific learning goals'),
+    prerequisites: z.array(z.string()).optional().describe('Required knowledge or skills'),
+    difficulty: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
+    format: z.object({
+      includeVideos: z.boolean().default(true),
+      includeAssessments: z.boolean().default(true),
+      includeProjects: z.boolean().default(true),
+      includeDiscussions: z.boolean().default(true),
+    }).optional().describe('Content formats to include'),
+    preferences: z.object({
+      language: z.string().default('en'),
+      tone: z.enum(['formal', 'casual', 'academic', 'conversational']).default('conversational'),
+      interactivity: z.enum(['low', 'medium', 'high']).default('medium'),
+    }).optional().describe('Content generation preferences'),
+  }),
+  outputSchema: z.object({
+    courseStructure: z.object({
+      title: z.string(),
+      description: z.string(),
+      duration: z.object({
+        weeks: z.number(),
+        totalHours: z.number(),
+      }),
+      modules: z.array(z.object({
+        id: z.string(),
+        title: z.string(),
+        description: z.string(),
+        learningObjectives: z.array(z.string()),
+        estimatedHours: z.number(),
+        lessons: z.array(z.object({
+          id: z.string(),
+          title: z.string(),
+          type: z.enum(['video', 'text', 'interactive', 'assessment', 'project']),
+          content: z.string(),
+          duration: z.number(),
+          resources: z.array(z.string()).optional(),
+        })),
+      })),
+    }),
+    content: z.object({
+      videoScripts: z.array(z.object({
+        lessonId: z.string(),
+        title: z.string(),
+        script: z.string(),
+        visualCues: z.array(z.string()).optional(),
+        duration: z.number(),
+      })).optional(),
+      textContent: z.array(z.object({
+        lessonId: z.string(),
+        title: z.string(),
+        content: z.string(),
+        readingTime: z.number(),
+      })).optional(),
+      exercises: z.array(z.object({
+        lessonId: z.string(),
+        type: z.enum(['practice', 'project', 'discussion']),
+        title: z.string(),
+        instructions: z.string(),
+        expectedOutput: z.string(),
+        rubric: z.string().optional(),
+      })).optional(),
+    }),
+    assessments: z.array(z.object({
+      moduleId: z.string(),
+      type: z.enum(['quiz', 'assignment', 'project', 'peer_review']),
+      title: z.string(),
+      description: z.string(),
+      questions: z.array(z.object({
+        id: z.string(),
+        type: z.enum(['multiple_choice', 'true_false', 'short_answer', 'essay', 'code']),
+        question: z.string(),
+        options: z.array(z.string()).optional(),
+        correctAnswer: z.string(),
+        explanation: z.string(),
+        difficulty: z.enum(['easy', 'medium', 'hard']),
+      })),
+      passingScore: z.number().min(0).max(100),
+    })).optional(),
+    metadata: z.object({
+      generationTimestamp: z.string(),
+      aiModelUsed: z.string(),
+      contentQualityScore: z.number().min(0).max(100),
+      estimatedCompletionRate: z.number().min(0).max(100),
+      tags: z.array(z.string()),
+      scormCompatible: z.boolean(),
+      accessibilityCompliant: z.boolean(),
+    }),
+    recommendations: z.object({
+      contentImprovements: z.array(z.string()),
+      engagementOptimizations: z.array(z.string()),
+      learningPathSuggestions: z.array(z.string()),
+      nextSteps: z.array(z.string()),
+    }),
+  }),
+};
+
+// ============================================================================
+// ProgressTrackerAgent
+// ============================================================================
+
+export const ProgressTrackerAgent: AgentDefinition = {
+  name: 'ProgressTrackerAgent',
+  category: 'business',
+  description: 'AI-powered learning analytics and progress optimization agent',
+  capabilities: [
+    'Intelligent progress analysis',
+    'Advanced learning analytics',
+    'Adaptive learning intelligence',
+    'Predictive analytics',
+  ],
+  inputSchema: z.object({
+    studentId: z.string().optional(),
+    courseId: z.string().optional(),
+    timeRange: z.object({
+      start: z.string(),
+      end: z.string(),
+    }).optional(),
+    scope: z.enum(['student', 'course', 'system']).default('system'),
+  }),
+  outputSchema: z.object({
+    insights: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      title: z.string(),
+      description: z.string(),
+      priority: z.string(),
+    })),
+    metrics: z.record(z.unknown()).optional(),
+    recommendations: z.array(z.unknown()).optional(),
+  }),
+};
+
 // ============================================================================
 // Export All Business Agents
 // ============================================================================
@@ -316,4 +469,6 @@ export const BusinessAgents = {
   NoteAgent,
   ImageGenAgent,
   HonokaAgent,
+  CourseDesignerAgent,
+  ProgressTrackerAgent,
 } as const;

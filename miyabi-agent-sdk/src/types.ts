@@ -38,7 +38,9 @@ export type BusinessAgentType =
   | 'JonathanIveDesignAgent'
   | 'NoteAgent'
   | 'ImageGenAgent'
-  | 'HonokaAgent';
+  | 'HonokaAgent'
+  | 'CourseDesignerAgent'
+  | 'ProgressTrackerAgent';
 
 export type AgentType = CodingAgentType | BusinessAgentType;
 

@@ -226,6 +226,57 @@ business_agents:
     enabled: true
     domain: strategy
 
+  course_designer:
+    name: Course Designer
+    japanese_name: 設計くん
+    description: AI駆動コース設計・コンテンツ自動生成
+    enabled: true
+    priority: 2
+    domain: education
+    triggers:
+      - course_creation
+      - content_generation
+      - educational_design
+      - curriculum_development
+    capabilities:
+      - intelligent_course_structure_generation
+      - multi_modal_content_creation
+      - assessment_quiz_generation
+      - adaptive_content_optimization
+      - learning_analytics_integration
+      - scorm_compatibility
+      - multi_language_support
+      - accessibility_compliance
+    tools:
+      - gemini_generative_ai
+      - prompt_engineering
+      - content_analysis
+    config_path: .miyabi/config/course-designer.yml
+    mcp_server: miyabi-course-designer
+
+  progress_tracker:
+    name: Progress Tracker
+    japanese_name: みまもりくん
+    description: 学習進捗分析・パフォーマンス最適化
+    enabled: true
+    priority: 2
+    domain: education
+    triggers:
+      - progress_update
+      - performance_decline
+      - course_completion
+      - milestone_achieved
+    capabilities:
+      - intelligent_progress_analysis
+      - advanced_learning_analytics
+      - adaptive_learning_intelligence
+      - predictive_analytics
+    tools:
+      - analytics_engine
+      - prediction_models
+      - recommendation_engine
+    mcp_server: miyabi-progress-tracker
+
 # ==========================================
 # BDR Hunter Agents (3個) 
 # I-W-Rアーキテクチャベース

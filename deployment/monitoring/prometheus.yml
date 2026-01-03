@@ -1,0 +1,75 @@
+# Prometheus configuration for AI Course Platform monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ai-course-platform'
+    environment: 'production'
+
+rule_files:
+  - "alerts.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # AI Course Platform Application
+  - job_name: 'ai-course-platform'
+    scrape_interval: 30s
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['app:3000']
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node-exporter'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres-exporter'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis Exporter
+  - job_name: 'redis-exporter'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # NGINX Exporter
+  - job_name: 'nginx-exporter'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Docker Engine Metrics
+  - job_name: 'docker'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['docker-proxy:9323']
+
+  # Custom Application Metrics
+  - job_name: 'custom-metrics'
+    scrape_interval: 30s
+    metrics_path: '/api/performance/metrics'
+    static_configs:
+      - targets: ['app:3000']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'app_.*'
+        target_label: service
+        replacement: 'ai-course-platform'

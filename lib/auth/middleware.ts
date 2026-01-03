@@ -422,3 +422,14 @@ export function clearAuditLogs(): void {
 export function getRateLimitStats(): Map<string, { count: number; resetAt: Date }> {
   return new Map(rateLimitStore);
 }
+
+/**
+ * Simple authentication function for API routes
+ * This is a simpler wrapper around the main authMiddleware
+ */
+export async function authenticateRequest(
+  request: NextRequest,
+  options: MiddlewareOptions = {}
+): Promise<AuthMiddlewareResult> {
+  return await authMiddleware(request, options);
+}

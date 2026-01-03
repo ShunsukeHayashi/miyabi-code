@@ -1,0 +1,198 @@
+# CourseDesigner Agent Configuration
+# AI-powered course content generation using Google Generative AI
+
+agent:
+  name: CourseDesigner
+  version: 1.0.0
+  description: AI-powered comprehensive course content generation using Google Generative AI
+  character_name: 設計くん
+  japanese_name: 設計くん
+  category: education
+  priority: 2
+
+# Google Generative AI Configuration
+ai_model:
+  provider: google_generative_ai
+  model: gemini-2.0-flash-exp
+  temperature: 0.7
+  max_tokens: 8192
+  top_p: 0.8
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+
+# Content Generation Settings
+content_generation:
+  default_language: en
+  supported_languages:
+    - en
+    - ja
+    - es
+    - fr
+    - de
+    - it
+    - pt
+    - ko
+    - zh
+
+  tone_options:
+    - formal
+    - casual
+    - academic
+    - conversational
+
+  difficulty_levels:
+    - beginner
+    - intermediate
+    - advanced
+
+  interactivity_levels:
+    - low
+    - medium
+    - high
+
+# Course Structure Defaults
+course_defaults:
+  duration:
+    weeks: 8
+    hours_per_week: 3
+
+  format:
+    include_videos: true
+    include_assessments: true
+    include_projects: true
+    include_discussions: true
+
+  structure:
+    min_modules: 3
+    max_modules: 20
+    min_lessons_per_module: 2
+    max_lessons_per_module: 10
+    min_lesson_duration: 10  # minutes
+    max_lesson_duration: 90  # minutes
+
+# Assessment Configuration
+assessments:
+  quiz_defaults:
+    passing_score: 80
+    question_types:
+      multiple_choice: 0.45
+      true_false: 0.22
+      short_answer: 0.18
+      essay: 0.10
+      code: 0.05
+
+    difficulty_distribution:
+      easy: 0.30
+      medium: 0.50
+      hard: 0.20
+
+    questions_per_quiz: 15
+    time_limit_minutes: 30
+
+  exercise_types:
+    - practice
+    - project
+    - discussion
+    - case_study
+    - reflection
+
+# Quality Assurance
+quality_standards:
+  min_quality_score: 80
+  min_completion_rate: 75
+
+  accessibility:
+    wcag_compliance: "2.1"
+    alt_text_required: true
+    color_contrast_check: true
+    keyboard_navigation: true
+
+  scorm:
+    version: "2004"
+    tracking_enabled: true
+    bookmarking: true
+
+# Content Templates Configuration
+templates:
+  course_structure:
+    enabled: true
+    custom_prompts: false
+
+  lesson_content:
+    enabled: true
+    include_examples: true
+    include_exercises: true
+
+  video_scripts:
+    enabled: true
+    include_visual_cues: true
+    include_timing: true
+
+  assessments:
+    enabled: true
+    include_explanations: true
+    include_rubrics: true
+
+# Performance Settings
+performance:
+  generation_timeout: 300  # seconds
+  batch_size: 5
+  rate_limit_delay: 1000  # milliseconds
+  max_retries: 3
+
+  content_limits:
+    max_course_size_mb: 100
+    max_modules: 20
+    max_lessons: 200
+    max_assessments: 50
+
+# Logging and Monitoring
+logging:
+  level: info
+  file_path: ./logs/course-designer.log
+  max_file_size: 10485760  # 10MB
+  max_files: 5
+
+  metrics:
+    track_generation_time: true
+    track_quality_scores: true
+    track_api_usage: true
+
+# Integration Settings
+integrations:
+  mcp:
+    server_name: miyabi-course-designer
+    port: 3113
+    tools:
+      - generate_course
+      - get_generation_progress
+      - validate_api_connection
+      - get_agent_info
+
+  miyabi_agents:
+    coordinator_notifications: true
+    progress_reporting: true
+    error_escalation: true
+
+  external_apis:
+    gemini_api_key_env: GEMINI_API_KEY
+    rate_limiting: true
+    connection_pooling: true
+
+# Development Settings
+development:
+  debug_mode: false
+  mock_ai_responses: false
+  validation_strict: true
+  test_timeout: 30000  # milliseconds
+
+# Feature Flags
+features:
+  adaptive_content: true
+  multi_language: true
+  accessibility_check: true
+  scorm_export: true
+  learning_analytics: true
+  content_versioning: true
+  batch_generation: true
+  real_time_progress: true

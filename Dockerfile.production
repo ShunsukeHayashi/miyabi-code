@@ -1,0 +1,85 @@
+# Multi-stage production Docker build for AI Course Platform
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install dependencies only when needed
+FROM base AS deps
+# Copy package files
+COPY package.json package-lock.json ./
+# Install dependencies including devDependencies for build
+RUN npm ci --frozen-lockfile
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Build arguments
+ARG NODE_ENV=production
+ENV NODE_ENV=$NODE_ENV
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build the application
+RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+# Create nextjs user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/logs /app/.next/cache
+RUN chown -R nextjs:nodejs /app/logs /app/.next
+
+# Copy built application
+COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy additional production files
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/migrations ./migrations
+
+# Install runtime dependencies for production scripts
+RUN npm ci --only=production --frozen-lockfile
+
+# Install health check tool
+RUN apk add --no-cache curl
+
+# Create a health check script
+COPY --chown=nextjs:nodejs <<'EOF' /app/healthcheck.sh
+#!/bin/sh
+curl -f http://localhost:3000/api/health || exit 1
+EOF
+
+RUN chmod +x /app/healthcheck.sh
+
+# Security: Use non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Environment variables
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD /app/healthcheck.sh
+
+# Start the application
+CMD ["node", "server.js"]

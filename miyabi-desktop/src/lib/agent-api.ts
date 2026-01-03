@@ -30,7 +30,9 @@ export type AgentType =
   // Business Agents - Sales & Analytics
   | "sales_agent"
   | "crm_agent"
-  | "analytics_agent";
+  | "analytics_agent"
+  | "course_designer_agent"
+  | "progress_tracker_agent";
 
 /**
  * Agent execution status
@@ -253,6 +255,22 @@ export const AVAILABLE_AGENTS: AgentMetadata[] = [
     category: "business-sales",
     description: "KPI追跡・PDCA実行",
     color: "#8b5cf6", // Violet
+  },
+  {
+    type: "course_designer_agent",
+    displayName: "コース設計Agent",
+    characterName: "設計くん",
+    category: "business-marketing",
+    description: "AI駆動型コンテンツ自動生成",
+    color: "#f59e0b", // Amber
+  },
+  {
+    type: "progress_tracker_agent",
+    displayName: "進捗分析Agent",
+    characterName: "みまもりくん",
+    category: "business-sales",
+    description: "学習データ分析・最適化",
+    color: "#10b981", // Green
   },
 ];
 
