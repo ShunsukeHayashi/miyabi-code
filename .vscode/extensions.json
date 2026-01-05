@@ -1,13 +1,33 @@
 {
   "recommendations": [
-    "hediet.vscode-drawio",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
     "rust-lang.rust-analyzer",
     "tamasfe.even-better-toml",
     "vadimcn.vscode-lldb",
     "serayuzgur.crates",
     "usernamehw.errorlens",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
+    "ms-vscode.test-adapter-converter",
     "eamodio.gitlens",
-    "github.vscode-pull-request-github"
+    "github.vscode-pull-request-github",
+    "github.copilot",
+    "github.copilot-chat",
+    "hediet.vscode-drawio",
+    "yzhang.markdown-all-in-one",
+    "bierner.markdown-mermaid",
+    "ms-vscode.vscode-react-native",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "christian-kohler.npm-intellisense",
+    "ms-vscode.vscode-docker",
+    "ms-azuretools.vscode-docker"
   ],
-  "unwantedRecommendations": []
+  "unwantedRecommendations": [
+    "ms-vscode.vscode-typescript",
+    "hookyqr.beautify"
+  ]
 }

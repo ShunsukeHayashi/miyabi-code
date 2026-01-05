@@ -1,0 +1,96 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 Next.js: Debug Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/next",
+      "args": ["dev"],
+      "console": "integratedTerminal",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["--inspect"]
+    },
+    {
+      "name": "🔍 Next.js: Debug Browser",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "trace": true
+    },
+    {
+      "name": "🦀 Rust: Debug Current File",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/miyabi-core",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": ["rust"]
+    },
+    {
+      "name": "🔧 MCP: Debug Selected Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/mcp-servers/${input:mcpServer}/dist/index.js",
+      "console": "integratedTerminal",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "*"
+      },
+      "cwd": "${workspaceFolder}/mcp-servers/${input:mcpServer}",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "🧪 Test: Debug Current Test",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["--runInBand", "${relativeFile}"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true
+    },
+    {
+      "name": "🐋 Docker: Attach to Container",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "address": "localhost",
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mcpServer",
+      "type": "pickString",
+      "description": "デバッグするMCPサーバーを選択",
+      "options": [
+        "miyabi-github",
+        "miyabi-obsidian-server",
+        "miyabi-tmux-server",
+        "miyabi-file-watcher",
+        "miyabi-git-inspector",
+        "miyabi-resource-monitor",
+        "miyabi-process-inspector",
+        "miyabi-log-aggregator",
+        "miyabi-network-inspector",
+        "miyabi-claude-code",
+        "miyabi-codex",
+        "miyabi-rules-server",
+        "miyabi-commercial-agents",
+        "gemini3-uiux-designer",
+        "gemini3-general",
+        "lark-mcp-enhanced"
+      ],
+      "default": "miyabi-github"
+    }
+  ]
+}
