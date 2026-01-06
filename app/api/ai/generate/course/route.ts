@@ -63,7 +63,10 @@ export async function POST(request: NextRequest) {
       contentType: 'course-outline',
       topic: validatedData.topic,
       targetAudience: validatedData.targetAudience,
-      generationConfig: validatedData.generationConfig,
+      generationConfig: {
+        ...validatedData.generationConfig,
+        interactivityLevel: validatedData.generationConfig.interactivityLevel as 1 | 2 | 3 | 4 | 5
+      },
       qualityConstraints: validatedData.qualityConstraints
     };
 
@@ -112,9 +115,9 @@ export async function POST(request: NextRequest) {
       const response: ApiResponse<null> = {
         success: false,
         error: {
-          code: error.code,
-          message: error.message,
-          details: error.details
+          code: (error as any).code || 'UNKNOWN_ERROR',
+          message: (error as any).message || 'An unknown error occurred',
+          details: (error as any).details
         },
         metadata: {
           requestId,

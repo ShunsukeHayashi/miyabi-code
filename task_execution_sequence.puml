@@ -1,0 +1,115 @@
+@startuml Task Execution Sequence
+!theme plain
+
+title タスク実行シーケンス - 並行処理最適化フロー
+
+skinparam backgroundColor #FAFAFA
+skinparam sequence {
+  ParticipantBackgroundColor #E3F2FD
+  ParticipantBorderColor #1976D2
+  ActorBackgroundColor #F3E5F5
+  ActorBorderColor #7B1FA2
+}
+
+actor "🧑‍💻 開発者" as Dev
+participant "📋 Task Manager" as TM
+participant "🚀 SaaS Pipeline" as SaaS
+participant "🏗️ Miyabi Pipeline" as Miyabi
+participant "🎨 GenStudio Pipeline" as Gen
+participant "📚 CCG Pipeline" as CCG
+participant "⚙️ DailyOps Pipeline" as Daily
+participant "🔧 MCP Pipeline" as MCP
+participant "🔍 Integration Check" as Check
+participant "📝 Final Tasks" as Final
+
+Dev -> TM: タスクプランニング開始
+
+== 🟢 Level 1: 並行実行フェーズ (45分) ==
+
+TM -> SaaS: feature/ai-integration-complete マージ開始
+activate SaaS
+
+TM -> Miyabi: デプロイファイル追加開始
+activate Miyabi
+
+TM -> Gen: Tauri設定整理開始
+activate Gen
+
+TM -> CCG: ライセンスキー統合開始
+activate CCG
+
+TM -> Daily: Git リポジトリ化開始
+activate Daily
+
+par 並行実行
+  SaaS -> SaaS: ✅ マージ完了 (30分)
+  Miyabi -> Miyabi: ✅ コミット完了 (15分)
+  Gen -> Gen: ✅ 設定完了 (25分)
+  CCG -> CCG: ✅ 統合完了 (45分)
+  Daily -> Daily: ✅ Git化完了 (30分)
+end
+
+deactivate SaaS
+deactivate Miyabi
+deactivate Gen
+deactivate CCG
+deactivate Daily
+
+TM -> Dev: Level 1 完了報告
+
+== 🟡 Level 2: MCP基盤整備 (20分) ==
+
+TM -> MCP: src/index.ts変更確認開始
+activate MCP
+MCP -> MCP: ✅ 変更確認・コミット完了
+deactivate MCP
+
+== 🟠 Level 3: 依存関係分析 (40分) ==
+
+TM -> Check: プロジェクト間依存関係チェック開始
+activate Check
+Check -> SaaS: 依存関係確認
+Check -> Miyabi: 依存関係確認
+Check -> Gen: 依存関係確認
+Check -> CCG: 依存関係確認
+Check -> MCP: 依存関係確認
+Check -> Check: ✅ 整合性確認完了
+deactivate Check
+
+== 🔴 Level 4: コード統合 (60分) ==
+
+TM -> TM: 全プロジェクト未コミット変更整理
+activate TM
+
+loop 各プロジェクト
+  TM -> TM: コミット内容レビュー
+  TM -> TM: 適切なコミットメッセージ作成
+  TM -> TM: Git コミット実行
+end
+
+TM -> TM: ✅ 全変更統合完了
+deactivate TM
+
+== 🟣 Level 5: 最終最適化 (90分) ==
+
+TM -> Final: ドキュメント更新開始
+activate Final
+
+TM -> Final: CI/CD最適化開始
+
+par 最終並行処理
+  Final -> Final: ✅ CLAUDE.md更新 (25分)
+  Final -> Final: ✅ CI/CD設定完了 (90分)
+end
+
+deactivate Final
+
+TM -> Dev: 🎯 全タスク完了報告
+
+note over Dev, Final
+  **総実行時間**: 4時間15分
+  **効率化**: 32%短縮 (vs 逐次実行)
+  **成果**: 全プロジェクト統合完了
+end note
+
+@enduml

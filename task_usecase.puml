@@ -1,0 +1,106 @@
+@startuml Task Management Use Case
+!theme plain
+
+title Miyabi開発 - タスク管理システム ユースケース
+
+skinparam backgroundColor #FAFAFA
+skinparam usecase {
+  BackgroundColor #E8F5E8
+  BorderColor #2E7D32
+  FontColor #1B5E20
+}
+
+left to right direction
+
+actor "🧑‍💻 開発者" as Developer
+actor "🤖 CI/CD System" as CICD
+actor "📊 Project Manager" as PM
+
+rectangle "Miyabi開発エコシステム" {
+  usecase "プロジェクト状況確認" as CheckStatus
+  usecase "タスク優先度設定" as SetPriority
+  usecase "並行実行計画" as ParallelPlan
+  usecase "依存関係分析" as DepAnalysis
+
+  package "Level 1: 並行実行" {
+    usecase "SaaS統合作業" as SaaSMerge
+    usecase "デプロイファイル管理" as DeployFiles
+    usecase "Tauri設定整理" as TauriConfig
+    usecase "ライセンス統合" as License
+    usecase "Git リポジトリ化" as GitInit
+  }
+
+  package "Level 2-3: 基盤整備" {
+    usecase "MCP安定化" as MCPStable
+    usecase "依存関係チェック" as DepCheck
+  }
+
+  package "Level 4-5: 統合・最適化" {
+    usecase "コード統合" as CodeIntegration
+    usecase "ドキュメント更新" as DocUpdate
+    usecase "CI/CD最適化" as CICDOpt
+  }
+
+  usecase "品質保証" as QA
+  usecase "デプロイ準備" as DeployPrep
+}
+
+' 開発者の関係
+Developer --> CheckStatus
+Developer --> SetPriority
+Developer --> ParallelPlan
+
+CheckStatus --> SaaSMerge
+CheckStatus --> DeployFiles
+CheckStatus --> TauriConfig
+CheckStatus --> License
+CheckStatus --> GitInit
+
+ParallelPlan --> SaaSMerge
+ParallelPlan --> DeployFiles
+ParallelPlan --> TauriConfig
+ParallelPlan --> License
+ParallelPlan --> GitInit
+
+SaaSMerge --> MCPStable : depends on
+DeployFiles --> DepCheck : contributes to
+TauriConfig --> DepCheck : contributes to
+License --> DepCheck : contributes to
+GitInit --> DepCheck : contributes to
+
+MCPStable --> DepAnalysis
+DepCheck --> CodeIntegration
+CodeIntegration --> DocUpdate
+CodeIntegration --> CICDOpt
+
+' CI/CDの関係
+CICD --> MCPStable
+CICD --> QA
+CICD --> DeployPrep
+CICDOpt --> CICD : configures
+
+' プロジェクトマネージャーの関係
+PM --> SetPriority
+PM --> DepAnalysis
+PM --> QA
+DocUpdate --> PM : reports to
+
+note top of SaaSMerge
+  **緊急度**: 最高
+  **影響範囲**: 本番デプロイ
+  **推定時間**: 30分
+end note
+
+note top of MCPStable
+  **依存プロジェクト**: 全て
+  **影響**: 172ツールの安定性
+  **推定時間**: 20分
+end note
+
+note bottom of CICDOpt
+  **最終段階**: 長期効率化
+  **成果**: 32%時間短縮
+  **推定時間**: 90分
+end note
+
+@enduml

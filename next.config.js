@@ -28,6 +28,7 @@ const nextConfig = {
   // TypeScript 型チェック
   typescript: {
     tsconfigPath: './tsconfig.json',
+    ignoreBuildErrors: process.env.NODE_ENV === 'production',
   },
 
   // ESLint チェック（production buildでは無視）

@@ -18,7 +18,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userId = authResult.user.id;
+    const userId = authResult.context?.id;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID not found' },
+        { status: 400 }
+      );
+    }
 
     // Generate personalized learning insights
     const insights = await analyticsEngine.generateLearningInsights(userId);

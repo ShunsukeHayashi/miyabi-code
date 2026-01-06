@@ -22,10 +22,10 @@ export async function GET(
     }
 
     const { userId } = params;
-    const requestingUserId = authResult.user.id;
+    const requestingUserId = authResult.context?.id;
 
     // Check if user can access this data (own data or admin/instructor)
-    if (userId !== requestingUserId && !['admin', 'instructor'].includes(authResult.user.role)) {
+    if (userId !== requestingUserId && !['admin', 'instructor'].includes(authResult.context?.role || '')) {
       return NextResponse.json(
         { error: 'Insufficient permissions to access user analytics' },
         { status: 403 }

@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has analytics access (admin/instructor)
-    const userRole = authResult.user.role;
-    if (!['admin', 'instructor'].includes(userRole)) {
+    const userRole = authResult.context?.role;
+    if (!userRole || !['admin', 'instructor'].includes(userRole)) {
       return NextResponse.json(
         { error: 'Insufficient permissions for platform analytics' },
         { status: 403 }

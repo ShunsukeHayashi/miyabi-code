@@ -1,0 +1,17 @@
+# Android再接続手順
+echo '1. USB-Cケーブルを再接続してください'
+echo '2. 以下のコマンドで接続確認:'
+echo '   adb devices'
+echo ''
+echo '3. 接続確認後、以下でモニタリング再開:'
+echo '   scrcpy --window-title "Android Monitor" --window-width 800 --always-on-top'
+echo ''
+echo '4. または自動再開スクリプト:'
+echo '   while true; do'
+echo '     if adb devices | grep -q device; then'
+echo '       scrcpy --window-title "Android Monitor" --window-width 800 --always-on-top'
+echo '       break'
+echo '     fi'
+echo '     sleep 2'
+echo '   done'
+

@@ -1,0 +1,24 @@
+# Android Device Monitor Commands
+# リアルタイム画面録画
+adb shell screenrecord /sdcard/screen_recording.mp4
+
+# デバイス情報取得
+adb shell getprop ro.build.version.release  # Android version
+adb shell getprop ro.product.name           # Product name
+adb shell dumpsys battery                   # Battery status
+
+# ログ監視
+adb logcat -v time                          # Real-time logs
+adb logcat -d                               # Dump current logs
+
+# アプリ情報
+adb shell pm list packages                 # Installed apps
+adb shell dumpsys activity                 # Activity info
+
+# ファイル転送
+adb push [local] [remote]                  # Upload to device
+adb pull [remote] [local]                  # Download from device
+
+# scrcpy制御コマンド
+pkill scrcpy                               # Stop mirroring
+

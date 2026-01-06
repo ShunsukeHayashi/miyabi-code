@@ -1,0 +1,88 @@
+@startuml Task Planning DAG
+!define RECTANGLE class
+
+title Miyabi開発プロジェクト - タスク実行計画 DAG
+
+skinparam backgroundColor #FAFAFA
+skinparam activity {
+  BackgroundColor #E1F5FE
+  BorderColor #0277BD
+  FontColor #01579B
+}
+
+skinparam partition {
+  BackgroundColor #F3E5F5
+  BorderColor #7B1FA2
+}
+
+start
+
+partition "🚀 Level 1: 並行実行フェーズ" {
+  fork
+    :AI Course SaaS
+    feature/ai-integration-complete
+    ブランチマージ
+    (30分);
+  fork again
+    :Miyabi Private
+    デプロイファイル追加
+    (15分);
+  fork again
+    :Gen-Studio
+    Tauri設定整理
+    (25分);
+  fork again
+    :AI Course Generator
+    ライセンスキー統合
+    (45分);
+  fork again
+    :Daily Ops
+    Git リポジトリ化
+    (30分);
+  end fork
+}
+
+:Level 1 完了確認;
+
+partition "🔧 Level 2: MCP基盤整備" {
+  :MCP Bundle
+  src/index.ts変更確認
+  (20分);
+}
+
+partition "🔍 Level 3: 依存関係分析" {
+  :プロジェクト間
+  依存関係チェック
+  (40分);
+}
+
+partition "📝 Level 4: コード統合" {
+  :全プロジェクト
+  未コミット変更整理
+  (60分);
+}
+
+partition "✨ Level 5: 最終最適化" {
+  fork
+    :開発環境ドキュメント
+    更新 (CLAUDE.md)
+    (25分);
+  fork again
+    :CI/CDパイプライン
+    設定最適化
+    (90分);
+  end fork
+}
+
+:🎯 全タスク完了;
+
+stop
+
+note right
+  **実行時間**
+  - 並行実行: 4時間15分
+  - 逐次実行: 6時間15分
+  - **効率化: 32%短縮**
+end note
+
+@enduml

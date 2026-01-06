@@ -1,0 +1,97 @@
+@startuml Project Architecture & Dependencies
+!define COMPONENT rectangle
+
+title Miyabi開発エコシステム - アーキテクチャ & 依存関係
+
+skinparam backgroundColor #FAFAFA
+skinparam component {
+  BackgroundColor #E8F5E8
+  BorderColor #2E7D32
+  FontColor #1B5E20
+}
+
+package "🏗️ Core Infrastructure" {
+  component [MCP Bundle\n172 Tools] as MCP
+  component [Daily Ops\nAutomation] as DailyOps
+}
+
+package "🚀 Main Platform" {
+  component [Miyabi Private\nNext.js + Prisma] as Miyabi {
+    port "API Routes" as MiyabiAPI
+    port "Dashboard" as MiyabiDash
+  }
+}
+
+package "🎨 Creative Tools" {
+  component [Gen-Studio\nTauri + React] as GenStudio {
+    port "MUSE Engine" as MUSE
+    port "Chrome Extension" as ChromeExt
+  }
+}
+
+package "📚 Education Platform" {
+  component [AI Course Generator\nElectron + Capacitor] as CCG {
+    port "Content Engine" as ContentEngine
+    port "Mobile App" as MobileApp
+  }
+
+  component [AI Course SaaS\nNext.js + Stripe] as SaaS {
+    port "Billing System" as Billing
+    port "User Management" as UserMgmt
+  }
+}
+
+package "🔍 Development Tools" {
+  component [MCP Inspector\nReact + Express] as Inspector
+}
+
+' 依存関係
+MCP --> Miyabi : "Tools Integration"
+MCP --> GenStudio : "Development Tools"
+MCP --> CCG : "Build Automation"
+MCP --> SaaS : "Deployment Tools"
+
+Miyabi --> SaaS : "Authentication API"
+CCG --> SaaS : "License Validation"
+
+GenStudio --> ChromeExt : "WebSocket (9527)"
+CCG --> ContentEngine : "AI Generation"
+CCG --> MobileApp : "Cross-platform"
+
+Inspector --> MCP : "Debugging"
+
+DailyOps --> Miyabi : "Monitoring"
+DailyOps --> GenStudio : "Build Scripts"
+DailyOps --> CCG : "Deployment"
+
+note top of MCP
+  **Status**: Modified (src/index.ts)
+  **Priority**: Level 2
+  **Impact**: All dependent projects
+end note
+
+note top of Miyabi
+  **Status**: 11 modified files + deployment
+  **Priority**: Level 1
+  **Branch**: main
+end note
+
+note top of SaaS
+  **Status**: 20+ modified files
+  **Priority**: Level 1 (URGENT)
+  **Branch**: feature/ai-integration-complete
+end note
+
+note top of CCG
+  **Status**: Supabase integration pending
+  **Priority**: Level 1
+  **Feature**: License key system
+end note
+
+note top of GenStudio
+  **Status**: Tauri + Android artifacts
+  **Priority**: Level 1
+  **Platform**: Multi-platform
+end note
+
+@enduml

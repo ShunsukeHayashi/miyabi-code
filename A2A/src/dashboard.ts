@@ -241,7 +241,7 @@ function loadMetrics(): Metrics {
       tasksPerHour: state.metrics?.throughputPerHour?.toFixed(1) || 0,
       avgTaskTime: state.metrics?.averageTaskTime?.toFixed(1) || 0,
       successRate: state.metrics?.totalTasks > 0
-        ? ((state.metrics.completedTasks / state.metrics.totalTasks) * 100).toFixed(0)
+        ? Math.round((state.metrics.completedTasks / state.metrics.totalTasks) * 100)
         : 100,
       activeCycles: state.currentCycle || 0,
       uptime: formatUptime(state.metrics?.uptime || 0),

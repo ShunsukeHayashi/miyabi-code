@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       await AuditLogger.logSecurityEvent(
         null,
         'RATE_LIMIT_EXCEEDED' as SecurityEventType,
-        { action: 'login_attempt', remaining: rateLimit.remaining },
+        { action: 'login_attempt' },
         request
       );
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       await AuditLogger.logSecurityEvent(
         null,
         'LOGIN_FAILURE' as SecurityEventType,
-        { reason: 'missing_credentials', email },
+        { email },
         request
       );
 
