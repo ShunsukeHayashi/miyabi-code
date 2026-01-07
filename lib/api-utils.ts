@@ -168,3 +168,146 @@ export function buildWhereClause(filters: Record<string, any>): Record<string, a
 
   return where;
 }
+
+/**
+ * Rate Limiting Implementation
+ * Issue #1298: API Rate Limiting
+ */
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+// In-memory rate limit store (use Redis in production)
+const rateLimitStore = new Map<string, RateLimitEntry>();
+
+interface RateLimitConfig {
+  windowMs: number; // Time window in milliseconds
+  max: number;      // Maximum requests per window
+}
+
+const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
+  api: { windowMs: 60 * 1000, max: 100 },      // 100 requests per minute
+  auth: { windowMs: 15 * 60 * 1000, max: 5 },   // 5 requests per 15 minutes
+  ai: { windowMs: 60 * 1000, max: 10 },         // 10 AI requests per minute
+  upload: { windowMs: 60 * 1000, max: 5 },      // 5 uploads per minute
+};
+
+/**
+ * Get client identifier for rate limiting
+ */
+function getClientIdentifier(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded?.split(',')[0]?.trim() || 'unknown';
+  const userId = request.headers.get('x-user-id') || 'anonymous';
+  return `${ip}:${userId}`;
+}
+
+/**
+ * Check rate limit
+ */
+function checkRateLimit(
+  identifier: string,
+  config: RateLimitConfig
+): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const key = identifier;
+  const entry = rateLimitStore.get(key);
+
+  // Clean up expired entries periodically
+  if (Math.random() < 0.01) { // 1% chance to clean up
+    const cutoff = now - config.windowMs;
+    for (const [k, v] of rateLimitStore) {
+      if (v.resetAt < cutoff) {
+        rateLimitStore.delete(k);
+      }
+    }
+  }
+
+  if (!entry || entry.resetAt < now) {
+    // New window
+    rateLimitStore.set(key, { count: 1, resetAt: now + config.windowMs });
+    return { allowed: true, remaining: config.max - 1, resetIn: config.windowMs };
+  }
+
+  if (entry.count >= config.max) {
+    return { allowed: false, remaining: 0, resetIn: entry.resetAt - now };
+  }
+
+  entry.count++;
+  return { allowed: true, remaining: config.max - entry.count, resetIn: entry.resetAt - now };
+}
+
+/**
+ * Rate limit response
+ */
+function createRateLimitResponse(resetIn: number): NextResponse {
+  const response = NextResponse.json(
+    {
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: Math.ceil(resetIn / 1000),
+      },
+      timestamp: new Date().toISOString(),
+    },
+    { status: 429 }
+  );
+
+  response.headers.set('Retry-After', String(Math.ceil(resetIn / 1000)));
+  response.headers.set('X-RateLimit-Remaining', '0');
+  response.headers.set('X-RateLimit-Reset', String(Date.now() + resetIn));
+
+  return addCorsHeaders(response);
+}
+
+/**
+ * Higher-order function for API routes with rate limiting
+ */
+export function withRateLimit<T extends any[]>(
+  limitType: 'api' | 'auth' | 'ai' | 'upload' = 'api',
+  handler: (request: NextRequest, ...args: T) => Promise<NextResponse>
+) {
+  const config = DEFAULT_RATE_LIMITS[limitType];
+
+  return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
+    const identifier = getClientIdentifier(request);
+    const { allowed, remaining, resetIn } = checkRateLimit(`${limitType}:${identifier}`, config);
+
+    if (!allowed) {
+      return createRateLimitResponse(resetIn);
+    }
+
+    const response = await handler(request, ...args);
+
+    // Add rate limit headers
+    response.headers.set('X-RateLimit-Limit', String(config.max));
+    response.headers.set('X-RateLimit-Remaining', String(remaining));
+    response.headers.set('X-RateLimit-Reset', String(Date.now() + resetIn));
+
+    return response;
+  };
+}
+
+/**
+ * Higher-order function for authenticated routes with rate limiting
+ */
+export function withAuthAndRateLimit<T extends any[]>(
+  limitType: 'api' | 'auth' | 'ai' | 'upload' = 'api',
+  handler: (user: AuthenticatedUser, request: NextRequest, ...args: T) => Promise<NextResponse>
+) {
+  return withRateLimit(limitType, withAuth(handler));
+}
+
+/**
+ * Higher-order function for role-based routes with rate limiting
+ */
+export function withRolesAndRateLimit<T extends any[]>(
+  roles: string | string[],
+  limitType: 'api' | 'auth' | 'ai' | 'upload' = 'api',
+  handler: (user: AuthenticatedUser, request: NextRequest, ...args: T) => Promise<NextResponse>
+) {
+  return withRateLimit(limitType, withRoles(roles, handler));
+}

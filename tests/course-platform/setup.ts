@@ -3,7 +3,8 @@
  * Comprehensive testing environment setup
  */
 
-import { vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { jest, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
+const vi = jest;
 import { PrismaClient } from '@prisma/client';
 import { spawn } from 'child_process';
 
@@ -270,16 +271,18 @@ export const setupMocks = () => {
     useSearchParams: vi.fn(() => new URLSearchParams())
   }));
 
-  // Mock local storage
-  const localStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn()
-  };
-  Object.defineProperty(window, 'localStorage', {
-    value: localStorageMock
-  });
+  // Mock local storage (only in browser environment)
+  if (typeof window !== 'undefined') {
+    const localStorageMock = {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn()
+    };
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock
+    });
+  }
 
   // Mock fetch
   global.fetch = vi.fn();
