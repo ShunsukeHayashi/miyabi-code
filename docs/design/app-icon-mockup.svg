@@ -1,0 +1,83 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients for modern look -->
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Drop shadow filter -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+
+    <!-- Glow effect -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle for context (remove for transparent) -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#334155" stroke-width="1" opacity="0.1"/>
+
+  <!-- Main hexagon outline -->
+  <polygon points="100,30 140,55 140,105 100,130 60,105 60,55"
+           fill="none"
+           stroke="url(#primaryGradient)"
+           stroke-width="3"
+           filter="url(#dropShadow)"/>
+
+  <!-- Inner M-shape created with connected nodes -->
+  <!-- Left vertical line -->
+  <line x1="75" y1="60" x2="75" y2="100" stroke="url(#primaryGradient)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Right vertical line -->
+  <line x1="125" y1="60" x2="125" y2="100" stroke="url(#primaryGradient)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Left diagonal -->
+  <line x1="75" y1="60" x2="100" y2="80" stroke="url(#primaryGradient)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Right diagonal -->
+  <line x1="125" y1="60" x2="100" y2="80" stroke="url(#primaryGradient)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Node points -->
+  <!-- Top left node -->
+  <circle cx="75" cy="60" r="4" fill="#3b82f6" filter="url(#glow)"/>
+
+  <!-- Top right node -->
+  <circle cx="125" cy="60" r="4" fill="#3b82f6" filter="url(#glow)"/>
+
+  <!-- Center connection node (accent color) -->
+  <circle cx="100" cy="80" r="5" fill="#10b981" filter="url(#glow)"/>
+
+  <!-- Bottom left node -->
+  <circle cx="75" cy="100" r="4" fill="#8b5cf6" filter="url(#glow)"/>
+
+  <!-- Bottom right node -->
+  <circle cx="125" cy="100" r="4" fill="#8b5cf6" filter="url(#glow)"/>
+
+  <!-- Additional connection nodes for network effect -->
+  <!-- Mid-left -->
+  <circle cx="65" cy="75" r="2" fill="#3b82f6" opacity="0.7"/>
+  <line x1="75" y1="75" x2="65" y2="75" stroke="#3b82f6" stroke-width="2" opacity="0.5"/>
+
+  <!-- Mid-right -->
+  <circle cx="135" cy="75" r="2" fill="#3b82f6" opacity="0.7"/>
+  <line x1="125" y1="75" x2="135" y2="75" stroke="#3b82f6" stroke-width="2" opacity="0.5"/>
+
+  <!-- Bottom center connection -->
+  <circle cx="100" cy="110" r="2" fill="#10b981" opacity="0.7"/>
+  <line x1="100" y1="100" x2="100" y2="110" stroke="#10b981" stroke-width="2" opacity="0.5"/>
+
+  <!-- Subtle brand text (for reference, remove in final icon) -->
+  <text x="100" y="150" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="12" font-weight="600" opacity="0.3">MIYABI</text>
+</svg>

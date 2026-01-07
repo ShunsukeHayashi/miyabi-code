@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi AI Agent Framework - GitHub Marketplace Banner</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .banner {
+            width: 1280px;
+            height: 640px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            display: flex;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-visual {
+            width: 640px;
+            height: 640px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .logo-container {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InByaW1hcnlHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMzYjgyZjY7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzhiNWNmNjtzdG9wLW9wYWNpdHk6MSIgLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxwb2x5Z29uIHBvaW50cz0iMTAwLDMwIDE0MCw1NSAxNDAsMTA1IDEwMCwxMzAgNjAsMTA1IDYwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjcHJpbWFyeUdyYWRpZW50KSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPGxpbmUgeDE9Ijc1IiB5MT0iNjAiIHgyPSI3NSIgeTI9IjEwMCIgc3Ryb2tlPSJ1cmwoI3ByaW1hcnlHcmFkaWVudCkiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjEyNSIgeTE9IjYwIiB4Mj0iMTI1IiB5Mj0iMTAwIiBzdHJva2U9InVybCgjcHJpbWFyeUdyYWRpZW50KSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iNzUiIHkxPSI2MCIgeDI9IjEwMCIgeTI9IjgwIiBzdHJva2U9InVybCgjcHJpbWFyeUdyYWRpZW50KSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iMTI1IiB5MT0iNjAiIHgyPSIxMDAiIHkyPSI4MCIgc3Ryb2tlPSJ1cmwoI3ByaW1hcnlHcmFkaWVudCkiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGNpcmNsZSBjeD0iNzUiIGN5PSI2MCIgcj0iNCIgZmlsbD0iIzNiODJmNiIvPgogIDxjaXJjbGUgY3g9IjEyNSIgY3k9IjYwIiByPSI0IiBmaWxsPSIjM2I4MmY2Ii8+CiAgPGNpcmNsZSBjeD0iMTAwIiBjeT0iODAiIHI9IjUiIGZpbGw9IiMxMGI5ODEiLz4KICA8Y2lyY2xlIGN4PSI3NSIgY3k9IjEwMCIgcj0iNCIgZmlsbD0iIzhiNWNmNiIvPgogIDxjaXJjbGUgY3g9IjEyNSIgY3k9IjEwMCIgcj0iNCIgZmlsbD0iIzhiNWNmNiIvPgo8L3N2Zz4=') center/contain no-repeat;
+            filter: drop-shadow(0 10px 20px rgba(59, 130, 246, 0.3));
+        }
+
+        .agent-grid {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .agent-node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .agent-node:nth-child(1) { top: 10%; left: 20%; background: #3b82f6; animation: pulse 2s infinite; }
+        .agent-node:nth-child(2) { top: 20%; left: 80%; background: #8b5cf6; animation: pulse 2s infinite 0.2s; }
+        .agent-node:nth-child(3) { top: 40%; left: 10%; background: #10b981; animation: pulse 2s infinite 0.4s; }
+        .agent-node:nth-child(4) { top: 60%; left: 90%; background: #f59e0b; animation: pulse 2s infinite 0.6s; }
+        .agent-node:nth-child(5) { top: 80%; left: 30%; background: #ef4444; animation: pulse 2s infinite 0.8s; }
+        .agent-node:nth-child(6) { top: 70%; left: 70%; background: #8b5cf6; animation: pulse 2s infinite 1s; }
+
+        .content-area {
+            flex: 1;
+            padding: 80px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+        }
+
+        .main-headline {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subheadline {
+            font-size: 24px;
+            font-weight: 400;
+            line-height: 1.4;
+            color: #cbd5e1;
+            margin-bottom: 40px;
+        }
+
+        .benefits {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .benefit {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 18px;
+            color: #f8fafc;
+        }
+
+        .benefit-icon {
+            margin-right: 16px;
+            font-size: 20px;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            align-self: flex-start;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .cta-button::after {
+            content: "→";
+            margin-left: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        .cta-button:hover::after {
+            transform: translateX(4px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .background-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        /* Connection lines between agent nodes */
+        .agent-grid::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(45deg, transparent 49%, rgba(59, 130, 246, 0.2) 50%, transparent 51%),
+                linear-gradient(-45deg, transparent 49%, rgba(139, 92, 246, 0.2) 50%, transparent 51%);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <div class="background-pattern"></div>
+
+        <div class="hero-visual">
+            <div class="agent-grid">
+                <div class="agent-node"></div>
+                <div class="agent-node"></div>
+                <div class="agent-node"></div>
+                <div class="agent-node"></div>
+                <div class="agent-node"></div>
+                <div class="agent-node"></div>
+            </div>
+            <div class="logo-container">
+                <div class="logo"></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <h1 class="main-headline">Build Reality-Based<br>AI Agents</h1>
+            <p class="subheadline">The world's first framework designed for practical, production-ready autonomous agents</p>
+
+            <ul class="benefits">
+                <li class="benefit">
+                    <span class="benefit-icon">⚡</span>
+                    <span>From prompt to deployment in minutes, not months</span>
+                </li>
+                <li class="benefit">
+                    <span class="benefit-icon">🔒</span>
+                    <span>Enterprise-ready security and monitoring</span>
+                </li>
+                <li class="benefit">
+                    <span class="benefit-icon">🔧</span>
+                    <span>Seamless GitHub workflow integration</span>
+                </li>
+            </ul>
+
+            <a href="#" class="cta-button">Start Building</a>
+        </div>
+    </div>
+</body>
+</html>

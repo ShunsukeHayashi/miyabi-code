@@ -296,11 +296,13 @@ model UserProgress {
   lastAccessedAt   DateTime  @default(now())
   bookmarked       Boolean   @default(false)
   notes            String?   // User's personal notes
+  progressPercentage Int     @default(0) // 0-100 percentage
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lesson Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, courseId])
   @@unique([userId, courseId, lessonId])
   @@map("user_progress")
   @@index([userId, courseId])
@@ -313,15 +315,15 @@ model UserProgress {
 model CourseInstructor {
   id         String           @id @default(uuid())
   courseId   String
-  userId     String
+  instructorId String
   role       InstructorRole   @default(INSTRUCTOR)
   permissions InstructorPermission[] // Array of permissions
   assignedAt DateTime         @default(now())
 
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instructor   User   @relation(fields: [instructorId], references: [id], onDelete: Cascade)
 
-  @@unique([courseId, userId])
+  @@unique([courseId, instructorId])
   @@map("course_instructors")
 }
 
@@ -347,14 +349,14 @@ enum InstructorPermission {
 model CoursePrerequisite {
   id                String @id @default(uuid())
   courseId          String // The course that has prerequisites
-  prerequisiteCourseId String // The required prerequisite course
+  prerequisiteId    String // The required prerequisite course
   required          Boolean @default(true)
   createdAt         DateTime @default(now())
 
   course            Course @relation("PrerequisiteCourse", fields: [courseId], references: [id], onDelete: Cascade)
-  prerequisiteCourse Course @relation("RequiredCourse", fields: [prerequisiteCourseId], references: [id], onDelete: Cascade)
+  prerequisite      Course @relation("RequiredCourse", fields: [prerequisiteId], references: [id], onDelete: Cascade)
 
-  @@unique([courseId, prerequisiteCourseId])
+  @@unique([courseId, prerequisiteId])
   @@map("course_prerequisites")
 }
 
@@ -493,4 +495,171 @@ enum SettingType {
   FLOAT
   BOOLEAN
   JSON
+}
+
+// =====================================================
+// GITHUB APP INTEGRATION
+// =====================================================
+
+model GitHubUser {
+  id              String    @id @default(uuid())
+  githubId        Int       @unique
+  githubLogin     String
+  email           String?
+  name            String?
+  avatarUrl       String?
+  accessToken     String
+  refreshToken    String?
+  tokenExpiresAt  DateTime?
+  installations   Json      @default("[]") // Array of installation IDs
+  tier            GitHubTier @default(FREE)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("github_users")
+  @@index([githubId])
+  @@index([githubLogin])
+  @@index([email])
+}
+
+enum GitHubTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model GitHubInstallation {
+  id                    String                @id @default(uuid())
+  installationId        Int                   @unique
+  accountLogin          String
+  accountId             Int
+  accountType           GitHubAccountType
+  repositorySelection   RepositorySelection
+  selectedRepositories  Json                  @default("[]") // Array of repo full names
+  permissions           Json                  @default("{}") // GitHub App permissions
+  events                Json                  @default("[]") // Subscribed webhook events
+  status                InstallationStatus    @default(ACTIVE)
+  tier                  GitHubTier            @default(FREE)
+  monthlyIssueCount     Int                   @default(0)
+  monthlyIssueLimit     Int                   @default(100)
+  lastResetAt           DateTime              @default(now())
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@map("github_installations")
+  @@index([installationId])
+  @@index([accountLogin])
+  @@index([status])
+}
+
+enum GitHubAccountType {
+  User
+  Organization
+}
+
+enum RepositorySelection {
+  all
+  selected
+}
+
+enum InstallationStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+  DELETED
+}
+
+model WebhookEvent {
+  id                  String    @id @default(uuid())
+  eventType           String
+  deliveryId          String    @unique
+  action              String?
+  repositoryFullName  String?
+  installationId      Int?
+  senderLogin         String?
+  payloadSummary      Json?
+  processingStatus    ProcessingStatus @default(PENDING)
+  processingResult    Json?
+  processingError     String?
+  processingTime      Int?      // in milliseconds
+  receivedAt          DateTime  @default(now())
+  processedAt         DateTime?
+
+  @@map("webhook_events")
+  @@index([eventType])
+  @@index([deliveryId])
+  @@index([installationId])
+  @@index([processingStatus])
+  @@index([receivedAt])
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+// =====================================================
+// SECURITY & AUDIT LOGS
+// =====================================================
+
+model SecurityAuditLog {
+  id          String    @id @default(uuid())
+  userId      String?
+  eventType   String
+  timestamp   DateTime  @default(now())
+  ipAddress   String?
+  userAgent   String?
+  details     Json?
+
+  @@map("security_audit_logs")
+  @@index([userId])
+  @@index([eventType])
+  @@index([timestamp])
+}
+
+model SecurityAlert {
+  id          String    @id @default(uuid())
+  eventType   String
+  userId      String?
+  details     Json?
+  status      AlertStatus @default(ACTIVE)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("security_alerts")
+  @@index([eventType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+model AssessmentSecurityLog {
+  id                  String    @id @default(uuid())
+  userId              String
+  assessmentId        String
+  startTime           DateTime
+  endTime             DateTime?
+  userAgent           String?
+  ipAddress           String?
+  focusLossCount      Int       @default(0)
+  copyPasteAttempts   Int       @default(0)
+  tabSwitches         Int       @default(0)
+  screenshotAttempts  Int       @default(0)
+  createdAt           DateTime  @default(now())
+
+  @@unique([userId, assessmentId, startTime])
+  @@map("assessment_security_logs")
+  @@index([userId])
+  @@index([assessmentId])
 }

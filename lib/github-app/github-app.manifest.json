@@ -1,0 +1,37 @@
+{
+  "name": "Miyabi AI Agent Framework",
+  "url": "https://api.miyabi-ai.dev",
+  "hook_attributes": {
+    "url": "https://api.miyabi-ai.dev/webhooks/github",
+    "active": true
+  },
+  "redirect_url": "https://api.miyabi-ai.dev/auth/github/callback",
+  "callback_urls": [
+    "https://api.miyabi-ai.dev/auth/github/callback",
+    "http://localhost:3000/api/auth/github/callback"
+  ],
+  "setup_url": "https://miyabi-ai.dev/github/setup",
+  "public": true,
+  "default_permissions": {
+    "contents": "read",
+    "issues": "write",
+    "metadata": "read",
+    "pull_requests": "write",
+    "checks": "write",
+    "workflows": "read"
+  },
+  "default_events": [
+    "issues",
+    "issue_comment",
+    "pull_request",
+    "pull_request_review",
+    "push",
+    "installation",
+    "installation_repositories",
+    "check_run",
+    "check_suite"
+  ],
+  "description": "Build reality-based AI agents with the world's first framework designed for practical, production-ready autonomous agents. Automate your entire development workflow - from Issue to deployed code in 10-15 minutes.",
+  "request_oauth_on_install": true,
+  "setup_on_update": true
+}
