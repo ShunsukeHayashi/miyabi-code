@@ -4,7 +4,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsukehayashi/dev/miyabi-private/mcp-servers/gemini3-adaptive-runtime/dist/index.js"
+        "/Users/shunsukehayashi/dev/01-miyabi/_core/miyabi-private/mcp-servers/gemini3-adaptive-runtime/dist/index.js"
       ],
       "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}",
@@ -16,7 +16,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsukehayashi/dev/miyabi-private/mcp-servers/miyabi-github/dist/index.js"
+        "/Users/shunsukehayashi/dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-github/dist/index.js"
       ],
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}"
@@ -26,7 +26,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsukehayashi/dev/miyabi-private/mcp-servers/miyabi-file-access/dist/index.js"
+        "/Users/shunsukehayashi/dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-file-access/dist/index.js"
       ],
       "env": {}
     }
