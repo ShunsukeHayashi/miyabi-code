@@ -71,9 +71,19 @@ fn extract_token(headers: &HeaderMap) -> Result<String> {
 // Authentication Middleware
 // ============================================================================
 
+/// Authentication middleware state
+///
+/// Contains both JWT secret and token blacklist for secure auth
+#[derive(Clone)]
+pub struct AuthMiddlewareState {
+    pub jwt_secret: String,
+    pub token_blacklist: std::sync::Arc<dyn crate::auth::TokenBlacklist>,
+}
+
 /// Authentication middleware
 ///
-/// Validates JWT token and attaches user info to request extensions
+/// Validates JWT token and attaches user info to request extensions.
+/// Issue #1313: Also checks if token is blacklisted (logged out).
 pub async fn auth_middleware(
     State(jwt_secret): State<String>,
     mut request: Request,
@@ -84,6 +94,49 @@ pub async fn auth_middleware(
 
     // Validate token
     let jwt_manager = JwtManager::new(&jwt_secret, 3600);
+    let claims = jwt_manager.validate_token(&token)?;
+
+    // Parse user ID
+    let user_id = Uuid::parse_str(&claims.sub)
+        .map_err(|e| AppError::Authentication(format!("Invalid user ID: {}", e)))?;
+
+    // Attach user info to request
+    let auth_user = AuthenticatedUser {
+        user_id,
+        github_id: claims.github_id,
+    };
+    request.extensions_mut().insert(auth_user);
+
+    Ok(next.run(request).await)
+}
+
+/// Authentication middleware with blacklist check
+///
+/// Validates JWT token, checks blacklist, and attaches user info to request extensions.
+/// Issue #1313: Implements secure logout with token invalidation.
+pub async fn auth_middleware_with_blacklist(
+    State(state): State<AuthMiddlewareState>,
+    mut request: Request,
+    next: Next,
+) -> Result<Response> {
+    // Extract token from headers
+    let token = extract_token(request.headers())?;
+
+    // Check if token is blacklisted (Issue #1313)
+    let is_blacklisted = state
+        .token_blacklist
+        .is_blacklisted(&token)
+        .await
+        .map_err(|e| AppError::Authentication(format!("Blacklist check failed: {}", e)))?;
+
+    if is_blacklisted {
+        return Err(AppError::Authentication(
+            "Token has been revoked".to_string(),
+        ));
+    }
+
+    // Validate token
+    let jwt_manager = JwtManager::new(&state.jwt_secret, 3600);
     let claims = jwt_manager.validate_token(&token)?;
 
     // Parse user ID

@@ -118,6 +118,8 @@ pub struct AppState {
     pub jwt_secret: String,
     /// JWT manager for token creation and validation
     pub jwt_manager: Arc<auth::JwtManager>,
+    /// Token blacklist for secure logout (Issue #1313)
+    pub token_blacklist: Arc<dyn auth::TokenBlacklist>,
     /// WebSocket manager
     pub ws_manager: Arc<websocket::WebSocketManager>,
     /// Event broadcaster for real-time updates
@@ -215,12 +217,17 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         3600 * 24 * 7, // 7 days
     ));
 
+    // Create token blacklist (Issue #1313: secure logout)
+    let token_blacklist: Arc<dyn auth::TokenBlacklist> =
+        Arc::new(auth::MemoryTokenBlacklist::new());
+
     // Create shared state
     let state = AppState {
         db,
         config: Arc::new(config.clone()),
         jwt_secret: config.jwt_secret.clone(),
         jwt_manager,
+        token_blacklist,
         ws_manager,
         event_broadcaster,
     };
@@ -379,6 +386,12 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         )
         .route_layer(from_fn(middleware::require_permission("dashboard.read")));
 
+    // Create auth middleware state with blacklist (Issue #1313)
+    let auth_state = middleware::AuthMiddlewareState {
+        jwt_secret: state.jwt_secret.clone(),
+        token_blacklist: state.token_blacklist.clone(),
+    };
+
     // Merge all protected routes
     let protected_routes = Router::new()
         .merge(repository_read_routes)
@@ -391,10 +404,10 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .nest("/organizations", routes::organizations::routes())
         // Task Management routes - Phase 2.1: RBAC already integrated (#970)
         .nest("/tasks", routes::tasks::routes())
-        // Apply auth middleware to all protected routes (base layer)
+        // Apply auth middleware with blacklist to all protected routes (Issue #1313)
         .route_layer(from_fn_with_state(
-            state.jwt_secret.clone(),
-            middleware::auth_middleware,
+            auth_state,
+            middleware::auth_middleware_with_blacklist,
         ))
         .with_state(state.clone());
 
