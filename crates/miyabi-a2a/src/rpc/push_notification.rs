@@ -250,11 +250,21 @@ pub fn generate_webhook_signature(secret: &str, timestamp: &str, payload_json: &
 /// # Ok(())
 /// # }
 /// ```
+use super::ssrf::{validate_webhook_url, SsrfError};
+
 pub async fn send_push_notification(
     client: &Client,
     config: &WebhookConfig,
     payload: &PushNotificationPayload,
 ) -> Result<(), A2AError> {
+    // SSRF Prevention: Validate URL before making request
+    validate_webhook_url(&config.url).map_err(|e| match e {
+        SsrfError::PrivateIpBlocked(msg) => A2AError::SecurityViolation(format!("SSRF blocked: {}", msg)),
+        SsrfError::InvalidUrl(msg) => A2AError::InvalidRequest(msg),
+        SsrfError::InvalidScheme(msg) => A2AError::InvalidRequest(msg),
+        SsrfError::DnsResolutionFailed(msg) => A2AError::InternalError(msg),
+    })?;
+
     let mut last_error: Option<A2AError> = None;
 
     for attempt in 0..=MAX_RETRIES {

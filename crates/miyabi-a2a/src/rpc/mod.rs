@@ -4,6 +4,7 @@
 
 // Push notification modules (Issue #274, #276, #277)
 pub mod push_notification;
+pub mod ssrf;
 pub mod push_notification_config;
 
 // RPC handlers for gRPC integration (Phase 3)

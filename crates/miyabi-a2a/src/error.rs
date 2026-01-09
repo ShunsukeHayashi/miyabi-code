@@ -49,6 +49,10 @@ pub enum A2AError {
     /// Webhook delivery failure
     #[error("Webhook delivery failed: {0}")]
     WebhookDeliveryFailed(String),
+
+    /// Security violation (SSRF, injection, etc.)
+    #[error("Security violation: {0}")]
+    SecurityViolation(String),
 }
 
 // Convert from reqwest::Error
@@ -75,6 +79,7 @@ impl UnifiedError for A2AError {
             Self::Unauthorized => ErrorCode::AUTH_ERROR,
             Self::TaskAlreadyTerminal => ErrorCode::UNEXPECTED_STATE,
             Self::WebhookDeliveryFailed(_) => ErrorCode::HTTP_ERROR,
+            Self::SecurityViolation(_) => ErrorCode::AUTH_ERROR,
         }
     }
 
