@@ -1,5 +1,11 @@
 //! Authentication and JWT token management
 
+pub mod blacklist;
+
+pub use blacklist::{BlacklistError, MemoryTokenBlacklist, TokenBlacklist};
+#[cfg(feature = "redis")]
+pub use blacklist::RedisTokenBlacklist;
+
 use crate::{
     error::{AppError, Result},
     models::Claims,

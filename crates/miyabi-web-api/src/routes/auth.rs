@@ -346,23 +346,75 @@ pub async fn refresh_token(
     ))
 }
 
+/// Logout request (optional, for explicit token invalidation)
+#[derive(Deserialize, utoipa::ToSchema)]
+pub struct LogoutRequest {
+    /// Optional: specific token to invalidate (if not provided, uses Authorization header)
+    #[serde(default)]
+    pub token: Option<String>,
+}
+
 /// Logout handler
 ///
-/// Invalidates the current session
+/// Invalidates the current session by adding the token to the blacklist.
+/// Issue #1313: Implements secure logout with token invalidation.
 #[utoipa::path(
     post,
     path = "/api/v1/auth/logout",
     tag = "auth",
     responses(
         (status = 200, description = "Logged out successfully"),
+        (status = 401, description = "Invalid or missing token"),
         (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("bearer_auth" = [])
     )
 )]
-pub async fn logout(State(_state): State<AppState>) -> Result<StatusCode> {
-    // TODO: Implement token blacklist or session store
-    // For now, we rely on client-side token removal
+pub async fn logout(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    body: Option<Json<LogoutRequest>>,
+) -> Result<StatusCode> {
+    // Extract token from header or body
+    let token = if let Some(Json(req)) = body {
+        if let Some(t) = req.token {
+            t
+        } else {
+            extract_token_from_header(&headers)?
+        }
+    } else {
+        extract_token_from_header(&headers)?
+    };
+
+    // Validate and get claims to determine expiration
+    let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
+    let claims = jwt_manager.validate_token(&token)?;
+
+    // Add token to blacklist with its expiration time
+    state
+        .token_blacklist
+        .add(&token, claims.exp)
+        .await
+        .map_err(|e| AppError::Internal(format!("Failed to blacklist token: {}", e)))?;
+
+    tracing::info!(
+        user_id = %claims.sub,
+        "User logged out, token blacklisted until {}",
+        claims.exp
+    );
 
     Ok(StatusCode::OK)
+}
+
+/// Extract bearer token from Authorization header
+fn extract_token_from_header(headers: &axum::http::HeaderMap) -> Result<String> {
+    let auth_header = headers
+        .get("authorization")
+        .and_then(|h| h.to_str().ok())
+        .ok_or_else(|| AppError::Authentication("Missing Authorization header".to_string()))?;
+
+    crate::auth::extract_bearer_token(auth_header).map(|s| s.to_string())
 }
 
 /// Switch organization request
@@ -559,6 +611,7 @@ mod tests {
             db: pool,
             jwt_secret: config.jwt_secret.clone(),
             jwt_manager: Arc::new(JwtManager::new(&config.jwt_secret, config.jwt_expiration)),
+            token_blacklist: Arc::new(crate::auth::MemoryTokenBlacklist::new()),
             ws_manager: Arc::new(crate::websocket::WsState::new()),
             event_broadcaster: crate::events::EventBroadcaster::new(),
             config,
@@ -643,9 +696,33 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn logout_returns_ok() {
+    async fn logout_rejects_missing_token() {
         let state = test_state();
-        let status = logout(State(state)).await.unwrap();
+        let headers = axum::http::HeaderMap::new();
+        let result = logout(State(state), headers, None).await;
+        assert!(matches!(result, Err(AppError::Authentication(_))));
+    }
+
+    #[tokio::test]
+    async fn logout_blacklists_valid_token() {
+        let state = test_state();
+        let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
+        let token = jwt_manager
+            .create_token("123e4567-e89b-12d3-a456-426614174000", 12345)
+            .unwrap();
+
+        let mut headers = axum::http::HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            format!("Bearer {}", token).parse().unwrap(),
+        );
+
+        // Logout should succeed
+        let status = logout(State(state.clone()), headers, None).await.unwrap();
         assert_eq!(status, StatusCode::OK);
+
+        // Token should now be blacklisted
+        let is_blacklisted = state.token_blacklist.is_blacklisted(&token).await.unwrap();
+        assert!(is_blacklisted);
     }
 }
