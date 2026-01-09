@@ -18,7 +18,7 @@ x-airflow-common: &airflow-common
     - AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG=8
     - AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG=3
     # Connection IDs (configure these via Airflow UI or CLI)
-    - AIRFLOW_CONN_MIYABI_SOURCE_DB=postgresql://postgres:postgres@host.docker.internal:5432/miyabi
+    - AIRFLOW_CONN_MIYABI_SOURCE_DB=postgresql://miyabi:secure_postgres_password_123@host.docker.internal:5432/miyabi
     - AIRFLOW_CONN_MIYABI_DW=postgresql://postgres:postgres@postgres-dw:5432/miyabi_dw
   volumes:
     - ./airflow/dags:/opt/airflow/dags
