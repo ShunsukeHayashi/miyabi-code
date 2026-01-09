@@ -4,7 +4,13 @@
 //! impact, and automatically applying labels from the 57-label system.
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder,
+    },
+    BaseAgent,
+};
+use serde_json::json;
 use miyabi_types::agent::{AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::TaskType;
@@ -395,6 +401,119 @@ impl BaseAgent for IssueAgent {
             metrics: Some(metrics),
             escalation,
         })
+    }
+}
+
+
+#[async_trait]
+impl A2AEnabled for IssueAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("IssueAgent", "Issue analysis and label management agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "analyze_issue".to_string(),
+                name: "Analyze Issue".to_string(),
+                description: "Analyze GitHub Issue for type, severity, impact, and generate labels".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "issue_number": { "type": "integer", "description": "GitHub issue number" },
+                        "title": { "type": "string", "description": "Issue title" },
+                        "body": { "type": "string", "description": "Issue body/description" },
+                        "labels": { "type": "array", "items": { "type": "string" }, "description": "Existing labels" }
+                    },
+                    "required": ["issue_number", "title"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "issue_number": { "type": "integer" },
+                        "issue_type": { "type": "string" },
+                        "severity": { "type": "string" },
+                        "impact": { "type": "string" },
+                        "assigned_agent": { "type": "string" },
+                        "estimated_duration": { "type": "integer" },
+                        "labels": { "type": "array", "items": { "type": "string" } }
+                    }
+                })),
+            })
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "analyze_issue" => {
+                let issue_number = task
+                    .input
+                    .get("issue_number")
+                    .and_then(|v| v.as_u64())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing issue_number".to_string()))?;
+
+                let title = task
+                    .input
+                    .get("title")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Untitled Issue");
+
+                let body = task
+                    .input
+                    .get("body")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+
+                let labels: Vec<String> = task
+                    .input
+                    .get("labels")
+                    .and_then(|v| v.as_array())
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+
+                // Create issue struct for analysis
+                let issue = miyabi_types::Issue {
+                    number: issue_number,
+                    title: title.to_string(),
+                    body: body.to_string(),
+                    state: miyabi_types::issue::IssueStateGithub::Open,
+                    labels,
+                    assignee: None,
+                    created_at: chrono::Utc::now(),
+                    updated_at: chrono::Utc::now(),
+                    url: format!("https://github.com/unknown/repo/issues/{}", issue_number),
+                };
+
+                // Analyze the issue
+                let analysis = self.analyze_issue(&issue).map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("Analysis failed: {}", e))
+                })?;
+
+                let elapsed = start.elapsed();
+
+                Ok(A2ATaskResult::Success {
+                    output: json!({
+                        "issue_number": analysis.issue_number,
+                        "issue_type": format!("{:?}", analysis.issue_type),
+                        "severity": format!("{:?}", analysis.severity),
+                        "impact": format!("{:?}", analysis.impact),
+                        "assigned_agent": format!("{:?}", analysis.assigned_agent),
+                        "estimated_duration": analysis.estimated_duration,
+                        "dependencies": analysis.dependencies,
+                        "labels": analysis.labels
+                    }),
+                    artifacts: vec![],
+                    execution_time_ms: elapsed.as_millis() as u64,
+                })
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
+        }
     }
 }
 

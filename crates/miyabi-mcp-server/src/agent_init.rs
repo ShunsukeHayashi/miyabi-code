@@ -55,7 +55,7 @@ pub async fn initialize_all_agents(bridge: &A2ABridge) -> Result<usize, Box<dyn 
 
 /// Register core workflow agents
 async fn register_core_agents(bridge: &A2ABridge) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-    use miyabi_agents::{CodeGenAgent, CoordinatorAgent, DeploymentAgent, PRAgent, RefresherAgent, ReviewAgent};
+    use miyabi_agents::{CodeGenAgent, CoordinatorAgent, DeploymentAgent, IssueAgent, PRAgent, RefresherAgent, ReviewAgent};
 
     let config = create_default_config();
     let mut count = 0;
@@ -90,15 +90,15 @@ async fn register_core_agents(bridge: &A2ABridge) -> Result<usize, Box<dyn std::
         Err(e) => warn!("Failed to register ReviewAgent: {}", e),
     }
 
-    // IssueAgent - TODO: Implement A2AEnabled trait
-    // let agent = IssueAgent::new(config.clone());
-    // match bridge.register_handler(agent).await {
-    //     Ok(_) => {
-    //         info!("Registered IssueAgent");
-    //         count += 1;
-    //     }
-    //     Err(e) => warn!("Failed to register IssueAgent: {}", e),
-    // }
+    // IssueAgent
+    let agent = IssueAgent::new(config.clone());
+    match bridge.register_handler(agent).await {
+        Ok(_) => {
+            info!("Registered IssueAgent");
+            count += 1;
+        }
+        Err(e) => warn!("Failed to register IssueAgent: {}", e),
+    }
 
     // PRAgent
     let agent = PRAgent::new(config.clone());
