@@ -77,6 +77,7 @@
 //! ```
 
 pub mod a2a_bridge;
+pub mod client;
 pub mod agent_init;
 pub mod cache;
 pub mod config;

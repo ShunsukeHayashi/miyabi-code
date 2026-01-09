@@ -354,25 +354,84 @@ impl ToolRegistry {
     /// This method makes a `tools/list` JSON-RPC call to the specified server
     /// and parses the response to extract tool definitions.
     async fn discover_from_server_static(server: &McpServerConnection) -> RegistryResult<Vec<ToolDefinition>> {
-        // For now, implement a basic stdio-based discovery
-        // In a production system, this would:
-        // 1. Spawn the MCP server process (if stdio-based)
-        // 2. Send a JSON-RPC `tools/list` request
-        // 3. Parse the response and extract tool definitions
-        // 4. Handle timeouts and errors gracefully
+        // Check if this is a stdio-based server
+        let command = match &server.command {
+            Some(cmd) => cmd,
+            None => {
+                // HTTP-based servers not yet supported
+                if server.endpoint.is_some() {
+                    warn!(
+                        server_id = server.id,
+                        "HTTP-based MCP servers not yet supported for tool discovery"
+                    );
+                    return Ok(Vec::new());
+                }
+                return Err(RegistryError::Discovery(format!(
+                    "Server {} has no command or endpoint configured",
+                    server.id
+                )));
+            }
+        };
 
-        // Mock implementation for demonstration
-        // TODO: Implement actual JSON-RPC communication
-        debug!("Sending tools/list request to server: {}", server.id);
+        debug!(
+            server_id = server.id,
+            command = command,
+            "Spawning MCP server for tool discovery"
+        );
 
-        // Simulate network call
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        // Spawn MCP client
+        let client = match crate::client::McpClient::spawn(
+            &server.id,
+            command,
+            &server.args,
+            None,
+        )
+        .await
+        {
+            Ok(c) => c,
+            Err(e) => {
+                warn!(
+                    server_id = server.id,
+                    error = %e,
+                    "Failed to spawn MCP server"
+                );
+                return Err(e);
+            }
+        };
 
-        // For now, return empty list
-        // Real implementation would parse JSON-RPC response
-        warn!("Tool discovery not yet fully implemented for server: {}", server.name);
+        // Request tools list
+        let mcp_tools = match client.list_tools().await {
+            Ok(tools) => tools,
+            Err(e) => {
+                warn!(
+                    server_id = server.id,
+                    error = %e,
+                    "Failed to get tools list from MCP server"
+                );
+                return Err(e);
+            }
+        };
 
-        Ok(Vec::new())
+        // Convert McpToolDefinition to ToolDefinition
+        let tools: Vec<ToolDefinition> = mcp_tools
+            .into_iter()
+            .map(|t| ToolDefinition {
+                name: t.name,
+                description: t.description.unwrap_or_default(),
+                input_schema: t.input_schema.unwrap_or(serde_json::json!({})),
+                server_id: server.id.clone(),
+                version: None,
+                tags: Vec::new(),
+            })
+            .collect();
+
+        info!(
+            server_id = server.id,
+            tool_count = tools.len(),
+            "Discovered tools from MCP server"
+        );
+
+        Ok(tools)
     }
 
     /// Get a tool by name
@@ -382,6 +441,11 @@ impl ToolRegistry {
         self.tools.get(name)
     }
 
+
+    /// Get a server by ID
+    pub fn get_server(&self, id: &str) -> Option<&McpServerConnection> {
+        self.mcp_servers.iter().find(|s| s.id == id)
+    }
     /// List all registered tools
     pub fn list_tools(&self) -> Vec<&ToolDefinition> {
         self.tools.values().collect()

@@ -439,29 +439,74 @@ impl ToolRegistryService {
     /// 2. Validate arguments against input schema
     /// 3. Make JSON-RPC call to MCP server
     /// 4. Parse and return the result
-    async fn execute_tool_internal(&self, name: &str, _args: &Value) -> RegistryResult<Value> {
+    async fn execute_tool_internal(&self, name: &str, args: &Value) -> RegistryResult<Value> {
         // Get tool definition
         let tool = self
             .registry
             .get_tool(name)
-            .ok_or_else(|| RegistryError::ToolNotFound(format!("Tool not found: {}", name)))?;
+            .ok_or_else(|| RegistryError::ToolNotFound(format!("Tool not found: {}", name)))?
+            .clone();
 
-        // TODO: In production, this would make an actual JSON-RPC call
-        // For now, simulate execution with a delay
         debug!(tool_name = name, server_id = tool.server_id, "Executing tool on MCP server");
 
-        // Simulate network latency
-        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+        // Get the server connection info
+        let server = self
+            .registry
+            .get_server(&tool.server_id)
+            .ok_or_else(|| RegistryError::ToolNotFound(format!(
+                "Server not found for tool: {}", name
+            )))?;
 
-        // Mock successful result
-        warn!(tool_name = name, "Tool execution not yet fully implemented - returning mock result");
+        // Check if this is a stdio-based server
+        let command = match &server.command {
+            Some(cmd) => cmd.clone(),
+            None => {
+                return Err(RegistryError::Connection(format!(
+                    "Server {} does not support stdio execution",
+                    server.id
+                )));
+            }
+        };
+        let server_args = server.args.clone();
+        let server_id = server.id.clone();
+
+        // Spawn MCP client
+        let client = crate::client::McpClient::spawn(
+            &server_id,
+            &command,
+            &server_args,
+            None,
+        )
+        .await?;
+
+        // Call the tool
+        let result = client.call_tool(name, args.clone()).await?;
+
+        // Convert result to Value
+        if result.is_error {
+            let error_text = result.content
+                .iter()
+                .filter_map(|c| c.text.clone())
+                .collect::<Vec<String>>()
+                .join("\n");
+            return Err(RegistryError::JsonRpc(format!("Tool execution failed: {}", error_text)));
+        }
+
+        // Extract text content from result
+        let content: Vec<Value> = result.content
+            .into_iter()
+            .map(|c| {
+                serde_json::json!({
+                    "type": c.content_type,
+                    "text": c.text,
+                    "data": c.data,
+                    "mimeType": c.mime_type
+                })
+            })
+            .collect();
 
         Ok(serde_json::json!({
-            "status": "success",
-            "tool": name,
-            "server": tool.server_id,
-            "mock": true,
-            "message": "Tool execution endpoint not yet implemented"
+            "content": content
         }))
     }
 
