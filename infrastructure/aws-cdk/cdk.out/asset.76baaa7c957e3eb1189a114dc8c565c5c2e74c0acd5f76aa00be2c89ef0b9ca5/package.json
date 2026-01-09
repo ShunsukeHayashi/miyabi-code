@@ -1,9 +1,0 @@
-{
-  "name": "miyabi-webui-lambda",
-  "version": "1.0.0",
-  "main": "index.js",
-  "dependencies": {
-    "aws-sdk": "^2.1410.0",
-    "@octokit/rest": "^20.0.0"
-  }
-}
