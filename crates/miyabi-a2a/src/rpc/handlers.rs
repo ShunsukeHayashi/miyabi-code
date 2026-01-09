@@ -4,6 +4,7 @@
 //! A2ARpcServer to async gRPC endpoints.
 
 use crate::error::{A2AError, A2AResult};
+use crate::auth::JwtValidator;
 use crate::types::{AgentCard, Part, Role, Task, TaskStatus};
 use async_trait::async_trait;
 
@@ -216,21 +217,38 @@ impl<S: TaskStorage> A2ARpcHandler<S> {
 pub struct AgentCardRpcHandler {
     /// Agent card to serve
     card: AgentCard,
+    /// JWT validator for authentication
+    jwt_validator: Option<JwtValidator>,
 }
 
 impl AgentCardRpcHandler {
     /// Create a new agent card handler
     pub fn new(card: AgentCard) -> Self {
-        Self { card }
+        Self { card, jwt_validator: None }
+    }
+
+    /// Create a new agent card handler with JWT validation
+    pub fn with_jwt_validator(card: AgentCard, secret: impl Into<String>) -> Self {
+        Self {
+            card,
+            jwt_validator: Some(JwtValidator::new(secret)),
+        }
     }
 
     /// Handle getAuthenticatedExtendedCard RPC method
+    ///
+    /// Validates the JWT token before returning the extended agent card.
+    /// If no JWT validator is configured, authentication is skipped.
     pub async fn get_authenticated_extended_card(
         &self,
-        _params: GetAuthenticatedExtendedCardParams,
+        params: GetAuthenticatedExtendedCardParams,
     ) -> A2AResult<GetAuthenticatedExtendedCardResponse> {
-        // TODO: Validate JWT token in params.token
-        // For now, just return the card
+        // Validate JWT token if validator is configured
+        if let Some(ref validator) = self.jwt_validator {
+            let _claims = validator.validate(&params.token)?;
+            // Token is valid, claims can be used for authorization if needed
+        }
+        
         Ok(GetAuthenticatedExtendedCardResponse { card: self.card.clone() })
     }
 }
@@ -389,4 +407,131 @@ mod tests {
         assert_eq!(list_response.total_count, 5);
         assert_eq!(list_response.tasks.len(), 5);
     }
+
+    // ===== JWT Validation Tests =====
+
+    #[tokio::test]
+    async fn test_get_authenticated_card_without_validator() {
+        use crate::types::AgentCard;
+
+        let card = AgentCard {
+            name: "test-agent".to_string(),
+            description: Some("Test Agent".to_string()),
+            version: "1.0.0".to_string(),
+            capabilities: vec![],
+            auth_methods: vec!["jwt".to_string()],
+            url: "https://test.example.com".to_string(),
+        };
+
+        let handler = AgentCardRpcHandler::new(card.clone());
+        let params = GetAuthenticatedExtendedCardParams {
+            token: "any-token".to_string(),
+        };
+
+        let result = handler.get_authenticated_extended_card(params).await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().card.name, "test-agent");
+    }
+
+    #[tokio::test]
+    async fn test_get_authenticated_card_with_valid_token() {
+        use crate::types::AgentCard;
+        use jsonwebtoken::{encode, EncodingKey, Header, Algorithm};
+        use crate::auth::jwt::Claims;
+
+        let secret = "test-secret-key";
+        let card = AgentCard {
+            name: "test-agent".to_string(),
+            description: Some("Test Agent".to_string()),
+            version: "1.0.0".to_string(),
+            capabilities: vec![],
+            auth_methods: vec!["jwt".to_string()],
+            url: "https://test.example.com".to_string(),
+        };
+
+        let handler = AgentCardRpcHandler::with_jwt_validator(card.clone(), secret);
+
+        // Create valid token
+        let claims = Claims {
+            sub: "user123".to_string(),
+            iat: chrono::Utc::now().timestamp(),
+            exp: chrono::Utc::now().timestamp() + 3600,
+            email: None,
+            character_id: None,
+        };
+        let token = encode(
+            &Header::new(Algorithm::HS256),
+            &claims,
+            &EncodingKey::from_secret(secret.as_bytes())
+        ).unwrap();
+
+        let params = GetAuthenticatedExtendedCardParams { token };
+        let result = handler.get_authenticated_extended_card(params).await;
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().card.name, "test-agent");
+    }
+
+    #[tokio::test]
+    async fn test_get_authenticated_card_with_invalid_token() {
+        use crate::types::AgentCard;
+
+        let card = AgentCard {
+            name: "test-agent".to_string(),
+            description: Some("Test Agent".to_string()),
+            version: "1.0.0".to_string(),
+            capabilities: vec![],
+            auth_methods: vec!["jwt".to_string()],
+            url: "https://test.example.com".to_string(),
+        };
+
+        let handler = AgentCardRpcHandler::with_jwt_validator(card, "correct-secret");
+
+        let params = GetAuthenticatedExtendedCardParams {
+            token: "invalid-token".to_string(),
+        };
+
+        let result = handler.get_authenticated_extended_card(params).await;
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Invalid JWT"));
+    }
+
+    #[tokio::test]
+    async fn test_get_authenticated_card_with_expired_token() {
+        use crate::types::AgentCard;
+        use jsonwebtoken::{encode, EncodingKey, Header, Algorithm};
+        use crate::auth::jwt::Claims;
+
+        let secret = "test-secret-key";
+        let card = AgentCard {
+            name: "test-agent".to_string(),
+            description: Some("Test Agent".to_string()),
+            version: "1.0.0".to_string(),
+            capabilities: vec![],
+            auth_methods: vec!["jwt".to_string()],
+            url: "https://test.example.com".to_string(),
+        };
+
+        let handler = AgentCardRpcHandler::with_jwt_validator(card, secret);
+
+        // Create expired token
+        let claims = Claims {
+            sub: "user123".to_string(),
+            iat: chrono::Utc::now().timestamp() - 7200,
+            exp: chrono::Utc::now().timestamp() - 3600, // Expired 1 hour ago
+            email: None,
+            character_id: None,
+        };
+        let token = encode(
+            &Header::new(Algorithm::HS256),
+            &claims,
+            &EncodingKey::from_secret(secret.as_bytes())
+        ).unwrap();
+
+        let params = GetAuthenticatedExtendedCardParams { token };
+        let result = handler.get_authenticated_extended_card(params).await;
+
+        assert!(result.is_err());
+    }
+
 }
