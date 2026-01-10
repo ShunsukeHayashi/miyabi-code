@@ -44,6 +44,12 @@ impl From<twilight_http::Error> for DiscordMcpError {
     }
 }
 
+impl From<twilight_http::response::DeserializeBodyError> for DiscordMcpError {
+    fn from(err: twilight_http::response::DeserializeBodyError) -> Self {
+        Self::Http(format!("Failed to deserialize response: {}", err))
+    }
+}
+
 /// Result type alias for Discord MCP operations
 pub type Result<T> = std::result::Result<T, DiscordMcpError>;
 

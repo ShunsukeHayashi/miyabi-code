@@ -139,6 +139,9 @@ pub struct AppConfig {
     /// Database pool configuration (not deserializable, created from environment)
     #[serde(skip)]
     pub database_pool: Option<DatabasePoolConfig>,
+    /// Redis URL for token blacklist (optional)
+    #[serde(skip)]
+    pub redis_url: Option<String>,
 }
 
 fn default_jwt_expiration() -> i64 {
@@ -202,6 +205,9 @@ impl AppConfig {
 
         let environment = env::var("ENVIRONMENT").unwrap_or_else(|_| default_environment());
 
+        // Optional Redis URL
+        let redis_url = env::var("REDIS_URL").ok();
+
         // Create database pool configuration based on environment
         let database_pool = Some(DatabasePoolConfig::from_env(&environment));
 
@@ -217,6 +223,7 @@ impl AppConfig {
             refresh_expiration,
             environment,
             database_pool,
+            redis_url,
         })
     }
 

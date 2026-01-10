@@ -218,8 +218,29 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     ));
 
     // Create token blacklist (Issue #1313: secure logout)
-    let token_blacklist: Arc<dyn auth::TokenBlacklist> =
-        Arc::new(auth::MemoryTokenBlacklist::new());
+    let token_blacklist: Arc<dyn auth::TokenBlacklist> = if let Some(redis_url) = &config.redis_url {
+        #[cfg(feature = "redis")]
+        {
+            match auth::RedisTokenBlacklist::new(redis_url) {
+                Ok(blacklist) => {
+                    tracing::info!("Using Redis token blacklist");
+                    Arc::new(blacklist)
+                }
+                Err(e) => {
+                    tracing::error!("Failed to initialize Redis blacklist: {}. Falling back to memory.", e);
+                    Arc::new(auth::MemoryTokenBlacklist::new())
+                }
+            }
+        }
+        #[cfg(not(feature = "redis"))]
+        {
+            tracing::warn!("REDIS_URL provided but 'redis' feature not enabled. Using memory blacklist.");
+            Arc::new(auth::MemoryTokenBlacklist::new())
+        }
+    } else {
+        tracing::info!("Using in-memory token blacklist");
+        Arc::new(auth::MemoryTokenBlacklist::new())
+    };
 
     // Create shared state
     let state = AppState {
