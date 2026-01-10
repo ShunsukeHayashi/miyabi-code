@@ -62,7 +62,7 @@ tree-sitter-rust = "0.24"
 
 # HTTP Server (optional, for Web UI dashboard)
 axum = { version = "0.8", features = ["ws"], optional = true }
-tower-http = { version = "0.5", features = ["fs", "cors"], optional = true }
+tower-http = { version = "0.6", features = ["fs", "cors"], optional = true }
 futures-util = { version = "0.3", optional = true }
 
 [dev-dependencies]

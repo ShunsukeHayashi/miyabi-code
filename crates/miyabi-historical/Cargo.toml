@@ -39,7 +39,7 @@ qdrant-client = "1.16"
 # Web framework (for API)
 axum = { version = "0.8", features = ["macros"] }
 tower = "0.4"
-tower-http = { version = "0.5", features = ["cors", "trace"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Time handling
 chrono = "0.4"
