@@ -64,6 +64,208 @@
       },
       "disabled": false,
       "description": "Gemini 3 Pro image generation"
+    },
+
+    "gemini3-adaptive-runtime": {
+      "command": "node",
+      "args": ["mcp-servers/gemini3-adaptive-runtime/dist/index.js"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini 3 Pro Adaptive Runtime with dynamic UI generation and deep reasoning"
+    },
+
+    "discord-integration": {
+      "command": "node",
+      "args": [".claude/mcp-servers/discord-integration.js"],
+      "env": {
+        "DISCORD_BOT_TOKEN": "${DISCORD_BOT_TOKEN}",
+        "DISCORD_GUILD_ID": "${DISCORD_GUILD_ID}",
+        "DISCORD_ANNOUNCE_CHANNEL": "${DISCORD_ANNOUNCE_CHANNEL}",
+        "DISCORD_GITHUB_CHANNEL": "${DISCORD_GITHUB_CHANNEL}",
+        "DISCORD_AGENT_CHANNEL": "${DISCORD_AGENT_CHANNEL}"
+      },
+      "disabled": false,
+      "description": "Discord community integration with agent workflow automation"
+    },
+
+    "oura-ring": {
+      "command": "node",
+      "args": [".claude/mcp-servers/oura-integration/oura-ring.js"],
+      "env": {
+        "OURA_ACCESS_TOKEN": "${OURA_ACCESS_TOKEN}",
+        "OURA_USER_ID": "${OURA_USER_ID}"
+      },
+      "disabled": false,
+      "description": "Oura Ring health data integration for biometric monitoring and wellness insights"
+    },
+
+    "github-advanced": {
+      "command": "node",
+      "args": [".claude/mcp-servers/github-advanced/github-advanced.js"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPOSITORY": "${GITHUB_REPOSITORY}",
+        "GITHUB_BASE_URL": "${GITHUB_BASE_URL}"
+      },
+      "disabled": false,
+      "description": "GitHub Advanced Workflows with GraphQL API v4, intelligent PR analysis, and project automation"
+    },
+
+    "miyabi-task-manager": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-task-manager/task-manager.js"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPOSITORY": "${GITHUB_REPOSITORY}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "LINEAR_API_KEY": "${LINEAR_API_KEY}",
+        "MAIN_PROJECT_ID": "${MAIN_PROJECT_ID}",
+        "MAX_CONCURRENT_WORKTREES": "6"
+      },
+      "disabled": false,
+      "description": "Miyabi Task Manager for Issue #222: LLM-based task decomposition and parallel execution with status sync"
+    },
+
+    "miyabi-metrics-collector": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-metrics-collector/metrics-collector.js"],
+      "env": {
+        "METRICS_UPDATE_INTERVAL": "30000",
+        "SYSTEM_HEALTH_THRESHOLD": "75",
+        "PROMETHEUS_ENDPOINT": "${PROMETHEUS_ENDPOINT}",
+        "GRAFANA_API_KEY": "${GRAFANA_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Unified metrics collection and performance monitoring for all MCP servers with predictive analytics"
+    },
+
+    "miyabi-agent-coordinator": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-agent-coordinator/agent-coordinator.js"],
+      "env": {
+        "AGENT_COORDINATION_MODE": "intelligent",
+        "MAX_CONCURRENT_AGENTS": "6",
+        "HEALTH_WEIGHT_FACTOR": "30",
+        "PERFORMANCE_THRESHOLD": "70",
+        "COORDINATION_UPDATE_INTERVAL": "5000",
+        "LEARNING_ENABLED": "true",
+        "HEALTH_OPTIMIZATION": "true"
+      },
+      "disabled": false,
+      "description": "Advanced multi-agent coordination and orchestration for 21 Miyabi agents with health-aware optimization"
+    },
+
+    "miyabi-workflow-automation": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-workflow-automation/workflow-automation.js"],
+      "env": {
+        "WORKFLOW_AUTOMATION_MODE": "balanced",
+        "HEALTH_INTEGRATION_WEIGHT": "40",
+        "QUALITY_GATE_THRESHOLD": "85",
+        "PREDICTION_CONFIDENCE_MINIMUM": "80",
+        "AUTO_DEPLOYMENT_ENABLED": "false",
+        "INTELLIGENT_SCHEDULING": "true",
+        "CROSS_PLATFORM_SYNC_DELAY": "5000",
+        "ADAPTIVE_OPTIMIZATION": "true",
+        "PREDICTIVE_ANALYTICS_ENABLED": "true"
+      },
+      "disabled": false,
+      "description": "Complete development workflow automation with health-aware optimization and predictive analytics"
+    },
+
+    "miyabi-ai-intelligence": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-ai-intelligence/ai-intelligence.js"],
+      "env": {
+        "AI_INTELLIGENCE_MODE": "autonomous",
+        "ML_MODEL_COMPLEXITY": "advanced",
+        "PREDICTION_CONFIDENCE_THRESHOLD": "80",
+        "PERSONALIZATION_DEPTH": "comprehensive",
+        "AUTONOMOUS_DECISIONS_ENABLED": "true",
+        "CROSS_REPO_ANALYSIS_ENABLED": "true",
+        "LEARNING_INTEGRATION_ENABLED": "true",
+        "QUALITY_AUTOMATION_LEVEL": "autonomous"
+      },
+      "disabled": false,
+      "description": "Advanced ML intelligence platform with autonomous decision-making, personalized optimization, and predictive analytics"
+    },
+
+    "miyabi-autonomous-qa": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-autonomous-qa/autonomous-qa.js"],
+      "env": {
+        "AUTONOMOUS_QA_MODE": "intelligent",
+        "QUALITY_THRESHOLD_DEFAULT": "85",
+        "SELF_HEALING_ENABLED": "true",
+        "PREDICTIVE_ANALYSIS_ENABLED": "true",
+        "TEST_GENERATION_STRATEGY": "ai_optimized",
+        "HEALING_AGGRESSIVENESS": "moderate",
+        "MONITORING_SENSITIVITY": "intelligent",
+        "AUTO_REMEDIATION_ENABLED": "false",
+        "QUALITY_GATE_ADAPTATION": "ml_adaptive"
+      },
+      "disabled": false,
+      "description": "Revolutionary autonomous quality assurance with intelligent testing, predictive analysis, and self-healing optimization"
+    },
+
+    "miyabi-cross-repo-intelligence": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-cross-repo-intelligence/cross-repo-intelligence.js"],
+      "env": {
+        "CROSS_REPO_ANALYSIS_MODE": "comprehensive",
+        "KNOWLEDGE_MAPPING_DEPTH": "deep",
+        "PATTERN_SIMILARITY_THRESHOLD": "75",
+        "COLLABORATION_ANALYSIS_SCOPE": "organization",
+        "DEPENDENCY_VULNERABILITY_CHECK": "true",
+        "INNOVATION_TREND_ANALYSIS": "true",
+        "KNOWLEDGE_GAP_ANALYSIS": "true",
+        "CROSS_POLLINATION_ENABLED": "true",
+        "ORGANIZATIONAL_INSIGHTS_ENABLED": "true"
+      },
+      "disabled": false,
+      "description": "Advanced cross-repository intelligence with organizational insights, knowledge optimization, and innovation discovery"
+    },
+
+    "miyabi-personalized-optimization": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-personalized-optimization/personalized-optimization.js"],
+      "env": {
+        "PERSONALIZATION_DEPTH": "comprehensive",
+        "HEALTH_INTEGRATION_ENABLED": "true",
+        "ADAPTIVE_LEARNING_ENABLED": "true",
+        "REAL_TIME_ADAPTATION": "true",
+        "BEHAVIORAL_ANALYSIS_DEPTH": "comprehensive",
+        "SKILL_ASSESSMENT_FREQUENCY": "weekly",
+        "PRODUCTIVITY_MONITORING": "continuous",
+        "WELLNESS_OPTIMIZATION_WEIGHT": "30",
+        "LEARNING_ADAPTATION_SPEED": "moderate",
+        "COLLABORATION_OPTIMIZATION": "enabled"
+      },
+      "disabled": false,
+      "description": "Advanced personalized developer optimization with health-aware scheduling, adaptive learning, and individual excellence enhancement"
+    },
+
+    "miyabi-autonomous-architecture": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-autonomous-architecture/autonomous-architecture.js"],
+      "env": {
+        "ARCHITECTURE_OPTIMIZATION_MODE": "intelligent",
+        "DECISION_AUTONOMY_LEVEL": "assisted",
+        "PATTERN_LEARNING_ENABLED": "true",
+        "EVOLUTIONARY_ANALYSIS_DEPTH": "comprehensive",
+        "RESILIENCE_OPTIMIZATION": "enabled",
+        "TECHNOLOGY_FUTURE_PROOFING": "enabled",
+        "PATTERN_RECOGNITION_DEPTH": "deep_learning",
+        "QUALITY_ASSESSMENT_ENABLED": "true",
+        "AUTONOMOUS_DECISIONS_ENABLED": "true",
+        "MIGRATION_PLANNING_ENABLED": "true",
+        "RISK_ASSESSMENT_THRESHOLD": "comprehensive",
+        "INTELLIGENT_RECOMMENDATIONS": "enabled"
+      },
+      "disabled": false,
+      "description": "Revolutionary autonomous architecture optimization with intelligent design patterns, evolutionary system architecture, and adaptive architectural decision making"
     }
   }
 }

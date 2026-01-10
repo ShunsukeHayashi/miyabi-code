@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WindowName Bridge Loader</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        .status-label {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .status-value {
+            color: #0f0;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .status-value.error {
+            color: #f44;
+        }
+        .status-value.pending {
+            color: #ff0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-label {
+            display: block;
+            background: #4a90d9;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .file-label:hover {
+            background: #357abd;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+        }
+        .log {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .log-entry.info { color: #4a90d9; }
+        .log-entry.success { color: #4caf50; }
+        .log-entry.error { color: #f44336; }
+        .log-entry.warn { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WindowName Bridge Loader</h1>
+
+        <div class="status">
+            <div class="status-label">STATUS</div>
+            <div class="status-value pending" id="status">Waiting for file selection...</div>
+        </div>
+
+        <div class="form-group">
+            <label for="fileInput">Select Image File</label>
+            <label class="file-label" for="fileInput" id="fileLabel">Choose File</label>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label for="targetUrl">Target URL</label>
+            <input type="text" id="targetUrl" placeholder="https://note.com/edit" value="">
+        </div>
+
+        <button id="bridgeBtn" disabled>Load & Navigate</button>
+
+        <div class="preview" id="preview"></div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        // ============================================================
+        // WindowName Bridge Implementation
+        // ============================================================
+
+        const log = (message, type = 'info') => {
+            const logEl = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toISOString().substr(11, 8)}] ${message}`;
+            logEl.insertBefore(entry, logEl.firstChild);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        };
+
+        const setStatus = (message, isError = false, isPending = false) => {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status-value';
+            if (isError) statusEl.classList.add('error');
+            if (isPending) statusEl.classList.add('pending');
+        };
+
+        let selectedFile = null;
+        let fileData = null;
+
+        // File selection handler
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            selectedFile = file;
+            document.getElementById('fileLabel').textContent = file.name;
+            log(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`, 'info');
+            setStatus('Reading file...', false, true);
+
+            try {
+                // Read file as Base64
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    fileData = {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        lastModified: file.lastModified,
+                        data: event.target.result // Base64 data URL
+                    };
+
+                    log(`File encoded: ${fileData.data.length} chars`, 'success');
+                    setStatus('File ready for bridge transfer');
+                    document.getElementById('bridgeBtn').disabled = false;
+
+                    // Show preview
+                    if (file.type.startsWith('image/')) {
+                        document.getElementById('preview').innerHTML =
+                            `<img src="${fileData.data}" alt="Preview">`;
+                    }
+                };
+                reader.onerror = () => {
+                    log('Failed to read file', 'error');
+                    setStatus('Error reading file', true);
+                };
+                reader.readAsDataURL(file);
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+                setStatus('Error processing file', true);
+            }
+        });
+
+        // Bridge and navigate
+        document.getElementById('bridgeBtn').addEventListener('click', () => {
+            const targetUrl = document.getElementById('targetUrl').value.trim();
+
+            if (!fileData) {
+                log('No file data available', 'error');
+                return;
+            }
+
+            if (!targetUrl) {
+                log('Please enter a target URL', 'warn');
+                return;
+            }
+
+            try {
+                log('Preparing window.name bridge...', 'info');
+                setStatus('Setting window.name...', false, true);
+
+                // Store file data in window.name as JSON
+                const bridgeData = JSON.stringify({
+                    __windowNameBridge__: true,
+                    timestamp: Date.now(),
+                    file: fileData
+                });
+
+                window.name = bridgeData;
+                log(`window.name set: ${bridgeData.length} chars`, 'success');
+
+                // Verify
+                const verify = JSON.parse(window.name);
+                if (verify.__windowNameBridge__) {
+                    log('Bridge data verified successfully', 'success');
+                    setStatus('Navigating to target...', false, true);
+
+                    // Navigate to target URL (same tab)
+                    log(`Navigating to: ${targetUrl}`, 'info');
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 500);
+                } else {
+                    throw new Error('Bridge data verification failed');
+                }
+            } catch (err) {
+                log(`Bridge error: ${err.message}`, 'error');
+                setStatus('Bridge transfer failed', true);
+            }
+        });
+
+        // Initialize
+        log('WindowName Bridge Loader initialized', 'success');
+        log('Waiting for file selection...', 'info');
+
+        // Check if we have incoming bridge data (for debugging)
+        if (window.name) {
+            try {
+                const data = JSON.parse(window.name);
+                if (data.__windowNameBridge__) {
+                    log(`Found existing bridge data from ${new Date(data.timestamp).toISOString()}`, 'warn');
+                }
+            } catch (e) {
+                // Not bridge data, ignore
+            }
+        }
+    </script>
+</body>
+</html>

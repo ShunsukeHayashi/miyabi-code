@@ -10,12 +10,14 @@
  * - Manage roles and permissions
  * - Schedule events
  * - Monitor user questions
+ * - Agent Workflow Automation (NEW)
  *
  * Required Environment Variables:
  * - DISCORD_BOT_TOKEN: Discord bot token
- * - DISCORD_GUILD_ID: Discord server (guild) ID
+ * - DISCORD_GUILD_ID: Discord server (guild) ID (default: 1260121338035568711)
  * - DISCORD_ANNOUNCE_CHANNEL: Channel ID for announcements
  * - DISCORD_GITHUB_CHANNEL: Channel ID for GitHub updates
+ * - DISCORD_AGENT_CHANNEL: Channel ID for agent workflow updates
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -45,9 +47,13 @@ class DiscordMCPServer {
     );
 
     this.botToken = process.env.DISCORD_BOT_TOKEN;
-    this.guildId = process.env.DISCORD_GUILD_ID;
+    this.guildId = process.env.DISCORD_GUILD_ID || '1260121338035568711';
     this.announceChannelId = process.env.DISCORD_ANNOUNCE_CHANNEL;
     this.githubChannelId = process.env.DISCORD_GITHUB_CHANNEL;
+    this.agentChannelId = process.env.DISCORD_AGENT_CHANNEL;
+
+    // Agent workflow state
+    this.activeWorkflows = new Map();
 
     this.setupHandlers();
   }
@@ -202,6 +208,81 @@ class DiscordMCPServer {
             required: ['channel_id', 'message_id', 'emoji'],
           },
         },
+        // Agent Workflow Tools
+        {
+          name: 'discord_agent_start',
+          description: 'Start an agent workflow and notify Discord',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              agent_type: {
+                type: 'string',
+                enum: ['codegen', 'review', 'pr', 'deployment', 'issue', 'coordinator', 'refresher'],
+                description: 'Type of agent to start',
+              },
+              task: { type: 'string', description: 'Task description' },
+              issue_number: { type: 'number', description: 'Related GitHub issue number' },
+              priority: {
+                type: 'string',
+                enum: ['P0', 'P1', 'P2', 'P3'],
+                description: 'Task priority',
+              },
+            },
+            required: ['agent_type', 'task'],
+          },
+        },
+        {
+          name: 'discord_agent_progress',
+          description: 'Update agent workflow progress on Discord',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              workflow_id: { type: 'string', description: 'Workflow ID' },
+              status: {
+                type: 'string',
+                enum: ['running', 'completed', 'failed', 'blocked'],
+              },
+              progress: { type: 'number', description: 'Progress percentage (0-100)' },
+              message: { type: 'string', description: 'Status message' },
+            },
+            required: ['workflow_id', 'status'],
+          },
+        },
+        {
+          name: 'discord_agent_complete',
+          description: 'Mark agent workflow as complete and send summary',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              workflow_id: { type: 'string' },
+              result: {
+                type: 'string',
+                enum: ['success', 'failure', 'partial'],
+              },
+              summary: { type: 'string', description: 'Completion summary' },
+              pr_url: { type: 'string', description: 'PR URL if created' },
+              artifacts: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of created/modified files',
+              },
+            },
+            required: ['workflow_id', 'result', 'summary'],
+          },
+        },
+        {
+          name: 'discord_list_workflows',
+          description: 'List active agent workflows',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              status_filter: {
+                type: 'string',
+                enum: ['all', 'running', 'completed', 'failed'],
+              },
+            },
+          },
+        },
       ],
     }));
 
@@ -231,6 +312,19 @@ class DiscordMCPServer {
 
           case 'discord_add_reaction':
             return await this.addReaction(args);
+
+          // Agent Workflow handlers
+          case 'discord_agent_start':
+            return await this.agentStart(args);
+
+          case 'discord_agent_progress':
+            return await this.agentProgress(args);
+
+          case 'discord_agent_complete':
+            return await this.agentComplete(args);
+
+          case 'discord_list_workflows':
+            return await this.listWorkflows(args);
 
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -550,6 +644,232 @@ class DiscordMCPServer {
         },
       ],
     };
+  }
+
+  // ===== Agent Workflow Methods =====
+
+  async agentStart(args) {
+    const workflowId = `wf-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const agentEmojis = {
+      codegen: '💻',
+      review: '🔍',
+      pr: '🔀',
+      deployment: '🚀',
+      issue: '📋',
+      coordinator: '🎯',
+      refresher: '🔄',
+    };
+
+    const priorityColors = {
+      P0: 0xFF0000,
+      P1: 0xFF8C00,
+      P2: 0xFFD700,
+      P3: 0x00FF00,
+    };
+
+    const workflow = {
+      id: workflowId,
+      agent: args.agent_type,
+      task: args.task,
+      issue: args.issue_number,
+      priority: args.priority || 'P2',
+      status: 'running',
+      startedAt: new Date().toISOString(),
+      progress: 0,
+      messageId: null,
+    };
+
+    this.activeWorkflows.set(workflowId, workflow);
+
+    const embed = {
+      title: `${agentEmojis[args.agent_type]} Agent Started: ${args.agent_type.toUpperCase()}`,
+      description: args.task,
+      color: priorityColors[workflow.priority],
+      fields: [
+        { name: '🆔 Workflow ID', value: workflowId, inline: true },
+        { name: '⚡ Priority', value: workflow.priority, inline: true },
+        { name: '📊 Status', value: '🟡 Running', inline: true },
+      ],
+      footer: { text: 'Miyabi Agent Workflow System' },
+      timestamp: workflow.startedAt,
+    };
+
+    if (args.issue_number) {
+      embed.fields.push({
+        name: '🔗 Issue',
+        value: `#${args.issue_number}`,
+        inline: true,
+      });
+    }
+
+    const channelId = this.agentChannelId || this.announceChannelId;
+    if (!channelId) {
+      return {
+        content: [{ type: 'text', text: `✅ Workflow started: ${workflowId}\n(Discord notification skipped - no channel configured)` }],
+      };
+    }
+
+    const result = await this.discordFetch(`/channels/${channelId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ embeds: [embed] }),
+    });
+
+    workflow.messageId = result.id;
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `✅ Agent workflow started!\nWorkflow ID: ${workflowId}\nAgent: ${args.agent_type}\nDiscord Message: ${result.id}`,
+        },
+      ],
+    };
+  }
+
+  async agentProgress(args) {
+    const workflow = this.activeWorkflows.get(args.workflow_id);
+    if (!workflow) {
+      throw new Error(`Workflow not found: ${args.workflow_id}`);
+    }
+
+    workflow.status = args.status;
+    if (args.progress !== undefined) {
+      workflow.progress = args.progress;
+    }
+
+    const statusEmojis = {
+      running: '🟡',
+      completed: '🟢',
+      failed: '🔴',
+      blocked: '🟠',
+    };
+
+    const progressBar = this.createProgressBar(workflow.progress);
+
+    const embed = {
+      title: `📊 Workflow Progress Update`,
+      description: args.message || workflow.task,
+      color: args.status === 'failed' ? 0xFF0000 : 0x00D9FF,
+      fields: [
+        { name: '🆔 Workflow', value: args.workflow_id, inline: true },
+        { name: '📊 Status', value: `${statusEmojis[args.status]} ${args.status}`, inline: true },
+        { name: '📈 Progress', value: `${progressBar} ${workflow.progress}%`, inline: false },
+      ],
+      timestamp: new Date().toISOString(),
+    };
+
+    const channelId = this.agentChannelId || this.announceChannelId;
+    if (channelId && workflow.messageId) {
+      await this.discordFetch(`/channels/${channelId}/messages/${workflow.messageId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ embeds: [embed] }),
+      });
+    }
+
+    return {
+      content: [{ type: 'text', text: `✅ Progress updated: ${args.workflow_id} - ${args.status} (${workflow.progress}%)` }],
+    };
+  }
+
+  async agentComplete(args) {
+    const workflow = this.activeWorkflows.get(args.workflow_id);
+    if (!workflow) {
+      throw new Error(`Workflow not found: ${args.workflow_id}`);
+    }
+
+    workflow.status = 'completed';
+    workflow.result = args.result;
+    workflow.completedAt = new Date().toISOString();
+
+    const resultEmojis = {
+      success: '🎉',
+      failure: '❌',
+      partial: '⚠️',
+    };
+
+    const resultColors = {
+      success: 0x50FA7B,
+      failure: 0xFF5555,
+      partial: 0xFFB86C,
+    };
+
+    const embed = {
+      title: `${resultEmojis[args.result]} Workflow Completed: ${args.result.toUpperCase()}`,
+      description: args.summary,
+      color: resultColors[args.result],
+      fields: [
+        { name: '🆔 Workflow', value: args.workflow_id, inline: true },
+        { name: '🤖 Agent', value: workflow.agent, inline: true },
+        { name: '⏱️ Duration', value: this.calculateDuration(workflow.startedAt, workflow.completedAt), inline: true },
+      ],
+      footer: { text: 'Miyabi Agent Workflow System' },
+      timestamp: workflow.completedAt,
+    };
+
+    if (args.pr_url) {
+      embed.fields.push({ name: '🔀 Pull Request', value: `[View PR](${args.pr_url})`, inline: false });
+    }
+
+    if (args.artifacts && args.artifacts.length > 0) {
+      embed.fields.push({
+        name: '📁 Artifacts',
+        value: args.artifacts.slice(0, 5).join('\n') + (args.artifacts.length > 5 ? `\n...and ${args.artifacts.length - 5} more` : ''),
+        inline: false,
+      });
+    }
+
+    const channelId = this.agentChannelId || this.announceChannelId;
+    if (channelId) {
+      await this.discordFetch(`/channels/${channelId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ embeds: [embed] }),
+      });
+    }
+
+    return {
+      content: [{ type: 'text', text: `✅ Workflow completed: ${args.workflow_id}\nResult: ${args.result}\nSummary: ${args.summary}` }],
+    };
+  }
+
+  async listWorkflows(args) {
+    const filter = args?.status_filter || 'all';
+    let workflows = Array.from(this.activeWorkflows.values());
+
+    if (filter !== 'all') {
+      workflows = workflows.filter((w) => w.status === filter);
+    }
+
+    if (workflows.length === 0) {
+      return {
+        content: [{ type: 'text', text: `No workflows found (filter: ${filter})` }],
+      };
+    }
+
+    const summary = workflows.map((w) =>
+      `- [${w.id}] ${w.agent} | ${w.status} | ${w.progress}% | ${w.task.substring(0, 50)}...`
+    ).join('\n');
+
+    return {
+      content: [{ type: 'text', text: `Active Workflows (${filter}):\n${summary}` }],
+    };
+  }
+
+  createProgressBar(percent) {
+    const filled = Math.round(percent / 10);
+    const empty = 10 - filled;
+    return '█'.repeat(filled) + '░'.repeat(empty);
+  }
+
+  calculateDuration(start, end) {
+    const ms = new Date(end) - new Date(start);
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    if (hours > 0) return `${hours}h ${minutes % 60}m`;
+    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+    return `${seconds}s`;
   }
 
   async run() {

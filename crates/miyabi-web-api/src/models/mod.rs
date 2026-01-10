@@ -282,6 +282,7 @@ pub struct CreateWorkflowRequest {
 /// JWT claims
 ///
 /// Extended in Phase 1.5 to include optional organization context
+/// Extended with jti (JWT ID) for token blacklist support
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     /// Subject (user ID)
@@ -292,6 +293,10 @@ pub struct Claims {
     pub iat: i64,
     /// GitHub user ID
     pub github_id: i64,
+    /// JWT ID - unique identifier for token blacklist support
+    /// If None, token was created before blacklist implementation
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jti: Option<String>,
     /// Current organization ID (optional, set when user selects an org)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub org_id: Option<String>,
