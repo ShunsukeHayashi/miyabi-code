@@ -55,6 +55,7 @@ members = [
 
     # Other crates
     "crates/miyabi-a2a",
+    "crates/miyabi-auth",
     "crates/miyabi-webhook",
     "crates/miyabi-benchmark",
     "crates/miyabi-web-api",
