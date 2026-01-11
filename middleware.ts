@@ -225,6 +225,15 @@ function isProtectedRoute(pathname: string): boolean {
     '/api/videos/upload'
   ];
 
+  // Public AI endpoints (auth optional for personalization)
+  const publicAIPaths = [
+    '/api/ai/semantic-search',
+  ];
+
+  if (publicAIPaths.some(path => pathname.startsWith(path))) {
+    return false;
+  }
+
   return protectedPaths.some(path => pathname.startsWith(path)) &&
          !pathname.includes('/public');
 }
