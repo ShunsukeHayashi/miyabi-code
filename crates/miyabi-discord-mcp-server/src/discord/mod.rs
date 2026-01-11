@@ -1,3 +1,5 @@
+/// Batch operations for server setup
+pub mod batch;
 /// Channel operations (create, update, delete)
 pub mod channel;
 /// Discord client implementation

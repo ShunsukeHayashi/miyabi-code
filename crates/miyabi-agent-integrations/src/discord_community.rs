@@ -12,7 +12,7 @@ use miyabi_types::{AgentResult, AgentType, Task};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::process::{Command, Stdio};
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 /// Discord Community Agent設定
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -166,10 +166,71 @@ impl DiscordCommunityAgent {
         // 3. バッチセットアップ（カテゴリ・チャンネル・ロール）
         info!("カテゴリ、チャンネル、ロールを作成中...");
 
-        // TODO: 実際のバッチセットアップAPI呼び出し
-        // self.call_mcp_server("discord.batch.setup_server", setup_config).await?;
+        let setup_config = serde_json::json!({
+            "guild_id": guild_id,
+            "categories": [
+                {
+                    "name": "📢 WELCOME & RULES",
+                    "channels": [
+                        {"name": "welcome", "type": "text"},
+                        {"name": "rules", "type": "text"},
+                        {"name": "faq", "type": "text"}
+                    ]
+                },
+                {
+                    "name": "💬 GENERAL",
+                    "channels": [
+                        {"name": "general", "type": "text"},
+                        {"name": "introductions", "type": "text"},
+                        {"name": "off-topic", "type": "text"},
+                        {"name": "voice-chat", "type": "voice"}
+                    ]
+                },
+                {
+                    "name": "🔧 CODING AGENTS",
+                    "channels": [
+                        {"name": "coding-general", "type": "text"},
+                        {"name": "code-review", "type": "text"},
+                        {"name": "agent-showcase", "type": "forum"}
+                    ]
+                },
+                {
+                    "name": "💼 BUSINESS AGENTS",
+                    "channels": [
+                        {"name": "business-general", "type": "text"},
+                        {"name": "market-research", "type": "text"},
+                        {"name": "strategy-discussion", "type": "text"}
+                    ]
+                },
+                {
+                    "name": "🆘 SUPPORT",
+                    "channels": [
+                        {"name": "help-general", "type": "text"},
+                        {"name": "bug-reports", "type": "forum"},
+                        {"name": "feature-requests", "type": "forum"}
+                    ]
+                },
+                {
+                    "name": "🛠️ DEVELOPMENT",
+                    "channels": [
+                        {"name": "dev-announcements", "type": "text"},
+                        {"name": "github-notifications", "type": "text"},
+                        {"name": "dev-voice", "type": "voice"}
+                    ]
+                }
+            ],
+            "roles": [
+                {"name": "Admin", "color": 15158332, "permissions": 8_i64},
+                {"name": "Moderator", "color": 15105570, "permissions": 1099511627775_i64},
+                {"name": "Core Contributor", "color": 10181046},
+                {"name": "Contributor", "color": 3447003},
+                {"name": "Active Member", "color": 3066993},
+                {"name": "Member", "color": 9807270}
+            ]
+        });
 
-        warn!("⚠️ バッチセットアップはまだ実装されていないよ（TODO）");
+        let batch_result = self.call_mcp_server("discord.batch.setup_server", setup_config).await?;
+        info!("✅ バッチセットアップ完了: {:?}", batch_result);
 
         // 4. セットアップ完了レポート生成
         let report = self.generate_setup_report(guild_id, guild_name);
