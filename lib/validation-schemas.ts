@@ -125,6 +125,64 @@ export const AnalyticsQuerySchema = z.object({
   groupBy: z.enum(['day', 'week', 'month']).default('day'),
 });
 
+// Review schemas
+export const ReviewQuerySchema = PaginationSchema.extend({
+  rating: z.coerce.number().int().min(1).max(5).optional(),
+  verified: z.coerce.boolean().optional(),
+});
+
+export const CreateReviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  title: z.string().min(1).max(200),
+  comment: z.string().min(1).max(2000),
+  isAnonymous: z.boolean().default(false),
+});
+
+export const UpdateReviewSchema = z.object({
+  rating: z.number().int().min(1).max(5).optional(),
+  title: z.string().min(1).max(200).optional(),
+  comment: z.string().min(1).max(2000).optional(),
+  isAnonymous: z.boolean().optional(),
+});
+
+// Category schemas
+export const CategoryQuerySchema = PaginationSchema.extend({
+  parentId: z.string().uuid().nullable().optional(),
+});
+
+export const CreateCategorySchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  description: z.string().max(500).optional(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+  icon: z.string().max(50).optional(),
+  order: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+  parentId: z.string().uuid().optional(),
+  metaTitle: z.string().max(60).optional(),
+  metaDescription: z.string().max(160).optional(),
+});
+
+export const UpdateCategorySchema = CreateCategorySchema.partial().omit({ slug: true });
+
+// Instructor schemas
+export const AddInstructorSchema = z.object({
+  userId: z.string().uuid(),
+  role: z.enum(['PRIMARY', 'ASSISTANT']).default('ASSISTANT'),
+  permissions: z.array(z.enum(['MANAGE_CONTENT', 'MANAGE_LESSONS', 'VIEW_ANALYTICS', 'MANAGE_ENROLLMENTS'])).default(['MANAGE_CONTENT']),
+});
+
+export const UpdateInstructorSchema = z.object({
+  role: z.enum(['PRIMARY', 'ASSISTANT']).optional(),
+  permissions: z.array(z.enum(['MANAGE_CONTENT', 'MANAGE_LESSONS', 'VIEW_ANALYTICS', 'MANAGE_ENROLLMENTS'])).optional(),
+});
+
+// Publishing schemas
+export const PublishCourseSchema = z.object({
+  action: z.enum(['PUBLISH', 'UNPUBLISH', 'ARCHIVE']),
+  reason: z.string().max(500).optional(),
+});
+
 // Export types
 export type CreateCourseInput = z.infer<typeof CreateCourseSchema>;
 export type UpdateCourseInput = z.infer<typeof UpdateCourseSchema>;
@@ -140,3 +198,12 @@ export type SubmitAssessmentInput = z.infer<typeof SubmitAssessmentSchema>;
 export type UserProgressQuery = z.infer<typeof UserProgressQuerySchema>;
 export type AnalyticsQuery = z.infer<typeof AnalyticsQuerySchema>;
 export type PaginationQuery = z.infer<typeof PaginationSchema>;
+export type ReviewQuery = z.infer<typeof ReviewQuerySchema>;
+export type CreateReviewInput = z.infer<typeof CreateReviewSchema>;
+export type UpdateReviewInput = z.infer<typeof UpdateReviewSchema>;
+export type CategoryQuery = z.infer<typeof CategoryQuerySchema>;
+export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>;
+export type UpdateCategoryInput = z.infer<typeof UpdateCategorySchema>;
+export type AddInstructorInput = z.infer<typeof AddInstructorSchema>;
+export type UpdateInstructorInput = z.infer<typeof UpdateInstructorSchema>;
+export type PublishCourseInput = z.infer<typeof PublishCourseSchema>;
