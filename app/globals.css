@@ -5,3 +5,68 @@
     @apply antialiased;
   }
 }
+
+:root {
+  --glass-ink: #f3f6ff;
+  --glass-ink-muted: rgba(243, 246, 255, 0.72);
+}
+
+.glass-page {
+  color: var(--glass-ink);
+  font-family: "Space Grotesk", "Satoshi", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.glass-font-display {
+  font-family: "Canela", "Noe Display", "Playfair Display", "Georgia", serif;
+  letter-spacing: -0.02em;
+}
+
+.glass-card {
+  position: relative;
+}
+
+@keyframes glass-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes glass-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.glass-fade-in {
+  animation: glass-fade-up 0.9s ease forwards;
+}
+
+.glass-stagger > * {
+  opacity: 0;
+  animation: glass-fade-up 0.9s ease forwards;
+}
+
+.glass-stagger > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.glass-stagger > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.glass-stagger > *:nth-child(3) {
+  animation-delay: 0.35s;
+}
+
+.glass-float {
+  animation: glass-float 6s ease-in-out infinite;
+}
