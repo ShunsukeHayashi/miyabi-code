@@ -144,7 +144,7 @@ class EmbeddingService {
 
       await this.prisma.$executeRaw`
         INSERT INTO content_embeddings (
-          id, content_type, content_id, content_text, embedding, model, created_at, updated_at
+          id, "contentType", "contentId", "contentText", embedding, model, "createdAt", "updatedAt"
         ) VALUES (
           gen_random_uuid()::text,
           ${contentType},
@@ -154,11 +154,11 @@ class EmbeddingService {
           ${this.model},
           NOW(),
           NOW()
-        ) ON CONFLICT (content_type, content_id)
+        ) ON CONFLICT ("contentType", "contentId")
         DO UPDATE SET
-          content_text = EXCLUDED.content_text,
+          "contentText" = EXCLUDED."contentText",
           embedding = EXCLUDED.embedding,
-          updated_at = NOW()
+          "updatedAt" = NOW()
       `;
     } catch (error) {
       console.error('Error storing embedding:', error);
@@ -184,7 +184,7 @@ class EmbeddingService {
 
           await tx.$executeRaw`
             INSERT INTO content_embeddings (
-              id, content_type, content_id, content_text, embedding, model, created_at, updated_at
+              id, "contentType", "contentId", "contentText", embedding, model, "createdAt", "updatedAt"
             ) VALUES (
               gen_random_uuid()::text,
               ${request.contentType},
@@ -194,11 +194,11 @@ class EmbeddingService {
               ${this.model},
               NOW(),
               NOW()
-            ) ON CONFLICT (content_type, content_id)
+            ) ON CONFLICT ("contentType", "contentId")
             DO UPDATE SET
-              content_text = EXCLUDED.content_text,
+              "contentText" = EXCLUDED."contentText",
               embedding = EXCLUDED.embedding,
-              updated_at = NOW()
+              "updatedAt" = NOW()
           `;
         }
       });
@@ -232,26 +232,37 @@ class EmbeddingService {
         await this.trackSearchQuery(userId, queryText, queryEmbedding);
       }
 
-      // Build content type filter
-      let contentTypeFilter = '';
-      if (contentTypes && contentTypes.length > 0) {
-        const typesList = contentTypes.map(type => `'${type}'`).join(',');
-        contentTypeFilter = `AND content_type IN (${typesList})`;
-      }
-
       // Perform vector similarity search using cosine similarity
-      const results = await this.prisma.$queryRaw<SearchResult[]>`
-        SELECT
-          content_id as "contentId",
-          content_type as "contentType",
-          content_text as "contentText",
-          1 - (embedding <=> ${queryVectorString}::vector) as similarity
-        FROM content_embeddings
-        WHERE 1 - (embedding <=> ${queryVectorString}::vector) > ${threshold}
-        ${contentTypeFilter ? this.prisma.$queryRaw`${contentTypeFilter}` : ''}
-        ORDER BY embedding <=> ${queryVectorString}::vector
-        LIMIT ${limit}
-      `;
+      let results: SearchResult[];
+
+      if (contentTypes && contentTypes.length > 0) {
+        // Search with content type filter
+        results = await this.prisma.$queryRawUnsafe<SearchResult[]>(`
+          SELECT
+            "contentId",
+            "contentType",
+            "contentText",
+            1 - (embedding <=> $1::vector) as similarity
+          FROM content_embeddings
+          WHERE 1 - (embedding <=> $1::vector) > $2
+            AND "contentType" = ANY($3::text[])
+          ORDER BY embedding <=> $1::vector
+          LIMIT $4
+        `, queryVectorString, threshold, contentTypes, limit);
+      } else {
+        // Search without content type filter
+        results = await this.prisma.$queryRawUnsafe<SearchResult[]>(`
+          SELECT
+            "contentId",
+            "contentType",
+            "contentText",
+            1 - (embedding <=> $1::vector) as similarity
+          FROM content_embeddings
+          WHERE 1 - (embedding <=> $1::vector) > $2
+          ORDER BY embedding <=> $1::vector
+          LIMIT $3
+        `, queryVectorString, threshold, limit);
+      }
 
       return results;
     } catch (error) {
@@ -340,12 +351,13 @@ class EmbeddingService {
 
       await this.prisma.$executeRaw`
         INSERT INTO search_queries (
-          id, user_id, query_text, query_embedding, created_at
+          id, "userId", "queryText", "queryEmbedding", "resultsCount", "createdAt"
         ) VALUES (
           gen_random_uuid()::text,
           ${userId},
           ${queryText},
           ${vectorString}::vector,
+          0,
           NOW()
         )
       `;

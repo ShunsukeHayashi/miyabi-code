@@ -382,8 +382,8 @@ class SemanticSearchService {
         FROM (
           SELECT title FROM courses WHERE title ILIKE ${`%${query}%`} AND status = 'PUBLISHED'
           UNION ALL
-          SELECT title FROM lessons l
-          JOIN courses c ON l.course_id = c.id
+          SELECT l.title FROM lessons l
+          JOIN courses c ON l."courseId" = c.id
           WHERE l.title ILIKE ${`%${query}%`} AND c.status = 'PUBLISHED'
         ) AS combined_results
         ORDER BY title
