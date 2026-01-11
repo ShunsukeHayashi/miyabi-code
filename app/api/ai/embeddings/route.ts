@@ -255,7 +255,7 @@ export async function GET(request: NextRequest) {
             totalEmbeddings,
             recentSearches,
             status: 'active',
-            model: 'text-embedding-3-large',
+            model: 'text-embedding-004',
           },
         });
       }

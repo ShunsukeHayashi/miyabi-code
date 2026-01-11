@@ -1,9 +1,10 @@
 /**
- * OpenAI Embedding Service for AI Course Platform
+ * Gemini Embedding Service for AI Course Platform
  * Handles text embedding generation and vector similarity search
+ * Using Google's Gemini API (text-embedding-004)
  */
 
-import { OpenAI } from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PrismaClient } from '@prisma/client';
 
 // Types for embedding operations
@@ -12,6 +13,7 @@ export interface EmbeddingResult {
   usage: {
     promptTokens: number;
     totalTokens: number;
+    estimated: boolean;
   };
 }
 
@@ -37,18 +39,20 @@ export interface SearchOptions {
 }
 
 class EmbeddingService {
-  private openai: OpenAI;
-  private prisma: PrismaClient;
-  private readonly model = 'text-embedding-3-large';
-  private readonly dimensions = 3072;
+  private genAI: GoogleGenerativeAI;
+  private embeddingModel: ReturnType<GoogleGenerativeAI['getGenerativeModel']>;
+  public prisma: PrismaClient;
+  private readonly model = 'text-embedding-004';
+  private readonly dimensions = 768; // Gemini embedding dimensions
 
   constructor() {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY environment variable is required');
+      throw new Error('GEMINI_API_KEY environment variable is required');
     }
 
-    this.openai = new OpenAI({ apiKey });
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.embeddingModel = this.genAI.getGenerativeModel({ model: this.model });
     this.prisma = new PrismaClient();
   }
 
@@ -59,17 +63,20 @@ class EmbeddingService {
     try {
       // Clean and prepare text
       const cleanText = this.preprocessText(text);
+      if (cleanText.length === 0) {
+        throw new Error('Text is empty after preprocessing');
+      }
 
-      const response = await this.openai.embeddings.create({
-        model: this.model,
-        input: cleanText,
-        dimensions: this.dimensions,
-      });
+      const result = await this.embeddingModel.embedContent(cleanText);
 
-      const embedding = response.data[0].embedding;
+      const embedding = result.embedding.values;
+
+      // Gemini doesn't provide token usage, estimate based on text length
+      const estimatedTokens = Math.ceil(cleanText.length / 4);
       const usage = {
-        promptTokens: response.usage?.prompt_tokens || 0,
-        totalTokens: response.usage?.total_tokens || 0,
+        promptTokens: estimatedTokens,
+        totalTokens: estimatedTokens,
+        estimated: true,
       };
 
       return { embedding, usage };
@@ -84,25 +91,31 @@ class EmbeddingService {
    */
   async generateEmbeddingBatch(texts: string[]): Promise<EmbeddingResult[]> {
     try {
-      // Process in batches of 100 (OpenAI limit)
-      const batchSize = 100;
       const results: EmbeddingResult[] = [];
+
+      // Process in batches of 100 (Gemini limit)
+      const batchSize = 100;
 
       for (let i = 0; i < texts.length; i += batchSize) {
         const batch = texts.slice(i, i + batchSize);
         const cleanTexts = batch.map(text => this.preprocessText(text));
+        if (cleanTexts.some(text => text.length === 0)) {
+          throw new Error('One or more texts are empty after preprocessing');
+        }
 
-        const response = await this.openai.embeddings.create({
-          model: this.model,
-          input: cleanTexts,
-          dimensions: this.dimensions,
+        // Gemini batch embedding
+        const batchResult = await this.embeddingModel.batchEmbedContents({
+          requests: cleanTexts.map(content => ({
+            content: { parts: [{ text: content }] },
+          })),
         });
 
-        const batchResults = response.data.map((item, index) => ({
-          embedding: item.embedding,
+        const batchResults = batchResult.embeddings.map((item, index) => ({
+          embedding: item.values,
           usage: {
-            promptTokens: Math.floor((response.usage?.prompt_tokens || 0) / batch.length),
-            totalTokens: Math.floor((response.usage?.total_tokens || 0) / batch.length),
+            promptTokens: Math.ceil(cleanTexts[index].length / 4),
+            totalTokens: Math.ceil(cleanTexts[index].length / 4),
+            estimated: true,
           },
         }));
 
@@ -418,7 +431,7 @@ class EmbeddingService {
    */
   async initializeExistingContent(): Promise<void> {
     try {
-      console.log('Starting embedding initialization...');
+      console.log('Starting embedding initialization with Gemini...');
 
       // Get all published courses
       const courses = await this.prisma.course.findMany({

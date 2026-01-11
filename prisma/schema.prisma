@@ -674,8 +674,8 @@ model ContentEmbedding {
   contentType String   // "course", "lesson", "assessment", "user_query"
   contentId   String   // ID of the content being embedded
   contentText String   // The actual text that was embedded
-  embedding   Unsupported("vector(3072)") // Vector embedding from OpenAI
-  model       String   @default("text-embedding-3-large")
+  embedding   Unsupported("vector(768)") // Vector embedding from Gemini
+  model       String   @default("text-embedding-004") // Gemini model
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -689,7 +689,7 @@ model SearchQuery {
   id              String   @id @default(uuid())
   userId          String?
   queryText       String
-  queryEmbedding  Unsupported("vector(3072)")?
+  queryEmbedding  Unsupported("vector(768)")? // Gemini embedding
   resultsCount    Int      @default(0)
   clickedResultId String?
   sessionId       String?
