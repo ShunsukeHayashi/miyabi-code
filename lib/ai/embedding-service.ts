@@ -1,0 +1,475 @@
+/**
+ * OpenAI Embedding Service for AI Course Platform
+ * Handles text embedding generation and vector similarity search
+ */
+
+import { OpenAI } from 'openai';
+import { PrismaClient } from '@prisma/client';
+
+// Types for embedding operations
+export interface EmbeddingResult {
+  embedding: number[];
+  usage: {
+    promptTokens: number;
+    totalTokens: number;
+  };
+}
+
+export interface SearchResult {
+  contentId: string;
+  contentType: string;
+  contentText: string;
+  similarity: number;
+  metadata?: any;
+}
+
+export interface EmbeddingBatchRequest {
+  contentType: string;
+  contentId: string;
+  text: string;
+}
+
+export interface SearchOptions {
+  contentTypes?: string[];
+  limit?: number;
+  threshold?: number; // Minimum similarity score (0-1)
+  userId?: string;
+}
+
+class EmbeddingService {
+  private openai: OpenAI;
+  private prisma: PrismaClient;
+  private readonly model = 'text-embedding-3-large';
+  private readonly dimensions = 3072;
+
+  constructor() {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required');
+    }
+
+    this.openai = new OpenAI({ apiKey });
+    this.prisma = new PrismaClient();
+  }
+
+  /**
+   * Generate embedding for a single text
+   */
+  async generateEmbedding(text: string): Promise<EmbeddingResult> {
+    try {
+      // Clean and prepare text
+      const cleanText = this.preprocessText(text);
+
+      const response = await this.openai.embeddings.create({
+        model: this.model,
+        input: cleanText,
+        dimensions: this.dimensions,
+      });
+
+      const embedding = response.data[0].embedding;
+      const usage = {
+        promptTokens: response.usage?.prompt_tokens || 0,
+        totalTokens: response.usage?.total_tokens || 0,
+      };
+
+      return { embedding, usage };
+    } catch (error) {
+      console.error('Error generating embedding:', error);
+      throw new Error('Failed to generate embedding');
+    }
+  }
+
+  /**
+   * Generate embeddings for multiple texts (batch processing)
+   */
+  async generateEmbeddingBatch(texts: string[]): Promise<EmbeddingResult[]> {
+    try {
+      // Process in batches of 100 (OpenAI limit)
+      const batchSize = 100;
+      const results: EmbeddingResult[] = [];
+
+      for (let i = 0; i < texts.length; i += batchSize) {
+        const batch = texts.slice(i, i + batchSize);
+        const cleanTexts = batch.map(text => this.preprocessText(text));
+
+        const response = await this.openai.embeddings.create({
+          model: this.model,
+          input: cleanTexts,
+          dimensions: this.dimensions,
+        });
+
+        const batchResults = response.data.map((item, index) => ({
+          embedding: item.embedding,
+          usage: {
+            promptTokens: Math.floor((response.usage?.prompt_tokens || 0) / batch.length),
+            totalTokens: Math.floor((response.usage?.total_tokens || 0) / batch.length),
+          },
+        }));
+
+        results.push(...batchResults);
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error generating batch embeddings:', error);
+      throw new Error('Failed to generate batch embeddings');
+    }
+  }
+
+  /**
+   * Store embedding in database
+   */
+  async storeEmbedding(
+    contentType: string,
+    contentId: string,
+    text: string,
+    embedding: number[]
+  ): Promise<void> {
+    try {
+      // Convert embedding array to pgvector format
+      const vectorString = `[${embedding.join(',')}]`;
+
+      await this.prisma.$executeRaw`
+        INSERT INTO content_embeddings (
+          id, content_type, content_id, content_text, embedding, model, created_at, updated_at
+        ) VALUES (
+          gen_random_uuid()::text,
+          ${contentType},
+          ${contentId},
+          ${text},
+          ${vectorString}::vector,
+          ${this.model},
+          NOW(),
+          NOW()
+        ) ON CONFLICT (content_type, content_id)
+        DO UPDATE SET
+          content_text = EXCLUDED.content_text,
+          embedding = EXCLUDED.embedding,
+          updated_at = NOW()
+      `;
+    } catch (error) {
+      console.error('Error storing embedding:', error);
+      throw new Error('Failed to store embedding');
+    }
+  }
+
+  /**
+   * Batch store multiple embeddings
+   */
+  async storeEmbeddingBatch(requests: EmbeddingBatchRequest[], embeddings: number[][]): Promise<void> {
+    try {
+      if (requests.length !== embeddings.length) {
+        throw new Error('Requests and embeddings length mismatch');
+      }
+
+      // Insert all embeddings in a single transaction
+      await this.prisma.$transaction(async (tx) => {
+        for (let i = 0; i < requests.length; i++) {
+          const request = requests[i];
+          const embedding = embeddings[i];
+          const vectorString = `[${embedding.join(',')}]`;
+
+          await tx.$executeRaw`
+            INSERT INTO content_embeddings (
+              id, content_type, content_id, content_text, embedding, model, created_at, updated_at
+            ) VALUES (
+              gen_random_uuid()::text,
+              ${request.contentType},
+              ${request.contentId},
+              ${request.text},
+              ${vectorString}::vector,
+              ${this.model},
+              NOW(),
+              NOW()
+            ) ON CONFLICT (content_type, content_id)
+            DO UPDATE SET
+              content_text = EXCLUDED.content_text,
+              embedding = EXCLUDED.embedding,
+              updated_at = NOW()
+          `;
+        }
+      });
+    } catch (error) {
+      console.error('Error storing batch embeddings:', error);
+      throw new Error('Failed to store batch embeddings');
+    }
+  }
+
+  /**
+   * Search for similar content using vector similarity
+   */
+  async searchSimilar(
+    queryText: string,
+    options: SearchOptions = {}
+  ): Promise<SearchResult[]> {
+    try {
+      const {
+        contentTypes,
+        limit = 10,
+        threshold = 0.7,
+        userId,
+      } = options;
+
+      // Generate embedding for search query
+      const { embedding: queryEmbedding } = await this.generateEmbedding(queryText);
+      const queryVectorString = `[${queryEmbedding.join(',')}]`;
+
+      // Track search query for analytics
+      if (userId) {
+        await this.trackSearchQuery(userId, queryText, queryEmbedding);
+      }
+
+      // Build content type filter
+      let contentTypeFilter = '';
+      if (contentTypes && contentTypes.length > 0) {
+        const typesList = contentTypes.map(type => `'${type}'`).join(',');
+        contentTypeFilter = `AND content_type IN (${typesList})`;
+      }
+
+      // Perform vector similarity search using cosine similarity
+      const results = await this.prisma.$queryRaw<SearchResult[]>`
+        SELECT
+          content_id as "contentId",
+          content_type as "contentType",
+          content_text as "contentText",
+          1 - (embedding <=> ${queryVectorString}::vector) as similarity
+        FROM content_embeddings
+        WHERE 1 - (embedding <=> ${queryVectorString}::vector) > ${threshold}
+        ${contentTypeFilter ? this.prisma.$queryRaw`${contentTypeFilter}` : ''}
+        ORDER BY embedding <=> ${queryVectorString}::vector
+        LIMIT ${limit}
+      `;
+
+      return results;
+    } catch (error) {
+      console.error('Error searching similar content:', error);
+      throw new Error('Failed to search similar content');
+    }
+  }
+
+  /**
+   * Get content recommendations based on user's progress
+   */
+  async getContentRecommendations(
+    userId: string,
+    limit: number = 5
+  ): Promise<SearchResult[]> {
+    try {
+      // Get user's completed courses and lessons to build preference vector
+      const userProgress = await this.prisma.userProgress.findMany({
+        where: { userId },
+        include: {
+          course: { select: { title: true, description: true } },
+          lesson: { select: { title: true, content: true } }
+        }
+      });
+
+      if (userProgress.length === 0) {
+        // Return popular content for new users
+        return this.getPopularContent(limit);
+      }
+
+      // Create preference text from user's completed content
+      const preferenceTexts = userProgress.map(progress => {
+        const courseInfo = `${progress.course.title} ${progress.course.description}`;
+        const lessonInfo = progress.lesson ? `${progress.lesson.title}` : '';
+        return `${courseInfo} ${lessonInfo}`.trim();
+      });
+
+      const combinedPreferences = preferenceTexts.join(' ').slice(0, 2000); // Limit text size
+
+      // Search for similar content
+      return this.searchSimilar(combinedPreferences, {
+        contentTypes: ['course', 'lesson'],
+        limit,
+        threshold: 0.6
+      });
+    } catch (error) {
+      console.error('Error getting content recommendations:', error);
+      throw new Error('Failed to get content recommendations');
+    }
+  }
+
+  /**
+   * Get popular content for new users
+   */
+  private async getPopularContent(limit: number): Promise<SearchResult[]> {
+    // This would typically get popular courses based on enrollments, ratings, etc.
+    const popularCourses = await this.prisma.course.findMany({
+      where: { status: 'PUBLISHED', featured: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+      }
+    });
+
+    return popularCourses.map(course => ({
+      contentId: course.id,
+      contentType: 'course',
+      contentText: `${course.title} ${course.description}`,
+      similarity: 1.0, // Perfect match for featured content
+    }));
+  }
+
+  /**
+   * Track search query for analytics
+   */
+  private async trackSearchQuery(
+    userId: string,
+    queryText: string,
+    queryEmbedding: number[]
+  ): Promise<void> {
+    try {
+      const vectorString = `[${queryEmbedding.join(',')}]`;
+
+      await this.prisma.$executeRaw`
+        INSERT INTO search_queries (
+          id, user_id, query_text, query_embedding, created_at
+        ) VALUES (
+          gen_random_uuid()::text,
+          ${userId},
+          ${queryText},
+          ${vectorString}::vector,
+          NOW()
+        )
+      `;
+    } catch (error) {
+      console.error('Error tracking search query:', error);
+      // Don't throw error for analytics failure
+    }
+  }
+
+  /**
+   * Preprocess text for embedding
+   */
+  private preprocessText(text: string): string {
+    return text
+      .trim()
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .slice(0, 8000); // Limit text length for embedding API
+  }
+
+  /**
+   * Embed course content (title + description + lessons)
+   */
+  async embedCourse(courseId: string): Promise<void> {
+    try {
+      const course = await this.prisma.course.findUnique({
+        where: { id: courseId },
+        include: {
+          lessons: { select: { title: true, content: true } }
+        }
+      });
+
+      if (!course) {
+        throw new Error('Course not found');
+      }
+
+      // Create combined course text
+      const lessonTexts = course.lessons.map(lesson =>
+        `${lesson.title}: ${lesson.content}`
+      ).join(' ');
+
+      const courseText = `${course.title}. ${course.description}. ${lessonTexts}`.slice(0, 8000);
+
+      const { embedding } = await this.generateEmbedding(courseText);
+      await this.storeEmbedding('course', courseId, courseText, embedding);
+    } catch (error) {
+      console.error('Error embedding course:', error);
+      throw new Error('Failed to embed course');
+    }
+  }
+
+  /**
+   * Embed individual lesson content
+   */
+  async embedLesson(lessonId: string): Promise<void> {
+    try {
+      const lesson = await this.prisma.lesson.findUnique({
+        where: { id: lessonId },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          description: true,
+          course: { select: { title: true } }
+        }
+      });
+
+      if (!lesson) {
+        throw new Error('Lesson not found');
+      }
+
+      const lessonText = `${lesson.course.title}: ${lesson.title}. ${lesson.description || ''}. ${lesson.content}`.slice(0, 8000);
+
+      const { embedding } = await this.generateEmbedding(lessonText);
+      await this.storeEmbedding('lesson', lessonId, lessonText, embedding);
+    } catch (error) {
+      console.error('Error embedding lesson:', error);
+      throw new Error('Failed to embed lesson');
+    }
+  }
+
+  /**
+   * Initialize embeddings for all existing content
+   */
+  async initializeExistingContent(): Promise<void> {
+    try {
+      console.log('Starting embedding initialization...');
+
+      // Get all published courses
+      const courses = await this.prisma.course.findMany({
+        where: { status: 'PUBLISHED' },
+        select: { id: true }
+      });
+
+      console.log(`Found ${courses.length} courses to embed`);
+
+      // Embed courses in batches
+      const courseBatchSize = 10;
+      for (let i = 0; i < courses.length; i += courseBatchSize) {
+        const batch = courses.slice(i, i + courseBatchSize);
+        await Promise.all(
+          batch.map(course => this.embedCourse(course.id))
+        );
+        console.log(`Embedded courses ${i + 1}-${i + batch.length} of ${courses.length}`);
+      }
+
+      // Get all lessons
+      const lessons = await this.prisma.lesson.findMany({
+        select: { id: true }
+      });
+
+      console.log(`Found ${lessons.length} lessons to embed`);
+
+      // Embed lessons in batches
+      const lessonBatchSize = 20;
+      for (let i = 0; i < lessons.length; i += lessonBatchSize) {
+        const batch = lessons.slice(i, i + lessonBatchSize);
+        await Promise.all(
+          batch.map(lesson => this.embedLesson(lesson.id))
+        );
+        console.log(`Embedded lessons ${i + 1}-${i + batch.length} of ${lessons.length}`);
+      }
+
+      console.log('Embedding initialization complete!');
+    } catch (error) {
+      console.error('Error initializing embeddings:', error);
+      throw new Error('Failed to initialize embeddings');
+    }
+  }
+
+  /**
+   * Clean up resources
+   */
+  async cleanup(): Promise<void> {
+    await this.prisma.$disconnect();
+  }
+}
+
+// Export singleton instance
+export const embeddingService = new EmbeddingService();
+export default embeddingService;

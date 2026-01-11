@@ -32,6 +32,7 @@ model User {
   userProgress      UserProgress[]
   certificates      Certificate[]
   courseReviews     CourseReview[]
+  searchQueries     SearchQuery[]
 
   @@map("users")
   @@index([email])
@@ -662,4 +663,42 @@ model AssessmentSecurityLog {
   @@map("assessment_security_logs")
   @@index([userId])
   @@index([assessmentId])
+}
+
+// =====================================================
+// AI EMBEDDING & VECTOR SEARCH
+// =====================================================
+
+model ContentEmbedding {
+  id          String   @id @default(uuid())
+  contentType String   // "course", "lesson", "assessment", "user_query"
+  contentId   String   // ID of the content being embedded
+  contentText String   // The actual text that was embedded
+  embedding   Unsupported("vector(3072)") // Vector embedding from OpenAI
+  model       String   @default("text-embedding-3-large")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([contentType, contentId])
+  @@map("content_embeddings")
+  @@index([contentType])
+  @@index([contentId])
+}
+
+model SearchQuery {
+  id              String   @id @default(uuid())
+  userId          String?
+  queryText       String
+  queryEmbedding  Unsupported("vector(3072)")?
+  resultsCount    Int      @default(0)
+  clickedResultId String?
+  sessionId       String?
+  createdAt       DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("search_queries")
+  @@index([userId])
+  @@index([createdAt])
+  @@index([sessionId])
 }
