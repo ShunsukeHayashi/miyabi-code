@@ -1,0 +1,22 @@
+# MiyabiCode Code Owners
+
+# Core packages
+packages/miyabi/      @ShunsukeHayashi
+packages/app/          @ShunsukeHayashi
+packages/sdk/js/      @ShunsukeHayashi
+packages/ui/          @ShunsukeHayashi
+packages/plugin/      @ShunsukeHayashi
+packages/util/          @ShunsukeHayashi
+
+# Console
+packages/console/app/      @ShunsukeHayashi
+packages/console/core/    @ShunsukeHayashi
+
+# Desktop
+packages/desktop/  @ShunsukeHayashi
+
+# Documentation
+packages/docs/      @ShunsukeHayashi
+
+# Scripts
+packages/script/      @ShunsukeHayashi
