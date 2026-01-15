@@ -23,6 +23,14 @@ import {
   toOaCompatibleRequest,
   toOaCompatibleResponse,
 } from "./openai-compatible"
+import {
+  fromGlmChunk,
+  fromGlmRequest,
+  fromGlmResponse,
+  toGlmChunk,
+  toGlmRequest,
+  toGlmResponse,
+} from "./glm"
 
 export type UsageInfo = {
   inputTokens: number
@@ -167,11 +175,13 @@ export function createBodyConverter(from: ZenData.Format, to: ZenData.Format) {
     let raw: CommonRequest
     if (from === "anthropic") raw = fromAnthropicRequest(body)
     else if (from === "openai") raw = fromOpenaiRequest(body)
-    else raw = fromOaCompatibleRequest(body)
+    else if (from === "oa-compat") raw = fromOaCompatibleRequest(body)
+    else if (from === "glm") raw = fromGlmRequest(body)
 
     if (to === "anthropic") return toAnthropicRequest(raw)
     if (to === "openai") return toOpenaiRequest(raw)
     if (to === "oa-compat") return toOaCompatibleRequest(raw)
+    if (to === "glm") return toGlmRequest(raw)
   }
 }
 
@@ -182,7 +192,9 @@ export function createStreamPartConverter(from: ZenData.Format, to: ZenData.Form
     let raw: CommonChunk | string
     if (from === "anthropic") raw = fromAnthropicChunk(part)
     else if (from === "openai") raw = fromOpenaiChunk(part)
-    else raw = fromOaCompatibleChunk(part)
+    else if (from === "oa-compat") raw = fromOaCompatibleChunk(part)
+    else if (from === "glm") raw = fromGLMChunk(part)
+    else raw = part
 
     // If result is a string (error case), pass it through
     if (typeof raw === "string") return raw
@@ -190,6 +202,8 @@ export function createStreamPartConverter(from: ZenData.Format, to: ZenData.Form
     if (to === "anthropic") return toAnthropicChunk(raw)
     if (to === "openai") return toOpenaiChunk(raw)
     if (to === "oa-compat") return toOaCompatibleChunk(raw)
+    if (to === "glm") return toGLMChunk(raw)
+    else return part
   }
 }
 
@@ -200,10 +214,14 @@ export function createResponseConverter(from: ZenData.Format, to: ZenData.Format
     let raw: CommonResponse
     if (from === "anthropic") raw = fromAnthropicResponse(response)
     else if (from === "openai") raw = fromOpenaiResponse(response)
-    else raw = fromOaCompatibleResponse(response)
+    else if (from === "oa-compat") raw = fromOaCompatibleResponse(response)
+    else if (from === "glm") raw = fromGLMResponse(response)
+    else raw = response
 
     if (to === "anthropic") return toAnthropicResponse(raw)
     if (to === "openai") return toOpenaiResponse(raw)
     if (to === "oa-compat") return toOaCompatibleResponse(raw)
+    if (to === "glm") return toGLMResponse(raw)
+    else return response
   }
 }

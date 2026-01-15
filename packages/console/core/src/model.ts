@@ -8,7 +8,7 @@ import { Actor } from "./actor"
 import { Resource } from "@opencode-ai/console-resource"
 
 export namespace ZenData {
-  const FormatSchema = z.enum(["anthropic", "google", "openai", "oa-compat"])
+  const FormatSchema = z.enum(["anthropic", "google", "openai", "oa-compat", "glm"])
   const TrialSchema = z.object({
     provider: z.string(),
     limits: z.array(
