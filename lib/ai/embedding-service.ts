@@ -4,7 +4,7 @@
  * Using Google's Gemini API (text-embedding-004)
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import type { GoogleGenerativeAI as GoogleGenerativeAIType } from '@google/generative-ai';
 import { PrismaClient } from '@prisma/client';
 
 // Types for embedding operations
@@ -39,21 +39,51 @@ export interface SearchOptions {
 }
 
 class EmbeddingService {
-  private genAI: GoogleGenerativeAI;
-  private embeddingModel: ReturnType<GoogleGenerativeAI['getGenerativeModel']>;
-  public prisma: PrismaClient;
+  private genAI: GoogleGenerativeAIType | null = null;
+  private embeddingModel: ReturnType<GoogleGenerativeAIType['getGenerativeModel']> | null = null;
+  private prismaClient: PrismaClient | null = null;
+  private initialized = false;
   private readonly model = 'text-embedding-004';
   private readonly dimensions = 768; // Gemini embedding dimensions
 
   constructor() {
+    // Delay initialization until first use to avoid build-time side effects.
+  }
+
+  private ensureInitialized(): void {
+    if (this.initialized) {
+      return;
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY environment variable is required');
     }
 
+    const { GoogleGenerativeAI } = require('@google/generative-ai') as {
+      GoogleGenerativeAI: new (key: string) => GoogleGenerativeAIType;
+    };
+
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.embeddingModel = this.genAI.getGenerativeModel({ model: this.model });
-    this.prisma = new PrismaClient();
+    this.prismaClient = new PrismaClient();
+    this.initialized = true;
+  }
+
+  private getEmbeddingModel(): ReturnType<GoogleGenerativeAIType['getGenerativeModel']> {
+    this.ensureInitialized();
+    if (!this.embeddingModel) {
+      throw new Error('Embedding model initialization failed');
+    }
+    return this.embeddingModel;
+  }
+
+  get prisma(): PrismaClient {
+    this.ensureInitialized();
+    if (!this.prismaClient) {
+      throw new Error('Prisma client initialization failed');
+    }
+    return this.prismaClient;
   }
 
   /**
@@ -67,7 +97,7 @@ class EmbeddingService {
         throw new Error('Text is empty after preprocessing');
       }
 
-      const result = await this.embeddingModel.embedContent(cleanText);
+      const result = await this.getEmbeddingModel().embedContent(cleanText);
 
       const embedding = result.embedding.values;
 
@@ -104,7 +134,7 @@ class EmbeddingService {
         }
 
         // Gemini batch embedding
-        const batchResult = await this.embeddingModel.batchEmbedContents({
+        const batchResult = await this.getEmbeddingModel().batchEmbedContents({
           requests: cleanTexts.map(content => ({
             content: { parts: [{ text: content }] },
           })),
@@ -136,7 +166,7 @@ class EmbeddingService {
     contentType: string,
     contentId: string,
     text: string,
-    embedding: number[]
+    embedding: number[],
   ): Promise<void> {
     try {
       // Convert embedding array to pgvector format
@@ -213,7 +243,7 @@ class EmbeddingService {
    */
   async searchSimilar(
     queryText: string,
-    options: SearchOptions = {}
+    options: SearchOptions = {},
   ): Promise<SearchResult[]> {
     try {
       const {
@@ -276,7 +306,7 @@ class EmbeddingService {
    */
   async getContentRecommendations(
     userId: string,
-    limit: number = 5
+    limit: number = 5,
   ): Promise<SearchResult[]> {
     try {
       // Get user's completed courses and lessons to build preference vector
@@ -284,8 +314,8 @@ class EmbeddingService {
         where: { userId },
         include: {
           course: { select: { title: true, description: true } },
-          lesson: { select: { title: true, content: true } }
-        }
+          lesson: { select: { title: true, content: true } },
+        },
       });
 
       if (userProgress.length === 0) {
@@ -306,7 +336,7 @@ class EmbeddingService {
       return this.searchSimilar(combinedPreferences, {
         contentTypes: ['course', 'lesson'],
         limit,
-        threshold: 0.6
+        threshold: 0.6,
       });
     } catch (error) {
       console.error('Error getting content recommendations:', error);
@@ -327,7 +357,7 @@ class EmbeddingService {
         id: true,
         title: true,
         description: true,
-      }
+      },
     });
 
     return popularCourses.map(course => ({
@@ -344,7 +374,7 @@ class EmbeddingService {
   private async trackSearchQuery(
     userId: string,
     queryText: string,
-    queryEmbedding: number[]
+    queryEmbedding: number[],
   ): Promise<void> {
     try {
       const vectorString = `[${queryEmbedding.join(',')}]`;
@@ -385,8 +415,8 @@ class EmbeddingService {
       const course = await this.prisma.course.findUnique({
         where: { id: courseId },
         include: {
-          lessons: { select: { title: true, content: true } }
-        }
+          lessons: { select: { title: true, content: true } },
+        },
       });
 
       if (!course) {
@@ -395,7 +425,7 @@ class EmbeddingService {
 
       // Create combined course text
       const lessonTexts = course.lessons.map(lesson =>
-        `${lesson.title}: ${lesson.content}`
+        `${lesson.title}: ${lesson.content}`,
       ).join(' ');
 
       const courseText = `${course.title}. ${course.description}. ${lessonTexts}`.slice(0, 8000);
@@ -420,8 +450,8 @@ class EmbeddingService {
           title: true,
           content: true,
           description: true,
-          course: { select: { title: true } }
-        }
+          course: { select: { title: true } },
+        },
       });
 
       if (!lesson) {
@@ -448,7 +478,7 @@ class EmbeddingService {
       // Get all published courses
       const courses = await this.prisma.course.findMany({
         where: { status: 'PUBLISHED' },
-        select: { id: true }
+        select: { id: true },
       });
 
       console.log(`Found ${courses.length} courses to embed`);
@@ -458,14 +488,14 @@ class EmbeddingService {
       for (let i = 0; i < courses.length; i += courseBatchSize) {
         const batch = courses.slice(i, i + courseBatchSize);
         await Promise.all(
-          batch.map(course => this.embedCourse(course.id))
+          batch.map(course => this.embedCourse(course.id)),
         );
         console.log(`Embedded courses ${i + 1}-${i + batch.length} of ${courses.length}`);
       }
 
       // Get all lessons
       const lessons = await this.prisma.lesson.findMany({
-        select: { id: true }
+        select: { id: true },
       });
 
       console.log(`Found ${lessons.length} lessons to embed`);
@@ -475,7 +505,7 @@ class EmbeddingService {
       for (let i = 0; i < lessons.length; i += lessonBatchSize) {
         const batch = lessons.slice(i, i + lessonBatchSize);
         await Promise.all(
-          batch.map(lesson => this.embedLesson(lesson.id))
+          batch.map(lesson => this.embedLesson(lesson.id)),
         );
         console.log(`Embedded lessons ${i + 1}-${i + batch.length} of ${lessons.length}`);
       }

@@ -28,7 +28,7 @@ import {
   ChevronRight,
   ChevronDown,
   X,
-  Check
+  Check,
 } from 'lucide-react';
 import { LoadingSpinner } from '../shared/LoadingComponents';
 
@@ -93,7 +93,7 @@ const categories = [
   'Design',
   'Business',
   'Marketing',
-  'Other'
+  'Other',
 ];
 
 const lessonTypes = [
@@ -120,7 +120,7 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
     duration: 0,
     prerequisites: [],
     learningObjectives: [],
-    status: 'draft'
+    status: 'draft',
   });
 
   const [sections, setSections] = useState<Section[]>([
@@ -129,8 +129,8 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
       title: 'Getting Started',
       description: 'Introduction to the course',
       lessons: [],
-      order: 1
-    }
+      order: 1,
+    },
   ]);
 
   const [newTag, setNewTag] = useState('');
@@ -139,7 +139,7 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
     { id: 0, title: 'Basic Info', icon: <Settings size={16} /> },
     { id: 1, title: 'Curriculum', icon: <BookOpen size={16} /> },
     { id: 2, title: 'Pricing', icon: <DollarSign size={16} /> },
-    { id: 3, title: 'Publishing', icon: <Eye size={16} /> }
+    { id: 3, title: 'Publishing', icon: <Eye size={16} /> },
   ];
 
   const handleCourseDataChange = (field: keyof CourseData, value: any) => {
@@ -191,7 +191,7 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
       title: 'New Section',
       description: '',
       lessons: [],
-      order: sections.length + 1
+      order: sections.length + 1,
     };
     setSections([...sections, newSection]);
   };
@@ -199,8 +199,8 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
   const updateSection = (sectionId: string, field: keyof Section, value: any) => {
     setSections(prev =>
       prev.map(section =>
-        section.id === sectionId ? { ...section, [field]: value } : section
-      )
+        section.id === sectionId ? { ...section, [field]: value } : section,
+      ),
     );
   };
 
@@ -210,7 +210,7 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
 
   const addLesson = (sectionId: string) => {
     const section = sections.find(s => s.id === sectionId);
-    if (!section) return;
+    if (!section) {return;}
 
     const newLesson: Lesson = {
       id: `lesson-${Date.now()}`,
@@ -219,7 +219,7 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
       type: 'video',
       duration: 0,
       attachments: [],
-      order: section.lessons.length + 1
+      order: section.lessons.length + 1,
     };
 
     updateSection(sectionId, 'lessons', [...section.lessons, newLesson]);
@@ -227,10 +227,10 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
 
   const updateLesson = (sectionId: string, lessonId: string, field: keyof Lesson, value: any) => {
     const section = sections.find(s => s.id === sectionId);
-    if (!section) return;
+    if (!section) {return;}
 
     const updatedLessons = section.lessons.map(lesson =>
-      lesson.id === lessonId ? { ...lesson, [field]: value } : lesson
+      lesson.id === lessonId ? { ...lesson, [field]: value } : lesson,
     );
 
     updateSection(sectionId, 'lessons', updatedLessons);
@@ -238,7 +238,7 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
 
   const removeLesson = (sectionId: string, lessonId: string) => {
     const section = sections.find(s => s.id === sectionId);
-    if (!section) return;
+    if (!section) {return;}
 
     const updatedLessons = section.lessons.filter(lesson => lesson.id !== lessonId);
     updateSection(sectionId, 'lessons', updatedLessons);
@@ -715,7 +715,7 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
           <div>
             <div className="text-2xl font-bold text-miyabi-purple">
               {Math.round(sections.reduce((total, section) =>
-                total + section.lessons.reduce((sectionTotal, lesson) => sectionTotal + lesson.duration, 0), 0) / 60
+                total + section.lessons.reduce((sectionTotal, lesson) => sectionTotal + lesson.duration, 0), 0) / 60,
               )}h
             </div>
             <div className="text-sm text-gray-400">Duration</div>
@@ -753,8 +753,8 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
                   currentStep === step.id
                     ? 'text-miyabi-blue'
                     : currentStep > step.id
-                    ? 'text-miyabi-green'
-                    : 'text-gray-400'
+                      ? 'text-miyabi-green'
+                      : 'text-gray-400'
                 }`}
                 onClick={() => setCurrentStep(step.id)}
               >
@@ -762,8 +762,8 @@ export function CourseCreator({ instructorId, courseId, className = '' }: Course
                   currentStep === step.id
                     ? 'border-miyabi-blue bg-miyabi-blue/20'
                     : currentStep > step.id
-                    ? 'border-miyabi-green bg-miyabi-green/20'
-                    : 'border-gray-600 bg-gray-700'
+                      ? 'border-miyabi-green bg-miyabi-green/20'
+                      : 'border-gray-600 bg-gray-700'
                 }`}>
                   {currentStep > step.id ? <Check size={16} /> : step.icon}
                 </div>

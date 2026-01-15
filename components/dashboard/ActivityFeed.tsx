@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -90,9 +90,9 @@ function formatTimeAgo(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 60) {return 'just now';}
+  if (diffInSeconds < 3600) {return `${Math.floor(diffInSeconds / 60)}m ago`;}
+  if (diffInSeconds < 86400) {return `${Math.floor(diffInSeconds / 3600)}h ago`;}
   return `${Math.floor(diffInSeconds / 86400)}d ago`;
 }
 
@@ -127,7 +127,7 @@ export function ActivityFeed({ activities, maxItems = 10, showViewAll = true }: 
                 key={activity.id}
                 className={cn(
                   'flex items-start gap-3 pb-4',
-                  index < displayedActivities.length - 1 && 'border-b border-gray-800'
+                  index < displayedActivities.length - 1 && 'border-b border-gray-800',
                 )}
               >
                 {activityIcons[activity.type]}

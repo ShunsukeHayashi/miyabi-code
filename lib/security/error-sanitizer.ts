@@ -24,12 +24,12 @@ export class ErrorSanitizer {
   static sanitizeError(
     error: Error,
     requestId?: string,
-    errorCode?: string
+    errorCode?: string,
   ): ErrorResponse | DetailedError {
     const baseResponse: ErrorResponse = {
       error: this.getPublicErrorMessage(error),
       timestamp: new Date().toISOString(),
-      requestId
+      requestId,
     };
 
     if (errorCode) {
@@ -43,8 +43,8 @@ export class ErrorSanitizer {
         stack: error.stack,
         details: {
           name: error.name,
-          cause: error.cause
-        }
+          cause: error.cause,
+        },
       };
     }
 
@@ -58,7 +58,7 @@ export class ErrorSanitizer {
     error: Error,
     context: string,
     requestId?: string,
-    errorCode?: string
+    errorCode?: string,
   ): ErrorResponse | DetailedError {
     // Log full error details for debugging
     console.error(`[${context}] Error ${requestId || 'unknown'}:`, {
@@ -66,7 +66,7 @@ export class ErrorSanitizer {
       stack: error.stack,
       name: error.name,
       cause: error.cause,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Return sanitized error for client
@@ -88,7 +88,7 @@ export class ErrorSanitizer {
       'DatabaseError': 'Database operation failed',
       'ExternalServiceError': 'External service unavailable',
       'FileUploadError': 'File upload failed',
-      'AIServiceError': 'AI service temporarily unavailable'
+      'AIServiceError': 'AI service temporarily unavailable',
     };
 
     // Check for known error types
@@ -126,7 +126,7 @@ export class ErrorSanitizer {
     error: Error,
     status: number = 500,
     context: string = 'API',
-    requestId?: string
+    requestId?: string,
   ) {
     const sanitizedError = this.logAndSanitize(error, context, requestId);
 
@@ -136,8 +136,8 @@ export class ErrorSanitizer {
         'Content-Type': 'application/json',
         'X-Request-ID': requestId || crypto.randomUUID(),
         'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY'
-      }
+        'X-Frame-Options': 'DENY',
+      },
     });
   }
 }
@@ -154,7 +154,7 @@ export const ERROR_CODES = {
   DATABASE_ERROR: 'DB_001',
   AI_SERVICE_ERROR: 'AI_001',
   FILE_UPLOAD_ERROR: 'FILE_001',
-  EXTERNAL_SERVICE_ERROR: 'EXT_001'
+  EXTERNAL_SERVICE_ERROR: 'EXT_001',
 } as const;
 
 /**
@@ -214,7 +214,7 @@ export class FileUploadError extends Error {
  */
 export function withErrorHandling(
   handler: (request: Request, context: any) => Promise<Response>,
-  context: string = 'API'
+  context: string = 'API',
 ) {
   return async (request: Request, routeContext: any) => {
     const requestId = crypto.randomUUID();
@@ -226,11 +226,7 @@ export function withErrorHandling(
 
       // Determine appropriate status code
       let status = 500;
-      if (err instanceof ValidationError) status = 400;
-      else if (err instanceof AuthenticationError) status = 401;
-      else if (err instanceof AuthorizationError) status = 403;
-      else if (err instanceof NotFoundError) status = 404;
-      else if (err instanceof RateLimitError) status = 429;
+      if (err instanceof ValidationError) {status = 400;} else if (err instanceof AuthenticationError) {status = 401;} else if (err instanceof AuthorizationError) {status = 403;} else if (err instanceof NotFoundError) {status = 404;} else if (err instanceof RateLimitError) {status = 429;}
 
       return ErrorSanitizer.createErrorResponse(err, status, context, requestId);
     }

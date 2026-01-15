@@ -24,7 +24,7 @@ import {
   Activity,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 import { useInstructorStats, useInstructorCourses } from '../shared/hooks';
 import CourseCreator from './CourseCreator';
@@ -88,8 +88,8 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
     monthlyGrowth: {
       students: 15.2,
       revenue: 23.1,
-      enrollments: 18.7
-    }
+      enrollments: 18.7,
+    },
   };
 
   // Mock course performance data
@@ -103,7 +103,7 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
       completionRate: 87,
       status: 'published',
       lastUpdated: new Date('2024-01-15'),
-      thumbnail: '/api/placeholder/400/225'
+      thumbnail: '/api/placeholder/400/225',
     },
     {
       id: '2',
@@ -114,7 +114,7 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
       completionRate: 92,
       status: 'published',
       lastUpdated: new Date('2024-01-12'),
-      thumbnail: '/api/placeholder/400/225'
+      thumbnail: '/api/placeholder/400/225',
     },
     {
       id: '3',
@@ -125,7 +125,7 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
       completionRate: 78,
       status: 'published',
       lastUpdated: new Date('2024-01-10'),
-      thumbnail: '/api/placeholder/400/225'
+      thumbnail: '/api/placeholder/400/225',
     },
     {
       id: '4',
@@ -136,8 +136,8 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
       completionRate: 0,
       status: 'draft',
       lastUpdated: new Date('2024-01-08'),
-      thumbnail: '/api/placeholder/400/225'
-    }
+      thumbnail: '/api/placeholder/400/225',
+    },
   ];
 
   // Mock recent activity
@@ -147,53 +147,49 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
       type: 'enrollment',
       message: 'Sarah Johnson enrolled in Advanced React Patterns',
       timestamp: new Date('2024-01-16T14:30:00'),
-      metadata: { courseId: '1', studentName: 'Sarah Johnson' }
+      metadata: { courseId: '1', studentName: 'Sarah Johnson' },
     },
     {
       id: '2',
       type: 'review',
       message: 'Mike Chen left a 5-star review on TypeScript Mastery',
       timestamp: new Date('2024-01-16T12:15:00'),
-      metadata: { courseId: '2', studentName: 'Mike Chen', rating: 5 }
+      metadata: { courseId: '2', studentName: 'Mike Chen', rating: 5 },
     },
     {
       id: '3',
       type: 'completion',
       message: 'Emma Davis completed Node.js Backend Development',
       timestamp: new Date('2024-01-16T10:45:00'),
-      metadata: { courseId: '3', studentName: 'Emma Davis' }
+      metadata: { courseId: '3', studentName: 'Emma Davis' },
     },
     {
       id: '4',
       type: 'question',
       message: 'New question posted in Advanced React Patterns discussion',
       timestamp: new Date('2024-01-15T16:20:00'),
-      metadata: { courseId: '1' }
+      metadata: { courseId: '1' },
     },
     {
       id: '5',
       type: 'revenue',
       message: 'Revenue milestone: $45,000 total earnings reached',
       timestamp: new Date('2024-01-15T09:00:00'),
-      metadata: { amount: 45000 }
-    }
+      metadata: { amount: 45000 },
+    },
   ];
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+  }).format(amount);
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -202,8 +198,8 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffMins < 60) {return `${diffMins}m ago`;}
+    if (diffHours < 24) {return `${diffHours}h ago`;}
     return `${diffDays}d ago`;
   };
 
@@ -312,9 +308,9 @@ export function InstructorDashboard({ instructorId, className = '' }: Instructor
               className={`
                 flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === tab.id
-                  ? 'border-miyabi-blue text-miyabi-blue'
-                  : 'border-transparent text-gray-400 hover:text-gray-300'
-                }
+              ? 'border-miyabi-blue text-miyabi-blue'
+              : 'border-transparent text-gray-400 hover:text-gray-300'
+            }
               `}
             >
               {tab.icon}

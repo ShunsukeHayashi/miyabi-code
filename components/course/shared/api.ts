@@ -3,7 +3,7 @@
  * Issue #1299: Comprehensive course management UI components
  */
 
-import {
+import type {
   CourseWithRelations,
   CourseQuery,
   CourseFormData,
@@ -15,7 +15,7 @@ import {
   CourseAnalytics,
   StudentDashboard,
   ApiResponse,
-  SearchSuggestion
+  SearchSuggestion,
 } from './types';
 
 // Base API configuration
@@ -26,7 +26,7 @@ const DEFAULT_HEADERS = {
 
 // Get auth token from localStorage
 function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {return null;}
   return localStorage.getItem('miyabi-auth-token');
 }
 
@@ -42,7 +42,7 @@ function createAuthHeaders(): HeadersInit {
 // Generic API request wrapper
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
   const url = `${API_BASE}${endpoint}`;
   const response = await fetch(url, {
@@ -93,7 +93,7 @@ export const courseApi = {
   // Update course
   async updateCourse(
     courseId: string,
-    data: Partial<CourseFormData>
+    data: Partial<CourseFormData>,
   ): Promise<ApiResponse<CourseWithRelations>> {
     return apiRequest<CourseWithRelations>(`/courses/${courseId}`, {
       method: 'PATCH',
@@ -138,7 +138,7 @@ export const lessonApi = {
   async updateLesson(
     courseId: string,
     lessonId: string,
-    data: Partial<LessonFormData>
+    data: Partial<LessonFormData>,
   ): Promise<ApiResponse<any>> {
     return apiRequest<any>(`/courses/${courseId}/lessons/${lessonId}`, {
       method: 'PATCH',
@@ -172,7 +172,7 @@ export const enrollmentApi = {
   // Update enrollment progress
   async updateProgress(
     enrollmentId: string,
-    progressData: Partial<ProgressData>
+    progressData: Partial<ProgressData>,
   ): Promise<ApiResponse<any>> {
     return apiRequest<any>(`/enrollments/${enrollmentId}/progress`, {
       method: 'PATCH',
@@ -196,7 +196,7 @@ export const assessmentApi = {
   // Submit assessment answers
   async submitAssessment(
     assessmentId: string,
-    submission: AssessmentSubmission
+    submission: AssessmentSubmission,
   ): Promise<ApiResponse<any>> {
     return apiRequest<any>(`/assessments/${assessmentId}/submit`, {
       method: 'POST',
@@ -229,7 +229,7 @@ export const reviewApi = {
   async updateReview(
     courseId: string,
     reviewId: string,
-    data: Partial<ReviewFormData>
+    data: Partial<ReviewFormData>,
   ): Promise<ApiResponse<any>> {
     return apiRequest<any>(`/courses/${courseId}/reviews/${reviewId}`, {
       method: 'PATCH',

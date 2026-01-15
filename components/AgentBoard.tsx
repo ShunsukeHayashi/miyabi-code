@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
 
-import type { Agent, AgentStatus } from '@/components/dashboardData'
+import type { Agent, AgentStatus } from '@/components/dashboardData';
 
 interface AgentBoardProps {
   agents: Agent[]
@@ -12,68 +12,68 @@ interface AgentBoardProps {
 
 type StatusFilter = 'all' | AgentStatus
 
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
+const STATUS_OPTIONS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'all', label: 'すべて' },
   { value: 'working', label: 'Working' },
   { value: 'active', label: 'Active' },
   { value: 'idle', label: 'Idle' },
-]
+];
 
 const STATUS_STYLES: Record<AgentStatus, { badge: string; indicator: string; label: string }> = {
   working: {
     badge: 'bg-miyabi-purple/20 text-miyabi-purple border-miyabi-purple/40',
     indicator: 'bg-miyabi-purple',
-    label: 'Working'
+    label: 'Working',
   },
   active: {
     badge: 'bg-miyabi-blue/20 text-miyabi-blue border-miyabi-blue/40',
     indicator: 'bg-miyabi-blue',
-    label: 'Active'
+    label: 'Active',
   },
   idle: {
     badge: 'bg-gray-800 text-gray-300 border-gray-700',
     indicator: 'bg-gray-500',
-    label: 'Idle'
-  }
-}
+    label: 'Idle',
+  },
+};
 
 const nextStatus = (status: AgentStatus): AgentStatus => {
   switch (status) {
     case 'idle':
-      return 'active'
+      return 'active';
     case 'active':
-      return 'working'
+      return 'working';
     default:
-      return 'idle'
+      return 'idle';
   }
-}
+};
 
 export default function AgentBoard({ agents, onStatusChange, onAgentFocus }: AgentBoardProps) {
-  const [filter, setFilter] = useState<StatusFilter>('all')
-  const [search, setSearch] = useState('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [filter, setFilter] = useState<StatusFilter>('all');
+  const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const filteredAgents = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase()
+    const normalizedSearch = search.trim().toLowerCase();
 
     return agents.filter((agent) => {
-      const matchesFilter = filter === 'all' || agent.status === filter
+      const matchesFilter = filter === 'all' || agent.status === filter;
       const matchesSearch =
         !normalizedSearch ||
         agent.displayName.toLowerCase().includes(normalizedSearch) ||
-        agent.codename.toLowerCase().includes(normalizedSearch)
+        agent.codename.toLowerCase().includes(normalizedSearch);
 
-      return matchesFilter && matchesSearch
-    })
-  }, [agents, filter, search])
+      return matchesFilter && matchesSearch;
+    });
+  }, [agents, filter, search]);
 
   const handleStatusChange = (agentId: string, status: AgentStatus) => {
-    onStatusChange?.(agentId, status)
-  }
+    onStatusChange?.(agentId, status);
+  };
 
   const renderAgentCard = (agent: Agent) => {
-    const statusStyle = STATUS_STYLES[agent.status]
-    const utilizationPercent = Math.round(agent.utilization * 100)
+    const statusStyle = STATUS_STYLES[agent.status];
+    const utilizationPercent = Math.round(agent.utilization * 100);
 
     return (
       <div
@@ -159,8 +159,8 @@ export default function AgentBoard({ agents, onStatusChange, onAgentFocus }: Age
           Updated {new Date(agent.lastUpdated).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <section className="space-y-6">
@@ -289,5 +289,5 @@ export default function AgentBoard({ agents, onStatusChange, onAgentFocus }: Age
         </div>
       )}
     </section>
-  )
+  );
 }

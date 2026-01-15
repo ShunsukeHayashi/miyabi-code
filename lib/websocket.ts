@@ -37,7 +37,7 @@ export class MiyabiWebSocket {
    * Connect to the WebSocket server
    */
   connect(): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
       console.log('[MiyabiWebSocket] Already connected');
       return;
     }
@@ -166,7 +166,7 @@ export class MiyabiWebSocket {
 
     const delay = Math.min(
       this.reconnectInterval * Math.pow(2, this.reconnectAttempts),
-      this.maxReconnectInterval
+      this.maxReconnectInterval,
     );
 
     console.log(`[MiyabiWebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1})...`);
@@ -189,7 +189,7 @@ export class MiyabiWebSocket {
    * Get the current connection state
    */
   getState(): 'connecting' | 'open' | 'closing' | 'closed' {
-    if (!this.ws) return 'closed';
+    if (!this.ws) {return 'closed';}
 
     switch (this.ws.readyState) {
       case WebSocket.CONNECTING:

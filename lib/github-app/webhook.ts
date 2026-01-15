@@ -5,7 +5,7 @@
 
 import * as crypto from 'crypto';
 import { getGitHubAppConfig } from './config';
-import {
+import type {
   WebhookPayload,
   IssueWebhookPayload,
   IssueCommentWebhookPayload,
@@ -34,7 +34,7 @@ export interface WebhookContext {
 
 export function verifyWebhookSignature(
   payload: string | Buffer,
-  signature: string | null
+  signature: string | null,
 ): WebhookVerificationResult {
   const config = getGitHubAppConfig();
 
@@ -62,7 +62,7 @@ export function verifyWebhookSignature(
 
   const isValid = crypto.timingSafeEqual(
     Buffer.from(receivedSignature, 'hex'),
-    Buffer.from(expectedSignature, 'hex')
+    Buffer.from(expectedSignature, 'hex'),
   );
 
   if (!isValid) {
@@ -109,7 +109,7 @@ export class WebhookProcessor {
   registerHandler<T extends WebhookPayload>(
     event: GitHubWebhookEvent,
     action: string | '*',
-    handler: WebhookHandler<T>
+    handler: WebhookHandler<T>,
   ): void {
     const key = `${event}:${action}`;
     const existing = this.handlers.get(key) || [];
@@ -118,7 +118,7 @@ export class WebhookProcessor {
   }
 
   registerMiddleware(
-    middleware: (payload: WebhookPayload, context: WebhookContext) => Promise<boolean>
+    middleware: (payload: WebhookPayload, context: WebhookContext) => Promise<boolean>,
   ): void {
     this.middleware.push(middleware);
   }
@@ -126,7 +126,7 @@ export class WebhookProcessor {
   async process(
     event: GitHubWebhookEvent,
     payload: WebhookPayload,
-    context: WebhookContext
+    context: WebhookContext,
   ): Promise<WebhookHandlerResult[]> {
     for (const middleware of this.middleware) {
       const shouldContinue = await middleware(payload, context);
@@ -181,7 +181,7 @@ webhookProcessor.registerHandler<IssueWebhookPayload>(
     console.log(`[Webhook] Issue opened: #${payload.issue.number} - ${payload.issue.title}`);
 
     const hasAILabel = payload.issue.labels.some(
-      (label) => label.name.toLowerCase().includes('ai') || label.name.toLowerCase().includes('miyabi')
+      (label) => label.name.toLowerCase().includes('ai') || label.name.toLowerCase().includes('miyabi'),
     );
 
     if (hasAILabel) {
@@ -199,7 +199,7 @@ webhookProcessor.registerHandler<IssueWebhookPayload>(
       success: true,
       message: 'Issue received but not tagged for AI processing',
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<IssueWebhookPayload>(
@@ -216,7 +216,7 @@ webhookProcessor.registerHandler<IssueWebhookPayload>(
         labels: payload.issue.labels.map((l) => l.name),
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<IssueCommentWebhookPayload>(
@@ -241,7 +241,7 @@ webhookProcessor.registerHandler<IssueCommentWebhookPayload>(
       success: true,
       message: 'Comment received',
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<PullRequestWebhookPayload>(
@@ -260,7 +260,7 @@ webhookProcessor.registerHandler<PullRequestWebhookPayload>(
         base: payload.pull_request.base.ref,
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<PullRequestWebhookPayload>(
@@ -277,7 +277,7 @@ webhookProcessor.registerHandler<PullRequestWebhookPayload>(
         headSha: payload.pull_request.head.sha,
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<PullRequestReviewWebhookPayload>(
@@ -295,7 +295,7 @@ webhookProcessor.registerHandler<PullRequestReviewWebhookPayload>(
         reviewer: payload.review.user.login,
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<PushWebhookPayload>(
@@ -314,7 +314,7 @@ webhookProcessor.registerHandler<PushWebhookPayload>(
         headCommit: payload.head_commit?.id,
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<InstallationWebhookPayload>(
@@ -333,7 +333,7 @@ webhookProcessor.registerHandler<InstallationWebhookPayload>(
         repositories: payload.repositories?.map((r) => r.full_name) || [],
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<InstallationWebhookPayload>(
@@ -350,7 +350,7 @@ webhookProcessor.registerHandler<InstallationWebhookPayload>(
         account: payload.installation.account.login,
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<InstallationRepositoriesWebhookPayload>(
@@ -358,7 +358,7 @@ webhookProcessor.registerHandler<InstallationRepositoriesWebhookPayload>(
   'added',
   async (payload, context) => {
     console.log(
-      `[Webhook] Repositories added to installation: ${payload.repositories_added.map((r) => r.full_name).join(', ')}`
+      `[Webhook] Repositories added to installation: ${payload.repositories_added.map((r) => r.full_name).join(', ')}`,
     );
 
     return {
@@ -369,7 +369,7 @@ webhookProcessor.registerHandler<InstallationRepositoriesWebhookPayload>(
         added: payload.repositories_added.map((r) => r.full_name),
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerHandler<InstallationRepositoriesWebhookPayload>(
@@ -377,7 +377,7 @@ webhookProcessor.registerHandler<InstallationRepositoriesWebhookPayload>(
   'removed',
   async (payload, context) => {
     console.log(
-      `[Webhook] Repositories removed from installation: ${payload.repositories_removed.map((r) => r.full_name).join(', ')}`
+      `[Webhook] Repositories removed from installation: ${payload.repositories_removed.map((r) => r.full_name).join(', ')}`,
     );
 
     return {
@@ -388,7 +388,7 @@ webhookProcessor.registerHandler<InstallationRepositoriesWebhookPayload>(
         removed: payload.repositories_removed.map((r) => r.full_name),
       },
     };
-  }
+  },
 );
 
 webhookProcessor.registerMiddleware(async (payload, context) => {

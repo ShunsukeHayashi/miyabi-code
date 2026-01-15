@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { analyticsEngine } from '@/lib/analytics/analytics-engine';
 import { authenticateRequest } from '@/lib/auth/middleware';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user (should be admin/instructor)

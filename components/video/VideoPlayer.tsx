@@ -6,7 +6,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { videoService, VideoContent, VideoChapter, VideoCaption, VideoInteraction } from '@/lib/video/video-service';
+import type { VideoContent, VideoChapter, VideoCaption, VideoInteraction } from '@/lib/video/video-service';
+import { videoService } from '@/lib/video/video-service';
 
 interface VideoPlayerProps {
   videoId: string;
@@ -40,7 +41,7 @@ export default function VideoPlayer({
   startTime = 0,
   onProgress,
   onComplete,
-  className = ''
+  className = '',
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoContent, setVideoContent] = useState<VideoContent | null>(null);
@@ -71,7 +72,7 @@ export default function VideoPlayer({
     quality: 'auto',
     volume: 1.0,
     captions: false,
-    captionLanguage: 'en'
+    captionLanguage: 'en',
   });
 
   // Current chapter
@@ -100,7 +101,7 @@ export default function VideoPlayer({
           setCaptions(content.captions);
           setSettings(prev => ({
             ...prev,
-            captions: content.captions!.length > 0
+            captions: content.captions!.length > 0,
           }));
         }
 
@@ -138,7 +139,7 @@ export default function VideoPlayer({
 
       // Update current chapter
       const chapter = chapters.find(
-        ch => current >= ch.startTime && current <= ch.endTime
+        ch => current >= ch.startTime && current <= ch.endTime,
       );
       setCurrentChapter(chapter || null);
 
@@ -146,7 +147,7 @@ export default function VideoPlayer({
       trackInteraction({
         type: 'seek',
         timestamp: Date.now(),
-        videoTime: current
+        videoTime: current,
       });
     }
   }, [duration, chapters, onProgress]);
@@ -169,7 +170,7 @@ export default function VideoPlayer({
     trackInteraction({
       type: 'pause',
       timestamp: Date.now(),
-      videoTime: duration
+      videoTime: duration,
     });
   }, [duration, onComplete]);
 
@@ -182,7 +183,7 @@ export default function VideoPlayer({
         trackInteraction({
           type: 'pause',
           timestamp: Date.now(),
-          videoTime: currentTime
+          videoTime: currentTime,
         });
       } else {
         videoRef.current.play();
@@ -190,7 +191,7 @@ export default function VideoPlayer({
         trackInteraction({
           type: 'play',
           timestamp: Date.now(),
-          videoTime: currentTime
+          videoTime: currentTime,
         });
       }
     }
@@ -202,7 +203,7 @@ export default function VideoPlayer({
       trackInteraction({
         type: 'seek',
         timestamp: Date.now(),
-        videoTime: time
+        videoTime: time,
       });
     }
   }, []);
@@ -230,19 +231,19 @@ export default function VideoPlayer({
       type: 'chapter_change',
       timestamp: Date.now(),
       videoTime: chapter.startTime,
-      data: { chapterId: chapter.id, title: chapter.title }
+      data: { chapterId: chapter.id, title: chapter.title },
     });
   }, [seekTo]);
 
   // Note-taking
   const addNote = useCallback(async () => {
-    if (!newNote.trim()) return;
+    if (!newNote.trim()) {return;}
 
     const note: VideoNote = {
       id: `note_${Date.now()}`,
       timestamp: currentTime,
       content: newNote.trim(),
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     setNotes(prev => [...prev, note].sort((a, b) => a.timestamp - b.timestamp));
@@ -253,7 +254,7 @@ export default function VideoPlayer({
       type: 'note_add',
       timestamp: Date.now(),
       videoTime: currentTime,
-      data: { noteContent: note.content }
+      data: { noteContent: note.content },
     });
 
     // In a real implementation, save note to database

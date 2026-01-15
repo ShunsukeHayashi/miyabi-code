@@ -19,7 +19,7 @@ import {
   BarChart3,
   Users,
   Trophy,
-  Zap
+  Zap,
 } from 'lucide-react';
 import { useCourses, useCourseProgress, useUserStats } from '../shared/hooks';
 import MyCourses from './MyCourses';
@@ -58,7 +58,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'activity' | 'certificates'>('overview');
 
   const { data: enrolledCourses, isLoading: coursesLoading } = useCourses({
-    filter: { enrolled: true, userId }
+    filter: { enrolled: true, userId },
   });
 
   const { data: userStats, isLoading: statsLoading } = useUserStats(userId);
@@ -71,7 +71,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       value: enrolledCourses?.length || 0,
       icon: <BookOpen size={20} />,
       color: 'miyabi-blue',
-      trend: { value: 2, isPositive: true }
+      trend: { value: 2, isPositive: true },
     },
     {
       id: 'hours',
@@ -79,7 +79,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       value: '12.5h',
       icon: <Clock size={20} />,
       color: 'miyabi-green',
-      trend: { value: 15, isPositive: true }
+      trend: { value: 15, isPositive: true },
     },
     {
       id: 'streak',
@@ -87,7 +87,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       value: '7 days',
       icon: <Zap size={20} />,
       color: 'orange-500',
-      trend: { value: 7, isPositive: true }
+      trend: { value: 7, isPositive: true },
     },
     {
       id: 'certificates',
@@ -95,8 +95,8 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       value: 3,
       icon: <Award size={20} />,
       color: 'miyabi-purple',
-      trend: { value: 1, isPositive: true }
-    }
+      trend: { value: 1, isPositive: true },
+    },
   ];
 
   const learningGoals: LearningGoal[] = [
@@ -107,7 +107,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       progress: 75,
       target: 100,
       deadline: new Date('2024-02-28'),
-      icon: <BookOpen className="text-miyabi-blue" size={16} />
+      icon: <BookOpen className="text-miyabi-blue" size={16} />,
     },
     {
       id: '2',
@@ -116,7 +116,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       progress: 16,
       target: 20,
       deadline: new Date('2024-02-29'),
-      icon: <Target className="text-miyabi-green" size={16} />
+      icon: <Target className="text-miyabi-green" size={16} />,
     },
     {
       id: '3',
@@ -125,8 +125,8 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       progress: 60,
       target: 100,
       deadline: new Date('2024-03-15'),
-      icon: <Award className="text-miyabi-purple" size={16} />
-    }
+      icon: <Award className="text-miyabi-purple" size={16} />,
+    },
   ];
 
   const recentAchievements = [
@@ -136,7 +136,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       description: 'Completed 3 lessons in one day',
       earnedAt: new Date('2024-01-15'),
       icon: <Zap className="text-orange-500" />,
-      rarity: 'common'
+      rarity: 'common',
     },
     {
       id: '2',
@@ -144,7 +144,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       description: 'Maintained 7-day learning streak',
       earnedAt: new Date('2024-01-14'),
       icon: <Calendar className="text-miyabi-blue" />,
-      rarity: 'uncommon'
+      rarity: 'uncommon',
     },
     {
       id: '3',
@@ -152,8 +152,8 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       description: 'Finished Introduction to JavaScript',
       earnedAt: new Date('2024-01-10'),
       icon: <Trophy className="text-yellow-500" />,
-      rarity: 'rare'
-    }
+      rarity: 'rare',
+    },
   ];
 
   const upcomingDeadlines = [
@@ -162,22 +162,22 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
       title: 'React Assignment Due',
       course: 'Advanced React Patterns',
       deadline: new Date('2024-01-20'),
-      type: 'assignment' as const
+      type: 'assignment' as const,
     },
     {
       id: '2',
       title: 'TypeScript Quiz',
       course: 'TypeScript Fundamentals',
       deadline: new Date('2024-01-22'),
-      type: 'quiz' as const
+      type: 'quiz' as const,
     },
     {
       id: '3',
       title: 'Final Project Submission',
       course: 'Full Stack Development',
       deadline: new Date('2024-01-25'),
-      type: 'project' as const
-    }
+      type: 'project' as const,
+    },
   ];
 
   const getDaysUntilDeadline = (deadline: Date) => {
@@ -187,13 +187,11 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
     return diffDays;
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 size={16} /> },
@@ -214,7 +212,7 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
           <div>
             <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
             <p className="text-white/80">
-              Continue your learning journey. You're doing great!
+              Continue your learning journey. You&apos;re doing great!
             </p>
           </div>
           <div className="text-right">
@@ -257,9 +255,9 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
               className={`
                 flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === tab.id
-                  ? 'border-miyabi-blue text-miyabi-blue'
-                  : 'border-transparent text-gray-400 hover:text-gray-300'
-                }
+              ? 'border-miyabi-blue text-miyabi-blue'
+              : 'border-transparent text-gray-400 hover:text-gray-300'
+            }
               `}
             >
               {tab.icon}
@@ -335,12 +333,12 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
                         <div className="mt-2">
                           <div className="flex justify-between text-sm text-gray-400 mb-1">
                             <span>Progress</span>
-                            <span>{Math.round((course as any).progress || 0)}%</span>
+                            <span>{Math.round((course).progress || 0)}%</span>
                           </div>
                           <div className="w-full bg-gray-700 rounded-full h-1">
                             <div
                               className="bg-miyabi-blue h-1 rounded-full"
-                              style={{ width: `${(course as any).progress || 0}%` }}
+                              style={{ width: `${(course).progress || 0}%` }}
                             />
                           </div>
                         </div>
@@ -410,10 +408,10 @@ export function StudentDashboard({ userId, className = '' }: StudentDashboardPro
                   <Calendar className="mx-auto text-miyabi-purple mb-3" size={32} />
                   <h3 className="text-lg font-semibold text-white mb-2">Daily Study Reminder</h3>
                   <p className="text-sm text-gray-400 mb-4">
-                    You're on a 7-day streak! Keep it going.
+                    You&apos;re on a 7-day streak! Keep it going.
                   </p>
                   <button className="w-full bg-miyabi-purple hover:bg-purple-600 text-white py-2 px-4 rounded-lg transition-colors">
-                    Start Today's Session
+                    Start Today&apos;s Session
                   </button>
                 </div>
               </div>

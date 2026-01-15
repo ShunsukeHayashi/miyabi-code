@@ -3,7 +3,7 @@
  * Issue #1300: Role definitions and permission matrices for AI Course functionality
  */
 
-import { UserRole } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
 
 export type CoursePermission =
   // Course-level permissions
@@ -40,75 +40,75 @@ export type Permission = CoursePermission | SystemPermission;
 /**
  * Permission matrices for different user roles
  */
+const STUDENT_PERMISSIONS: Permission[] = [
+  // Course access for enrolled students
+  'course:view',
+  'course:preview',
+  'lesson:view',
+  'assessment:take',
+  'assessment:view_results',
+  'progress:view',
+  'certificate:view',
+  'enrollment:view',
+];
+
+const INSTRUCTOR_PERMISSIONS: Permission[] = [
+  ...STUDENT_PERMISSIONS,
+  // Course management for assigned courses
+  'course:edit',
+  'course:view_analytics',
+  'course:manage_students',
+  'lesson:edit',
+  'lesson:create',
+  'lesson:delete',
+  'lesson:reorder',
+  'lesson:publish',
+  'assessment:view',
+  'assessment:edit',
+  'assessment:create',
+  'assessment:delete',
+  'assessment:grade',
+  'progress:edit',
+  'enrollment:view',
+  'enrollment:create',
+  'enrollment:edit',
+  'certificate:generate',
+];
+
+const ADMIN_PERMISSIONS: Permission[] = [
+  ...INSTRUCTOR_PERMISSIONS,
+  // Platform-wide administration
+  'course:delete',
+  'course:publish',
+  'course:approve',
+  'course:create',
+  'progress:reset',
+  'enrollment:delete',
+  'enrollment:bulk_manage',
+  'admin:courses',
+  'admin:analytics',
+  'admin:users',
+  'admin:payments',
+  'admin:reports',
+  'user:create',
+  'user:edit',
+  'user:delete',
+  'user:view',
+];
+
+const SUPER_ADMIN_PERMISSIONS: Permission[] = [
+  ...ADMIN_PERMISSIONS,
+  'admin:settings',
+  'system:settings',
+  'system:logs',
+  'system:backup',
+];
+
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  STUDENT: [
-    // Course access for enrolled students
-    'course:view',
-    'course:preview',
-    'lesson:view',
-    'assessment:take',
-    'assessment:view_results',
-    'progress:view',
-    'certificate:view',
-    'enrollment:view',
-  ],
-
-  INSTRUCTOR: [
-    // All student permissions
-    ...ROLE_PERMISSIONS.STUDENT,
-
-    // Course management for assigned courses
-    'course:edit',
-    'course:view_analytics',
-    'course:manage_students',
-    'lesson:edit',
-    'lesson:create',
-    'lesson:delete',
-    'lesson:reorder',
-    'lesson:publish',
-    'assessment:view',
-    'assessment:edit',
-    'assessment:create',
-    'assessment:delete',
-    'assessment:grade',
-    'progress:edit',
-    'enrollment:view',
-    'enrollment:create',
-    'enrollment:edit',
-    'certificate:generate',
-  ],
-
-  ADMIN: [
-    // All instructor permissions
-    ...ROLE_PERMISSIONS.INSTRUCTOR,
-
-    // Platform-wide administration
-    'course:delete',
-    'course:publish',
-    'course:approve',
-    'course:create',
-    'progress:reset',
-    'enrollment:delete',
-    'enrollment:bulk_manage',
-    'admin:courses',
-    'admin:analytics',
-    'admin:users',
-    'admin:payments',
-    'admin:reports',
-    'user:create',
-    'user:edit',
-    'user:delete',
-    'user:view',
-  ],
-
-  SUPER_ADMIN: [
-    // All admin permissions plus system-level access
-    ...ROLE_PERMISSIONS.ADMIN,
-    'admin:settings',
-    'system:settings',
-    'system:logs',
-    'system:backup',
-  ],
+  STUDENT: STUDENT_PERMISSIONS,
+  INSTRUCTOR: INSTRUCTOR_PERMISSIONS,
+  ADMIN: ADMIN_PERMISSIONS,
+  SUPER_ADMIN: SUPER_ADMIN_PERMISSIONS,
 };
 
 /**
@@ -129,7 +129,7 @@ export interface PermissionContext {
  */
 export function hasPermission(
   context: PermissionContext,
-  permission: Permission
+  permission: Permission,
 ): boolean {
   // Super admin has all permissions
   if (context.userRole === 'SUPER_ADMIN') {
@@ -151,7 +151,7 @@ export function hasPermission(
  */
 function checkContextualPermissions(
   context: PermissionContext,
-  permission: Permission
+  permission: Permission,
 ): boolean {
   const { userId, userRole, courseCreatorId, isEnrolled, isInstructor, enrollmentStatus } = context;
 
@@ -205,7 +205,7 @@ export function getUserPermissions(context: PermissionContext): Permission[] {
 
   // Filter permissions based on context
   return basePermissions.filter(permission =>
-    checkContextualPermissions(context, permission)
+    checkContextualPermissions(context, permission),
   );
 }
 
@@ -215,31 +215,31 @@ export function getUserPermissions(context: PermissionContext): Permission[] {
 export const PERMISSION_GROUPS = {
   'Course Management': [
     'course:view', 'course:edit', 'course:delete', 'course:publish',
-    'course:manage_students', 'course:view_analytics', 'course:preview'
+    'course:manage_students', 'course:view_analytics', 'course:preview',
   ],
   'Content Creation': [
     'lesson:view', 'lesson:edit', 'lesson:delete', 'lesson:create',
-    'lesson:reorder', 'lesson:publish'
+    'lesson:reorder', 'lesson:publish',
   ],
   'Assessment Management': [
     'assessment:view', 'assessment:edit', 'assessment:create', 'assessment:delete',
-    'assessment:take', 'assessment:grade', 'assessment:view_results'
+    'assessment:take', 'assessment:grade', 'assessment:view_results',
   ],
   'Student Management': [
     'enrollment:view', 'enrollment:create', 'enrollment:edit', 'enrollment:delete',
-    'enrollment:bulk_manage', 'progress:view', 'progress:edit', 'progress:reset'
+    'enrollment:bulk_manage', 'progress:view', 'progress:edit', 'progress:reset',
   ],
   'Certification': [
-    'certificate:view', 'certificate:generate'
+    'certificate:view', 'certificate:generate',
   ],
   'Administration': [
     'admin:users', 'admin:courses', 'admin:analytics', 'admin:settings',
-    'admin:payments', 'admin:reports'
+    'admin:payments', 'admin:reports',
   ],
   'System': [
     'system:settings', 'system:logs', 'system:backup',
-    'user:create', 'user:edit', 'user:delete', 'user:view'
-  ]
+    'user:create', 'user:edit', 'user:delete', 'user:view',
+  ],
 } as const;
 
 /**
@@ -333,7 +333,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
  */
 export function hasAnyPermission(
   context: PermissionContext,
-  permissions: Permission[]
+  permissions: Permission[],
 ): boolean {
   return permissions.some(permission => hasPermission(context, permission));
 }
@@ -343,7 +343,7 @@ export function hasAnyPermission(
  */
 export function hasAllPermissions(
   context: PermissionContext,
-  permissions: Permission[]
+  permissions: Permission[],
 ): boolean {
   return permissions.every(permission => hasPermission(context, permission));
 }

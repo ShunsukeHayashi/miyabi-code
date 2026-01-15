@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -125,9 +125,9 @@ function formatTimeAgo(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 60) {return 'just now';}
+  if (diffInSeconds < 3600) {return `${Math.floor(diffInSeconds / 60)}m ago`;}
+  if (diffInSeconds < 86400) {return `${Math.floor(diffInSeconds / 3600)}h ago`;}
   return `${Math.floor(diffInSeconds / 86400)}d ago`;
 }
 
@@ -137,7 +137,7 @@ export default function RepositoriesPage() {
 
   const filteredRepositories = repositories.filter((repo) =>
     repo.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    repo.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    repo.description?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const connectedCount = repositories.filter((r) => r.agents.length > 0).length;

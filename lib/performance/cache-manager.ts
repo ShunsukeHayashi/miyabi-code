@@ -159,7 +159,7 @@ export class CacheManager {
    */
   async invalidateByTag(tag: string): Promise<void> {
     const keys = this.tagMap.get(tag);
-    if (!keys) return;
+    if (!keys) {return;}
 
     const deletePromises = Array.from(keys).map(key => this.delete(key));
     await Promise.all(deletePromises);
@@ -173,7 +173,7 @@ export class CacheManager {
   async getOrSet<T>(
     key: string,
     factory: () => Promise<T>,
-    options: CacheOptions = {}
+    options: CacheOptions = {},
   ): Promise<T> {
     const cached = await this.get<T>(key, options);
     if (cached !== null) {
@@ -265,16 +265,16 @@ export class CacheManager {
         hits: this.l1Stats.hits,
         misses: this.l1Stats.misses,
         size: this.l1Cache.size,
-        memoryUsage: this.getL1MemoryUsage()
+        memoryUsage: this.getL1MemoryUsage(),
       },
       l2: {
         hits: this.l2Stats.hits,
         misses: this.l2Stats.misses,
-        connectionCount: this.redis ? 1 : 0
+        connectionCount: this.redis ? 1 : 0,
       },
       totalHits,
       totalMisses,
-      hitRate: totalRequests > 0 ? totalHits / totalRequests : 0
+      hitRate: totalRequests > 0 ? totalHits / totalRequests : 0,
     };
   }
 
@@ -302,7 +302,7 @@ export class CacheManager {
 
   private getFromL1<T>(key: string): T | null {
     const item = this.l1Cache.get(key);
-    if (!item) return null;
+    if (!item) {return null;}
 
     // Check expiry
     if (Date.now() > item.expiry) {
@@ -327,14 +327,14 @@ export class CacheManager {
       data: value,
       expiry: Date.now() + (ttlSeconds * 1000),
       lastAccessed: Date.now(),
-      accessCount: 1
+      accessCount: 1,
     };
 
     this.l1Cache.set(key, item);
   }
 
   private async getFromL2<T>(key: string): Promise<T | null> {
-    if (!this.redis) return null;
+    if (!this.redis) {return null;}
 
     try {
       const result = await this.redis.get(key);
@@ -346,7 +346,7 @@ export class CacheManager {
   }
 
   private async setInL2<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
-    if (!this.redis) return;
+    if (!this.redis) {return;}
 
     try {
       await this.redis.setex(key, ttlSeconds, JSON.stringify(value));
@@ -357,7 +357,7 @@ export class CacheManager {
 
   private async getBatchFromL2<T>(keys: string[]): Promise<Map<string, T>> {
     const results = new Map<string, T>();
-    if (!this.redis || keys.length === 0) return results;
+    if (!this.redis || keys.length === 0) {return results;}
 
     try {
       const values = await this.redis.mget(...keys);
@@ -374,7 +374,7 @@ export class CacheManager {
   }
 
   private async setBatchInL2<T>(items: Map<string, T>, ttlSeconds: number): Promise<void> {
-    if (!this.redis || items.size === 0) return;
+    if (!this.redis || items.size === 0) {return;}
 
     try {
       const pipeline = this.redis.pipeline();
@@ -454,17 +454,15 @@ export class CacheManager {
 // Singleton instance
 export const cacheManager = new CacheManager({
   l1MaxSize: parseInt(process.env.L1_CACHE_SIZE || '1000'),
-  redisUrl: process.env.REDIS_URL
+  redisUrl: process.env.REDIS_URL,
 });
 
 // Utility functions for common cache operations
 export const withCache = <T>(
   key: string,
   factory: () => Promise<T>,
-  options?: CacheOptions
-) => {
-  return cacheManager.getOrSet(key, factory, options);
-};
+  options?: CacheOptions,
+) => cacheManager.getOrSet(key, factory, options);
 
 export const cacheKey = {
   course: (id: string) => `course:${id}`,
@@ -473,5 +471,5 @@ export const cacheKey = {
   analytics: (courseId: string, period: string) => `analytics:${courseId}:${period}`,
   aiSuggestions: (topic: string, audience: string) => `ai:suggestions:${topic}:${audience}`,
   videoMetadata: (videoId: string) => `video:${videoId}`,
-  assessmentResults: (userId: string, assessmentId: string) => `assessment:${userId}:${assessmentId}`
+  assessmentResults: (userId: string, assessmentId: string) => `assessment:${userId}:${assessmentId}`,
 };

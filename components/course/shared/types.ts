@@ -3,7 +3,7 @@
  * Issue #1299: Comprehensive course management UI components
  */
 
-import {
+import type {
   Course,
   CourseStatus,
   CourseLevel,
@@ -12,13 +12,15 @@ import {
   Lesson,
   LessonType,
   Assessment,
-  AssessmentType,
   Enrollment,
-  EnrollmentStatus,
   UserProgress,
   Certificate,
+  UserRole,
+} from '@prisma/client';
+import {
+  AssessmentType,
+  EnrollmentStatus,
   CourseReview,
-  UserRole
 } from '@prisma/client';
 
 // Extended course type with relations
@@ -209,14 +211,14 @@ export interface CourseAnalytics {
 // Student dashboard data
 export interface StudentDashboard {
   enrolledCourses: CourseWithRelations[];
-  recentActivity: {
+  recentActivity: Array<{
     type: 'lesson' | 'assessment' | 'certificate';
     courseId: string;
     courseTitle: string;
     itemId: string;
     itemTitle: string;
     timestamp: Date;
-  }[];
+  }>;
   achievements: {
     totalCertificates: number;
     totalCoursesCompleted: number;

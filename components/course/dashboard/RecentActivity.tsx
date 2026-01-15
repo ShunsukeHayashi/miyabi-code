@@ -21,7 +21,7 @@ import {
   Target,
   Zap,
   Trophy,
-  Download
+  Download,
 } from 'lucide-react';
 import { useUserActivity } from '../shared/hooks';
 import { LoadingSpinner } from '../shared/LoadingComponents';
@@ -71,10 +71,10 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
         courseName: 'Advanced React Patterns',
         lessonId: 'lesson-3',
         lessonName: 'React Hooks Fundamentals',
-        points: 50
+        points: 50,
       },
       icon: <Play className="text-miyabi-blue" size={20} />,
-      color: 'miyabi-blue'
+      color: 'miyabi-blue',
     },
     {
       id: '2',
@@ -84,10 +84,10 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       timestamp: new Date('2024-01-16T13:15:00'),
       metadata: {
         achievementId: 'quick-learner',
-        points: 100
+        points: 100,
       },
       icon: <Zap className="text-orange-500" size={20} />,
-      color: 'orange-500'
+      color: 'orange-500',
     },
     {
       id: '3',
@@ -99,10 +99,10 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
         courseId: 'course-2',
         courseName: 'TypeScript Fundamentals',
         score: 85,
-        points: 75
+        points: 75,
       },
       icon: <CheckCircle className="text-miyabi-green" size={20} />,
-      color: 'miyabi-green'
+      color: 'miyabi-green',
     },
     {
       id: '4',
@@ -112,10 +112,10 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       timestamp: new Date('2024-01-15T11:20:00'),
       metadata: {
         courseId: 'course-1',
-        courseName: 'Advanced React Patterns'
+        courseName: 'Advanced React Patterns',
       },
       icon: <MessageSquare className="text-miyabi-purple" size={20} />,
-      color: 'miyabi-purple'
+      color: 'miyabi-purple',
     },
     {
       id: '5',
@@ -125,10 +125,10 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       timestamp: new Date('2024-01-14T09:30:00'),
       metadata: {
         courseId: 'course-3',
-        courseName: 'Node.js Backend Development'
+        courseName: 'Node.js Backend Development',
       },
       icon: <BookOpen className="text-miyabi-blue" size={20} />,
-      color: 'miyabi-blue'
+      color: 'miyabi-blue',
     },
     {
       id: '6',
@@ -139,10 +139,10 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       metadata: {
         courseId: 'course-4',
         courseName: 'JavaScript Fundamentals',
-        points: 200
+        points: 200,
       },
       icon: <Award className="text-yellow-500" size={20} />,
-      color: 'yellow-500'
+      color: 'yellow-500',
     },
     {
       id: '7',
@@ -152,10 +152,10 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       timestamp: new Date('2024-01-12T18:00:00'),
       metadata: {
         streakDays: 7,
-        points: 50
+        points: 50,
       },
       icon: <Calendar className="text-miyabi-green" size={20} />,
-      color: 'miyabi-green'
+      color: 'miyabi-green',
     },
     {
       id: '8',
@@ -166,11 +166,11 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       metadata: {
         courseId: 'course-1',
         courseName: 'Advanced React Patterns',
-        points: 100
+        points: 100,
       },
       icon: <FileText className="text-miyabi-purple" size={20} />,
-      color: 'miyabi-purple'
-    }
+      color: 'miyabi-purple',
+    },
   ];
 
   const getActivityTypeLabel = (type: ActivityItem['type']) => {
@@ -204,7 +204,7 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       return timestamp.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-        year: 'numeric'
+        year: 'numeric',
       });
     }
   };
@@ -217,22 +217,22 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
       switch (activityFilter) {
         case 'courses':
           filtered = filtered.filter(a =>
-            ['lesson_completed', 'course_enrolled'].includes(a.type)
+            ['lesson_completed', 'course_enrolled'].includes(a.type),
           );
           break;
         case 'achievements':
           filtered = filtered.filter(a =>
-            ['achievement_earned', 'certificate_earned', 'streak_milestone'].includes(a.type)
+            ['achievement_earned', 'certificate_earned', 'streak_milestone'].includes(a.type),
           );
           break;
         case 'assessments':
           filtered = filtered.filter(a =>
-            ['quiz_completed', 'assignment_submitted'].includes(a.type)
+            ['quiz_completed', 'assignment_submitted'].includes(a.type),
           );
           break;
         case 'social':
           filtered = filtered.filter(a =>
-            ['discussion_posted'].includes(a.type)
+            ['discussion_posted'].includes(a.type),
           );
           break;
       }
@@ -241,7 +241,7 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
     // Filter by time
     if (timeFilter !== 'all') {
       const now = new Date();
-      let cutoffDate = new Date();
+      const cutoffDate = new Date();
 
       switch (timeFilter) {
         case 'today':
@@ -415,7 +415,7 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
                 }
                 groups[dateKey].push(activity);
                 return groups;
-              }, {} as Record<string, ActivityItem[]>)
+              }, {} as Record<string, ActivityItem[]>),
             ).map(([dateKey, activities]) => (
               <div key={dateKey}>
                 <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
@@ -424,7 +424,7 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric',
-                    year: 'numeric'
+                    year: 'numeric',
                   })}
                 </h3>
                 <div className="space-y-3">
@@ -446,7 +446,7 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
             <h3 className="text-lg font-semibold text-white">Learning Streak</h3>
           </div>
           <p className="text-gray-400 text-sm mb-4">
-            You're on a 7-day learning streak! Keep it going.
+            You&apos;re on a 7-day learning streak! Keep it going.
           </p>
           <button className="bg-miyabi-blue hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors w-full">
             Continue Streak
@@ -459,7 +459,7 @@ export function RecentActivity({ userId, className = '' }: RecentActivityProps) 
             <h3 className="text-lg font-semibold text-white">Next Achievement</h3>
           </div>
           <p className="text-gray-400 text-sm mb-4">
-            Complete 2 more lessons to unlock "Dedicated Learner"
+            Complete 2 more lessons to unlock &quot;Dedicated Learner&quot;
           </p>
           <button className="bg-miyabi-green hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors w-full">
             View Progress

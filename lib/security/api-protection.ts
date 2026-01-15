@@ -166,7 +166,7 @@ export class RequestSigner {
   verify(
     payload: string | object,
     signature: string,
-    toleranceMs: number = 300000
+    toleranceMs: number = 300000,
   ): { valid: boolean; reason?: string } {
     const parts = signature.split(',');
     const timestampPart = parts.find((p) => p.startsWith('t='));
@@ -252,7 +252,7 @@ export function createRequestSigner(secret: string, algorithm?: string): Request
 }
 
 export function createBearerValidator(
-  validator: (token: string) => Promise<boolean> | boolean
+  validator: (token: string) => Promise<boolean> | boolean,
 ): BearerTokenValidator {
   return new BearerTokenValidator(validator);
 }

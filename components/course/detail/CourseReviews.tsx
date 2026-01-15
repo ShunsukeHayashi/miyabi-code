@@ -35,7 +35,7 @@ interface CourseReviewsProps {
 export function CourseReviews({
   courseId,
   canReview,
-  className = ''
+  className = '',
 }: CourseReviewsProps) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -51,28 +51,28 @@ export function CourseReviews({
         id: '1',
         name: 'Sarah Chen',
         avatar: '/api/placeholder/40/40',
-        initials: 'SC'
+        initials: 'SC',
       },
       rating: 5,
       title: 'Excellent course with practical examples',
       comment: 'This course exceeded my expectations. The instructor explains complex concepts in a clear and understandable way. The hands-on projects really helped me apply what I learned.',
       createdAt: new Date('2024-01-15'),
       helpful: 24,
-      isHelpful: false
+      isHelpful: false,
     },
     {
       id: '2',
       user: {
         id: '2',
         name: 'Michael Rodriguez',
-        initials: 'MR'
+        initials: 'MR',
       },
       rating: 4,
       title: 'Great content, could use more advanced topics',
       comment: 'The course covers the fundamentals very well. I would have liked to see some more advanced techniques, but overall it\'s a solid foundation.',
       createdAt: new Date('2024-01-10'),
       helpful: 18,
-      isHelpful: true
+      isHelpful: true,
     },
     {
       id: '3',
@@ -80,32 +80,32 @@ export function CourseReviews({
         id: '3',
         name: 'Emily Johnson',
         avatar: '/api/placeholder/40/40',
-        initials: 'EJ'
+        initials: 'EJ',
       },
       rating: 5,
       title: 'Perfect for beginners',
       comment: 'As someone completely new to this topic, I found this course incredibly helpful. The pace is just right and the examples are relevant.',
       createdAt: new Date('2024-01-08'),
       helpful: 15,
-      isHelpful: false
-    }
+      isHelpful: false,
+    },
   ];
 
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
     title: '',
-    comment: ''
+    comment: '',
   });
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (reviewForm.rating === 0 || !reviewForm.comment.trim()) return;
+    if (reviewForm.rating === 0 || !reviewForm.comment.trim()) {return;}
 
     try {
       await submitReview({
         rating: reviewForm.rating,
         title: reviewForm.title.trim() || undefined,
-        comment: reviewForm.comment.trim()
+        comment: reviewForm.comment.trim(),
       });
 
       setReviewForm({ rating: 0, title: '', comment: '' });
@@ -115,13 +115,11 @@ export function CourseReviews({
     }
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
 
   // Calculate rating distribution
   const ratingDistribution = [5, 4, 3, 2, 1].map(rating => {

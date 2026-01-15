@@ -199,7 +199,7 @@ export class SecurityConfigManager {
 
   private mergeConfig(
     base: SecurityConfig,
-    overrides: Partial<SecurityConfig>
+    overrides: Partial<SecurityConfig>,
   ): SecurityConfig {
     return {
       rateLimit: { ...base.rateLimit, ...overrides.rateLimit },

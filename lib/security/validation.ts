@@ -51,7 +51,7 @@ export class InputValidator {
   validateField(
     field: string,
     value: unknown,
-    rule: ValidationRule
+    rule: ValidationRule,
   ): InputValidationError[] {
     const errors: InputValidationError[] = [];
 
@@ -202,7 +202,7 @@ export function isValidEmail(email: string): boolean {
 }
 
 export function isValidURL(url: string): boolean {
-  if (typeof url !== 'string') return false;
+  if (typeof url !== 'string') {return false;}
   try {
     new URL(url);
     return true;
@@ -216,7 +216,7 @@ export function isValidUUID(uuid: string): boolean {
 }
 
 export function isValidJSON(json: string): boolean {
-  if (typeof json !== 'string') return false;
+  if (typeof json !== 'string') {return false;}
   try {
     JSON.parse(json);
     return true;
@@ -226,20 +226,20 @@ export function isValidJSON(json: string): boolean {
 }
 
 export function isValidBase64(base64: string): boolean {
-  if (typeof base64 !== 'string') return false;
+  if (typeof base64 !== 'string') {return false;}
   const regex = /^[A-Za-z0-9+/]*={0,2}$/;
   return base64.length % 4 === 0 && regex.test(base64);
 }
 
 export function isValidHex(hex: string): boolean {
-  if (typeof hex !== 'string') return false;
+  if (typeof hex !== 'string') {return false;}
   return /^[0-9a-fA-F]+$/.test(hex);
 }
 
 export function isValidIPv4(ip: string): boolean {
-  if (typeof ip !== 'string') return false;
+  if (typeof ip !== 'string') {return false;}
   const parts = ip.split('.');
-  if (parts.length !== 4) return false;
+  if (parts.length !== 4) {return false;}
   return parts.every((part) => {
     const num = parseInt(part, 10);
     return num >= 0 && num <= 255 && part === String(num);
@@ -247,7 +247,7 @@ export function isValidIPv4(ip: string): boolean {
 }
 
 export function isValidIPv6(ip: string): boolean {
-  if (typeof ip !== 'string') return false;
+  if (typeof ip !== 'string') {return false;}
   const regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$|^[0-9a-fA-F]{1,4}::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}$|^(?:[0-9a-fA-F]{1,4}:){1,2}:(?:[0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4}$|^(?:[0-9a-fA-F]{1,4}:){1,3}:(?:[0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}$|^(?:[0-9a-fA-F]{1,4}:){1,4}:(?:[0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4}$|^(?:[0-9a-fA-F]{1,4}:){1,5}:(?:[0-9a-fA-F]{1,4}:)?[0-9a-fA-F]{1,4}$|^(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$/;
   return regex.test(ip);
 }
@@ -256,21 +256,21 @@ export function sanitizeInteger(
   value: unknown,
   min?: number,
   max?: number,
-  defaultValue: number = 0
+  defaultValue: number = 0,
 ): number {
   const num = typeof value === 'number' ? value : parseInt(String(value), 10);
-  if (isNaN(num)) return defaultValue;
-  if (min !== undefined && num < min) return min;
-  if (max !== undefined && num > max) return max;
+  if (isNaN(num)) {return defaultValue;}
+  if (min !== undefined && num < min) {return min;}
+  if (max !== undefined && num > max) {return max;}
   return Math.floor(num);
 }
 
 export function sanitizeString(
   value: unknown,
   maxLength?: number,
-  defaultValue: string = ''
+  defaultValue: string = '',
 ): string {
-  if (typeof value !== 'string') return defaultValue;
+  if (typeof value !== 'string') {return defaultValue;}
   return maxLength ? value.slice(0, maxLength) : value;
 }
 
@@ -280,7 +280,7 @@ export function createValidator(): InputValidator {
 
 export function validateRequest(
   data: Record<string, unknown>,
-  rules: Record<string, ValidationRule>
+  rules: Record<string, ValidationRule>,
 ): InputValidationResult {
   const validator = new InputValidator();
   validator.addRules(rules);

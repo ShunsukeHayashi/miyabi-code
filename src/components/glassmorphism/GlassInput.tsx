@@ -23,7 +23,7 @@ export function GlassInput({
         <input
           className={mergeClassNames(
             'w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none',
-            className
+            className,
           )}
           {...props}
         />

@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -126,7 +126,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                       'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                       isActive
                         ? 'bg-gradient-to-r from-miyabi-blue/20 to-miyabi-purple/20 text-white border border-miyabi-blue/30'
-                        : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
+                        : 'text-gray-400 hover:bg-gray-800/50 hover:text-white',
                     )}
                   >
                     <span className={cn(isActive && 'text-miyabi-blue')}>{item.icon}</span>

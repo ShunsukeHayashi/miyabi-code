@@ -121,7 +121,7 @@ export class SecurityService {
     this.inputValidator = new InputValidator();
     this.apiKeyManager = new APIKeyManager();
     this.requestSigner = new RequestSigner(
-      options?.signingSecret || 'default-signing-secret-change-me'
+      options?.signingSecret || 'default-signing-secret-change-me',
     );
   }
 

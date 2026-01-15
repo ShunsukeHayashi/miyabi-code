@@ -19,9 +19,9 @@ import {
   Trophy,
   Star,
   BookOpen,
-  PlayCircle
+  PlayCircle,
 } from 'lucide-react';
-import { ProgressData, CourseWithRelations } from '../shared/types';
+import type { ProgressData, CourseWithRelations } from '../shared/types';
 
 interface ProgressTrackerProps {
   courseId: string;
@@ -53,7 +53,7 @@ export function ProgressTracker({
   progress,
   course,
   showDetailed = false,
-  className = ''
+  className = '',
 }: ProgressTrackerProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'achievements'>('overview');
 
@@ -75,14 +75,14 @@ export function ProgressTracker({
       title: 'Quick Start',
       description: 'Complete your first lesson',
       icon: <PlayCircle className="text-green-500" />,
-      unlockedAt: new Date('2024-01-10')
+      unlockedAt: new Date('2024-01-10'),
     },
     {
       id: '2',
       title: 'Dedicated Learner',
       description: 'Study for 5 consecutive days',
       icon: <Calendar className="text-blue-500" />,
-      unlockedAt: new Date('2024-01-14')
+      unlockedAt: new Date('2024-01-14'),
     },
     {
       id: '3',
@@ -90,7 +90,7 @@ export function ProgressTracker({
       description: 'Complete 10 lessons',
       icon: <BookOpen className="text-purple-500" />,
       progress: 7,
-      target: 10
+      target: 10,
     },
     {
       id: '4',
@@ -98,7 +98,7 @@ export function ProgressTracker({
       description: 'Study for 10 hours total',
       icon: <Clock className="text-orange-500" />,
       progress: 8.5,
-      target: 10
+      target: 10,
     },
     {
       id: '5',
@@ -106,23 +106,21 @@ export function ProgressTracker({
       description: 'Complete the entire course',
       icon: <Trophy className="text-yellow-500" />,
       progress: 45,
-      target: 100
-    }
+      target: 100,
+    },
   ];
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}m`;
+    if (minutes < 60) {return `${minutes}m`;}
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
 
   const getWeeklyStats = () => {
     const now = new Date();
@@ -134,7 +132,7 @@ export function ProgressTracker({
       totalTime: thisWeekSessions.reduce((sum, session) => sum + session.duration, 0),
       totalLessons: thisWeekSessions.reduce((sum, session) => sum + session.lessonsCompleted, 0),
       totalPoints: thisWeekSessions.reduce((sum, session) => sum + session.points, 0),
-      sessionsCount: thisWeekSessions.length
+      sessionsCount: thisWeekSessions.length,
     };
   };
 
@@ -216,9 +214,9 @@ export function ProgressTracker({
                 className={`
                   flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors
                   ${activeTab === tab.id
-                    ? 'border-miyabi-blue text-miyabi-blue'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                  }
+                ? 'border-miyabi-blue text-miyabi-blue'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+              }
                 `}
               >
                 {tab.icon}

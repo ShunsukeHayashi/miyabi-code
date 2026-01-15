@@ -8,7 +8,8 @@
 import React from 'react';
 import Image from 'next/image';
 import { Star, Award, TrendingUp, Calendar } from 'lucide-react';
-import { CourseWithRelations, ProgressData, COURSE_LEVEL_COLORS } from '../shared/types';
+import type { CourseWithRelations, ProgressData} from '../shared/types';
+import { COURSE_LEVEL_COLORS } from '../shared/types';
 
 interface CourseHeaderProps {
   course: CourseWithRelations;
@@ -27,14 +28,14 @@ export function CourseHeader({
   onEnroll,
   isEnrolling,
   progress,
-  className = ''
+  className = '',
 }: CourseHeaderProps) {
   const averageRating = course.stats?.averageRating || 0;
   const ratingCount = course.stats?.reviewsCount || 0;
   const enrollmentCount = course.stats?.enrollmentsCount || 0;
 
   const formatPrice = (price?: number | null) => {
-    if (!price || price === 0) return 'Free';
+    if (!price || price === 0) {return 'Free';}
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -42,11 +43,11 @@ export function CourseHeader({
   };
 
   const formatDate = (date: Date | null) => {
-    if (!date) return 'N/A';
+    if (!date) {return 'N/A';}
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     }).format(new Date(date));
   };
 

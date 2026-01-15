@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -45,14 +45,14 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
             className={cn(
               'h-full rounded-full transition-all duration-500 ease-out',
               variants[variant],
-              animated && 'animate-pulse'
+              animated && 'animate-pulse',
             )}
             style={{ width: `${percentage}%` }}
           />
         </div>
       </div>
     );
-  }
+  },
 );
 
 Progress.displayName = 'Progress';

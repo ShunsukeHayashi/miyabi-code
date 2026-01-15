@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import { referenceLinks } from './mock-data'
-import type { ReferenceLink } from './types'
+import { useMemo, useState } from 'react';
+import { referenceLinks } from './mock-data';
+import type { ReferenceLink } from './types';
 
 type ReferenceCategory = ReferenceLink['category'] | 'all'
 
@@ -10,37 +10,35 @@ const categoryLabels: Record<ReferenceLink['category'], string> = {
   protocol: 'Protocol',
   architecture: 'Architecture',
   workflow: 'Workflow',
-  guideline: 'Guideline'
-}
+  guideline: 'Guideline',
+};
 
 export function ReferenceHub() {
-  const [selectedCategory, setSelectedCategory] = useState<ReferenceCategory>('all')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<ReferenceCategory>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const categories = useMemo(
     () =>
       Array.from(
-        new Set(referenceLinks.map((link) => link.category))
-      ) as ReferenceLink['category'][],
-    []
-  )
+        new Set(referenceLinks.map((link) => link.category)),
+      ),
+    [],
+  );
 
-  const filteredLinks = useMemo(() => {
-    return referenceLinks
-      .filter((link) => (selectedCategory === 'all' ? true : link.category === selectedCategory))
-      .filter((link) => {
-        if (!searchTerm.trim()) {
-          return true
-        }
-        const query = searchTerm.toLowerCase()
-        return (
-          link.title.toLowerCase().includes(query) ||
+  const filteredLinks = useMemo(() => referenceLinks
+    .filter((link) => (selectedCategory === 'all' ? true : link.category === selectedCategory))
+    .filter((link) => {
+      if (!searchTerm.trim()) {
+        return true;
+      }
+      const query = searchTerm.toLowerCase();
+      return (
+        link.title.toLowerCase().includes(query) ||
           link.description.toLowerCase().includes(query) ||
           link.tags?.some((tag) => tag.toLowerCase().includes(query))
-        )
-      })
-      .sort((a, b) => a.title.localeCompare(b.title))
-  }, [selectedCategory, searchTerm])
+      );
+    })
+    .sort((a, b) => a.title.localeCompare(b.title)), [selectedCategory, searchTerm]);
 
   return (
     <section className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
@@ -135,5 +133,5 @@ export function ReferenceHub() {
         </p>
       ) : null}
     </section>
-  )
+  );
 }

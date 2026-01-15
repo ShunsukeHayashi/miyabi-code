@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { Agent, AgentStatus, AgentRole } from '@/lib/github-app/agent-types';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 

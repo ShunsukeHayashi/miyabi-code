@@ -20,10 +20,11 @@ import {
   BookOpen,
   MessageSquare,
   Rewind,
-  FastForward
+  FastForward,
 } from 'lucide-react';
 import { useVideoPlayer } from '../shared/hooks';
-import { LessonWithRelations, VideoPlayerState } from '../shared/types';
+import type { LessonWithRelations} from '../shared/types';
+import { VideoPlayerState } from '../shared/types';
 
 interface LessonPlayerProps {
   lesson: LessonWithRelations;
@@ -40,7 +41,7 @@ export function LessonPlayer({
   onComplete,
   showTranscript = false,
   showNotes = false,
-  className = ''
+  className = '',
 }: LessonPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -69,7 +70,7 @@ export function LessonPlayer({
     setDuration,
     setVolume,
     setPlaybackRate,
-    setCaptions
+    setCaptions,
   } = useVideoPlayer();
 
   // Auto-hide controls
@@ -108,7 +109,7 @@ export function LessonPlayer({
   // Video event handlers
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {return;}
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
@@ -143,7 +144,7 @@ export function LessonPlayer({
   // Sync video with player state
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {return;}
 
     if (isPlaying && video.paused) {
       video.play();
@@ -158,7 +159,7 @@ export function LessonPlayer({
   // Handle seek
   const handleSeek = (time: number) => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {return;}
 
     video.currentTime = time;
     seek(time);
@@ -188,7 +189,7 @@ export function LessonPlayer({
   // Mock transcript data
   useEffect(() => {
     setTranscript([
-      { start: 0, end: 5, text: "Welcome to this lesson on advanced concepts." },
+      { start: 0, end: 5, text: 'Welcome to this lesson on advanced concepts.' },
       { start: 5, end: 12, text: "Today we'll be covering the fundamental principles that will help you understand the core concepts." },
       { start: 12, end: 20, text: "Let's start by examining the basic structure and how it relates to our previous lessons." },
       // Add more transcript segments...

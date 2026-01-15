@@ -1,18 +1,18 @@
 import { mergeClassNames } from './utils';
 
-type GlassStatProps = {
+interface GlassStatProps {
   label: string;
   value: string;
   trend?: string;
   className?: string;
-};
+}
 
 export function GlassStat({ label, value, trend, className }: GlassStatProps): JSX.Element {
   return (
     <div
       className={mergeClassNames(
         'glass-card flex flex-col gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-white shadow-[0_18px_45px_rgba(15,23,42,0.35)] backdrop-blur-2xl',
-        className
+        className,
       )}
     >
       <span className="text-[11px] uppercase tracking-[0.3em] text-white/60">{label}</span>

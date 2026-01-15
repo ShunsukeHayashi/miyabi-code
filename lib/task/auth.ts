@@ -3,7 +3,7 @@
  * Issue #1214: シンプルなAPI Key認証
  */
 
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { createHash } from 'crypto';
 import type { ApiKey, ValidationResult } from './types';
 
@@ -119,12 +119,12 @@ function checkRateLimit(apiKey: ApiKey): { allowed: boolean; remaining: number; 
  */
 function hasPermission(apiKey: ApiKey, requiredPermission: string): boolean {
   // ワイルドカード対応
-  if (apiKey.permissions.includes('*')) return true;
+  if (apiKey.permissions.includes('*')) {return true;}
 
   const [resource, action] = requiredPermission.split(':');
 
   // リソースワイルドカード
-  if (apiKey.permissions.includes(`${resource}:*`)) return true;
+  if (apiKey.permissions.includes(`${resource}:*`)) {return true;}
 
   // 完全一致
   return apiKey.permissions.includes(requiredPermission);
@@ -151,7 +151,7 @@ export interface AuthResult {
  */
 export async function authenticateRequest(
   request: NextRequest,
-  requiredPermission?: string
+  requiredPermission?: string,
 ): Promise<AuthResult> {
   // API Keyを抽出
   const { key, invalidFormat } = extractApiKey(request);
@@ -243,7 +243,7 @@ export async function authenticateRequest(
  */
 export function setRateLimitHeaders(
   headers: Headers,
-  rateLimit: { remaining: number; resetAt: Date }
+  rateLimit: { remaining: number; resetAt: Date },
 ): void {
   headers.set('X-RateLimit-Remaining', rateLimit.remaining.toString());
   headers.set('X-RateLimit-Reset', Math.floor(rateLimit.resetAt.getTime() / 1000).toString());

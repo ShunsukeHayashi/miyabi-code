@@ -14,11 +14,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer,
-  AreaChart, Area
+  AreaChart, Area,
 } from 'recharts';
 import {
   Activity, Database, Zap, Clock, TrendingUp, TrendingDown,
-  AlertTriangle, CheckCircle, Server, Globe, HardDrive
+  AlertTriangle, CheckCircle, Server, Globe, HardDrive,
 } from 'lucide-react';
 
 interface PerformanceMetrics {
@@ -85,7 +85,7 @@ interface PerformanceDashboardProps {
 
 export function PerformanceDashboard({
   refreshInterval = 30000,
-  autoRefresh = true
+  autoRefresh = true,
 }: PerformanceDashboardProps) {
   const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,7 +112,7 @@ export function PerformanceDashboard({
           timestamp: Date.now(),
           cacheHitRate: data.cache.hitRate * 100,
           avgResponseTime: data.database.averageDuration,
-          memoryUsage: data.system.memoryUsage
+          memoryUsage: data.system.memoryUsage,
         }];
 
         // Keep only last 50 data points
@@ -136,7 +136,7 @@ export function PerformanceDashboard({
   }, [autoRefresh, refreshInterval]);
 
   const performanceScore = useMemo(() => {
-    if (!metrics) return 0;
+    if (!metrics) {return 0;}
 
     const cacheScore = metrics.cache.hitRate * 0.3;
     const dbScore = (1 - Math.min(metrics.database.averageDuration / 1000, 1)) * 0.3;
@@ -144,15 +144,15 @@ export function PerformanceDashboard({
     const systemScore = (1 - Math.max(
       metrics.system.cpuUsage,
       metrics.system.memoryUsage,
-      metrics.system.diskUsage
+      metrics.system.diskUsage,
     ) / 100) * 0.2;
 
     return Math.round((cacheScore + dbScore + apiScore + systemScore) * 100);
   }, [metrics]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
+    if (score >= 80) {return 'text-green-600';}
+    if (score >= 60) {return 'text-yellow-600';}
     return 'text-red-600';
   };
 
@@ -292,7 +292,7 @@ export function PerformanceDashboard({
                       data={[
                         { name: 'L1 Hits', value: metrics.cache.l1Stats.hits, fill: '#10b981' },
                         { name: 'L2 Hits', value: metrics.cache.l2Stats.hits, fill: '#3b82f6' },
-                        { name: 'Misses', value: metrics.cache.totalMisses, fill: '#ef4444' }
+                        { name: 'Misses', value: metrics.cache.totalMisses, fill: '#ef4444' },
                       ]}
                       cx="50%"
                       cy="50%"
@@ -305,7 +305,7 @@ export function PerformanceDashboard({
                       {[
                         { name: 'L1 Hits', value: metrics.cache.l1Stats.hits, fill: '#10b981' },
                         { name: 'L2 Hits', value: metrics.cache.l2Stats.hits, fill: '#3b82f6' },
-                        { name: 'Misses', value: metrics.cache.totalMisses, fill: '#ef4444' }
+                        { name: 'Misses', value: metrics.cache.totalMisses, fill: '#ef4444' },
                       ].map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                       ))}
@@ -359,8 +359,8 @@ export function PerformanceDashboard({
                       name: 'Connections',
                       Active: metrics.database.poolStats.activeConnections,
                       Idle: metrics.database.poolStats.idleConnections,
-                      Waiting: metrics.database.poolStats.waitingClients
-                    }
+                      Waiting: metrics.database.poolStats.waitingClients,
+                    },
                   ]}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />

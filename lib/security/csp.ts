@@ -115,7 +115,7 @@ export class CSPBuilder {
     return this;
   }
 
-  allowDomain(domain: string, directives?: (keyof CSPDirectives)[]): this {
+  allowDomain(domain: string, directives?: Array<keyof CSPDirectives>): this {
     const targets = directives || [
       'default-src',
       'script-src',

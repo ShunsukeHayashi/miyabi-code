@@ -8,11 +8,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronDown, ChevronUp, DollarSign, Clock, Star } from 'lucide-react';
 import { useCategories } from '../shared/hooks';
-import {
+import type {
   CourseQuery,
   CourseLevel,
   CourseStatus,
-  BaseComponentProps
+  BaseComponentProps,
 } from '../shared/types';
 
 interface CourseFilterProps extends BaseComponentProps {
@@ -31,7 +31,7 @@ export function CourseFilter({
   currentFilters,
   onFilterChange,
   onClose,
-  className = ''
+  className = '',
 }: CourseFilterProps) {
   const { data: categoriesResponse } = useCategories();
   const categories = categoriesResponse?.data || [];
@@ -53,8 +53,8 @@ export function CourseFilter({
       prev.map(section =>
         section.id === sectionId
           ? { ...section, isOpen: !section.isOpen }
-          : section
-      )
+          : section,
+      ),
     );
   };
 
@@ -77,7 +77,7 @@ export function CourseFilter({
   // Price range state
   const [priceRange, setPriceRange] = useState({
     min: localFilters.minPrice || 0,
-    max: localFilters.maxPrice || 500
+    max: localFilters.maxPrice || 500,
   });
 
   useEffect(() => {

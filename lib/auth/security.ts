@@ -3,7 +3,7 @@
  * Issue #1300: Rate limiting, audit logging, and anti-cheating measures
  */
 
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 
@@ -35,7 +35,7 @@ export class ContentProtection {
     userId: string,
     courseId: string,
     timestamp: number,
-    maxAge: number = 3600000 // 1 hour in milliseconds
+    maxAge: number = 3600000, // 1 hour in milliseconds
   ): boolean {
     const now = Date.now();
     if (now - timestamp > maxAge) {
@@ -53,7 +53,7 @@ export class ContentProtection {
     baseUrl: string,
     userId: string,
     courseId: string,
-    expiresIn: number = 3600
+    expiresIn: number = 3600,
   ): string {
     const timestamp = Date.now();
     const expiresAt = timestamp + (expiresIn * 1000);
@@ -90,7 +90,7 @@ export class AssessmentSecurity {
       copyPasteAttempts?: number;
       tabSwitches?: number;
       screenshotAttempts?: number;
-    }
+    },
   ): Promise<void> {
     // Store in database for analysis
     try {
@@ -119,7 +119,7 @@ export class AssessmentSecurity {
    */
   static async analyzeAttemptSecurity(
     userId: string,
-    assessmentId: string
+    assessmentId: string,
   ): Promise<{
     riskScore: number;
     warnings: string[];
@@ -229,7 +229,7 @@ export class AdaptiveRateLimit {
     identifier: string,
     action: string,
     baseLimit: number = 100,
-    windowMs: number = 3600000 // 1 hour
+    windowMs: number = 3600000, // 1 hour
   ): RateLimitResult {
     const key = `${identifier}:${action}`;
     const now = Date.now();
@@ -296,7 +296,7 @@ export class AuditLogger {
     userId: string | null,
     eventType: SecurityEventType,
     details: SecurityEventDetails,
-    request?: NextRequest
+    request?: NextRequest,
   ): Promise<void> {
     try {
       const logEntry = {
@@ -343,14 +343,14 @@ export class AuditLogger {
   private static async checkAlertConditions(
     eventType: SecurityEventType,
     details: SecurityEventDetails,
-    userId: string | null
+    userId: string | null,
   ): Promise<void> {
     // High-priority events that require immediate attention
     const highPriorityEvents: SecurityEventType[] = [
       'POTENTIAL_CONTENT_THEFT',
       'MULTIPLE_LOGIN_ATTEMPTS',
       'SUSPICIOUS_ASSESSMENT_BEHAVIOR',
-      'UNAUTHORIZED_ACCESS_ATTEMPT'
+      'UNAUTHORIZED_ACCESS_ATTEMPT',
     ];
 
     if (highPriorityEvents.includes(eventType)) {
@@ -404,7 +404,7 @@ export class TimeBasedAccess {
    */
   static isAccessAllowed(
     schedule: AccessSchedule,
-    timezone: string = 'UTC'
+    timezone: string = 'UTC',
   ): { allowed: boolean; reason?: string; nextAllowedTime?: Date } {
     const now = new Date();
 
@@ -500,7 +500,7 @@ export class ContentIntegrity {
     const expectedSignature = this.signContent(content, secret);
     return crypto.timingSafeEqual(
       Buffer.from(signature, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
+      Buffer.from(expectedSignature, 'hex'),
     );
   }
 }

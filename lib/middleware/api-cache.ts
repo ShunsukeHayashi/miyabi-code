@@ -41,38 +41,38 @@ const DEFAULT_CACHE_CONFIG: CacheConfig = {
     tags: ['courses'],
     varyBy: ['authorization'],
     compression: true,
-    skipCacheIf: (req) => req.method !== 'GET'
+    skipCacheIf: (req) => req.method !== 'GET',
   },
   '/api/courses/[id]': {
     ttl: 600, // 10 minutes
     tags: ['courses'],
     varyBy: ['authorization'],
-    compression: true
+    compression: true,
   },
   '/api/lessons': {
     ttl: 300,
     tags: ['lessons'],
     varyBy: ['authorization'],
-    compression: true
+    compression: true,
   },
   '/api/analytics': {
     ttl: 120, // 2 minutes
     tags: ['analytics'],
     varyBy: ['authorization'],
-    compression: true
+    compression: true,
   },
   '/api/ai/suggestions': {
     ttl: 1800, // 30 minutes
     tags: ['ai', 'suggestions'],
     compression: true,
-    varyBy: ['content-type']
+    varyBy: ['content-type'],
   },
   '/api/user/progress': {
     ttl: 60, // 1 minute
     tags: ['user', 'progress'],
     varyBy: ['authorization'],
-    compression: false // User data, less cacheable
-  }
+    compression: false, // User data, less cacheable
+  },
 };
 
 export class ApiCacheMiddleware {
@@ -92,7 +92,7 @@ export class ApiCacheMiddleware {
       const pathname = request.nextUrl.pathname;
       const cacheConfig = this.getCacheConfig(pathname);
 
-      if (!cacheConfig || (cacheConfig.skipCacheIf && cacheConfig.skipCacheIf(request))) {
+      if (!cacheConfig || (cacheConfig.skipCacheIf?.(request))) {
         return null; // Skip caching
       }
 
@@ -107,7 +107,7 @@ export class ApiCacheMiddleware {
       const ifNoneMatch = request.headers.get('if-none-match');
       if (ifNoneMatch) {
         const cached = await this.getCachedResponse(cacheKey);
-        if (cached && cached.etag === ifNoneMatch) {
+        if (cached?.etag === ifNoneMatch) {
           return new NextResponse(null, { status: 304 });
         }
       }
@@ -129,7 +129,7 @@ export class ApiCacheMiddleware {
    */
   async cacheResponse(
     request: NextRequest,
-    response: NextResponse
+    response: NextResponse,
   ): Promise<NextResponse> {
     const pathname = request.nextUrl.pathname;
     const cacheConfig = this.getCacheConfig(pathname);
@@ -146,7 +146,7 @@ export class ApiCacheMiddleware {
       const newResponse = new NextResponse(body, {
         status: response.status,
         statusText: response.statusText,
-        headers: response.headers
+        headers: response.headers,
       });
 
       // Generate ETag for conditional requests
@@ -160,7 +160,7 @@ export class ApiCacheMiddleware {
         body,
         compressed: cacheConfig.compression || false,
         etag,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }, cacheConfig);
 
       // Add cache headers
@@ -212,7 +212,7 @@ export class ApiCacheMiddleware {
       try {
         const url = new URL(route.path, 'http://localhost');
         const request = new NextRequest(url, {
-          headers: route.headers || {}
+          headers: route.headers || {},
         });
 
         // This would need integration with the actual API handlers
@@ -237,7 +237,7 @@ export class ApiCacheMiddleware {
       misses: number;
       hitRate: number;
     }>;
-  } {
+    } {
     const routes: Array<{
       route: string;
       hits: number;
@@ -256,7 +256,7 @@ export class ApiCacheMiddleware {
         route,
         hits,
         misses,
-        hitRate: total > 0 ? hits / total : 0
+        hitRate: total > 0 ? hits / total : 0,
       });
     }
 
@@ -266,7 +266,7 @@ export class ApiCacheMiddleware {
 
     return {
       hitRate: totalRequests > 0 ? totalHits / totalRequests : 0,
-      routes: routes.sort((a, b) => b.hitRate - a.hitRate)
+      routes: routes.sort((a, b) => b.hitRate - a.hitRate),
     };
   }
 
@@ -320,7 +320,7 @@ export class ApiCacheMiddleware {
   private async getCachedResponse(cacheKey: string): Promise<CachedResponse | null> {
     try {
       const cached = await cacheManager.get<CachedResponse>(cacheKey);
-      if (!cached) return null;
+      if (!cached) {return null;}
 
       // Check if expired (additional TTL check)
       const age = Date.now() - cached.timestamp;
@@ -339,7 +339,7 @@ export class ApiCacheMiddleware {
   private async storeCachedResponse(
     cacheKey: string,
     response: CachedResponse,
-    config: CacheOptions
+    config: CacheOptions,
   ): Promise<void> {
     try {
       let processedResponse = response;
@@ -350,13 +350,13 @@ export class ApiCacheMiddleware {
         processedResponse = {
           ...response,
           body: compressed.toString('base64'),
-          compressed: true
+          compressed: true,
         };
       }
 
       await cacheManager.set(cacheKey, processedResponse, {
         ttl: config.ttl,
-        tags: config.tags?.map(tag => `api:${tag}`)
+        tags: config.tags?.map(tag => `api:${tag}`),
       });
 
     } catch (error) {
@@ -384,8 +384,8 @@ export class ApiCacheMiddleware {
       headers: {
         ...cached.headers,
         'X-Cache': 'HIT',
-        'ETag': cached.etag
-      }
+        'ETag': cached.etag,
+      },
     });
 
     return response;
@@ -411,7 +411,7 @@ export function withCache(config: CacheOptions = {}) {
   return function <T extends (...args: any[]) => Promise<NextResponse>>(
     target: any,
     propertyKey: string,
-    descriptor: TypedPropertyDescriptor<T>
+    descriptor: TypedPropertyDescriptor<T>,
   ) {
     const originalMethod = descriptor.value!;
 
@@ -428,7 +428,7 @@ export function withCache(config: CacheOptions = {}) {
       const response = await originalMethod.apply(this, [request, ...args]);
 
       // Cache the response
-      return await cacheMiddleware.cacheResponse(request, response);
+      return cacheMiddleware.cacheResponse(request, response);
     } as T;
   };
 }
@@ -443,18 +443,12 @@ export const invalidateApiCache = (options: {
   route?: string;
   tags?: string[];
   pattern?: RegExp;
-}): Promise<void> => {
-  return apiCache.invalidateCache(options);
-};
+}): Promise<void> => apiCache.invalidateCache(options);
 
-export const getApiCacheStats = () => {
-  return apiCache.getCacheStats();
-};
+export const getApiCacheStats = () => apiCache.getCacheStats();
 
 export const warmApiCache = (routes: Array<{
   path: string;
   params?: Record<string, string>;
   headers?: Record<string, string>;
-}>): Promise<void> => {
-  return apiCache.warmCache(routes);
-};
+}>): Promise<void> => apiCache.warmCache(routes);

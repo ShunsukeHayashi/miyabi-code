@@ -97,3 +97,4 @@ mcp-servers/*/dist/
 *.aux
 *.out
 *.toc
+.cargo/

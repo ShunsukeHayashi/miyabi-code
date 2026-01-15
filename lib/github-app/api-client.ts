@@ -6,7 +6,7 @@
 import { GITHUB_API_BASE_URL } from './config';
 import { getInstallationAccessToken } from './oauth';
 import { withRateLimit, parseGitHubRateLimitHeaders } from './rate-limit';
-import {
+import type {
   GitHubApiError,
   RateLimitInfo,
   GitHubAppPermissions,
@@ -50,7 +50,7 @@ class GitHubApiClient {
 
   async request<T>(
     endpoint: string,
-    options: GitHubApiRequestOptions
+    options: GitHubApiRequestOptions,
   ): Promise<GitHubApiResponse<T>> {
     return withRateLimit(options.installationId, async () => {
       const token = await this.getToken(options.installationId);
@@ -73,7 +73,7 @@ class GitHubApiClient {
       if (!response.ok) {
         const errorData = await response.json() as GitHubApiError;
         const error = new Error(
-          `GitHub API Error: ${response.status} - ${errorData.message}`
+          `GitHub API Error: ${response.status} - ${errorData.message}`,
         );
         (error as any).status = response.status;
         (error as any).response = errorData;
@@ -101,13 +101,13 @@ class GitHubApiClient {
   async getRepository(
     installationId: number,
     owner: string,
-    repo: string
+    repo: string,
   ): Promise<GitHubApiResponse<GitHubRepository>> {
     return this.request(`/repos/${owner}/${repo}`, { installationId });
   }
 
   async listInstallationRepositories(
-    installationId: number
+    installationId: number,
   ): Promise<GitHubApiResponse<{ repositories: GitHubRepository[] }>> {
     return this.request('/installation/repositories', { installationId });
   }
@@ -116,7 +116,7 @@ class GitHubApiClient {
     installationId: number,
     owner: string,
     repo: string,
-    issueNumber: number
+    issueNumber: number,
   ): Promise<GitHubApiResponse<GitHubIssue>> {
     return this.request(`/repos/${owner}/${repo}/issues/${issueNumber}`, { installationId });
   }
@@ -126,7 +126,7 @@ class GitHubApiClient {
     owner: string,
     repo: string,
     issueNumber: number,
-    body: string
+    body: string,
   ): Promise<GitHubApiResponse<GitHubIssueComment>> {
     return this.request(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`, {
       installationId,
@@ -146,7 +146,7 @@ class GitHubApiClient {
       state: 'open' | 'closed';
       labels: string[];
       assignees: string[];
-    }>
+    }>,
   ): Promise<GitHubApiResponse<GitHubIssue>> {
     return this.request(`/repos/${owner}/${repo}/issues/${issueNumber}`, {
       installationId,
@@ -160,7 +160,7 @@ class GitHubApiClient {
     owner: string,
     repo: string,
     issueNumber: number,
-    labels: string[]
+    labels: string[],
   ): Promise<GitHubApiResponse<GitHubLabel[]>> {
     return this.request(`/repos/${owner}/${repo}/issues/${issueNumber}/labels`, {
       installationId,
@@ -173,7 +173,7 @@ class GitHubApiClient {
     installationId: number,
     owner: string,
     repo: string,
-    pullNumber: number
+    pullNumber: number,
   ): Promise<GitHubApiResponse<GitHubPullRequest>> {
     return this.request(`/repos/${owner}/${repo}/pulls/${pullNumber}`, { installationId });
   }
@@ -188,7 +188,7 @@ class GitHubApiClient {
       head: string;
       base: string;
       draft?: boolean;
-    }
+    },
   ): Promise<GitHubApiResponse<GitHubPullRequest>> {
     return this.request(`/repos/${owner}/${repo}/pulls`, {
       installationId,
@@ -211,7 +211,7 @@ class GitHubApiClient {
         line?: number;
         body: string;
       }>;
-    }
+    },
   ): Promise<GitHubApiResponse<GitHubPullRequestReview>> {
     return this.request(`/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, {
       installationId,
@@ -225,7 +225,7 @@ class GitHubApiClient {
     owner: string,
     repo: string,
     path: string,
-    ref?: string
+    ref?: string,
   ): Promise<GitHubApiResponse<GitHubContent>> {
     const endpoint = `/repos/${owner}/${repo}/contents/${path}${ref ? `?ref=${ref}` : ''}`;
     return this.request(endpoint, { installationId });
@@ -241,7 +241,7 @@ class GitHubApiClient {
       content: string;
       sha?: string;
       branch?: string;
-    }
+    },
   ): Promise<GitHubApiResponse<{ content: GitHubContent; commit: GitHubCommit }>> {
     return this.request(`/repos/${owner}/${repo}/contents/${path}`, {
       installationId,
@@ -258,7 +258,7 @@ class GitHubApiClient {
     owner: string,
     repo: string,
     branchName: string,
-    fromSha: string
+    fromSha: string,
   ): Promise<GitHubApiResponse<GitHubRef>> {
     return this.request(`/repos/${owner}/${repo}/git/refs`, {
       installationId,
@@ -274,7 +274,7 @@ class GitHubApiClient {
     installationId: number,
     owner: string,
     repo: string,
-    branch: string
+    branch: string,
   ): Promise<GitHubApiResponse<GitHubBranch>> {
     return this.request(`/repos/${owner}/${repo}/branches/${branch}`, { installationId });
   }
@@ -293,7 +293,7 @@ class GitHubApiClient {
         summary: string;
         text?: string;
       };
-    }
+    },
   ): Promise<GitHubApiResponse<GitHubCheckRun>> {
     return this.request(`/repos/${owner}/${repo}/check-runs`, {
       installationId,
@@ -315,7 +315,7 @@ class GitHubApiClient {
         summary: string;
         text?: string;
       };
-    }
+    },
   ): Promise<GitHubApiResponse<GitHubCheckRun>> {
     return this.request(`/repos/${owner}/${repo}/check-runs/${checkRunId}`, {
       installationId,

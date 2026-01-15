@@ -102,7 +102,7 @@ class AIServiceManager {
   async generateCourseSuggestions(
     topic: string,
     targetAudience?: string,
-    options?: { useCache?: boolean; priority?: 'speed' | 'quality' }
+    options?: { useCache?: boolean; priority?: 'speed' | 'quality' },
   ): Promise<CourseContentSuggestion[]> {
     const operationId = this.generateOperationId('content_generation');
 
@@ -142,7 +142,7 @@ class AIServiceManager {
     courseTitle: string,
     lessonTopic: string,
     difficulty: string,
-    duration: number
+    duration: number,
   ): Promise<LessonContent> {
     const operationId = this.generateOperationId('content_generation');
 
@@ -154,7 +154,7 @@ class AIServiceManager {
         courseTitle,
         lessonTopic,
         difficulty,
-        duration
+        duration,
       );
 
       this.completeOperation(operationId, { outputTokens: this.estimateTokens(lesson.content) });
@@ -181,7 +181,7 @@ class AIServiceManager {
 
       this.completeOperation(operationId, {
         inputTokens: this.estimateTokens(content),
-        outputTokens: this.estimateTokens(JSON.stringify(analysis))
+        outputTokens: this.estimateTokens(JSON.stringify(analysis)),
       });
 
       return analysis;
@@ -198,7 +198,7 @@ class AIServiceManager {
   async generateAssessment(
     content: string,
     questionCount: number = 5,
-    questionTypes: string[] = ['multiple_choice', 'short_answer']
+    questionTypes: string[] = ['multiple_choice', 'short_answer'],
   ): Promise<AssessmentGeneration> {
     const operationId = this.generateOperationId('content_generation');
 
@@ -210,7 +210,7 @@ class AIServiceManager {
 
       this.completeOperation(operationId, {
         inputTokens: this.estimateTokens(content),
-        outputTokens: this.estimateTokens(JSON.stringify(assessment))
+        outputTokens: this.estimateTokens(JSON.stringify(assessment)),
       });
 
       return assessment;
@@ -236,7 +236,7 @@ class AIServiceManager {
       limit?: number;
       includeRecommendations?: boolean;
       sessionId?: string;
-    }
+    },
   ): Promise<CourseSearchResult[]> {
     const operationId = this.generateOperationId('search');
 
@@ -256,7 +256,7 @@ class AIServiceManager {
 
       this.completeOperation(operationId, {
         inputTokens: this.estimateTokens(query),
-        outputTokens: results.length * 100 // Estimate based on results
+        outputTokens: results.length * 100, // Estimate based on results
       });
 
       return results;
@@ -274,7 +274,7 @@ class AIServiceManager {
     query: string,
     courseId?: string,
     userId?: string,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<LessonSearchResult[]> {
     const operationId = this.generateOperationId('search');
 
@@ -299,7 +299,7 @@ class AIServiceManager {
    */
   async getPersonalizedRecommendations(
     userId: string,
-    limit: number = 5
+    limit: number = 5,
   ): Promise<CourseSearchResult[]> {
     const operationId = this.generateOperationId('search');
 
@@ -412,7 +412,7 @@ class AIServiceManager {
     operations: AIOperation[];
     costTracking: CostTracking;
     rateLimits: { [key: string]: { current: number; limit: number; resetTime: number } };
-  } {
+    } {
     const providers: AIProvider[] = [
       {
         name: 'Gemini',
@@ -458,7 +458,7 @@ class AIServiceManager {
     successRate: { [key: string]: number };
     totalOperations: number;
     costEfficiency: number;
-  } {
+    } {
     const operations = Array.from(this.operations.values());
     const completedOps = operations.filter(op => op.status === 'completed');
 
@@ -470,9 +470,7 @@ class AIServiceManager {
       const typeCompleted = typeOps.filter(op => op.status === 'completed');
 
       if (typeCompleted.length > 0) {
-        avgResponseTime[type] = typeCompleted.reduce((sum, op) => {
-          return sum + (op.endTime!.getTime() - op.startTime.getTime());
-        }, 0) / typeCompleted.length;
+        avgResponseTime[type] = typeCompleted.reduce((sum, op) => sum + (op.endTime!.getTime() - op.startTime.getTime()), 0) / typeCompleted.length;
       }
 
       successRate[type] = typeOps.length > 0 ? typeCompleted.length / typeOps.length : 0;
@@ -589,7 +587,7 @@ class AIServiceManager {
           'course_suggestion',
           `suggestion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           combinedText,
-          embedding
+          embedding,
         );
       } catch (error) {
         console.warn('Failed to generate embedding for suggestion:', error);

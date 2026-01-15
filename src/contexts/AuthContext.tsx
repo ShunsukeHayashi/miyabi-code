@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // User type definition
 export interface User {
@@ -47,15 +48,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     const mockUser: User = {
-      id: 'usr_' + Math.random().toString(36).substr(2, 9),
+      id: `usr_${  Math.random().toString(36).substr(2, 9)}`,
       email,
       name: email.split('@')[0],
       plan: 'free',
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
     };
-    
+
     setUser(mockUser);
     localStorage.setItem('ai_course_gen_user', JSON.stringify(mockUser));
     setLoading(false);
@@ -75,7 +76,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loading,
     login,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

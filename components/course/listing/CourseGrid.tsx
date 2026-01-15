@@ -13,13 +13,14 @@ import CourseSearch from './CourseSearch';
 import Pagination from './Pagination';
 import { LoadingGrid } from '../shared/LoadingSpinner';
 import { useCourses, useLocalStorage } from '../shared/hooks';
+import type {
+  CourseQuery,
+  CourseCardMode} from '../shared/types';
 import {
   CourseWithRelations,
-  CourseQuery,
-  CourseCardMode,
   CourseLevel,
   CourseStatus,
-  PaginationMeta
+  PaginationMeta,
 } from '../shared/types';
 
 interface CourseGridProps {
@@ -41,7 +42,7 @@ export function CourseGrid({
   showViewToggle = true,
   maxResults,
   className = '',
-  onEnroll
+  onEnroll,
 }: CourseGridProps) {
   // State management
   const [viewMode, setViewMode] = useLocalStorage<CourseCardMode>('courseViewMode', 'grid');
@@ -60,7 +61,7 @@ export function CourseGrid({
     data: coursesResponse,
     isLoading,
     error,
-    refetch
+    refetch,
   } = useCourses(query);
 
   const courses = coursesResponse?.data || [];
@@ -156,7 +157,7 @@ export function CourseGrid({
               {/* Sort order toggle */}
               <button
                 onClick={() => updateQuery({
-                  sortOrder: query.sortOrder === 'asc' ? 'desc' : 'asc'
+                  sortOrder: query.sortOrder === 'asc' ? 'desc' : 'asc',
                 })}
                 className="p-2 text-gray-400 hover:text-white transition-colors"
                 title={`Sort ${query.sortOrder === 'asc' ? 'descending' : 'ascending'}`}
@@ -173,9 +174,9 @@ export function CourseGrid({
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors
                 ${showFilterPanel
-                  ? 'bg-miyabi-blue text-white border-miyabi-blue'
-                  : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-miyabi-blue'
-                }
+              ? 'bg-miyabi-blue text-white border-miyabi-blue'
+              : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-miyabi-blue'
+            }
               `}
             >
               <Filter size={16} />

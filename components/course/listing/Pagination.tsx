@@ -29,19 +29,19 @@ export function Pagination({
   showSizeChanger = false,
   pageSizeOptions = [10, 20, 50, 100],
   pageSize = 20,
-  onPageSizeChange
+  onPageSizeChange,
 }: PaginationProps) {
   // Calculate visible page numbers
-  const getVisiblePages = (current: number, total: number): (number | string)[] => {
-    const pages: (number | string)[] = [];
+  const getVisiblePages = (current: number, total: number): Array<number | string> => {
+    const pages: Array<number | string> = [];
     const delta = 2; // Number of pages to show on each side of current page
 
     // Always show first page
     pages.push(1);
 
     // Calculate start and end of the middle section
-    let start = Math.max(2, current - delta);
-    let end = Math.min(total - 1, current + delta);
+    const start = Math.max(2, current - delta);
+    const end = Math.min(total - 1, current + delta);
 
     // Add ellipsis after first page if needed
     if (start > 2) {
@@ -123,9 +123,9 @@ export function Pagination({
             flex items-center justify-center w-10 h-10 rounded-lg
             transition-colors duration-200
             ${current === 1
-              ? 'text-gray-500 cursor-not-allowed'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
-            }
+      ? 'text-gray-500 cursor-not-allowed'
+      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+    }
           `}
           aria-label="Previous page"
         >
@@ -146,9 +146,9 @@ export function Pagination({
                   flex items-center justify-center w-10 h-10 rounded-lg
                   font-medium transition-colors duration-200
                   ${page === current
-                    ? 'bg-miyabi-blue text-white'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
-                  }
+                ? 'bg-miyabi-blue text-white'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              }
                 `}
                 aria-label={`Page ${page}`}
                 aria-current={page === current ? 'page' : undefined}
@@ -167,9 +167,9 @@ export function Pagination({
             flex items-center justify-center w-10 h-10 rounded-lg
             transition-colors duration-200
             ${current === total
-              ? 'text-gray-500 cursor-not-allowed'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
-            }
+      ? 'text-gray-500 cursor-not-allowed'
+      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+    }
           `}
           aria-label="Next page"
         >
@@ -208,7 +208,7 @@ export function SimplePagination({
   current,
   total,
   onPageChange,
-  className = ''
+  className = '',
 }: Pick<PaginationProps, 'current' | 'total' | 'onPageChange' | 'className'>) {
   if (total <= 1) {
     return null;
@@ -223,9 +223,9 @@ export function SimplePagination({
           flex items-center gap-2 px-4 py-2 rounded-lg
           transition-colors duration-200
           ${current === 1
-            ? 'text-gray-500 cursor-not-allowed'
-            : 'text-gray-300 hover:text-white hover:bg-gray-700'
-          }
+      ? 'text-gray-500 cursor-not-allowed'
+      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+    }
         `}
       >
         <ChevronLeft size={16} />
@@ -243,9 +243,9 @@ export function SimplePagination({
           flex items-center gap-2 px-4 py-2 rounded-lg
           transition-colors duration-200
           ${current === total
-            ? 'text-gray-500 cursor-not-allowed'
-            : 'text-gray-300 hover:text-white hover:bg-gray-700'
-          }
+      ? 'text-gray-500 cursor-not-allowed'
+      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+    }
         `}
       >
         <span>Next</span>

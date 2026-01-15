@@ -6,7 +6,8 @@
  */
 
 import WebSocket from 'ws';
-import { GeminiContentRequest, GeminiContentResponse, GeminiClient } from './client';
+import type { GeminiContentRequest, GeminiContentResponse} from './client';
+import { GeminiClient } from './client';
 
 // Streaming message types from specification
 export interface StreamingMessages {
@@ -38,12 +39,12 @@ export interface GenerationProgress {
   requestId: string;
   status: 'initializing' | 'generating' | 'reviewing' | 'finalizing' | 'complete' | 'error';
   progress: number; // 0-100
-  steps: {
+  steps: Array<{
     step: string;
     status: 'pending' | 'in_progress' | 'complete' | 'error';
     duration?: number; // milliseconds
     error?: string;
-  }[];
+  }>;
   estimatedCompletion: string; // ISO 8601
 }
 
@@ -72,7 +73,7 @@ export class StreamingContentGenerator {
   async startStreamingGeneration(
     request: GeminiContentRequest,
     ws: WebSocket,
-    requestId: string
+    requestId: string,
   ): Promise<void> {
     const startTime = Date.now();
 
@@ -84,7 +85,7 @@ export class StreamingContentGenerator {
       // Send start message
       this.sendMessage(ws, 'generation:start', {
         requestId,
-        estimatedDuration: this.estimateGenerationTime(request)
+        estimatedDuration: this.estimateGenerationTime(request),
       });
 
       // Execute streaming generation
@@ -104,7 +105,7 @@ export class StreamingContentGenerator {
     request: GeminiContentRequest,
     ws: WebSocket,
     requestId: string,
-    startTime: number
+    startTime: number,
   ): Promise<void> {
     const progress = this.activeGenerations.get(requestId)!;
 
@@ -113,7 +114,7 @@ export class StreamingContentGenerator {
       this.updateProgress(requestId, {
         status: 'initializing',
         progress: 10,
-        step: 'Preparing prompt and validation'
+        step: 'Preparing prompt and validation',
       });
       this.sendProgressUpdate(ws, requestId);
 
@@ -123,7 +124,7 @@ export class StreamingContentGenerator {
       this.updateProgress(requestId, {
         status: 'generating',
         progress: 25,
-        step: 'Generating content with Gemini AI'
+        step: 'Generating content with Gemini AI',
       });
       this.sendProgressUpdate(ws, requestId);
 
@@ -134,7 +135,7 @@ export class StreamingContentGenerator {
       this.updateProgress(requestId, {
         status: 'reviewing',
         progress: 85,
-        step: 'Reviewing quality and applying improvements'
+        step: 'Reviewing quality and applying improvements',
       });
       this.sendProgressUpdate(ws, requestId);
 
@@ -144,7 +145,7 @@ export class StreamingContentGenerator {
       this.updateProgress(requestId, {
         status: 'finalizing',
         progress: 95,
-        step: 'Finalizing content and metadata'
+        step: 'Finalizing content and metadata',
       });
       this.sendProgressUpdate(ws, requestId);
 
@@ -154,12 +155,12 @@ export class StreamingContentGenerator {
       this.updateProgress(requestId, {
         status: 'complete',
         progress: 100,
-        step: 'Generation completed successfully'
+        step: 'Generation completed successfully',
       });
 
       // Send final content
       this.sendMessage(ws, 'generation:complete', {
-        finalContent
+        finalContent,
       });
 
     } catch (error) {
@@ -173,13 +174,13 @@ export class StreamingContentGenerator {
   private async generateContentWithPartials(
     request: GeminiContentRequest,
     ws: WebSocket,
-    requestId: string
+    requestId: string,
   ): Promise<{ title: string; sections: string[]; summary: string }> {
     // Simulate progressive content generation
     const partialContents = {
       title: '',
       sections: [] as string[],
-      summary: ''
+      summary: '',
     };
 
     // Generate title first
@@ -188,7 +189,7 @@ export class StreamingContentGenerator {
 
     this.sendMessage(ws, 'generation:partial', {
       partialContent: partialContents.title,
-      type: 'title'
+      type: 'title',
     });
 
     this.updateProgress(requestId, { progress: 40 });
@@ -199,7 +200,7 @@ export class StreamingContentGenerator {
 
     // Generate sections progressively
     const sectionCount = request.generationConfig.length === 'short' ? 3 :
-                        request.generationConfig.length === 'medium' ? 5 : 7;
+      request.generationConfig.length === 'medium' ? 5 : 7;
 
     for (let i = 0; i < sectionCount; i++) {
       await this.sleep(800);
@@ -209,7 +210,7 @@ export class StreamingContentGenerator {
 
       this.sendMessage(ws, 'generation:partial', {
         partialContent: section,
-        type: 'section'
+        type: 'section',
       });
 
       const progress = 40 + (i + 1) * (40 / sectionCount);
@@ -231,7 +232,7 @@ export class StreamingContentGenerator {
 
     this.sendMessage(ws, 'generation:partial', {
       partialContent: partialContents.summary,
-      type: 'summary'
+      type: 'summary',
     });
 
     this.updateProgress(requestId, { progress: 80 });
@@ -247,7 +248,7 @@ export class StreamingContentGenerator {
     const sectionTitles = {
       'course-outline': ['導入と学習目標', '基礎概念', '実践的応用', '演習プロジェクト', '評価方法', '次のステップ', '参考資料'],
       'lesson-content': ['学習目標', '重要概念の説明', '具体例', '練習問題', 'まとめ', '次回予告', '追加リソース'],
-      'assessment': ['評価概要', '選択問題', '記述問題', '実践課題', '採点基準', 'フィードバック例', '改善提案']
+      'assessment': ['評価概要', '選択問題', '記述問題', '実践課題', '採点基準', 'フィードバック例', '改善提案'],
     };
 
     const titles = sectionTitles[request.contentType] || sectionTitles['lesson-content'];
@@ -279,7 +280,7 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
    */
   private generateSummaryContent(
     request: GeminiContentRequest,
-    partialContents: { title: string; sections: string[] }
+    partialContents: { title: string; sections: string[] },
   ): string {
     return `${request.topic}について、${request.targetAudience.level}レベルの学習者向けに包括的な${request.contentType}を作成しました。この内容は${request.generationConfig.language}で${request.generationConfig.tone}なトーンで構成されており、${partialContents.sections.length}つの主要セクションを含んでいます。`;
   }
@@ -291,18 +292,18 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
     progressThreshold: number,
     content: string,
     ws: WebSocket,
-    requestId: string
+    requestId: string,
   ): Promise<QualityCheckpoint> {
     // Simple quality assessment
     const qualityScore = Math.min(100, Math.max(60,
-      85 + Math.random() * 10 - 5 // 80-90 range with some variance
+      85 + Math.random() * 10 - 5, // 80-90 range with some variance
     ));
 
     const checkpoint: QualityCheckpoint = {
       progress: progressThreshold,
       action: qualityScore >= 75 ? 'continue' : 'adjust',
       qualityScore,
-      feedback: qualityScore >= 80 ? '良好な品質です' : '一部調整が必要です'
+      feedback: qualityScore >= 80 ? '良好な品質です' : '一部調整が必要です',
     };
 
     // Log quality checkpoint (could send to client if needed)
@@ -316,7 +317,7 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
    */
   private async finalizeContent(
     partialContents: { title: string; sections: string[]; summary: string },
-    request: GeminiContentRequest
+    request: GeminiContentRequest,
   ): Promise<GeminiContentResponse> {
     const fullBody = `# ${partialContents.title}\n\n${partialContents.sections.join('\n')}\n\n## 要約\n${partialContents.summary}`;
 
@@ -334,7 +335,7 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
         body: fullBody,
         summary: partialContents.summary,
         keyPoints,
-        estimatedReadingTime
+        estimatedReadingTime,
       },
       metadata: {
         generatedAt: new Date().toISOString(),
@@ -342,20 +343,20 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
         promptTokens: 1500,
         completionTokens: wordCount,
         qualityScore: 88,
-        confidenceLevel: 92
+        confidenceLevel: 92,
       },
       qualityMetrics: {
         readabilityScore: 78,
         factualAccuracyScore: 87,
         originalityScore: 94,
         biasScore: 12,
-        engagementPrediction: 84
+        engagementPrediction: 84,
       },
       recommendations: {
         improvements: ['インタラクティブ要素の追加を検討', '具体例をさらに充実'],
         additionalResources: ['関連する参考書籍', '実践的な演習プロジェクト'],
-        relatedTopics: ['基礎概念の復習', '応用レベルのトピック']
-      }
+        relatedTopics: ['基礎概念の復習', '応用レベルのトピック'],
+      },
     };
   }
 
@@ -375,9 +376,9 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
         { step: 'Generate content', status: 'pending' },
         { step: 'Review quality', status: 'pending' },
         { step: 'Finalize content', status: 'pending' },
-        { step: 'Complete', status: 'pending' }
+        { step: 'Complete', status: 'pending' },
       ],
-      estimatedCompletion
+      estimatedCompletion,
     };
   }
 
@@ -386,10 +387,10 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
    */
   private updateProgress(
     requestId: string,
-    update: Partial<GenerationProgress> & { step?: string }
+    update: Partial<GenerationProgress> & { step?: string },
   ): void {
     const progress = this.activeGenerations.get(requestId);
-    if (!progress) return;
+    if (!progress) {return;}
 
     // Update basic properties
     Object.assign(progress, update);
@@ -415,11 +416,11 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
    */
   private sendProgressUpdate(ws: WebSocket, requestId: string): void {
     const progress = this.activeGenerations.get(requestId);
-    if (!progress) return;
+    if (!progress) {return;}
 
     this.sendMessage(ws, 'generation:progress', {
       progress: progress.progress,
-      currentSection: this.getCurrentSection(progress)
+      currentSection: this.getCurrentSection(progress),
     });
   }
 
@@ -440,7 +441,7 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
     const lengthMultiplier = {
       'short': 1,
       'medium': 1.5,
-      'long': 2.2
+      'long': 2.2,
     }[request.generationConfig.length];
 
     const complexityMultiplier = request.generationConfig.interactivityLevel * 0.2 + 0.8;
@@ -455,7 +456,7 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
   private sendMessage<T extends keyof StreamingMessages>(
     ws: WebSocket,
     type: T,
-    data: StreamingMessages[T]
+    data: StreamingMessages[T],
   ): void {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type, data }));
@@ -484,9 +485,9 @@ ${request.generationConfig.includeExamples ? '### 具体例\n実際の例を通�
         message: error.message || 'An error occurred during streaming generation',
         details: {
           requestId,
-          timestamp: new Date().toISOString()
-        }
-      }
+          timestamp: new Date().toISOString(),
+        },
+      },
     });
   }
 

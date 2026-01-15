@@ -7,7 +7,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { UserRole } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
 
 export interface LoginFormData {
   email: string;
@@ -65,7 +65,7 @@ export default function CourseLogin({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = useCallback((
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -196,7 +196,7 @@ export default function CourseLogin({
     onError,
     redirectTo,
     searchParams,
-    router
+    router,
   ]);
 
   const toggleMode = useCallback(() => {

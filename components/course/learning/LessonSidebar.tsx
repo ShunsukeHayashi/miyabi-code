@@ -18,10 +18,10 @@ import {
   Heart,
   Users,
   Star,
-  Award
+  Award,
 } from 'lucide-react';
 import LessonNavigation from './LessonNavigation';
-import { LessonWithRelations, ProgressData } from '../shared/types';
+import type { LessonWithRelations, ProgressData } from '../shared/types';
 
 interface LessonSidebarProps {
   currentLesson: LessonWithRelations;
@@ -46,7 +46,7 @@ export function LessonSidebar({
   onLessonSelect,
   onPrevious,
   onNext,
-  className = ''
+  className = '',
 }: LessonSidebarProps) {
   const [sections, setSections] = useState<SidebarSection[]>([
     { id: 'progress', title: 'Course Progress', isOpen: true },
@@ -109,14 +109,12 @@ export function LessonSidebar({
       prev.map(section =>
         section.id === sectionId
           ? { ...section, isOpen: !section.isOpen }
-          : section
-      )
+          : section,
+      ),
     );
   };
 
-  const getSection = (sectionId: string) => {
-    return sections.find(s => s.id === sectionId);
-  };
+  const getSection = (sectionId: string) => sections.find(s => s.id === sectionId);
 
   return (
     <div className={`bg-gray-800 border-l border-gray-700 flex flex-col h-full ${className}`}>
@@ -260,20 +258,20 @@ export function LessonSidebar({
                   user: 'Sarah Chen',
                   question: 'Can you explain the difference between these two approaches?',
                   time: '2 hours ago',
-                  replies: 3
+                  replies: 3,
                 },
                 {
                   user: 'Mike Johnson',
                   question: 'Great explanation! Is there a practice exercise for this?',
                   time: '5 hours ago',
-                  replies: 1
+                  replies: 1,
                 },
                 {
                   user: 'Emily Davis',
                   question: 'I\'m getting an error in the code example. Any suggestions?',
                   time: '1 day ago',
-                  replies: 2
-                }
+                  replies: 2,
+                },
               ].map((item, index) => (
                 <div key={index} className="bg-gray-700 rounded-lg p-3">
                   <div className="flex items-start justify-between mb-2">

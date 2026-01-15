@@ -3,8 +3,8 @@
  * Issue #1298: AI Course API Authentication
  */
 
-import { NextRequest } from 'next/server';
-import { UserRole } from '@prisma/client';
+import type { NextRequest } from 'next/server';
+import type { UserRole } from '@prisma/client';
 
 export interface AuthenticatedUser {
   id: string;
@@ -14,26 +14,27 @@ export interface AuthenticatedUser {
 }
 
 /**
- * Extract user from request (placeholder implementation)
- * In production, this would validate JWT tokens, session cookies, etc.
+ * Extract user from request using JWT authentication
+ * Integrates with course-auth system for consistent authentication
  */
 export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
-  // TODO: Implement actual authentication logic
-  // For now, return mock user from headers for testing
-  const userId = request.headers.get('x-user-id');
-  const userEmail = request.headers.get('x-user-email');
-  const userRole = request.headers.get('x-user-role') as UserRole;
+  try {
+    // Import JWT authentication functions from course-auth
+    const { extractJWTToken, validateJWTToken } = await import('./auth/course-auth');
 
-  if (!userId || !userEmail || !userRole) {
+    // Extract JWT token from Authorization header or cookie
+    const token = extractJWTToken(request);
+    if (!token) {
+      return null;
+    }
+
+    // Validate JWT token and return user information
+    const user = await validateJWTToken(token);
+    return user;
+  } catch (error) {
+    console.error('Authentication error:', error);
     return null;
   }
-
-  return {
-    id: userId,
-    email: userEmail,
-    role: userRole,
-    username: request.headers.get('x-username') || undefined,
-  };
 }
 
 /**

@@ -3,17 +3,23 @@
  * Issue #1300: Middleware for API endpoint authentication and authorization
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import {
-  getCourseAuthContext,
+import type {
   CourseAuthContext,
-  CourseAuthOptions
+  CourseAuthOptions,
 } from './course-auth';
 import {
-  hasPermission as checkRolePermission,
+  getCourseAuthContext,
+} from './course-auth';
+import type { AuthenticatedUser } from '../auth';
+import type {
   Permission,
-  PermissionContext
+  PermissionContext,
+} from './roles';
+import {
+  hasPermission as checkRolePermission,
 } from './roles';
 
 const prisma = new PrismaClient();
@@ -64,7 +70,7 @@ const auditLogs: AuditLogEntry[] = [];
  */
 export async function authMiddleware(
   request: NextRequest,
-  options: MiddlewareOptions = {}
+  options: MiddlewareOptions = {},
 ): Promise<AuthMiddlewareResult> {
   try {
     // Extract course ID from URL if not provided
@@ -96,7 +102,7 @@ export async function authMiddleware(
       // General authentication without course context
       const generalContext = await getGeneralAuthContext(request);
       if (generalContext) {
-        context = generalContext as CourseAuthContext;
+        context = generalContext;
         permissionContext = createPermissionContext(generalContext, undefined);
       }
     }
@@ -107,7 +113,7 @@ export async function authMiddleware(
         action: 'AUTH_FAILED',
         resource: courseId || 'api',
         success: false,
-        details: { reason: 'No valid authentication' }
+        details: { reason: 'No valid authentication' },
       });
 
       return {
@@ -121,11 +127,11 @@ export async function authMiddleware(
     if (options.requiredPermissions && context && permissionContext) {
       const hasRequiredPermissions = options.requireAnyPermission
         ? options.requiredPermissions.some(permission =>
-            checkRolePermission(permissionContext!, permission)
-          )
+          checkRolePermission(permissionContext, permission),
+        )
         : options.requiredPermissions.every(permission =>
-            checkRolePermission(permissionContext!, permission)
-          );
+          checkRolePermission(permissionContext, permission),
+        );
 
       if (!hasRequiredPermissions) {
         await logAuditEvent(request, {
@@ -135,8 +141,8 @@ export async function authMiddleware(
           success: false,
           details: {
             requiredPermissions: options.requiredPermissions,
-            userPermissions: permissionContext ? getUserPermissionsForContext(permissionContext) : []
-          }
+            userPermissions: permissionContext ? getUserPermissionsForContext(permissionContext) : [],
+          },
         });
 
         return {
@@ -156,8 +162,8 @@ export async function authMiddleware(
         success: true,
         details: {
           permissions: options.requiredPermissions || [],
-          courseId: courseId
-        }
+          courseId,
+        },
       });
     }
 
@@ -174,7 +180,7 @@ export async function authMiddleware(
       action: 'AUTH_ERROR',
       resource: options.courseId || 'api',
       success: false,
-      details: { error: error instanceof Error ? error.message : 'Unknown error' }
+      details: { error: error instanceof Error ? error.message : 'Unknown error' },
     });
 
     return {
@@ -254,12 +260,20 @@ function extractTokenFromRequest(request: NextRequest): string | null {
 }
 
 /**
- * Validate general token (placeholder - integrate with existing Miyabi auth)
+ * Validate general token using JWT authentication
+ * Integrated with Miyabi authentication system
  */
-async function validateGeneralToken(token: string): Promise<any | null> {
-  // This would integrate with the existing Miyabi authentication system
-  // For now, return null to indicate integration needed
-  return null;
+async function validateGeneralToken(token: string): Promise<AuthenticatedUser | null> {
+  try {
+    // Use the same JWT validation logic as course-auth
+    const { validateJWTToken } = await import('./course-auth');
+
+    // Validate JWT token and return user information
+    return await validateJWTToken(token);
+  } catch (error) {
+    console.error('General token validation error:', error);
+    return null;
+  }
 }
 
 /**
@@ -267,7 +281,7 @@ async function validateGeneralToken(token: string): Promise<any | null> {
  */
 function createPermissionContext(
   authContext: CourseAuthContext,
-  courseId?: string
+  courseId?: string,
 ): PermissionContext {
   return {
     userId: authContext.id,
@@ -294,7 +308,7 @@ function getUserPermissionsForContext(context: PermissionContext): string[] {
  */
 function checkRateLimit(
   request: NextRequest,
-  options: { requests: number; windowMs: number }
+  options: { requests: number; windowMs: number },
 ): { allowed: boolean; remaining: number; resetAt: Date } {
   const clientId = getClientIdentifier(request);
   const now = new Date();
@@ -374,7 +388,7 @@ export function withAuth(
       permissionContext?: PermissionContext
     }
   ) => Promise<NextResponse>,
-  options: MiddlewareOptions = {}
+  options: MiddlewareOptions = {},
 ) {
   return async (req: NextRequest, context: { params: any }) => {
     const authResult = await authMiddleware(req, options);
@@ -384,10 +398,10 @@ export function withAuth(
         {
           error: authResult.error || 'Authentication failed',
           code: authResult.statusCode === 429 ? 'RATE_LIMIT_EXCEEDED' :
-                authResult.statusCode === 403 ? 'INSUFFICIENT_PERMISSIONS' :
-                authResult.statusCode === 401 ? 'AUTHENTICATION_REQUIRED' : 'AUTH_ERROR'
+            authResult.statusCode === 403 ? 'INSUFFICIENT_PERMISSIONS' :
+              authResult.statusCode === 401 ? 'AUTHENTICATION_REQUIRED' : 'AUTH_ERROR',
         },
-        { status: authResult.statusCode || 401 }
+        { status: authResult.statusCode || 401 },
       );
     }
 
@@ -429,7 +443,7 @@ export function getRateLimitStats(): Map<string, { count: number; resetAt: Date 
  */
 export async function authenticateRequest(
   request: NextRequest,
-  options: MiddlewareOptions = {}
+  options: MiddlewareOptions = {},
 ): Promise<AuthMiddlewareResult> {
-  return await authMiddleware(request, options);
+  return authMiddleware(request, options);
 }

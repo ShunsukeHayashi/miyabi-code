@@ -25,7 +25,7 @@ import {
   BookOpen,
   PieChart,
   Activity,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { LoadingSpinner } from '../shared/LoadingComponents';
 
@@ -83,7 +83,7 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       change: 15.3,
       period: 'vs last month',
       icon: <DollarSign size={20} />,
-      color: 'miyabi-green'
+      color: 'miyabi-green',
     },
     {
       id: 'enrollments',
@@ -92,7 +92,7 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       change: 8.7,
       period: 'vs last month',
       icon: <Users size={20} />,
-      color: 'miyabi-blue'
+      color: 'miyabi-blue',
     },
     {
       id: 'completion',
@@ -101,7 +101,7 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       change: -2.1,
       period: 'vs last month',
       icon: <Target size={20} />,
-      color: 'miyabi-purple'
+      color: 'miyabi-purple',
     },
     {
       id: 'rating',
@@ -110,7 +110,7 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       change: 0.3,
       period: 'vs last month',
       icon: <Star size={20} />,
-      color: 'orange-500'
+      color: 'orange-500',
     },
     {
       id: 'engagement',
@@ -119,7 +119,7 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       change: 5.2,
       period: 'vs last month',
       icon: <Activity size={20} />,
-      color: 'miyabi-blue'
+      color: 'miyabi-blue',
     },
     {
       id: 'watch_time',
@@ -128,8 +128,8 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       change: 12.8,
       period: 'vs last month',
       icon: <Clock size={20} />,
-      color: 'miyabi-purple'
-    }
+      color: 'miyabi-purple',
+    },
   ];
 
   // Mock course performance data
@@ -143,7 +143,7 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       completionRate: 87,
       rating: 4.8,
       reviews: 142,
-      trend: 'up'
+      trend: 'up',
     },
     {
       id: '2',
@@ -154,7 +154,7 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       completionRate: 92,
       rating: 4.9,
       reviews: 98,
-      trend: 'up'
+      trend: 'up',
     },
     {
       id: '3',
@@ -165,8 +165,8 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       completionRate: 78,
       rating: 4.6,
       reviews: 87,
-      trend: 'down'
-    }
+      trend: 'down',
+    },
   ];
 
   // Mock chart data
@@ -176,9 +176,9 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       {
         label: 'Enrollments',
         data: [45, 67, 89, 123, 156, 234],
-        color: 'miyabi-blue'
-      }
-    ]
+        color: 'miyabi-blue',
+      },
+    ],
   };
 
   const revenueChartData: ChartData = {
@@ -187,9 +187,9 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       {
         label: 'Revenue',
         data: [3200, 4100, 3800, 4900],
-        color: 'miyabi-green'
-      }
-    ]
+        color: 'miyabi-green',
+      },
+    ],
   };
 
   // Mock student demographics
@@ -200,31 +200,29 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
       { country: 'United Kingdom', percentage: 15, count: 182 },
       { country: 'Canada', percentage: 12, count: 146 },
       { country: 'Germany', percentage: 8, count: 97 },
-      { country: 'Others', percentage: 8, count: 97 }
+      { country: 'Others', percentage: 8, count: 97 },
     ],
     devices: [
       { type: 'Desktop', percentage: 65, count: 789 },
       { type: 'Mobile', percentage: 28, count: 340 },
-      { type: 'Tablet', percentage: 7, count: 85 }
+      { type: 'Tablet', percentage: 7, count: 85 },
     ],
     experience: [
       { level: 'Beginner', percentage: 45, count: 546 },
       { level: 'Intermediate', percentage: 38, count: 462 },
-      { level: 'Advanced', percentage: 17, count: 206 }
-    ]
+      { level: 'Advanced', percentage: 17, count: 206 },
+    ],
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+  }).format(amount);
 
   const getTrendIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="text-miyabi-green" size={16} />;
-    if (change < 0) return <TrendingDown className="text-red-400" size={16} />;
+    if (change > 0) {return <TrendingUp className="text-miyabi-green" size={16} />;}
+    if (change < 0) {return <TrendingDown className="text-red-400" size={16} />;}
     return <Activity className="text-gray-400" size={16} />;
   };
 
@@ -564,22 +562,22 @@ export function CourseAnalytics({ instructorId, courseId, className = '' }: Cour
             { label: 'Enrollments', value: '1,068', percentage: 44 },
             { label: 'Started Learning', value: '892', percentage: 84 },
             { label: 'Completed 50%', value: '534', percentage: 60 },
-            { label: 'Course Completed', value: '423', percentage: 79 }
+            { label: 'Course Completed', value: '423', percentage: 79 },
           ].map((stage, index) => (
             <div key={stage.label} className="text-center">
               <div className={`w-full h-16 rounded-lg flex items-center justify-center mb-2 ${
                 index === 0 ? 'bg-miyabi-blue/20 border border-miyabi-blue/30' :
-                index === 1 ? 'bg-miyabi-green/20 border border-miyabi-green/30' :
-                index === 2 ? 'bg-miyabi-purple/20 border border-miyabi-purple/30' :
-                index === 3 ? 'bg-orange-500/20 border border-orange-500/30' :
-                'bg-yellow-500/20 border border-yellow-500/30'
+                  index === 1 ? 'bg-miyabi-green/20 border border-miyabi-green/30' :
+                    index === 2 ? 'bg-miyabi-purple/20 border border-miyabi-purple/30' :
+                      index === 3 ? 'bg-orange-500/20 border border-orange-500/30' :
+                        'bg-yellow-500/20 border border-yellow-500/30'
               }`}>
                 <span className={`text-lg font-bold ${
                   index === 0 ? 'text-miyabi-blue' :
-                  index === 1 ? 'text-miyabi-green' :
-                  index === 2 ? 'text-miyabi-purple' :
-                  index === 3 ? 'text-orange-500' :
-                  'text-yellow-500'
+                    index === 1 ? 'text-miyabi-green' :
+                      index === 2 ? 'text-miyabi-purple' :
+                        index === 3 ? 'text-orange-500' :
+                          'text-yellow-500'
                 }`}>
                   {stage.value}
                 </span>

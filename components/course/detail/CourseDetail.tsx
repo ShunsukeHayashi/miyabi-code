@@ -18,7 +18,7 @@ import {
   Download,
   Share2,
   Heart,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import CourseHeader from './CourseHeader';
 import CourseSyllabus from './CourseSyllabus';
@@ -30,7 +30,7 @@ import { LoadingSpinner } from '../shared/LoadingSpinner';
 import {
   CourseWithRelations,
   COURSE_LEVEL_COLORS,
-  ProgressData
+  ProgressData,
 } from '../shared/types';
 
 interface CourseDetailProps {
@@ -42,7 +42,7 @@ interface CourseDetailProps {
 export function CourseDetail({
   courseId,
   courseSlug,
-  className = ''
+  className = '',
 }: CourseDetailProps) {
   const { isAuthenticated, user } = useAuth();
   const [showEnrollmentModal, setShowEnrollmentModal] = useState(false);
@@ -52,9 +52,9 @@ export function CourseDetail({
   const {
     data: courseResponse,
     isLoading: courseLoading,
-    error: courseError
+    error: courseError,
   } = useCourse(courseId || courseSlug || '', {
-    enabled: !!(courseId || courseSlug)
+    enabled: !!(courseId || courseSlug),
   });
 
   const course = courseResponse?.data;
@@ -94,14 +94,14 @@ export function CourseDetail({
   };
 
   const formatDuration = (minutes?: number | null) => {
-    if (!minutes) return 'Self-paced';
+    if (!minutes) {return 'Self-paced';}
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
   const formatPrice = (price?: number | null) => {
-    if (!price || price === 0) return 'Free';
+    if (!price || price === 0) {return 'Free';}
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -124,7 +124,7 @@ export function CourseDetail({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-400 mb-4">Course Not Found</h2>
-          <p className="text-gray-400 mb-6">The course you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-400 mb-6">The course you&apos;re looking for doesn&apos;t exist or has been removed.</p>
           <button
             onClick={() => window.history.back()}
             className="bg-miyabi-blue text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
@@ -284,9 +284,9 @@ export function CourseDetail({
                     className={`
                       py-4 px-2 border-b-2 font-medium text-sm transition-colors
                       ${activeTab === tab.id
-                        ? 'border-miyabi-blue text-miyabi-blue'
-                        : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                      }
+                    ? 'border-miyabi-blue text-miyabi-blue'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                  }
                     `}
                   >
                     {tab.label}
@@ -308,7 +308,7 @@ export function CourseDetail({
 
                 {/* What You'll Learn */}
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-4">What you'll learn</h3>
+                  <h3 className="text-xl font-bold text-white mb-4">What you&apos;ll learn</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Mock learning outcomes */}
                     {[
@@ -317,7 +317,7 @@ export function CourseDetail({
                       'Understand best practices and industry standards',
                       'Get hands-on experience with latest tools',
                       'Develop problem-solving skills',
-                      'Learn from experienced instructors'
+                      'Learn from experienced instructors',
                     ].map((outcome, index) => (
                       <div key={index} className="flex items-start gap-3">
                         <div className="mt-1">

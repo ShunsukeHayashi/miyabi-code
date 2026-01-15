@@ -4,8 +4,9 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import * as Y from 'yjs';
-import { collaborationProvider, UserAwareness } from '@/lib/collaboration/yjs-provider';
+import type * as Y from 'yjs';
+import type { UserAwareness } from '@/lib/collaboration/yjs-provider';
+import { collaborationProvider } from '@/lib/collaboration/yjs-provider';
 
 interface UseCollaborationOptions {
   roomId: string;
@@ -17,7 +18,7 @@ interface CollaborationStatus {
   connected: boolean;
   synced: boolean;
   userCount: number;
-  users: UserAwareness['user'][];
+  users: Array<UserAwareness['user']>;
 }
 
 interface UseCollaborationReturn {
@@ -37,13 +38,13 @@ interface UseCollaborationReturn {
 
   // Awareness (cursor/user presence)
   setLocalCursor: (cursor: { anchor: number; head: number } | null) => void;
-  onAwarenessChange: (callback: (users: UserAwareness['user'][]) => void) => () => void;
+  onAwarenessChange: (callback: (users: Array<UserAwareness['user']>) => void) => () => void;
 }
 
 export function useCollaboration({
   roomId,
   user,
-  autoConnect = true
+  autoConnect = true,
 }: UseCollaborationOptions): UseCollaborationReturn {
   const [status, setStatus] = useState<CollaborationStatus | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -63,7 +64,7 @@ export function useCollaboration({
 
   // Connect to collaboration room
   const connect = useCallback(() => {
-    if (isConnected) return;
+    if (isConnected) {return;}
 
     setIsLoading(true);
     try {
@@ -126,19 +127,13 @@ export function useCollaboration({
   }, [roomId]);
 
   // Get shared text document
-  const getSharedText = useCallback((key: string = 'content'): Y.Text | null => {
-    return collaborationProvider.createSharedText(roomId, key);
-  }, [roomId]);
+  const getSharedText = useCallback((key: string = 'content'): Y.Text | null => collaborationProvider.createSharedText(roomId, key), [roomId]);
 
   // Get shared map
-  const getSharedMap = useCallback((key: string = 'data'): Y.Map<any> | null => {
-    return collaborationProvider.createSharedMap(roomId, key);
-  }, [roomId]);
+  const getSharedMap = useCallback((key: string = 'data'): Y.Map<any> | null => collaborationProvider.createSharedMap(roomId, key), [roomId]);
 
   // Get shared array
-  const getSharedArray = useCallback((key: string = 'items'): Y.Array<any> | null => {
-    return collaborationProvider.createSharedArray(roomId, key);
-  }, [roomId]);
+  const getSharedArray = useCallback((key: string = 'items'): Y.Array<any> | null => collaborationProvider.createSharedArray(roomId, key), [roomId]);
 
   // Set local cursor position for awareness
   const setLocalCursor = useCallback((cursor: { anchor: number; head: number } | null) => {
@@ -148,13 +143,13 @@ export function useCollaboration({
   }, []);
 
   // Listen to awareness changes
-  const onAwarenessChange = useCallback((callback: (users: UserAwareness['user'][]) => void) => {
+  const onAwarenessChange = useCallback((callback: (users: Array<UserAwareness['user']>) => void) => {
     if (!roomRef.current?.awareness) {
       return () => {};
     }
 
     const handleAwarenessChange = () => {
-      const users: UserAwareness['user'][] = [];
+      const users: Array<UserAwareness['user']> = [];
       roomRef.current.awareness.getStates().forEach((state: any) => {
         if (state.user) {
           users.push(state.user);
@@ -201,6 +196,6 @@ export function useCollaboration({
     connect,
     disconnect,
     setLocalCursor,
-    onAwarenessChange
+    onAwarenessChange,
   };
 }

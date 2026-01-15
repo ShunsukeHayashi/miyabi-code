@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { BaseComponentProps } from './types';
+import type { BaseComponentProps } from './types';
 
 interface LoadingSpinnerProps extends BaseComponentProps {
   size?: 'sm' | 'md' | 'lg';

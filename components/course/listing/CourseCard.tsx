@@ -9,7 +9,8 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Star, Clock, Users, BookOpen, Play, Tag } from 'lucide-react';
-import { CourseWithRelations, CourseCardMode, COURSE_LEVEL_COLORS } from '../shared/types';
+import type { CourseWithRelations, CourseCardMode} from '../shared/types';
+import { COURSE_LEVEL_COLORS } from '../shared/types';
 import { useAuth } from '../../auth/RoleGuard';
 
 interface CourseCardProps {
@@ -25,7 +26,7 @@ export function CourseCard({
   mode = 'grid',
   showEnrollButton = true,
   onEnroll,
-  className = ''
+  className = '',
 }: CourseCardProps) {
   const { isAuthenticated, user } = useAuth();
 
@@ -35,14 +36,14 @@ export function CourseCard({
   const lessonsCount = course.stats?.lessonsCount || 0;
 
   const formatDuration = (minutes?: number | null) => {
-    if (!minutes) return 'Self-paced';
+    if (!minutes) {return 'Self-paced';}
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
   const formatPrice = (price?: number | null) => {
-    if (!price || price === 0) return 'Free';
+    if (!price || price === 0) {return 'Free';}
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',

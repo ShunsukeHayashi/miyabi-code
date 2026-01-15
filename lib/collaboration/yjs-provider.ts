@@ -54,7 +54,7 @@ class YjsCollaborationProvider {
     const provider = new WebsocketProvider(
       this.websocketUrl,
       roomId,
-      doc
+      doc,
     );
 
     // Create IndexedDB persistence for offline support
@@ -67,7 +67,7 @@ class YjsCollaborationProvider {
       doc,
       provider,
       persistence,
-      awareness: provider.awareness
+      awareness: provider.awareness,
     };
 
     this.rooms.set(roomId, room);
@@ -109,12 +109,12 @@ class YjsCollaborationProvider {
     connected: boolean;
     synced: boolean;
     userCount: number;
-    users: UserAwareness['user'][];
+    users: Array<UserAwareness['user']>;
   } | null {
     const room = this.rooms.get(roomId);
-    if (!room) return null;
+    if (!room) {return null;}
 
-    const users: UserAwareness['user'][] = [];
+    const users: Array<UserAwareness['user']> = [];
     room.awareness.getStates().forEach((state: any) => {
       if (state.user) {
         users.push(state.user);
@@ -125,7 +125,7 @@ class YjsCollaborationProvider {
       connected: room.provider.wsconnected,
       synced: room.provider.synced,
       userCount: users.length,
-      users
+      users,
     };
   }
 
@@ -134,7 +134,7 @@ class YjsCollaborationProvider {
    */
   createSharedText(roomId: string, textKey: string = 'content'): Y.Text | null {
     const room = this.rooms.get(roomId);
-    if (!room) return null;
+    if (!room) {return null;}
 
     return room.doc.getText(textKey);
   }
@@ -144,7 +144,7 @@ class YjsCollaborationProvider {
    */
   createSharedMap(roomId: string, mapKey: string = 'data'): Y.Map<any> | null {
     const room = this.rooms.get(roomId);
-    if (!room) return null;
+    if (!room) {return null;}
 
     return room.doc.getMap(mapKey);
   }
@@ -154,7 +154,7 @@ class YjsCollaborationProvider {
    */
   createSharedArray(roomId: string, arrayKey: string = 'items'): Y.Array<any> | null {
     const room = this.rooms.get(roomId);
-    if (!room) return null;
+    if (!room) {return null;}
 
     return room.doc.getArray(arrayKey);
   }
@@ -166,7 +166,7 @@ class YjsCollaborationProvider {
     const colors = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
       '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43',
-      '#10AC84', '#EE5A24', '#0652DD', '#9C88FF', '#FFC312'
+      '#10AC84', '#EE5A24', '#0652DD', '#9C88FF', '#FFC312',
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   }

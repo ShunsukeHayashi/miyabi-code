@@ -1,7 +1,8 @@
-'use client'
+'use client';
 
-import { Component, ErrorInfo, ReactNode } from 'react'
-import * as Sentry from '@sentry/nextjs'
+import type { ErrorInfo, ReactNode } from 'react';
+import { Component } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 interface ErrorBoundaryState {
   hasError: boolean
@@ -18,15 +19,15 @@ interface ErrorBoundaryProps {
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
-    this.state = { hasError: false }
+    super(props);
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return {
       hasError: true,
       error,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
@@ -40,39 +41,39 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       tags: {
         errorBoundary: true,
       },
-    })
+    });
 
     this.setState({
       error,
       errorInfo,
       eventId,
-    })
+    });
 
     // カスタムエラーハンドラーがあれば実行
-    this.props.onError?.(error, errorInfo)
+    this.props.onError?.(error, errorInfo);
 
     // 開発環境でのログ出力
     if (process.env.NODE_ENV === 'development') {
-      console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack)
-      console.error('[ErrorBoundary] Error:', error)
+      console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
+      console.error('[ErrorBoundary] Error:', error);
     }
   }
 
   handleReset = (): void => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined })
-  }
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+  };
 
   handleReportFeedback = (): void => {
     if (this.state.eventId) {
       // Sentryのユーザーフィードバックダイアログを表示
-      Sentry.showReportDialog({ eventId: this.state.eventId })
+      Sentry.showReportDialog({ eventId: this.state.eventId });
     }
-  }
+  };
 
   render(): ReactNode {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       return <ErrorFallback
@@ -80,10 +81,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         onReset={this.handleReset}
         onReportFeedback={this.handleReportFeedback}
         hasEventId={!!this.state.eventId}
-      />
+      />;
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
@@ -157,7 +158,7 @@ function ErrorFallback({ error, onReset, onReportFeedback, hasEventId }: ErrorFa
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default ErrorBoundary
+export default ErrorBoundary;

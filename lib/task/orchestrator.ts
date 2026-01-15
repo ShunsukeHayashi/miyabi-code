@@ -157,7 +157,7 @@ export async function createTask(request: TaskRequest, apiKeyId: string): Promis
  */
 export async function getTask(taskId: string): Promise<TaskResponse | null> {
   const task = taskStore.get(taskId);
-  if (!task) return null;
+  if (!task) {return null;}
   return formatTaskResponse(task);
 }
 
@@ -166,7 +166,7 @@ export async function getTask(taskId: string): Promise<TaskResponse | null> {
  */
 export async function cancelTask(taskId: string): Promise<TaskResponse | null> {
   const task = taskStore.get(taskId);
-  if (!task) return null;
+  if (!task) {return null;}
 
   if (task.status === 'completed' || task.status === 'failed') {
     return null; // 完了済みはキャンセル不可
@@ -220,7 +220,7 @@ function estimateTime(task: Task): number {
   const instructionLength = task.instruction.length;
   const complexityBonus = instructionLength * 2; // 1文字あたり2秒
 
-  if (!task.progress) return baseTime + complexityBonus;
+  if (!task.progress) {return baseTime + complexityBonus;}
 
   const remainingSteps = task.progress.total_steps - task.progress.completed_steps;
   return baseTime + remainingSteps * stepTime + complexityBonus;
@@ -231,7 +231,7 @@ function estimateTime(task: Task): number {
  */
 async function executeTaskAsync(taskId: string): Promise<void> {
   const task = taskStore.get(taskId);
-  if (!task) return;
+  if (!task) {return;}
 
   try {
     // ステータスを実行中に更新
@@ -322,7 +322,7 @@ async function executeAgent(agent: AgentType, task: Task): Promise<void> {
  * コールバック通知を送信
  */
 async function sendCallback(task: Task): Promise<void> {
-  if (!task.options.callback_url) return;
+  if (!task.options.callback_url) {return;}
 
   try {
     await fetch(task.options.callback_url, {
@@ -346,7 +346,7 @@ export function getTaskStats(): {
   running: number;
   completed: number;
   failed: number;
-} {
+  } {
   const tasks = Array.from(taskStore.values());
   return {
     total: tasks.length,

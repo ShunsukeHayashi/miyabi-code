@@ -124,10 +124,10 @@ class AnalyticsEngine {
           enrollments: true,
           lessons: {
             include: {
-              assessments: true
-            }
-          }
-        }
+              assessments: true,
+            },
+          },
+        },
       });
 
       if (!course) {
@@ -169,7 +169,7 @@ class AnalyticsEngine {
         engagementMetrics,
         performanceByLesson,
         difficultyDistribution,
-        popularityTrend
+        popularityTrend,
       };
     } catch (error) {
       console.error('Error generating course analytics:', error);
@@ -188,11 +188,11 @@ class AnalyticsEngine {
           enrollments: {
             include: {
               course: true,
-              progress: true
-            }
+              progress: true,
+            },
           },
-          assessmentResults: true
-        }
+          assessmentResults: true,
+        },
       });
 
       if (!user) {
@@ -212,7 +212,7 @@ class AnalyticsEngine {
       const learningPath = user.enrollments.map(enrollment => ({
         courseId: enrollment.courseId,
         progress: enrollment.progress?.[0]?.completionPercentage || 0,
-        timeSpent: enrollment.progress?.[0]?.timeSpent || 0
+        timeSpent: enrollment.progress?.[0]?.timeSpent || 0,
       }));
 
       return {
@@ -224,7 +224,7 @@ class AnalyticsEngine {
         learningStreak,
         lastActiveDate,
         engagementLevel,
-        learningPath
+        learningPath,
       };
     } catch (error) {
       console.error('Error generating user engagement analytics:', error);
@@ -244,7 +244,7 @@ class AnalyticsEngine {
       const totalLessons = await prisma.lesson.count();
 
       const completedEnrollments = await prisma.enrollment.count({
-        where: { status: 'completed' }
+        where: { status: 'completed' },
       });
       const averageCompletionRate = totalEnrollments > 0 ? completedEnrollments / totalEnrollments : 0;
 
@@ -263,11 +263,11 @@ class AnalyticsEngine {
           totalCourses,
           totalEnrollments,
           totalLessons,
-          averageCompletionRate
+          averageCompletionRate,
         },
         userGrowth,
         coursePopularity,
-        learningOutcomes
+        learningOutcomes,
       };
     } catch (error) {
       console.error('Error generating platform analytics:', error);
@@ -301,7 +301,7 @@ class AnalyticsEngine {
         skillGaps,
         strengthAreas,
         learningEfficiency,
-        predictedOutcomes
+        predictedOutcomes,
       };
     } catch (error) {
       console.error('Error generating learning insights:', error);
@@ -316,13 +316,13 @@ class AnalyticsEngine {
       where: {
         assessment: {
           lesson: {
-            courseId
-          }
-        }
+            courseId,
+          },
+        },
       },
       _avg: {
-        score: true
-      }
+        score: true,
+      },
     });
 
     return results._avg.score || 0;
@@ -332,18 +332,16 @@ class AnalyticsEngine {
     const completedEnrollments = await prisma.enrollment.findMany({
       where: {
         courseId,
-        status: 'completed'
+        status: 'completed',
       },
       include: {
-        progress: true
-      }
+        progress: true,
+      },
     });
 
-    if (completedEnrollments.length === 0) return 0;
+    if (completedEnrollments.length === 0) {return 0;}
 
-    const totalTime = completedEnrollments.reduce((sum, enrollment) => {
-      return sum + (enrollment.progress[0]?.timeSpent || 0);
-    }, 0);
+    const totalTime = completedEnrollments.reduce((sum, enrollment) => sum + (enrollment.progress[0]?.timeSpent || 0), 0);
 
     return totalTime / completedEnrollments.length;
   }
@@ -357,25 +355,25 @@ class AnalyticsEngine {
       where: {
         courseId,
         enrolledAt: {
-          lte: sevenDaysAgo
-        }
-      }
+          lte: sevenDaysAgo,
+        },
+      },
     });
 
     const stillActiveAfterSevenDays = await prisma.enrollment.count({
       where: {
         courseId,
         enrolledAt: {
-          lte: sevenDaysAgo
+          lte: sevenDaysAgo,
         },
         progress: {
           some: {
             updatedAt: {
-              gte: sevenDaysAgo
-            }
-          }
-        }
-      }
+              gte: sevenDaysAgo,
+            },
+          },
+        },
+      },
     });
 
     return enrolledSevenDaysAgo > 0 ? stillActiveAfterSevenDays / enrolledSevenDaysAgo : 0;
@@ -389,7 +387,7 @@ class AnalyticsEngine {
       averageSessionDuration: 0,
       dailyActiveUsers: 0,
       weeklyActiveUsers: 0,
-      monthlyActiveUsers: 0
+      monthlyActiveUsers: 0,
     };
   }
 
@@ -399,10 +397,10 @@ class AnalyticsEngine {
       include: {
         assessments: {
           include: {
-            results: true
-          }
-        }
-      }
+            results: true,
+          },
+        },
+      },
     });
 
     return lessons.map(lesson => ({
@@ -413,7 +411,7 @@ class AnalyticsEngine {
       averageTimeSpent: 25,
       difficultyRating: 3.2,
       dropOffRate: 0.12,
-      commonMistakes: []
+      commonMistakes: [],
     }));
   }
 
@@ -421,7 +419,7 @@ class AnalyticsEngine {
     const distribution: Record<string, number> = {
       beginner: 0,
       intermediate: 0,
-      advanced: 0
+      advanced: 0,
     };
 
     lessons.forEach(lesson => {
@@ -442,7 +440,7 @@ class AnalyticsEngine {
       trends.push({
         date: date.toISOString().split('T')[0],
         enrollments: Math.floor(Math.random() * 20),
-        completions: Math.floor(Math.random() * 10)
+        completions: Math.floor(Math.random() * 10),
       });
     }
 
@@ -453,8 +451,8 @@ class AnalyticsEngine {
     const result = await prisma.progress.aggregate({
       where: { userId },
       _sum: {
-        timeSpent: true
-      }
+        timeSpent: true,
+      },
     });
 
     return result._sum.timeSpent || 0;
@@ -464,8 +462,8 @@ class AnalyticsEngine {
     const result = await prisma.assessmentResult.aggregate({
       where: { userId },
       _avg: {
-        score: true
-      }
+        score: true,
+      },
     });
 
     return result._avg.score || 0;
@@ -481,8 +479,8 @@ class AnalyticsEngine {
     const lastProgress = await prisma.progress.findFirst({
       where: { userId },
       orderBy: {
-        updatedAt: 'desc'
-      }
+        updatedAt: 'desc',
+      },
     });
 
     return lastProgress?.updatedAt || new Date();
@@ -491,12 +489,12 @@ class AnalyticsEngine {
   private calculateEngagementLevel(
     totalTime: number,
     coursesEnrolled: number,
-    streak: number
+    streak: number,
   ): 'low' | 'medium' | 'high' {
     const score = (totalTime / 60) + (coursesEnrolled * 10) + (streak * 2);
 
-    if (score >= 100) return 'high';
-    if (score >= 50) return 'medium';
+    if (score >= 100) {return 'high';}
+    if (score >= 50) {return 'medium';}
     return 'low';
   }
 
@@ -511,7 +509,7 @@ class AnalyticsEngine {
         date: date.toISOString().split('T')[0],
         newUsers: Math.floor(Math.random() * 50),
         activeUsers: Math.floor(Math.random() * 200) + 100,
-        retainedUsers: Math.floor(Math.random() * 180) + 90
+        retainedUsers: Math.floor(Math.random() * 180) + 90,
       });
     }
 
@@ -521,9 +519,9 @@ class AnalyticsEngine {
   private async getCoursePopularityData(): Promise<Array<{courseId: string; title: string; enrollments: number; completions: number; rating: number}>> {
     const courses = await prisma.course.findMany({
       include: {
-        enrollments: true
+        enrollments: true,
       },
-      take: 10
+      take: 10,
     });
 
     return courses.map(course => ({
@@ -531,7 +529,7 @@ class AnalyticsEngine {
       title: course.title,
       enrollments: course.enrollments.length,
       completions: course.enrollments.filter(e => e.status === 'completed').length,
-      rating: 4.2 + Math.random() * 0.8 // Mock rating
+      rating: 4.2 + Math.random() * 0.8, // Mock rating
     }));
   }
 
@@ -540,7 +538,7 @@ class AnalyticsEngine {
       topPerformingCourses: [], // Mock data
       topPerformingLessons: [],
       averageSkillImprovement: 0.75,
-      knowledgeRetention: 0.82
+      knowledgeRetention: 0.82,
     };
   }
 
@@ -551,8 +549,8 @@ class AnalyticsEngine {
         type: 'course',
         title: 'Advanced JavaScript Concepts',
         reason: 'Based on your progress in intermediate JavaScript',
-        confidence: 0.85
-      }
+        confidence: 0.85,
+      },
     ];
   }
 
@@ -577,8 +575,8 @@ class AnalyticsEngine {
       {
         skill: 'React.js',
         predictedMastery: 0.82,
-        timeToMastery: 40 // hours
-      }
+        timeToMastery: 40, // hours
+      },
     ]; // Mock predictions
   }
 }

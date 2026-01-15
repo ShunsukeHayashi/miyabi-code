@@ -39,7 +39,7 @@ export interface LessonSearchResult {
 export interface SmartSearchOptions {
   userId?: string;
   courseLevel?: string[];
-  contentTypes?: ('course' | 'lesson')[];
+  contentTypes?: Array<'course' | 'lesson'>;
   limit?: number;
   includeRecommendations?: boolean;
   sessionId?: string;
@@ -63,7 +63,7 @@ class SemanticSearchService {
    */
   async searchCourses(
     query: string,
-    options: SmartSearchOptions = {}
+    options: SmartSearchOptions = {},
   ): Promise<CourseSearchResult[]> {
     try {
       const {
@@ -93,9 +93,9 @@ class SemanticSearchService {
               select: {
                 enrollments: true,
                 reviews: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         if (!course || course.status !== 'PUBLISHED') {
@@ -114,7 +114,7 @@ class SemanticSearchService {
           result.similarity,
           course._count.enrollments,
           course._count.reviews,
-          course.featured
+          course.featured,
         );
 
         enhancedResults.push({
@@ -127,7 +127,7 @@ class SemanticSearchService {
             estimatedTime: course.estimatedTime || undefined,
             creator: {
               displayName: course.creator.displayName || undefined,
-            }
+            },
           },
           similarity: result.similarity,
           relevanceScore,
@@ -159,7 +159,7 @@ class SemanticSearchService {
   async searchLessons(
     query: string,
     courseId?: string,
-    options: SmartSearchOptions = {}
+    options: SmartSearchOptions = {},
   ): Promise<LessonSearchResult[]> {
     try {
       const { userId, limit = 10 } = options;
@@ -183,9 +183,9 @@ class SemanticSearchService {
                 id: true,
                 title: true,
                 status: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         if (!lesson || lesson.course.status !== 'PUBLISHED') {
@@ -205,7 +205,7 @@ class SemanticSearchService {
             course: {
               id: lesson.course.id,
               title: lesson.course.title,
-            }
+            },
           },
           similarity: result.similarity,
           relevanceScore: result.similarity, // For lessons, similarity is primary factor
@@ -229,7 +229,7 @@ class SemanticSearchService {
    */
   async getPersonalizedRecommendations(
     userId: string,
-    limit: number = 5
+    limit: number = 5,
   ): Promise<CourseSearchResult[]> {
     try {
       // Get user's learning preferences and history
@@ -242,8 +242,8 @@ class SemanticSearchService {
               description: true,
               tags: true,
               level: true,
-            }
-          }
+            },
+          },
         },
         orderBy: { lastAccessedAt: 'desc' },
         take: 10,
@@ -268,7 +268,7 @@ class SemanticSearchService {
       // Filter out already enrolled courses
       const enrolledCourseIds = await this.getEnrolledCourseIds(userId);
       const filteredRecommendations = recommendations.filter(
-        rec => !enrolledCourseIds.includes(rec.contentId)
+        rec => !enrolledCourseIds.includes(rec.contentId),
       );
 
       // Convert to CourseSearchResult format
@@ -278,7 +278,7 @@ class SemanticSearchService {
           where: { id: rec.contentId },
           include: {
             creator: { select: { displayName: true } },
-          }
+          },
         });
 
         if (course) {
@@ -292,7 +292,7 @@ class SemanticSearchService {
               estimatedTime: course.estimatedTime || undefined,
               creator: {
                 displayName: course.creator.displayName || undefined,
-              }
+              },
             },
             similarity: rec.similarity,
             relevanceScore: rec.similarity,
@@ -323,15 +323,15 @@ class SemanticSearchService {
               OR: [
                 { title: { contains: partialQuery, mode: 'insensitive' } },
                 { description: { contains: partialQuery, mode: 'insensitive' } },
-              ]
-            }
-          ]
+              ],
+            },
+          ],
         },
         select: {
           title: true,
           _count: {
-            select: { enrollments: true }
-          }
+            select: { enrollments: true },
+          },
         },
         orderBy: { enrollments: { _count: 'desc' } },
         take: limit,
@@ -377,7 +377,7 @@ class SemanticSearchService {
    */
   async autocomplete(query: string, limit: number = 10): Promise<string[]> {
     try {
-      const results = await this.prisma.$queryRaw<{ title: string }[]>`
+      const results = await this.prisma.$queryRaw<Array<{ title: string }>>`
         SELECT DISTINCT title
         FROM (
           SELECT title FROM courses WHERE title ILIKE ${`%${query}%`} AND status = 'PUBLISHED'
@@ -406,8 +406,8 @@ class SemanticSearchService {
         by: ['queryText'],
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
-          }
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+          },
         },
         _count: { queryText: true },
         orderBy: { _count: { queryText: 'desc' } },
@@ -432,7 +432,7 @@ class SemanticSearchService {
     similarity: number,
     enrollmentCount: number,
     reviewCount: number,
-    featured: boolean
+    featured: boolean,
   ): number {
     const popularityBoost = Math.min(Math.log(enrollmentCount + 1) / 10, 0.2);
     const reviewBoost = Math.min(reviewCount / 100, 0.1);
@@ -450,8 +450,8 @@ class SemanticSearchService {
       include: {
         creator: { select: { displayName: true } },
         _count: {
-          select: { enrollments: true }
-        }
+          select: { enrollments: true },
+        },
       },
       orderBy: [
         { featured: 'desc' },
@@ -470,7 +470,7 @@ class SemanticSearchService {
         estimatedTime: course.estimatedTime || undefined,
         creator: {
           displayName: course.creator.displayName || undefined,
-        }
+        },
       },
       similarity: 1.0,
       relevanceScore: 1.0,
@@ -496,7 +496,7 @@ class SemanticSearchService {
   private async getEnrolledCourseIds(userId: string): Promise<string[]> {
     const enrollments = await this.prisma.enrollment.findMany({
       where: { userId, status: 'ACTIVE' },
-      select: { courseId: true }
+      select: { courseId: true },
     });
     return enrollments.map(e => e.courseId);
   }
@@ -509,7 +509,7 @@ class SemanticSearchService {
     query: string,
     contentType: string,
     resultCount: number,
-    sessionId: string
+    sessionId: string,
   ): Promise<void> {
     try {
       await this.prisma.searchQuery.create({
@@ -518,7 +518,7 @@ class SemanticSearchService {
           queryText: query,
           resultsCount: resultCount,
           sessionId,
-        }
+        },
       });
     } catch (error) {
       console.error('Error tracking search results:', error);

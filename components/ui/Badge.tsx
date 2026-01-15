@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -30,25 +30,23 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
-  ({ className, variant = 'default', size = 'default', dot, dotColor, children, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'inline-flex items-center rounded-full font-medium transition-colors',
-          variantStyles[variant],
-          sizeStyles[size],
-          className
-        )}
-        {...props}
-      >
-        {dot && (
-          <span className={cn('w-1.5 h-1.5 rounded-full mr-1.5', dotColor || 'bg-current')} />
-        )}
-        {children}
-      </div>
-    );
-  }
+  ({ className, variant = 'default', size = 'default', dot, dotColor, children, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        'inline-flex items-center rounded-full font-medium transition-colors',
+        variantStyles[variant],
+        sizeStyles[size],
+        className,
+      )}
+      {...props}
+    >
+      {dot && (
+        <span className={cn('w-1.5 h-1.5 rounded-full mr-1.5', dotColor || 'bg-current')} />
+      )}
+      {children}
+    </div>
+  ),
 );
 
 Badge.displayName = 'Badge';

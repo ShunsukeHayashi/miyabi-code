@@ -5,7 +5,8 @@
  * P0.5 Minimal Code: Essential Gemini API integration only
  */
 
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import type { GenerativeModel } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Specification-defined interfaces
 export interface GeminiContentRequest {
@@ -93,7 +94,7 @@ export class GeminiClient {
         maxOutputTokens: 8192,
         temperature: 0.7,
         topP: 0.9,
-      }
+      },
     });
   }
 
@@ -158,7 +159,7 @@ export class GeminiClient {
         content: parsedContent.content,
         metadata,
         qualityMetrics,
-        recommendations
+        recommendations,
       };
 
     } catch (error) {
@@ -341,8 +342,8 @@ export class GeminiClient {
         body: text,
         summary: lines.slice(0, 3).join(' ').substring(0, 200),
         keyPoints: lines.slice(1, 6).filter(line => line.length > 10),
-        estimatedReadingTime: Math.ceil(text.length / 1000 * 5) // ~5 minutes per 1000 chars
-      }
+        estimatedReadingTime: Math.ceil(text.length / 1000 * 5), // ~5 minutes per 1000 chars
+      },
     };
   }
 
@@ -362,7 +363,7 @@ export class GeminiClient {
       factualAccuracyScore,
       originalityScore,
       biasScore,
-      engagementPrediction
+      engagementPrediction,
     };
   }
 
@@ -449,7 +450,7 @@ export class GeminiClient {
       promptTokens: response.usageMetadata?.promptTokenCount || 0,
       completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
       qualityScore: 85, // Calculated score
-      confidenceLevel: 88
+      confidenceLevel: 88,
     };
   }
 
@@ -462,7 +463,7 @@ export class GeminiClient {
     (error as any).details = {
       requestId: this.generateRequestId(),
       timestamp: new Date().toISOString(),
-      suggestion: this.getErrorSuggestion(code)
+      suggestion: this.getErrorSuggestion(code),
     };
     return error;
   }
@@ -483,7 +484,7 @@ export class GeminiClient {
       'INVALID_REQUEST': 'リクエストパラメータを確認してください',
       'MODEL_ERROR': 'モデルエラーが発生しました。入力内容を確認してください',
       'SAFETY_FILTER': '安全フィルターが適用されました。コンテンツを調整してください',
-      'TIMEOUT': 'タイムアウトが発生しました。リクエストを簡素化してください'
+      'TIMEOUT': 'タイムアウトが発生しました。リクエストを簡素化してください',
     };
     return suggestions[code] || '詳細はサポートにお問い合わせください';
   }
@@ -499,7 +500,7 @@ export class GeminiClient {
     const guides = {
       'short': '~500語',
       'medium': '~1500語',
-      'long': '~3000語'
+      'long': '~3000語',
     };
     return guides[length] || '~1500語';
   }
@@ -519,5 +520,5 @@ export const geminiClient = {
       _geminiClient = new GeminiClient();
     }
     return _geminiClient;
-  }
+  },
 };

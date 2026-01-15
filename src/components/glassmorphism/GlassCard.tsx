@@ -2,13 +2,13 @@ import type { ReactNode } from 'react';
 
 import { mergeClassNames } from './utils';
 
-type GlassCardProps = {
+interface GlassCardProps {
   eyebrow?: string;
   title?: string;
   description?: string;
   children?: ReactNode;
   className?: string;
-};
+}
 
 export function GlassCard({
   eyebrow,
@@ -21,7 +21,7 @@ export function GlassCard({
     <section
       className={mergeClassNames(
         'glass-card relative overflow-hidden rounded-3xl border border-white/15 bg-white/10 px-6 py-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.55)] backdrop-blur-2xl',
-        className
+        className,
       )}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_60%)] opacity-60" />

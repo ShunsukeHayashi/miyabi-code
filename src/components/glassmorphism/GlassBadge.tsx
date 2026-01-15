@@ -18,7 +18,7 @@ export function GlassBadge({ tone = 'cool', className, ...props }: GlassBadgePro
       className={mergeClassNames(
         'inline-flex items-center rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.3em] shadow-[0_8px_30px_rgba(15,23,42,0.25)] backdrop-blur',
         toneStyles[tone],
-        className
+        className,
       )}
       {...props}
     />

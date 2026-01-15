@@ -80,10 +80,10 @@ export class RateLimiter {
   }
 
   increment(identifier: string, success: boolean = true): void {
-    if (!this.config.enabled) return;
+    if (!this.config.enabled) {return;}
 
-    if (this.config.skipSuccessfulRequests && success) return;
-    if (this.config.skipFailedRequests && !success) return;
+    if (this.config.skipSuccessfulRequests && success) {return;}
+    if (this.config.skipFailedRequests && !success) {return;}
 
     const key = this.config.keyGenerator
       ? this.config.keyGenerator(identifier)
@@ -183,7 +183,7 @@ export class ExponentialBackoff {
     const attempts = this.attempts.get(identifier) || 0;
     const delay = Math.min(
       this.baseDelay * Math.pow(this.factor, attempts),
-      this.maxDelay
+      this.maxDelay,
     );
 
     const jitterRange = delay * this.jitter;

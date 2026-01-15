@@ -18,9 +18,9 @@ import {
   Users,
   Star,
   Shield,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
-import { CourseWithRelations } from '../shared/types';
+import type { CourseWithRelations } from '../shared/types';
 
 interface EnrollmentModalProps {
   course: CourseWithRelations;
@@ -33,7 +33,7 @@ export function EnrollmentModal({
   course,
   onClose,
   onEnroll,
-  className = ''
+  className = '',
 }: EnrollmentModalProps) {
   const [paymentMethod, setPaymentMethod] = useState<'free' | 'stripe' | 'paypal'>('free');
   const [couponCode, setCouponCode] = useState('');
@@ -48,7 +48,7 @@ export function EnrollmentModal({
   const isFree = !course.price || course.price === 0;
 
   const formatPrice = (price?: number | null) => {
-    if (!price || price === 0) return 'Free';
+    if (!price || price === 0) {return 'Free';}
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -80,7 +80,7 @@ export function EnrollmentModal({
     if (coupon) {
       setAppliedCoupon({
         code: couponCode.toUpperCase(),
-        ...coupon
+        ...coupon,
       });
     } else {
       // Show error

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/Progress';
 import type { OnboardingState, Agent, AgentTemplate, AGENT_TEMPLATES } from '@/lib/github-app/agent-types';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -148,7 +148,7 @@ export function OnboardingWizard({
                       ? 'bg-miyabi-green text-white'
                       : step.id === state.step
                         ? 'bg-gradient-to-br from-miyabi-blue to-miyabi-purple text-white'
-                        : 'bg-gray-800 text-gray-500'
+                        : 'bg-gray-800 text-gray-500',
                   )}
                 >
                   {state.completedSteps.includes(step.id) ? (
@@ -163,7 +163,7 @@ export function OnboardingWizard({
                   <div
                     className={cn(
                       'flex-1 h-0.5 transition-all',
-                      state.completedSteps.includes(step.id) ? 'bg-miyabi-green' : 'bg-gray-800'
+                      state.completedSteps.includes(step.id) ? 'bg-miyabi-green' : 'bg-gray-800',
                     )}
                   />
                 )}
@@ -336,14 +336,14 @@ function RepositoriesStep({
                     'w-full flex items-center gap-3 p-3 rounded-lg border transition-all',
                     isSelected
                       ? 'bg-miyabi-blue/10 border-miyabi-blue/50 ring-1 ring-miyabi-blue/30'
-                      : 'bg-gray-800/50 border-gray-700 hover:border-gray-600'
+                      : 'bg-gray-800/50 border-gray-700 hover:border-gray-600',
                   )}
                 >
                   <div className={cn(
                     'w-5 h-5 rounded border-2 flex items-center justify-center transition-all',
                     isSelected
                       ? 'bg-miyabi-blue border-miyabi-blue'
-                      : 'border-gray-600'
+                      : 'border-gray-600',
                   )}>
                     {isSelected && (
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -450,7 +450,7 @@ function FirstAgentStep({
                   'relative p-4 rounded-xl border text-left transition-all',
                   isSelected
                     ? 'bg-gradient-to-br from-miyabi-blue/20 to-miyabi-purple/20 border-miyabi-blue/50 ring-2 ring-miyabi-blue/30'
-                    : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800'
+                    : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800',
                 )}
               >
                 {template.recommended && (
@@ -463,7 +463,7 @@ function FirstAgentStep({
                     'p-2 rounded-lg',
                     isSelected
                       ? 'bg-miyabi-blue/30 text-miyabi-blue'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-gray-700 text-gray-400',
                   )}>
                     {templateIcons[template.id] || (
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -568,7 +568,7 @@ function IntegrationTestStep({
             'p-4 rounded-xl border',
             testResult.success
               ? 'bg-miyabi-green/10 border-miyabi-green/30'
-              : 'bg-miyabi-red/10 border-miyabi-red/30'
+              : 'bg-miyabi-red/10 border-miyabi-red/30',
           )}>
             <div className="flex items-start gap-3">
               {testResult.success ? (
@@ -590,7 +590,7 @@ function IntegrationTestStep({
               <div>
                 <h4 className={cn(
                   'text-sm font-medium',
-                  testResult.success ? 'text-miyabi-green' : 'text-miyabi-red'
+                  testResult.success ? 'text-miyabi-green' : 'text-miyabi-red',
                 )}>
                   {testResult.success ? 'Test Passed!' : 'Test Failed'}
                 </h4>

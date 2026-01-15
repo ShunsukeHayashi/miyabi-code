@@ -24,7 +24,7 @@ import {
   Calendar,
   Eye,
   Ban,
-  Send
+  Send,
 } from 'lucide-react';
 import { useStudentManagement } from '../shared/hooks';
 import { LoadingSpinner } from '../shared/LoadingComponents';
@@ -80,7 +80,7 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
     course: 'all',
     status: 'all',
     progress: 'all',
-    timeRange: 'all'
+    timeRange: 'all',
   });
 
   // Mock student data
@@ -104,7 +104,7 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
           progress: 85,
           lastAccessed: new Date('2024-01-16'),
           timeSpent: 720,
-          status: 'in-progress'
+          status: 'in-progress',
         },
         {
           id: 'course-2',
@@ -112,7 +112,7 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
           progress: 100,
           lastAccessed: new Date('2024-01-15'),
           timeSpent: 580,
-          status: 'completed'
+          status: 'completed',
         },
         {
           id: 'course-3',
@@ -120,15 +120,15 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
           progress: 40,
           lastAccessed: new Date('2024-01-14'),
           timeSpent: 150,
-          status: 'in-progress'
-        }
+          status: 'in-progress',
+        },
       ],
       stats: {
         averageScore: 92,
         questionsAsked: 8,
         discussionPosts: 12,
-        certificatesEarned: 1
-      }
+        certificatesEarned: 1,
+      },
     },
     {
       id: '2',
@@ -149,7 +149,7 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
           progress: 100,
           lastAccessed: new Date('2024-01-15'),
           timeSpent: 650,
-          status: 'completed'
+          status: 'completed',
         },
         {
           id: 'course-2',
@@ -157,15 +157,15 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
           progress: 100,
           lastAccessed: new Date('2024-01-12'),
           timeSpent: 330,
-          status: 'completed'
-        }
+          status: 'completed',
+        },
       ],
       stats: {
         averageScore: 95,
         questionsAsked: 3,
         discussionPosts: 5,
-        certificatesEarned: 2
-      }
+        certificatesEarned: 2,
+      },
     },
     {
       id: '3',
@@ -186,22 +186,22 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
           progress: 25,
           lastAccessed: new Date('2024-01-13'),
           timeSpent: 180,
-          status: 'in-progress'
-        }
+          status: 'in-progress',
+        },
       ],
       stats: {
         averageScore: 78,
         questionsAsked: 2,
         discussionPosts: 1,
-        certificatesEarned: 0
-      }
-    }
+        certificatesEarned: 0,
+      },
+    },
   ];
 
   const instructorCourses = [
     { id: 'course-1', title: 'Advanced React Patterns' },
     { id: 'course-2', title: 'TypeScript Fundamentals' },
-    { id: 'course-3', title: 'Node.js Backend Development' }
+    { id: 'course-3', title: 'Node.js Backend Development' },
   ];
 
   const formatDuration = (minutes: number) => {
@@ -210,13 +210,11 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -224,8 +222,8 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
-    if (diffDays > 0) return `${diffDays}d ago`;
-    if (diffHours > 0) return `${diffHours}h ago`;
+    if (diffDays > 0) {return `${diffDays}d ago`;}
+    if (diffHours > 0) {return `${diffHours}h ago`;}
     return 'Recently';
   };
 
@@ -241,9 +239,9 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
   };
 
   const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'miyabi-green';
-    if (progress >= 60) return 'miyabi-blue';
-    if (progress >= 30) return 'orange-500';
+    if (progress >= 80) {return 'miyabi-green';}
+    if (progress >= 60) {return 'miyabi-blue';}
+    if (progress >= 30) {return 'orange-500';}
     return 'red-500';
   };
 
@@ -255,7 +253,7 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
         const matchesSearch =
           student.name.toLowerCase().includes(query) ||
           student.email.toLowerCase().includes(query);
-        if (!matchesSearch) return false;
+        if (!matchesSearch) {return false;}
       }
 
       // Status filter
@@ -266,20 +264,20 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
       // Course filter
       if (filters.course !== 'all') {
         const hasEnrolledInCourse = student.courses.some(course => course.id === filters.course);
-        if (!hasEnrolledInCourse) return false;
+        if (!hasEnrolledInCourse) {return false;}
       }
 
       // Progress filter
       if (filters.progress !== 'all') {
         const overallStatus = student.overallProgress === 100 ? 'completed' :
-                             student.overallProgress > 0 ? 'in-progress' : 'not-started';
-        if (overallStatus !== filters.progress) return false;
+          student.overallProgress > 0 ? 'in-progress' : 'not-started';
+        if (overallStatus !== filters.progress) {return false;}
       }
 
       // Time range filter
       if (filters.timeRange !== 'all') {
         const now = new Date();
-        let cutoffDate = new Date();
+        const cutoffDate = new Date();
 
         switch (filters.timeRange) {
           case 'week':
@@ -293,7 +291,7 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
             break;
         }
 
-        if (student.lastActive < cutoffDate) return false;
+        if (student.lastActive < cutoffDate) {return false;}
       }
 
       return true;
@@ -437,8 +435,8 @@ export function StudentManagement({ instructorId, className = '' }: StudentManag
                     <h4 className="font-medium text-white">{course.title}</h4>
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       course.status === 'completed' ? 'bg-miyabi-green/20 text-miyabi-green' :
-                      course.status === 'in-progress' ? 'bg-miyabi-blue/20 text-miyabi-blue' :
-                      'bg-gray-600/20 text-gray-400'
+                        course.status === 'in-progress' ? 'bg-miyabi-blue/20 text-miyabi-blue' :
+                          'bg-gray-600/20 text-gray-400'
                     }`}>
                       {course.status.replace('-', ' ')}
                     </span>

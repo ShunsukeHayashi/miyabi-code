@@ -17,13 +17,13 @@ import {
   FileText,
   Send,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
-import {
+import type {
   AssessmentWithRelations,
   AssessmentQuestion,
   UserAnswerData,
-  AssessmentSubmission
+  AssessmentSubmission,
 } from '../shared/types';
 
 interface AssessmentViewProps {
@@ -41,7 +41,7 @@ export function AssessmentView({
   onRetry,
   allowRetake = true,
   showResults = false,
-  className = ''
+  className = '',
 }: AssessmentViewProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, UserAnswerData>>({});
@@ -61,11 +61,11 @@ export function AssessmentView({
         'To style components',
         'To manage state and side effects in functional components',
         'To handle routing',
-        'To optimize performance'
+        'To optimize performance',
       ],
       correctAnswer: 'To manage state and side effects in functional components',
       explanation: 'React hooks allow you to use state and other React features without writing class components.',
-      points: 10
+      points: 10,
     },
     {
       id: '2',
@@ -74,7 +74,7 @@ export function AssessmentView({
       options: ['True', 'False'],
       correctAnswer: 'False',
       explanation: 'React components can return null, strings, numbers, or other valid React elements.',
-      points: 5
+      points: 5,
     },
     {
       id: '3',
@@ -82,14 +82,14 @@ export function AssessmentView({
       question: 'Complete the code: const [count, setCount] = _____(0);',
       correctAnswer: 'useState',
       explanation: 'useState is the hook used to add state to functional components.',
-      points: 15
+      points: 15,
     },
     {
       id: '4',
       type: 'essay',
       question: 'Explain the difference between controlled and uncontrolled components in React. Provide examples for both.',
-      points: 20
-    }
+      points: 20,
+    },
   ];
 
   const totalPoints = mockQuestions.reduce((sum, q) => sum + q.points, 0);
@@ -97,7 +97,7 @@ export function AssessmentView({
 
   // Timer effect
   useEffect(() => {
-    if (!isStarted || !assessment.timeLimit || timeRemaining === null) return;
+    if (!isStarted || !assessment.timeLimit || timeRemaining === null) {return;}
 
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
@@ -123,7 +123,7 @@ export function AssessmentView({
   const handleAnswerChange = (questionId: string, answer: string | string[]) => {
     setAnswers(prev => ({
       ...prev,
-      [questionId]: { questionId, answer }
+      [questionId]: { questionId, answer },
     }));
   };
 
@@ -137,7 +137,7 @@ export function AssessmentView({
 
     const submission: AssessmentSubmission = {
       answers: Object.values(answers),
-      timeSpent
+      timeSpent,
     };
 
     onSubmit(submission);
@@ -146,7 +146,7 @@ export function AssessmentView({
 
   const isAnswerComplete = (question: AssessmentQuestion) => {
     const answer = answers[question.id];
-    if (!answer) return false;
+    if (!answer) {return false;}
 
     if (question.type === 'essay') {
       return typeof answer.answer === 'string' && answer.answer.trim().length > 10;
@@ -155,9 +155,7 @@ export function AssessmentView({
     return answer.answer && answer.answer.toString().trim().length > 0;
   };
 
-  const getAnsweredCount = () => {
-    return Object.keys(answers).length;
-  };
+  const getAnsweredCount = () => Object.keys(answers).length;
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

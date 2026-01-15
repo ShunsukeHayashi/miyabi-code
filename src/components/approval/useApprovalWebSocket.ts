@@ -20,7 +20,7 @@ export function useApprovalWebSocket(approvalId: string, apiUrl: string) {
 
   useEffect(() => {
     // Create WebSocket URL
-    const wsUrl = apiUrl.replace(/^http/, 'ws') + `/api/approval/${approvalId}/stream`;
+    const wsUrl = `${apiUrl.replace(/^http/, 'ws')  }/api/approval/${approvalId}/stream`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {

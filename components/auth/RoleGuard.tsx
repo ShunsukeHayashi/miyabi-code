@@ -6,9 +6,10 @@
 'use client';
 
 import React, { useEffect, useState, createContext, useContext } from 'react';
-import { UserRole } from '@prisma/client';
-import { Permission, hasPermission, PermissionContext } from '../../lib/auth/roles';
-import { CourseAuthContext } from '../../lib/auth/course-auth';
+import type { UserRole } from '@prisma/client';
+import type { Permission, PermissionContext } from '../../lib/auth/roles';
+import { hasPermission } from '../../lib/auth/roles';
+import type { CourseAuthContext } from '../../lib/auth/course-auth';
 
 /**
  * Auth Context for React components
@@ -48,18 +49,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Permission checking functions
   const checkPermission = (permission: Permission): boolean => {
-    if (!user) return false;
+    if (!user) {return false;}
     const permissionContext = createPermissionContext(user);
     return hasPermission(permissionContext, permission);
   };
 
-  const checkAnyPermission = (permissions: Permission[]): boolean => {
-    return permissions.some(permission => checkPermission(permission));
-  };
+  const checkAnyPermission = (permissions: Permission[]): boolean => permissions.some(permission => checkPermission(permission));
 
-  const checkAllPermissions = (permissions: Permission[]): boolean => {
-    return permissions.every(permission => checkPermission(permission));
-  };
+  const checkAllPermissions = (permissions: Permission[]): boolean => permissions.every(permission => checkPermission(permission));
 
   // Authentication functions
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -229,7 +226,7 @@ export function RoleGuard({
         <div className="text-center p-6">
           <h3 className="text-lg font-semibold text-gray-900">Access Denied</h3>
           <p className="text-gray-600 mt-2">
-            You don't have the required role to access this content.
+            You don&apos;t have the required role to access this content.
           </p>
         </div>
       );
@@ -247,7 +244,7 @@ export function RoleGuard({
         <div className="text-center p-6">
           <h3 className="text-lg font-semibold text-gray-900">Access Denied</h3>
           <p className="text-gray-600 mt-2">
-            You don't have the required permissions to access this content.
+            You don&apos;t have the required permissions to access this content.
           </p>
         </div>
       );
@@ -276,7 +273,7 @@ function isRoleHierarchySatisfied(userRole: UserRole, requiredRole: UserRole): b
  */
 export function withAuth<P extends object>(
   Component: React.ComponentType<P>,
-  options: Omit<RoleGuardProps, 'children'> = {}
+  options: Omit<RoleGuardProps, 'children'> = {},
 ) {
   return function AuthenticatedComponent(props: P) {
     return (
@@ -346,7 +343,7 @@ export function CourseRoleGuard({
   }
 
   // Check enrollment requirement
-  if (requireEnrollment && (!courseAuth || !courseAuth.isEnrolled)) {
+  if (requireEnrollment && (!courseAuth?.isEnrolled)) {
     return fallback || (
       <div className="text-center p-6">
         <h3 className="text-lg font-semibold text-gray-900">Enrollment Required</h3>
@@ -358,7 +355,7 @@ export function CourseRoleGuard({
   }
 
   // Check active subscription requirement
-  if (requireActiveSubscription && (!courseAuth || !courseAuth.hasActiveSubscription)) {
+  if (requireActiveSubscription && (!courseAuth?.hasActiveSubscription)) {
     return fallback || (
       <div className="text-center p-6">
         <h3 className="text-lg font-semibold text-gray-900">Active Subscription Required</h3>

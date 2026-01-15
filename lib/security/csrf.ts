@@ -239,7 +239,7 @@ export function createOriginValidator(origins?: string[], hosts?: string[]): Ori
 
 export function createDoubleSubmitCookie(
   cookieName?: string,
-  headerName?: string
+  headerName?: string,
 ): DoubleSubmitCookie {
   return new DoubleSubmitCookie(cookieName, headerName);
 }

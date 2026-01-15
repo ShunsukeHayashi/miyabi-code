@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -27,12 +27,12 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           'rounded-xl shadow-xl',
           variants[variant],
           hover && 'transition-all duration-300 hover:shadow-2xl hover:shadow-miyabi-blue/10 hover:border-gray-600 hover:scale-[1.01]',
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 Card.displayName = 'Card';
 
@@ -43,7 +43,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
       className={cn('flex flex-col space-y-1.5 p-6', className)}
       {...props}
     />
-  )
+  ),
 );
 CardHeader.displayName = 'CardHeader';
 
@@ -54,7 +54,7 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTML
       className={cn('text-xl font-semibold text-white', className)}
       {...props}
     />
-  )
+  ),
 );
 CardTitle.displayName = 'CardTitle';
 
@@ -65,14 +65,14 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
       className={cn('text-sm text-gray-400', className)}
       {...props}
     />
-  )
+  ),
 );
 CardDescription.displayName = 'CardDescription';
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
-  )
+  ),
 );
 CardContent.displayName = 'CardContent';
 
@@ -83,7 +83,7 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
       className={cn('flex items-center p-6 pt-0', className)}
       {...props}
     />
-  )
+  ),
 );
 CardFooter.displayName = 'CardFooter';
 

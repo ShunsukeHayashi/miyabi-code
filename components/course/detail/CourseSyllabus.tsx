@@ -16,9 +16,9 @@ import {
   CheckCircle,
   PlayCircle,
   Download,
-  Quiz
+  Quiz,
 } from 'lucide-react';
-import { ProgressData } from '../shared/types';
+import type { ProgressData } from '../shared/types';
 
 interface Lesson {
   id: string;
@@ -56,7 +56,7 @@ export function CourseSyllabus({
   courseId,
   isEnrolled,
   progress,
-  className = ''
+  className = '',
 }: CourseSyllabusProps) {
   // Mock data - in real app, this would come from API
   const [sections, setSections] = useState<Section[]>([
@@ -74,7 +74,7 @@ export function CourseSyllabus({
           duration: 5,
           isPreview: true,
           isCompleted: true,
-          videoUrl: '/videos/welcome.mp4'
+          videoUrl: '/videos/welcome.mp4',
         },
         {
           id: '1-2',
@@ -83,7 +83,7 @@ export function CourseSyllabus({
           type: 'video',
           duration: 15,
           isPreview: false,
-          isCompleted: true
+          isCompleted: true,
         },
         {
           id: '1-3',
@@ -98,17 +98,17 @@ export function CourseSyllabus({
               id: 'att-1',
               name: 'Course Handbook.pdf',
               url: '/downloads/handbook.pdf',
-              type: 'pdf'
+              type: 'pdf',
             },
             {
               id: 'att-2',
               name: 'Starter Code.zip',
               url: '/downloads/starter-code.zip',
-              type: 'zip'
-            }
-          ]
-        }
-      ]
+              type: 'zip',
+            },
+          ],
+        },
+      ],
     },
     {
       id: '2',
@@ -122,7 +122,7 @@ export function CourseSyllabus({
           type: 'video',
           duration: 25,
           isPreview: false,
-          isCompleted: false
+          isCompleted: false,
         },
         {
           id: '2-2',
@@ -130,7 +130,7 @@ export function CourseSyllabus({
           type: 'assignment',
           duration: 30,
           isPreview: false,
-          isCompleted: false
+          isCompleted: false,
         },
         {
           id: '2-3',
@@ -138,9 +138,9 @@ export function CourseSyllabus({
           type: 'quiz',
           duration: 10,
           isPreview: false,
-          isCompleted: false
-        }
-      ]
+          isCompleted: false,
+        },
+      ],
     },
     {
       id: '3',
@@ -154,7 +154,7 @@ export function CourseSyllabus({
           type: 'video',
           duration: 35,
           isPreview: false,
-          isCompleted: false
+          isCompleted: false,
         },
         {
           id: '3-2',
@@ -162,10 +162,10 @@ export function CourseSyllabus({
           type: 'assignment',
           duration: 60,
           isPreview: false,
-          isCompleted: false
-        }
-      ]
-    }
+          isCompleted: false,
+        },
+      ],
+    },
   ]);
 
   const toggleSection = (sectionId: string) => {
@@ -173,8 +173,8 @@ export function CourseSyllabus({
       prev.map(section =>
         section.id === sectionId
           ? { ...section, isExpanded: !section.isExpanded }
-          : section
-      )
+          : section,
+      ),
     );
   };
 
@@ -189,7 +189,7 @@ export function CourseSyllabus({
   };
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}m`;
+    if (minutes < 60) {return `${minutes}m`;}
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
@@ -214,23 +214,11 @@ export function CourseSyllabus({
     }
   };
 
-  const getTotalDuration = () => {
-    return sections.reduce((total, section) => {
-      return total + section.lessons.reduce((sectionTotal, lesson) => {
-        return sectionTotal + (lesson.duration || 0);
-      }, 0);
-    }, 0);
-  };
+  const getTotalDuration = () => sections.reduce((total, section) => total + section.lessons.reduce((sectionTotal, lesson) => sectionTotal + (lesson.duration || 0), 0), 0);
 
-  const getCompletedLessons = () => {
-    return sections.reduce((total, section) => {
-      return total + section.lessons.filter(lesson => lesson.isCompleted).length;
-    }, 0);
-  };
+  const getCompletedLessons = () => sections.reduce((total, section) => total + section.lessons.filter(lesson => lesson.isCompleted).length, 0);
 
-  const getTotalLessons = () => {
-    return sections.reduce((total, section) => total + section.lessons.length, 0);
-  };
+  const getTotalLessons = () => sections.reduce((total, section) => total + section.lessons.length, 0);
 
   const completedLessons = getCompletedLessons();
   const totalLessons = getTotalLessons();
@@ -307,7 +295,7 @@ export function CourseSyllabus({
                   <span>{section.lessons.length} lessons</span>
                   <span>
                     {formatDuration(
-                      section.lessons.reduce((total, lesson) => total + (lesson.duration || 0), 0)
+                      section.lessons.reduce((total, lesson) => total + (lesson.duration || 0), 0),
                     )}
                   </span>
                 </div>

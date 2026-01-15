@@ -8,7 +8,7 @@
  */
 
 import { RATE_LIMITS, TIER_LIMITS } from './config';
-import { RateLimitInfo } from './types';
+import type { RateLimitInfo } from './types';
 
 interface RateLimitEntry {
   count: number;
@@ -56,7 +56,7 @@ function cleanupExpiredEntries(store: Map<string, RateLimitEntry>, windowMs: num
 function getOrCreateEntry(
   store: Map<string, RateLimitEntry>,
   key: string,
-  windowMs: number
+  windowMs: number,
 ): RateLimitEntry {
   const now = Date.now();
   let entry = store.get(key);
@@ -74,7 +74,7 @@ function getOrCreateEntry(
 }
 
 export function checkGitHubApiRateLimit(
-  installationId: number | string
+  installationId: number | string,
 ): RateLimitResult {
   const key = `github:${installationId}`;
 
@@ -195,7 +195,7 @@ export function checkOAuthRateLimit(clientIp: string): RateLimitResult {
 export function checkTierLimits(
   installationId: string,
   tier: 'free' | 'pro' | 'enterprise',
-  currentMonthlyIssues: number
+  currentMonthlyIssues: number,
 ): { allowed: boolean; reason?: string; limit: number; used: number } {
   const limits = TIER_LIMITS[tier];
 
@@ -237,7 +237,7 @@ export function parseGitHubRateLimitHeaders(headers: Headers): RateLimitInfo | n
 
 export function shouldRetryAfterRateLimit(
   rateLimitInfo: RateLimitInfo,
-  maxWaitSeconds: number = 60
+  maxWaitSeconds: number = 60,
 ): { shouldRetry: boolean; waitSeconds: number } {
   if (rateLimitInfo.remaining > 0) {
     return { shouldRetry: true, waitSeconds: 0 };
@@ -256,7 +256,7 @@ export function shouldRetryAfterRateLimit(
 export async function withRateLimit<T>(
   installationId: number | string,
   operation: () => Promise<T>,
-  retries: number = 3
+  retries: number = 3,
 ): Promise<T> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     const rateLimitResult = checkGitHubApiRateLimit(installationId);
@@ -264,7 +264,7 @@ export async function withRateLimit<T>(
     if (!rateLimitResult.allowed) {
       if (attempt === retries) {
         throw new Error(
-          `Rate limit exceeded. Retry after ${rateLimitResult.retryAfter} seconds.`
+          `Rate limit exceeded. Retry after ${rateLimitResult.retryAfter} seconds.`,
         );
       }
 

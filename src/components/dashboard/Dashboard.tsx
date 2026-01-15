@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
 
 // Re-export types for external use
 export type AgentStatus = 'idle' | 'active' | 'working'
@@ -82,7 +82,7 @@ const defaultAgents: Agent[] = [
     capabilities: ['Code review automation', 'UI regression checks'],
     lastUpdated: '2025-11-05T08:00:00Z',
   },
-]
+];
 
 const defaultIssues: IssueSummary[] = [
   {
@@ -99,7 +99,7 @@ const defaultIssues: IssueSummary[] = [
     labels: ['phase:integration'],
     url: 'https://github.com/ShunsukeHayashi/Miyabi/issues/741',
   },
-]
+];
 
 interface DashboardStats {
   totalAgents: number
@@ -110,16 +110,16 @@ interface DashboardStats {
 }
 
 const computeStats = (agents: Agent[]): DashboardStats => {
-  const totalAgents = agents.length
-  const workingAgents = agents.filter((agent) => agent.status === 'working').length
-  const activeAgents = agents.filter((agent) => agent.status === 'active').length
-  const idleAgents = agents.filter((agent) => agent.status === 'idle').length
+  const totalAgents = agents.length;
+  const workingAgents = agents.filter((agent) => agent.status === 'working').length;
+  const activeAgents = agents.filter((agent) => agent.status === 'active').length;
+  const idleAgents = agents.filter((agent) => agent.status === 'idle').length;
   const avgUtilization = totalAgents
     ? Math.round((agents.reduce((sum, agent) => sum + agent.utilization, 0) / totalAgents) * 100)
-    : 0
+    : 0;
 
-  return { totalAgents, workingAgents, activeAgents, idleAgents, avgUtilization }
-}
+  return { totalAgents, workingAgents, activeAgents, idleAgents, avgUtilization };
+};
 
 interface StatCardProps {
   label: string
@@ -133,7 +133,7 @@ function StatCard({ label, value, accent }: StatCardProps) {
       <p className="text-xs text-gray-400 uppercase tracking-wide">{label}</p>
       <p className={`text-3xl font-bold mt-3 ${accent}`}>{value}</p>
     </div>
-  )
+  );
 }
 
 function IssueCard({ issue }: { issue: IssueSummary }) {
@@ -171,7 +171,7 @@ function IssueCard({ issue }: { issue: IssueSummary }) {
         </svg>
       </div>
     </a>
-  )
+  );
 }
 
 export interface DashboardProps {
@@ -191,28 +191,28 @@ export default function Dashboard({
   initialIssues = defaultIssues,
   onAgentStatusChange,
 }: DashboardProps) {
-  const [agents, setAgents] = useState<Agent[]>(initialAgents)
-  const [issues] = useState<IssueSummary[]>(initialIssues)
+  const [agents, setAgents] = useState<Agent[]>(initialAgents);
+  const [issues] = useState<IssueSummary[]>(initialIssues);
 
-  const stats = useMemo(() => computeStats(agents), [agents])
+  const stats = useMemo(() => computeStats(agents), [agents]);
 
   const handleAgentStatusChange = (agentId: string, status: AgentStatus) => {
-    const timestamp = new Date().toISOString()
+    const timestamp = new Date().toISOString();
 
     setAgents((previous) =>
       previous.map((agent) =>
         agent.id === agentId
           ? {
-              ...agent,
-              status,
-              lastUpdated: timestamp,
-            }
+            ...agent,
+            status,
+            lastUpdated: timestamp,
+          }
           : agent,
       ),
-    )
+    );
 
-    onAgentStatusChange?.(agentId, status)
-  }
+    onAgentStatusChange?.(agentId, status);
+  };
 
   return (
     <div className="min-h-screen p-8 bg-gray-950">
@@ -256,8 +256,8 @@ export default function Dashboard({
                       agent.status === 'working'
                         ? 'bg-miyabi-purple/20 text-miyabi-purple'
                         : agent.status === 'active'
-                        ? 'bg-miyabi-blue/20 text-miyabi-blue'
-                        : 'bg-gray-700 text-gray-400'
+                          ? 'bg-miyabi-blue/20 text-miyabi-blue'
+                          : 'bg-gray-700 text-gray-400'
                     }`}
                   >
                     {agent.status}
@@ -299,7 +299,7 @@ export default function Dashboard({
         </section>
       </div>
     </div>
-  )
+  );
 }
 
-export { Dashboard }
+export { Dashboard };

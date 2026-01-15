@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react'
-import type { UserAwarenessState, ConnectionStatus } from '../../services/crdtDocumentService'
-import { CRDTDocumentService } from '../../services/crdtDocumentService'
-import type { User, CursorPosition } from '../../services/collaborationService'
-import { CollaborationService } from '../../services/collaborationService'
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import type { UserAwarenessState, ConnectionStatus } from '../../services/crdtDocumentService';
+import { CRDTDocumentService } from '../../services/crdtDocumentService';
+import type { User, CursorPosition } from '../../services/collaborationService';
+import { CollaborationService } from '../../services/collaborationService';
 
 export interface CollaborativeUser {
   id: string
@@ -36,37 +36,37 @@ interface DiffOperation {
  * Calculate diff operations between old and new text
  */
 function calculateDiff(oldText: string, newText: string, cursorPosition: number): DiffOperation[] {
-  const operations: DiffOperation[] = []
+  const operations: DiffOperation[] = [];
 
   // Find common prefix
-  let prefixLen = 0
-  const minLen = Math.min(oldText.length, newText.length, cursorPosition)
+  let prefixLen = 0;
+  const minLen = Math.min(oldText.length, newText.length, cursorPosition);
   while (prefixLen < minLen && oldText[prefixLen] === newText[prefixLen]) {
-    prefixLen++
+    prefixLen++;
   }
 
   // Find common suffix
-  let oldSuffixStart = oldText.length
-  let newSuffixStart = newText.length
+  let oldSuffixStart = oldText.length;
+  let newSuffixStart = newText.length;
   while (
     oldSuffixStart > prefixLen &&
     newSuffixStart > prefixLen &&
     oldText[oldSuffixStart - 1] === newText[newSuffixStart - 1]
   ) {
-    oldSuffixStart--
-    newSuffixStart--
+    oldSuffixStart--;
+    newSuffixStart--;
   }
 
   // Calculate operations
-  const deleteLength = oldSuffixStart - prefixLen
-  const insertText = newText.substring(prefixLen, newSuffixStart)
+  const deleteLength = oldSuffixStart - prefixLen;
+  const insertText = newText.substring(prefixLen, newSuffixStart);
 
   if (deleteLength > 0) {
     operations.push({
       type: 'delete',
       position: prefixLen,
       length: deleteLength,
-    })
+    });
   }
 
   if (insertText.length > 0) {
@@ -74,10 +74,10 @@ function calculateDiff(oldText: string, newText: string, cursorPosition: number)
       type: 'insert',
       position: prefixLen,
       text: insertText,
-    })
+    });
   }
 
-  return operations
+  return operations;
 }
 
 /**
@@ -90,12 +90,12 @@ function CollaborativeCursors({
   users: CollaborativeUser[]
   editorRef: React.RefObject<HTMLTextAreaElement | null>
 }) {
-  if (!editorRef.current) return null
+  if (!editorRef.current) {return null;}
 
   return (
     <div className="collaborative-cursors absolute inset-0 pointer-events-none overflow-hidden">
       {users.map((user) => {
-        if (!user.cursor && !user.selection) return null
+        if (!user.cursor && !user.selection) {return null;}
 
         return (
           <div key={user.id} className="user-cursor-container">
@@ -132,10 +132,10 @@ function CollaborativeCursors({
               </div>
             )}
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 /**
@@ -154,36 +154,36 @@ export function CollaborativeEditor({
   className = '',
   wsUrl,
 }: CollaborativeEditorProps) {
-  const editorRef = useRef<HTMLTextAreaElement>(null)
-  const crdtServiceRef = useRef<CRDTDocumentService | null>(null)
-  const collaborationServiceRef = useRef<CollaborationService | null>(null)
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const crdtServiceRef = useRef<CRDTDocumentService | null>(null);
+  const collaborationServiceRef = useRef<CollaborationService | null>(null);
 
-  const [content, setContent] = useState(initialContent)
-  const [activeUsers, setActiveUsers] = useState<Map<string, CollaborativeUser>>(new Map())
+  const [content, setContent] = useState(initialContent);
+  const [activeUsers, setActiveUsers] = useState<Map<string, CollaborativeUser>>(new Map());
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     connected: false,
     synced: false,
-  })
-  const [isInitialized, setIsInitialized] = useState(false)
+  });
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize services
   useEffect(() => {
     const initializeServices = async () => {
       try {
         // Initialize CRDT service
-        const crdtService = new CRDTDocumentService(wsUrl)
-        crdtServiceRef.current = crdtService
+        const crdtService = new CRDTDocumentService(wsUrl);
+        crdtServiceRef.current = crdtService;
 
         await crdtService.createDocument(documentId, {
           wsUrl,
           handlers: {
             onChanges: () => {
-              const newContent = crdtService.getContent(documentId)
-              setContent(newContent)
-              onContentChange?.(newContent)
+              const newContent = crdtService.getContent(documentId);
+              setContent(newContent);
+              onContentChange?.(newContent);
             },
             onAwareness: (states) => {
-              const users = new Map<string, CollaborativeUser>()
+              const users = new Map<string, CollaborativeUser>();
               states.forEach((state: UserAwarenessState) => {
                 if (state.userId !== currentUser.id) {
                   users.set(state.userId, {
@@ -192,100 +192,100 @@ export function CollaborativeEditor({
                     color: state.color,
                     cursor: state.cursor,
                     selection: state.selection,
-                  })
+                  });
                 }
-              })
-              setActiveUsers(users)
+              });
+              setActiveUsers(users);
             },
             onStatus: (status) => {
-              setConnectionStatus(status)
+              setConnectionStatus(status);
             },
           },
-        })
+        });
 
         // Initialize collaboration service
         const user: User = {
           id: currentUser.id,
           name: currentUser.name,
           color: currentUser.color,
-        }
-        const collabService = new CollaborationService(documentId, user)
-        collaborationServiceRef.current = collabService
+        };
+        const collabService = new CollaborationService(documentId, user);
+        collaborationServiceRef.current = collabService;
 
         collabService.on('connected', () => {
-          setConnectionStatus((prev) => ({ ...prev, connected: true }))
-        })
+          setConnectionStatus((prev) => ({ ...prev, connected: true }));
+        });
 
         collabService.on('user:join', (joinedUser: User) => {
           setActiveUsers((prev) => {
-            const next = new Map(prev)
+            const next = new Map(prev);
             next.set(joinedUser.id, {
               id: joinedUser.id,
               name: joinedUser.name,
               color: joinedUser.color,
-            })
-            return next
-          })
-        })
+            });
+            return next;
+          });
+        });
 
         collabService.on('user:leave', (userId: string) => {
           setActiveUsers((prev) => {
-            const next = new Map(prev)
-            next.delete(userId)
-            return next
-          })
-        })
+            const next = new Map(prev);
+            next.delete(userId);
+            return next;
+          });
+        });
 
-        collabService.connect(wsUrl)
+        collabService.connect(wsUrl);
 
-        setIsInitialized(true)
+        setIsInitialized(true);
       } catch (error) {
-        console.error('Failed to initialize collaborative services:', error)
+        console.error('Failed to initialize collaborative services:', error);
       }
-    }
+    };
 
-    initializeServices()
+    initializeServices();
 
     return () => {
-      crdtServiceRef.current?.destroyDocument(documentId)
-      collaborationServiceRef.current?.disconnect()
-    }
-  }, [documentId, currentUser, onContentChange, wsUrl])
+      crdtServiceRef.current?.destroyDocument(documentId);
+      collaborationServiceRef.current?.disconnect();
+    };
+  }, [documentId, currentUser, onContentChange, wsUrl]);
 
   // Handle text input with CRDT operations
   const handleTextChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      if (readOnly || !crdtServiceRef.current || !isInitialized) return
+      if (readOnly || !crdtServiceRef.current || !isInitialized) {return;}
 
-      const newContent = event.target.value
-      const oldContent = content
-      const cursorPosition = event.target.selectionStart
+      const newContent = event.target.value;
+      const oldContent = content;
+      const cursorPosition = event.target.selectionStart;
 
       // Calculate diff and apply CRDT operations
-      const operations = calculateDiff(oldContent, newContent, cursorPosition)
+      const operations = calculateDiff(oldContent, newContent, cursorPosition);
 
       for (const op of operations) {
         if (op.type === 'insert' && op.text) {
-          crdtServiceRef.current.insertText(documentId, op.position, op.text, currentUser.id)
+          crdtServiceRef.current.insertText(documentId, op.position, op.text, currentUser.id);
         } else if (op.type === 'delete' && op.length) {
-          crdtServiceRef.current.deleteText(documentId, op.position, op.length, currentUser.id)
+          crdtServiceRef.current.deleteText(documentId, op.position, op.length, currentUser.id);
         }
       }
     },
-    [content, documentId, currentUser.id, readOnly, isInitialized]
-  )
+    [content, documentId, currentUser.id, readOnly, isInitialized],
+  );
 
   // Handle cursor/selection changes
   const handleSelectionChange = useCallback(() => {
-    if (!editorRef.current || !crdtServiceRef.current || !isInitialized) return
+    if (!editorRef.current || !crdtServiceRef.current || !isInitialized) {return;}
 
-    const { selectionStart, selectionEnd, value } = editorRef.current
+    const { selectionStart, selectionEnd, value } = editorRef.current;
 
     // Calculate line and column
-    const textBeforeCursor = value.substring(0, selectionStart)
-    const lines = textBeforeCursor.split('\n')
-    const line = lines.length - 1
-    const column = lines[lines.length - 1].length
+    const textBeforeCursor = value.substring(0, selectionStart);
+    const lines = textBeforeCursor.split('\n');
+    const line = lines.length - 1;
+    const column = lines[lines.length - 1].length;
 
     // Update CRDT awareness
     crdtServiceRef.current.updateAwareness(documentId, currentUser.id, {
@@ -298,7 +298,7 @@ export function CollaborativeEditor({
           ? { start: selectionStart, end: selectionEnd }
           : undefined,
       timestamp: Date.now(),
-    })
+    });
 
     // Update collaboration service
     collaborationServiceRef.current?.updateCursor({
@@ -306,28 +306,28 @@ export function CollaborativeEditor({
       y: selectionEnd,
       line,
       column,
-    })
+    });
 
     if (selectionStart !== selectionEnd) {
       collaborationServiceRef.current?.updateSelection({
         start: selectionStart,
         end: selectionEnd,
-      })
+      });
     }
-  }, [documentId, currentUser, isInitialized])
+  }, [documentId, currentUser, isInitialized]);
 
   // Connection status indicator
   const getStatusColor = () => {
-    if (connectionStatus.synced) return 'bg-green-500'
-    if (connectionStatus.connected) return 'bg-yellow-500'
-    return 'bg-red-500'
-  }
+    if (connectionStatus.synced) {return 'bg-green-500';}
+    if (connectionStatus.connected) {return 'bg-yellow-500';}
+    return 'bg-red-500';
+  };
 
   const getStatusText = () => {
-    if (connectionStatus.synced) return 'Synced'
-    if (connectionStatus.connected) return 'Connected'
-    return 'Disconnected'
-  }
+    if (connectionStatus.synced) {return 'Synced';}
+    if (connectionStatus.connected) {return 'Connected';}
+    return 'Disconnected';
+  };
 
   return (
     <div className={`collaborative-editor relative ${className}`}>
@@ -390,7 +390,7 @@ export function CollaborativeEditor({
         {content.length} characters
       </div>
     </div>
-  )
+  );
 }
 
-export default CollaborativeEditor
+export default CollaborativeEditor;

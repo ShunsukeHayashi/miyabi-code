@@ -11,19 +11,14 @@ import {
   Clock,
   Play,
   CheckCircle,
-  Calendar,
   Star,
-  TrendingUp,
-  Download,
   MoreVertical,
   Grid3X3,
   List,
-  Filter,
   Search,
-  ArrowUpDown
 } from 'lucide-react';
-import { useCourses, useCourseProgress } from '../shared/hooks';
-import { CourseWithRelations } from '../shared/types';
+import { useCourses } from '../shared/hooks';
+import type { CourseWithRelations } from '../shared/types';
 import { LoadingSpinner } from '../shared/LoadingComponents';
 
 interface MyCoursesProps {
@@ -59,7 +54,7 @@ export function MyCourses({ userId, className = '' }: MyCoursesProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: enrolledCourses, isLoading } = useCourses({
-    filter: { enrolled: true, userId }
+    filter: { enrolled: true, userId },
   });
 
   // Mock enrolled course data with additional fields
@@ -89,8 +84,8 @@ export function MyCourses({ userId, className = '' }: MyCoursesProps) {
       nextLesson: {
         id: 'lesson-5',
         title: 'Higher-Order Components',
-        type: 'video'
-      }
+        type: 'video',
+      },
     },
     {
       id: '2',
@@ -117,8 +112,8 @@ export function MyCourses({ userId, className = '' }: MyCoursesProps) {
       certificate: {
         id: 'cert-1',
         earnedAt: new Date('2024-01-15'),
-        downloadUrl: '/certificates/cert-1.pdf'
-      }
+        downloadUrl: '/certificates/cert-1.pdf',
+      },
     },
     {
       id: '3',
@@ -145,8 +140,8 @@ export function MyCourses({ userId, className = '' }: MyCoursesProps) {
       nextLesson: {
         id: 'lesson-3',
         title: 'Express.js Fundamentals',
-        type: 'video'
-      }
+        type: 'video',
+      },
     },
     {
       id: '4',
@@ -173,35 +168,33 @@ export function MyCourses({ userId, className = '' }: MyCoursesProps) {
       nextLesson: {
         id: 'lesson-1',
         title: 'What is Machine Learning?',
-        type: 'video'
-      }
-    }
+        type: 'video',
+      },
+    },
   ];
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}m`;
+    if (minutes < 60) {return `${minutes}m`;}
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
 
   const getProgressStatus = (progress: number) => {
-    if (progress === 0) return 'not-started';
-    if (progress === 100) return 'completed';
+    if (progress === 0) {return 'not-started';}
+    if (progress === 100) {return 'completed';}
     return 'in-progress';
   };
 
   const getProgressColor = (progress: number) => {
-    if (progress === 0) return 'gray-500';
-    if (progress === 100) return 'miyabi-green';
+    if (progress === 0) {return 'gray-500';}
+    if (progress === 100) {return 'miyabi-green';}
     return 'miyabi-blue';
   };
 
@@ -210,7 +203,7 @@ export function MyCourses({ userId, className = '' }: MyCoursesProps) {
       // Filter by status
       if (filterBy !== 'all') {
         const status = getProgressStatus(course.progress);
-        if (status !== filterBy) return false;
+        if (status !== filterBy) {return false;}
       }
 
       // Filter by search query

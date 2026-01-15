@@ -42,7 +42,7 @@ export default function CollaborativePage() {
 
   // Fetch course data
   useEffect(() => {
-    if (!courseId || !user) return;
+    if (!courseId || !user) {return;}
 
     const fetchCourse = async () => {
       try {
@@ -67,12 +67,12 @@ export default function CollaborativePage() {
       }
     };
 
-    fetchCourse();
+    void fetchCourse();
   }, [courseId, user]);
 
   // Auto-save course content
   const saveContent = async (content: string) => {
-    if (!course || !user) return;
+    if (!course || !user) {return;}
 
     setSaving(true);
     try {
@@ -101,10 +101,10 @@ export default function CollaborativePage() {
 
   // Debounced auto-save
   useEffect(() => {
-    if (!course?.content) return;
+    if (!course?.content) {return;}
 
     const timer = setTimeout(() => {
-      saveContent(course.content);
+      void saveContent(course.content);
     }, 2000); // Auto-save after 2 seconds of no changes
 
     return () => clearTimeout(timer);
@@ -126,7 +126,7 @@ export default function CollaborativePage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-6">You don't have access to this course or it doesn't exist.</p>
+          <p className="text-gray-600 mb-6">You don&apos;t have access to this course or it doesn&apos;t exist.</p>
           <button
             onClick={() => router.push('/courses')}
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
@@ -260,7 +260,7 @@ export default function CollaborativePage() {
                   if (course) {
                     setCourse(prev => prev ? {
                       ...prev,
-                      content: prev.content + suggestedContent
+                      content: prev.content + suggestedContent,
                     } : null);
                   }
                 }}
@@ -277,7 +277,7 @@ export default function CollaborativePage() {
           <h4 className="font-medium text-blue-900 mb-2">💡 Collaboration Tips</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Changes sync automatically in real-time</li>
-            <li>• See other users' cursors and edits live</li>
+            <li>• See other users&apos; cursors and edits live</li>
             <li>• Use AI Assist for content suggestions</li>
             <li>• All changes are saved automatically</li>
           </ul>

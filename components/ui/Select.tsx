@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -39,7 +39,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             error
               ? 'border-miyabi-red focus:ring-miyabi-red/50'
               : 'border-gray-700 focus:border-miyabi-blue focus:ring-miyabi-blue/50',
-            className
+            className,
           )}
           {...props}
         >
@@ -74,7 +74,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Select.displayName = 'Select';

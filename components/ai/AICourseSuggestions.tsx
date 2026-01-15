@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useAI } from '@/lib/hooks/useAI';
-import { CourseContentSuggestion } from '@/lib/ai/gemini-service';
+import type { CourseContentSuggestion } from '@/lib/ai/gemini-service';
 
 interface AICourseSuggestionsProps {
   onSuggestionSelect?: (suggestion: CourseContentSuggestion) => void;
@@ -16,7 +16,7 @@ interface AICourseSuggestionsProps {
 
 export default function AICourseSuggestions({
   onSuggestionSelect,
-  className = ''
+  className = '',
 }: AICourseSuggestionsProps) {
   const [topic, setTopic] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
@@ -26,7 +26,7 @@ export default function AICourseSuggestions({
     generateCourseSuggestions,
     courseSuggestionsLoading,
     error,
-    clearError
+    clearError,
   } = useAI();
 
   const handleGenerateSuggestions = async (e: React.FormEvent) => {
@@ -39,7 +39,7 @@ export default function AICourseSuggestions({
     try {
       const newSuggestions = await generateCourseSuggestions(
         topic,
-        targetAudience || undefined
+        targetAudience || undefined,
       );
       setSuggestions(newSuggestions);
     } catch (err) {

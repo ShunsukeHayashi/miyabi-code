@@ -103,7 +103,7 @@ export function handlePrismaError(error: any): NextResponse {
  * Async error wrapper for API routes
  */
 export function withErrorHandling<T extends any[], R>(
-  handler: (...args: T) => Promise<NextResponse>
+  handler: (...args: T) => Promise<NextResponse>,
 ) {
   return async (...args: T): Promise<NextResponse> => {
     try {

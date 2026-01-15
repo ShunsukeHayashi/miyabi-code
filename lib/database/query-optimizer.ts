@@ -3,7 +3,8 @@
  * Advanced query optimization, connection pooling, and performance monitoring
  */
 
-import { Pool, PoolConfig } from 'pg';
+import type { PoolConfig } from 'pg';
+import { Pool } from 'pg';
 import { createHash } from 'crypto';
 import { cacheManager } from '../performance/cache-manager';
 
@@ -53,7 +54,7 @@ export class DatabaseOptimizer {
 
       // SSL configuration for production
       ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
       } : false,
 
       // Additional optimization settings
@@ -62,7 +63,7 @@ export class DatabaseOptimizer {
       keepAlive: true,
       keepAliveInitialDelayMillis: 0,
 
-      ...config
+      ...config,
     });
 
     // Connection pool event listeners for monitoring
@@ -85,7 +86,7 @@ export class DatabaseOptimizer {
   async query<T = any>(
     text: string,
     params?: any[],
-    options: OptimizedQueryOptions = {}
+    options: OptimizedQueryOptions = {},
   ): Promise<{ rows: T[]; rowCount: number; metrics: QueryMetrics }> {
     const startTime = Date.now();
     const queryHash = this.generateQueryHash(text, params);
@@ -95,7 +96,7 @@ export class DatabaseOptimizer {
       const cacheKey = `query:${queryHash}`;
       const cached = await cacheManager.get<{ rows: T[]; rowCount: number }>(
         cacheKey,
-        { tier: 'l2' }
+        { tier: 'l2' },
       );
 
       if (cached) {
@@ -104,7 +105,7 @@ export class DatabaseOptimizer {
           duration: Date.now() - startTime,
           rows: cached.rowCount,
           timestamp: Date.now(),
-          cached: true
+          cached: true,
         };
 
         this.recordMetrics(metrics);
@@ -147,9 +148,9 @@ export class DatabaseOptimizer {
     const metrics: QueryMetrics = {
       query: text,
       duration,
-      rows: result!.rowCount || 0,
+      rows: result.rowCount || 0,
       timestamp: Date.now(),
-      cached: false
+      cached: false,
     };
 
     this.recordMetrics(metrics);
@@ -163,12 +164,12 @@ export class DatabaseOptimizer {
         {
           ttl: options.cacheTTL || 300,
           tags: options.tags,
-          tier: 'l2'
-        }
+          tier: 'l2',
+        },
       );
     }
 
-    return { rows: result!.rows, rowCount: result!.rowCount, metrics };
+    return { rows: result.rows, rowCount: result.rowCount, metrics };
   }
 
   /**
@@ -177,7 +178,7 @@ export class DatabaseOptimizer {
   async preparedQuery<T = any>(
     name: string,
     text: string,
-    params?: any[]
+    params?: any[],
   ): Promise<{ rows: T[]; rowCount: number }> {
     const client = await this.pool.connect();
 
@@ -188,7 +189,7 @@ export class DatabaseOptimizer {
         this.preparedStatements.set(name, text);
       }
 
-      const result = await client.query(`EXECUTE ${name}${params ? ` (${params.map(() => '$' + (params.indexOf(params[0]) + 1)).join(', ')})` : ''}`, params);
+      const result = await client.query(`EXECUTE ${name}${params ? ` (${params.map(() => `$${  params.indexOf(params[0]) + 1}`).join(', ')})` : ''}`, params);
       return { rows: result.rows, rowCount: result.rowCount };
 
     } finally {
@@ -200,16 +201,14 @@ export class DatabaseOptimizer {
    * Transaction with automatic retry and rollback
    */
   async transaction<T>(
-    callback: (query: (text: string, params?: any[]) => Promise<any>) => Promise<T>
+    callback: (query: (text: string, params?: any[]) => Promise<any>) => Promise<T>,
   ): Promise<T> {
     const client = await this.pool.connect();
 
     try {
       await client.query('BEGIN');
 
-      const transactionQuery = async (text: string, params?: any[]) => {
-        return await client.query(text, params);
-      };
+      const transactionQuery = async (text: string, params?: any[]) => client.query(text, params);
 
       const result = await callback(transactionQuery);
       await client.query('COMMIT');
@@ -231,14 +230,14 @@ export class DatabaseOptimizer {
     table: string,
     columns: string[],
     data: any[][],
-    options: { batchSize?: number; onConflict?: string } = {}
+    options: { batchSize?: number; onConflict?: string } = {},
   ): Promise<void> {
     const batchSize = options.batchSize || 1000;
     const batches = this.chunkArray(data, batchSize);
 
     for (const batch of batches) {
       const placeholders = batch.map((_, i) =>
-        `(${columns.map((_, j) => `$${i * columns.length + j + 1}`).join(', ')})`
+        `(${columns.map((_, j) => `$${i * columns.length + j + 1}`).join(', ')})`,
       ).join(', ');
 
       const values = batch.flat();
@@ -271,7 +270,7 @@ export class DatabaseOptimizer {
     return {
       executionPlan: plan,
       suggestions,
-      estimatedCost
+      estimatedCost,
     };
   }
 
@@ -283,7 +282,7 @@ export class DatabaseOptimizer {
       totalConnections: this.pool.totalCount,
       idleConnections: this.pool.idleCount,
       activeConnections: this.pool.totalCount - this.pool.idleCount,
-      waitingClients: this.pool.waitingCount
+      waitingClients: this.pool.waitingCount,
     };
   }
 
@@ -295,7 +294,7 @@ export class DatabaseOptimizer {
     averageDuration: number;
     slowQueries: QueryMetrics[];
     cacheHitRate: number;
-  } {
+    } {
     const totalQueries = this.queryMetrics.length;
     const averageDuration = totalQueries > 0
       ? this.queryMetrics.reduce((sum, m) => sum + m.duration, 0) / totalQueries
@@ -309,7 +308,7 @@ export class DatabaseOptimizer {
       totalQueries,
       averageDuration,
       slowQueries,
-      cacheHitRate
+      cacheHitRate,
     };
   }
 
@@ -319,16 +318,16 @@ export class DatabaseOptimizer {
   async optimizeDatabase(): Promise<void> {
     const optimizations = [
       // Enable query planner statistics
-      "SET track_counts = on",
-      "SET track_functions = all",
+      'SET track_counts = on',
+      'SET track_functions = all',
 
       // Optimize memory settings
       "SET shared_preload_libraries = 'pg_stat_statements'",
 
       // Enable automatic vacuum optimization
-      "SET autovacuum = on",
-      "SET autovacuum_vacuum_scale_factor = 0.1",
-      "SET autovacuum_analyze_scale_factor = 0.05"
+      'SET autovacuum = on',
+      'SET autovacuum_vacuum_scale_factor = 0.1',
+      'SET autovacuum_analyze_scale_factor = 0.05',
     ];
 
     for (const sql of optimizations) {
@@ -449,8 +448,8 @@ export class QueryBuilder {
     const limitClause = filters.limit ? `LIMIT $${paramIndex++}` : '';
     const offsetClause = filters.offset ? `OFFSET $${paramIndex++}` : '';
 
-    if (filters.limit) params.push(filters.limit);
-    if (filters.offset) params.push(filters.offset);
+    if (filters.limit) {params.push(filters.limit);}
+    if (filters.offset) {params.push(filters.offset);}
 
     const query = `
       SELECT
@@ -471,7 +470,7 @@ export class QueryBuilder {
     return this.optimizer.query(query, params, {
       cacheable: true,
       cacheTTL: 300,
-      tags: ['courses', 'enrollments']
+      tags: ['courses', 'enrollments'],
     });
   }
 
@@ -516,7 +515,7 @@ export class QueryBuilder {
     return this.optimizer.query(query, params, {
       cacheable: true,
       cacheTTL: 60,
-      tags: [`user:${userId}`, 'progress']
+      tags: [`user:${userId}`, 'progress'],
     });
   }
 }
@@ -526,16 +525,12 @@ export const dbOptimizer = new DatabaseOptimizer();
 
 // Utility functions
 export const withDbTransaction = <T>(
-  callback: (query: (text: string, params?: any[]) => Promise<any>) => Promise<T>
-): Promise<T> => {
-  return dbOptimizer.transaction(callback);
-};
+  callback: (query: (text: string, params?: any[]) => Promise<any>) => Promise<T>,
+): Promise<T> => dbOptimizer.transaction(callback);
 
 export const batchInsert = (
   table: string,
   columns: string[],
   data: any[][],
-  options?: { batchSize?: number; onConflict?: string }
-): Promise<void> => {
-  return dbOptimizer.batchInsert(table, columns, data, options);
-};
+  options?: { batchSize?: number; onConflict?: string },
+): Promise<void> => dbOptimizer.batchInsert(table, columns, data, options);

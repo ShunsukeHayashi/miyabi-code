@@ -3,11 +3,11 @@
  * Issue #1300: Comprehensive authentication integration for AI Course functionality
  */
 
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import { UserRole } from '@prisma/client';
-import { AuthenticatedUser } from '../auth';
+import type { UserRole } from '@prisma/client';
+import type { AuthenticatedUser } from '../auth';
 
 const prisma = new PrismaClient();
 
@@ -105,7 +105,7 @@ export function extractJWTToken(request: NextRequest): string | null {
 export async function getCourseAuthContext(
   request: NextRequest,
   courseId: string,
-  options: CourseAuthOptions = {}
+  options: CourseAuthOptions = {},
 ): Promise<CourseAuthContext | null> {
   // Extract and validate token
   const token = extractJWTToken(request);
@@ -125,8 +125,8 @@ export async function getCourseAuthContext(
       creator: { select: { id: true } },
       instructors: {
         include: {
-          instructor: { select: { id: true, role: true } }
-        }
+          instructor: { select: { id: true, role: true } },
+        },
       },
       prerequisites: {
         include: {
@@ -145,7 +145,7 @@ export async function getCourseAuthContext(
     where: {
       userId_courseId: {
         userId: user.id,
-        courseId: courseId,
+        courseId,
       },
     },
   });
@@ -155,7 +155,7 @@ export async function getCourseAuthContext(
     where: {
       userId_courseId: {
         userId: user.id,
-        courseId: courseId,
+        courseId,
       },
     },
   });
@@ -193,7 +193,7 @@ export async function getCourseAuthContext(
 function getCoursePermissions(
   user: AuthenticatedUser,
   course: any,
-  enrollment: any
+  enrollment: any,
 ): string[] {
   const permissions: string[] = [];
 
@@ -209,7 +209,7 @@ function getCoursePermissions(
       'lesson:edit',
       'assessment:view',
       'assessment:edit',
-      'assessment:grade'
+      'assessment:grade',
     );
     return permissions;
   }
@@ -225,7 +225,7 @@ function getCoursePermissions(
       'lesson:edit',
       'assessment:view',
       'assessment:edit',
-      'assessment:grade'
+      'assessment:grade',
     );
     return permissions;
   }
@@ -240,18 +240,18 @@ function getCoursePermissions(
         'lesson:edit',
         'assessment:view',
         'assessment:edit',
-        'assessment:grade'
+        'assessment:grade',
       );
     }
   }
 
   // Student permissions
-  if (enrollment && enrollment.status === 'ACTIVE') {
+  if (enrollment?.status === 'ACTIVE') {
     permissions.push(
       'course:view',
       'lesson:view',
       'assessment:take',
-      'progress:view'
+      'progress:view',
     );
   } else if (course.status === 'PUBLISHED') {
     // Non-enrolled users can preview
@@ -275,7 +275,7 @@ export async function courseAuthMiddleware(
   request: NextRequest,
   courseId: string,
   requiredPermission?: string,
-  options: CourseAuthOptions = {}
+  options: CourseAuthOptions = {},
 ): Promise<{ success: boolean; context?: CourseAuthContext; error?: string }> {
   try {
     const context = await getCourseAuthContext(request, courseId, options);
@@ -364,7 +364,7 @@ export class SessionManager {
     const sessionId = jwt.sign(
       { userId, type: 'session' },
       process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
+      { expiresIn: '7d' },
     );
 
     this.sessions.set(sessionId, {

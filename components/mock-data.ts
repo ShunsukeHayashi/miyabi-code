@@ -1,4 +1,4 @@
-import type { Alert, ReferenceLink, TimelineEvent } from './types'
+import type { Alert, ReferenceLink, TimelineEvent } from './types';
 
 export const timelineEvents: TimelineEvent[] = [
   {
@@ -9,7 +9,7 @@ export const timelineEvents: TimelineEvent[] = [
     agent: 'CoordinatorAgent',
     category: 'issue',
     tags: ['scoping', 'planning'],
-    link: 'https://github.com/customer-cloud/miyabi-private/issues/758'
+    link: 'https://github.com/customer-cloud/miyabi-private/issues/758',
   },
   {
     id: 'evt-002',
@@ -18,7 +18,7 @@ export const timelineEvents: TimelineEvent[] = [
     timestamp: '2025-11-05T08:20:00+09:00',
     agent: 'CodeGenAgent',
     category: 'development',
-    tags: ['setup', 'frontend']
+    tags: ['setup', 'frontend'],
   },
   {
     id: 'evt-003',
@@ -27,7 +27,7 @@ export const timelineEvents: TimelineEvent[] = [
     timestamp: '2025-11-05T08:45:00+09:00',
     agent: 'KnowledgeAgent',
     category: 'knowledge',
-    tags: ['knowledge-base']
+    tags: ['knowledge-base'],
   },
   {
     id: 'evt-004',
@@ -36,7 +36,7 @@ export const timelineEvents: TimelineEvent[] = [
     timestamp: '2025-11-05T09:10:00+09:00',
     agent: 'ReviewAgent',
     category: 'review',
-    tags: ['quality', 'ui']
+    tags: ['quality', 'ui'],
   },
   {
     id: 'evt-005',
@@ -45,9 +45,9 @@ export const timelineEvents: TimelineEvent[] = [
     timestamp: '2025-11-05T09:25:00+09:00',
     agent: 'DeploymentAgent',
     category: 'deployment',
-    tags: ['vercel', 'pipeline']
-  }
-]
+    tags: ['vercel', 'pipeline'],
+  },
+];
 
 export const alerts: Alert[] = [
   {
@@ -58,7 +58,7 @@ export const alerts: Alert[] = [
     createdAt: '2025-11-05T08:55:00+09:00',
     relatedAgent: 'RefresherAgent',
     acknowledged: false,
-    link: 'https://docs.miyabi.dev/knowledge/sync'
+    link: 'https://docs.miyabi.dev/knowledge/sync',
   },
   {
     id: 'alert-002',
@@ -67,7 +67,7 @@ export const alerts: Alert[] = [
     severity: 'info',
     createdAt: '2025-11-05T09:05:00+09:00',
     relatedAgent: 'ReviewAgent',
-    acknowledged: true
+    acknowledged: true,
   },
   {
     id: 'alert-003',
@@ -77,9 +77,9 @@ export const alerts: Alert[] = [
     createdAt: '2025-11-05T09:15:00+09:00',
     relatedAgent: 'CoordinatorAgent',
     acknowledged: false,
-    link: 'https://github.com/customer-cloud/miyabi-private/issues/531'
-  }
-]
+    link: 'https://github.com/customer-cloud/miyabi-private/issues/531',
+  },
+];
 
 export const referenceLinks: ReferenceLink[] = [
   {
@@ -88,7 +88,7 @@ export const referenceLinks: ReferenceLink[] = [
     description: 'プロジェクト全体の統制ルールとエージェント運用ガイドライン。',
     url: 'https://github.com/customer-cloud/miyabi-private/blob/main/CLAUDE.md',
     category: 'protocol',
-    tags: ['rules', 'overview']
+    tags: ['rules', 'overview'],
   },
   {
     id: 'ref-002',
@@ -96,7 +96,7 @@ export const referenceLinks: ReferenceLink[] = [
     description: 'Git Worktree を用いた並列開発ワークフローの詳細。',
     url: 'https://github.com/customer-cloud/miyabi-private/blob/main/docs/WORKTREE_PROTOCOL.md',
     category: 'workflow',
-    tags: ['git', 'parallel']
+    tags: ['git', 'parallel'],
   },
   {
     id: 'ref-003',
@@ -104,7 +104,7 @@ export const referenceLinks: ReferenceLink[] = [
     description: 'Miyabi エージェントシステムのアーキテクチャ概要。',
     url: 'https://github.com/customer-cloud/miyabi-private/blob/main/.claude/context/architecture.md',
     category: 'architecture',
-    tags: ['agents', 'system']
+    tags: ['agents', 'system'],
   },
   {
     id: 'ref-004',
@@ -112,6 +112,6 @@ export const referenceLinks: ReferenceLink[] = [
     description: '53 ラベル体系と分類フローの完全ガイド。',
     url: 'https://github.com/customer-cloud/miyabi-private/blob/main/docs/LABEL_SYSTEM_GUIDE.md',
     category: 'guideline',
-    tags: ['labels', 'classification']
-  }
-]
+    tags: ['labels', 'classification'],
+  },
+];

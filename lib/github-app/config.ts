@@ -3,7 +3,7 @@
  * Miyabi AI Agent Framework - GitHub Marketplace Integration
  */
 
-import { GitHubAppConfig } from './types';
+import type { GitHubAppConfig } from './types';
 
 export function getGitHubAppConfig(): GitHubAppConfig {
   const appId = process.env.GITHUB_APP_ID;

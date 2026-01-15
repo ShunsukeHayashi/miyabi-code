@@ -26,7 +26,7 @@ export default function Dashboard(): ReactElement {
   const [agents, setAgents] = useState<Agent[]>(mockAgents);
   const [tmuxSession, setTmuxSession] = useState<TmuxSession>(mockTmuxSession);
   const [selectedPaneId, setSelectedPaneId] = useState<string | undefined>(
-    mockTmuxSession.windows[0]?.panes[0]?.id
+    mockTmuxSession.windows[0]?.panes[0]?.id,
   );
   const [issues] = useState<IssueSummary[]>(mockIssues);
 
@@ -49,8 +49,8 @@ export default function Dashboard(): ReactElement {
               status,
               lastUpdated: timestamp,
             }
-            : agent
-        )
+            : agent,
+        ),
       );
     } catch (error) {
       handleUserActionError('agent_status_change', error as Error, { agentId, targetStatus: status });
@@ -74,7 +74,7 @@ export default function Dashboard(): ReactElement {
                 ...pane.recentLogs,
               ].slice(0, 10),
             }
-            : pane
+            : pane,
         ),
       })),
     };
@@ -106,8 +106,8 @@ export default function Dashboard(): ReactElement {
               ? { ...agent.currentTask, progress: Math.min(100, agent.currentTask.progress + 5) }
               : agent.currentTask,
           }
-          : agent
-      )
+          : agent,
+      ),
     );
   };
 

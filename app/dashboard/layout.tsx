@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
@@ -7,7 +7,7 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-async function getUser() {
+function getUser(): unknown {
   const cookieStore = cookies();
   const userCookie = cookieStore.get('miyabi-user');
 
@@ -16,14 +16,14 @@ async function getUser() {
   }
 
   try {
-    return JSON.parse(userCookie.value);
+    return JSON.parse(userCookie.value) as unknown;
   } catch {
     return null;
   }
 }
 
-export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const user = await getUser();
+export default function DashboardLayout({ children }: DashboardLayoutProps): ReactNode {
+  const user = getUser();
 
   if (!user) {
     redirect('/api/auth/github');

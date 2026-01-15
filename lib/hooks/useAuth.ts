@@ -23,7 +23,7 @@ export function useUser(): AuthState {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     loading: true,
-    error: null
+    error: null,
   });
 
   useEffect(() => {
@@ -35,19 +35,19 @@ export function useUser(): AuthState {
           id: '1',
           email: 'test@example.com',
           name: 'Test User',
-          role: 'instructor'
+          role: 'instructor',
         };
 
         setAuthState({
           user: mockUser,
           loading: false,
-          error: null
+          error: null,
         });
       } catch (error) {
         setAuthState({
           user: null,
           loading: false,
-          error: 'Authentication failed'
+          error: 'Authentication failed',
         });
       }
     };
@@ -74,6 +74,6 @@ export function useAuth() {
   return {
     ...authState,
     login,
-    logout
+    logout,
   };
 }

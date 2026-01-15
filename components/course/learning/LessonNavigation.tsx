@@ -14,9 +14,9 @@ import {
   Lock,
   Clock,
   BookOpen,
-  RotateCcw
+  RotateCcw,
 } from 'lucide-react';
-import { LessonWithRelations, ProgressData } from '../shared/types';
+import type { LessonWithRelations, ProgressData } from '../shared/types';
 
 interface NavigationLesson {
   id: string;
@@ -47,7 +47,7 @@ export function LessonNavigation({
   onPrevious,
   onNext,
   showProgress = true,
-  className = ''
+  className = '',
 }: LessonNavigationProps) {
   const currentIndex = lessons.findIndex(lesson => lesson.id === currentLesson.id);
   const hasPrevious = currentIndex > 0;
@@ -58,8 +58,8 @@ export function LessonNavigation({
   const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
   const formatDuration = (minutes?: number) => {
-    if (!minutes) return '';
-    if (minutes < 60) return `${minutes}m`;
+    if (!minutes) {return '';}
+    if (minutes < 60) {return `${minutes}m`;}
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
@@ -129,7 +129,7 @@ export function LessonNavigation({
             type: currentLesson.type as any,
             isCompleted: false, // You'd check this from progress data
             isLocked: false,
-            order: currentLesson.order
+            order: currentLesson.order,
           })}
           <div className="flex-grow min-w-0">
             <h4 className="font-medium text-white truncate">{currentLesson.title}</h4>
@@ -155,9 +155,9 @@ export function LessonNavigation({
             className={`
               flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
               ${hasPrevious
-                ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                : 'bg-gray-900 text-gray-500 cursor-not-allowed'
-              }
+      ? 'bg-gray-700 hover:bg-gray-600 text-white'
+      : 'bg-gray-900 text-gray-500 cursor-not-allowed'
+    }
             `}
           >
             <ChevronLeft size={16} />
@@ -177,9 +177,9 @@ export function LessonNavigation({
             className={`
               flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
               ${hasNext
-                ? 'bg-miyabi-blue hover:bg-blue-600 text-white'
-                : 'bg-gray-900 text-gray-500 cursor-not-allowed'
-              }
+      ? 'bg-miyabi-blue hover:bg-blue-600 text-white'
+      : 'bg-gray-900 text-gray-500 cursor-not-allowed'
+    }
             `}
           >
             <span>Next</span>
@@ -203,11 +203,11 @@ export function LessonNavigation({
                 w-full p-4 text-left border-b border-gray-700 last:border-b-0
                 transition-colors
                 ${isActive
-                  ? 'bg-miyabi-blue/20 border-miyabi-blue/30'
-                  : isAccessible
-                    ? 'hover:bg-gray-700'
-                    : 'cursor-not-allowed opacity-50'
-                }
+              ? 'bg-miyabi-blue/20 border-miyabi-blue/30'
+              : isAccessible
+                ? 'hover:bg-gray-700'
+                : 'cursor-not-allowed opacity-50'
+            }
               `}
             >
               <div className="flex items-center gap-3">
@@ -215,13 +215,13 @@ export function LessonNavigation({
                 <div className={`
                   w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
                   ${isActive
-                    ? 'bg-miyabi-blue text-white'
-                    : lesson.isCompleted
-                      ? 'bg-miyabi-green text-white'
-                      : lesson.isLocked
-                        ? 'bg-gray-600 text-gray-400'
-                        : 'bg-gray-700 text-gray-300'
-                  }
+              ? 'bg-miyabi-blue text-white'
+              : lesson.isCompleted
+                ? 'bg-miyabi-green text-white'
+                : lesson.isLocked
+                  ? 'bg-gray-600 text-gray-400'
+                  : 'bg-gray-700 text-gray-300'
+            }
                 `}>
                   {lesson.isCompleted ? (
                     <CheckCircle size={16} />

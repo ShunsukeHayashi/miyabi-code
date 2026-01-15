@@ -25,7 +25,7 @@ export function CourseSearch({
   onSearch,
   showSuggestions = true,
   showPopular = true,
-  className = ''
+  className = '',
 }: CourseSearchProps) {
   const [query, setQuery] = useState(initialValue);
   const [isFocused, setIsFocused] = useState(false);
@@ -102,7 +102,7 @@ export function CourseSearch({
 
   // Recent searches from localStorage
   const getRecentSearches = (): string[] => {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {return [];}
     try {
       return JSON.parse(localStorage.getItem('miyabi-recent-searches') || '[]');
     } catch {
@@ -111,7 +111,7 @@ export function CourseSearch({
   };
 
   const saveRecentSearch = (searchQuery: string) => {
-    if (typeof window === 'undefined' || !searchQuery.trim()) return;
+    if (typeof window === 'undefined' || !searchQuery.trim()) {return;}
 
     const recent = getRecentSearches();
     const updated = [searchQuery, ...recent.filter(q => q !== searchQuery)].slice(0, 5);

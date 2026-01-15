@@ -3,9 +3,11 @@
  * Issue #1298: API Helper Functions
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getAuthenticatedUser, AuthenticatedUser } from './auth';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import type { z } from 'zod';
+import type { AuthenticatedUser } from './auth';
+import { getAuthenticatedUser } from './auth';
 import { APIException, APIErrors, createErrorResponse } from './api-error';
 
 // CORS headers
@@ -40,7 +42,7 @@ export function handleOptions(): NextResponse {
  */
 export function parseQuery<T extends z.ZodSchema>(
   request: NextRequest,
-  schema: T
+  schema: T,
 ): z.infer<T> {
   const { searchParams } = new URL(request.url);
   const query = Object.fromEntries(searchParams.entries());
@@ -52,7 +54,7 @@ export function parseQuery<T extends z.ZodSchema>(
  */
 export async function parseBody<T extends z.ZodSchema>(
   request: NextRequest,
-  schema: T
+  schema: T,
 ): Promise<z.infer<T>> {
   const body = await request.json();
   return schema.parse(body);
@@ -70,7 +72,7 @@ export function createSuccessResponse<T = any>(
       total: number;
       totalPages: number;
     };
-  }
+  },
 ): NextResponse {
   const response = NextResponse.json({
     success: true,
@@ -88,7 +90,7 @@ export function createSuccessResponse<T = any>(
 export function calculatePagination(
   total: number,
   page: number,
-  limit: number
+  limit: number,
 ) {
   const totalPages = Math.ceil(total / limit);
   const hasNextPage = page < totalPages;
@@ -108,7 +110,7 @@ export function calculatePagination(
  * Higher-order function for API routes with authentication
  */
 export function withAuth<T extends any[], R>(
-  handler: (user: AuthenticatedUser, ...args: T) => Promise<NextResponse>
+  handler: (user: AuthenticatedUser, ...args: T) => Promise<NextResponse>,
 ) {
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
     try {
@@ -131,7 +133,7 @@ export function withAuth<T extends any[], R>(
  */
 export function withRoles<T extends any[], R>(
   roles: string | string[],
-  handler: (user: AuthenticatedUser, ...args: T) => Promise<NextResponse>
+  handler: (user: AuthenticatedUser, ...args: T) => Promise<NextResponse>,
 ) {
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
@@ -140,7 +142,7 @@ export function withRoles<T extends any[], R>(
       throw APIErrors.FORBIDDEN;
     }
 
-    return await handler(user, ...args);
+    return handler(user, ...args);
   });
 }
 
@@ -209,7 +211,7 @@ function getClientIdentifier(request: NextRequest): string {
  */
 function checkRateLimit(
   identifier: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): { allowed: boolean; remaining: number; resetIn: number } {
   const now = Date.now();
   const key = identifier;
@@ -253,7 +255,7 @@ function createRateLimitResponse(resetIn: number): NextResponse {
       },
       timestamp: new Date().toISOString(),
     },
-    { status: 429 }
+    { status: 429 },
   );
 
   response.headers.set('Retry-After', String(Math.ceil(resetIn / 1000)));
@@ -268,7 +270,7 @@ function createRateLimitResponse(resetIn: number): NextResponse {
  */
 export function withRateLimit<T extends any[]>(
   limitType: 'api' | 'auth' | 'ai' | 'upload' = 'api',
-  handler: (request: NextRequest, ...args: T) => Promise<NextResponse>
+  handler: (request: NextRequest, ...args: T) => Promise<NextResponse>,
 ) {
   const config = DEFAULT_RATE_LIMITS[limitType];
 
@@ -296,7 +298,7 @@ export function withRateLimit<T extends any[]>(
  */
 export function withAuthAndRateLimit<T extends any[]>(
   limitType: 'api' | 'auth' | 'ai' | 'upload' = 'api',
-  handler: (user: AuthenticatedUser, request: NextRequest, ...args: T) => Promise<NextResponse>
+  handler: (user: AuthenticatedUser, request: NextRequest, ...args: T) => Promise<NextResponse>,
 ) {
   return withRateLimit(limitType, withAuth(handler));
 }
@@ -307,7 +309,7 @@ export function withAuthAndRateLimit<T extends any[]>(
 export function withRolesAndRateLimit<T extends any[]>(
   roles: string | string[],
   limitType: 'api' | 'auth' | 'ai' | 'upload' = 'api',
-  handler: (user: AuthenticatedUser, request: NextRequest, ...args: T) => Promise<NextResponse>
+  handler: (user: AuthenticatedUser, request: NextRequest, ...args: T) => Promise<NextResponse>,
 ) {
   return withRateLimit(limitType, withRoles(roles, handler));
 }

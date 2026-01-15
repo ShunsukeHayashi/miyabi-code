@@ -13,12 +13,12 @@ import {
 
 type BillingCycle = 'monthly' | 'annual';
 
-type PricingTier = {
+interface PricingTier {
   label: string;
   description: string;
   price: string;
   highlight?: string;
-};
+}
 
 const pricingMap: Record<BillingCycle, PricingTier[]> = {
   monthly: [
@@ -174,7 +174,7 @@ export default function GlassmorphismShowcase(): JSX.Element {
           <GlassCard
             eyebrow="Membership"
             title="Choose your orbit"
-            description="Pick a billing cadence and lock the environment." 
+            description="Pick a billing cadence and lock the environment."
           >
             <div className="flex flex-col gap-6">
               <GlassToggle

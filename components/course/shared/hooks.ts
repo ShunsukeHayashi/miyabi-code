@@ -4,7 +4,8 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import type { UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   courseApi,
   lessonApi,
@@ -15,15 +16,16 @@ import {
   instructorApi,
   categoryApi,
   searchApi,
-  queryKeys
+  queryKeys,
 } from './api';
-import {
-  CourseWithRelations,
+import type {
   CourseQuery,
   LoadingState,
-  ProgressData,
+  ProgressData} from './types';
+import {
+  CourseWithRelations,
   CourseAnalytics,
-  StudentDashboard
+  StudentDashboard,
 } from './types';
 
 // Course listing hook with filters and search
@@ -75,10 +77,8 @@ export function useEnrollment(courseId: string) {
   });
 
   const enroll = useCallback(
-    (data?: { paymentMethod?: string; couponCode?: string }) => {
-      return enrollMutation.mutate(data);
-    },
-    [enrollMutation]
+    (data?: { paymentMethod?: string; couponCode?: string }) => enrollMutation.mutate(data),
+    [enrollMutation],
   );
 
   return {
@@ -96,7 +96,7 @@ export function useCourseProgress(courseId: string) {
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
 
   useEffect(() => {
-    if (!courseId) return;
+    if (!courseId) {return;}
 
     setLoadingState('loading');
     // This would typically fetch from an API
@@ -115,10 +115,10 @@ export function useCourseProgress(courseId: string) {
   }, [courseId]);
 
   const updateProgress = useCallback((lessonId: string, completed: boolean) => {
-    if (!progress) return;
+    if (!progress) {return;}
 
     setProgress(prev => {
-      if (!prev) return null;
+      if (!prev) {return null;}
 
       const newCompleted = completed
         ? prev.lessonsCompleted + 1
@@ -160,10 +160,8 @@ export function useCourseReviews(courseId: string) {
   });
 
   const submitReview = useCallback(
-    (data: { rating: number; title?: string; comment?: string }) => {
-      return submitReviewMutation.mutate(data);
-    },
-    [submitReviewMutation]
+    (data: { rating: number; title?: string; comment?: string }) => submitReviewMutation.mutate(data),
+    [submitReviewMutation],
   );
 
   return {
@@ -256,7 +254,7 @@ export function useCategories() {
 // Local storage hook for preferences
 export function useLocalStorage<T>(key: string, defaultValue: T) {
   const [value, setValue] = useState<T>(() => {
-    if (typeof window === 'undefined') return defaultValue;
+    if (typeof window === 'undefined') {return defaultValue;}
 
     try {
       const item = localStorage.getItem(key);
@@ -327,7 +325,7 @@ export function useVideoPlayer() {
 // Form validation hook
 export function useFormValidation<T>(
   initialValues: T,
-  validationRules: Record<keyof T, (value: any) => string | null>
+  validationRules: Record<keyof T, (value: any) => string | null>,
 ) {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
@@ -367,9 +365,7 @@ export function useFormValidation<T>(
     setTouched({});
   }, [initialValues]);
 
-  const isValid = useMemo(() => {
-    return Object.values(errors).every(error => !error);
-  }, [errors]);
+  const isValid = useMemo(() => Object.values(errors).every(error => !error), [errors]);
 
   return {
     values,
@@ -386,12 +382,12 @@ export function useFormValidation<T>(
 // Intersection observer hook for scroll-based animations
 export function useIntersectionObserver(
   ref: React.RefObject<Element>,
-  options: IntersectionObserverInit = {}
+  options: IntersectionObserverInit = {},
 ) {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (!ref.current) {return;}
 
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting);

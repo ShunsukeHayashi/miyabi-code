@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { AgentCard } from '@/components/dashboard/AgentCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
-import type { Agent, AgentStatus, AgentRole } from '@/lib/github-app/agent-types';
+import type { Agent, AgentStatus } from '@/lib/github-app/agent-types';
 
 const mockAgents: Agent[] = [
   {
@@ -175,8 +175,8 @@ export default function AgentsPage() {
   const handleStatusChange = (agentId: string, status: AgentStatus) => {
     setAgents((prev) =>
       prev.map((agent) =>
-        agent.id === agentId ? { ...agent, status, updatedAt: new Date() } : agent
-      )
+        agent.id === agentId ? { ...agent, status, updatedAt: new Date() } : agent,
+      ),
     );
   };
 

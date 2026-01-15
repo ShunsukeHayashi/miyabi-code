@@ -6,7 +6,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import * as Y from 'yjs';
+import type * as Y from 'yjs';
 import { useCollaboration } from '@/lib/hooks/useCollaboration';
 import { collaborationProvider } from '@/lib/collaboration/yjs-provider';
 
@@ -30,7 +30,7 @@ export default function CollaborativeEditor({
   initialContent = '',
   placeholder = 'Start typing...',
   onContentChange,
-  className = ''
+  className = '',
 }: CollaborativeEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [isTyping, setIsTyping] = useState(false);
@@ -41,7 +41,7 @@ export default function CollaborativeEditor({
 
   const userWithColor = {
     ...user,
-    color: user.color || collaborationProvider.generateUserColor()
+    color: user.color || collaborationProvider.generateUserColor(),
   };
 
   const {
@@ -49,19 +49,19 @@ export default function CollaborativeEditor({
     isConnected,
     isLoading,
     getSharedText,
-    onAwarenessChange
+    onAwarenessChange,
   } = useCollaboration({
     roomId,
     user: userWithColor,
-    autoConnect: true
+    autoConnect: true,
   });
 
   // Initialize Y.js text document
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected) {return;}
 
     const yText = getSharedText('content');
-    if (!yText) return;
+    if (!yText) {return;}
 
     yTextRef.current = yText;
 
@@ -102,7 +102,7 @@ export default function CollaborativeEditor({
 
   // Handle local text changes
   const handleContentChange = useCallback((newContent: string) => {
-    if (isRemoteChangeRef.current || !yTextRef.current) return;
+    if (isRemoteChangeRef.current || !yTextRef.current) {return;}
 
     const yText = yTextRef.current;
     const currentContent = yText.toString();
@@ -132,7 +132,7 @@ export default function CollaborativeEditor({
 
   // Handle typing awareness
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected) {return;}
 
     const cleanup = onAwarenessChange((users) => {
       const typing = users

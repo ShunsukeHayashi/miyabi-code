@@ -68,7 +68,7 @@ class AdaptiveLearningEngine {
    */
   async updateLearnerProfile(
     userId: string,
-    performanceRecord: PerformanceRecord
+    performanceRecord: PerformanceRecord,
   ): Promise<LearnerProfile> {
     const profile = await this.getLearnerProfile(userId);
 
@@ -107,17 +107,17 @@ class AdaptiveLearningEngine {
       include: {
         course: {
           include: {
-            lessons: true
-          }
+            lessons: true,
+          },
         },
-        progress: true
-      }
+        progress: true,
+      },
     });
 
     for (const enrollment of enrollments) {
       const courseRecommendations = await this.generateCourseRecommendations(
         profile,
-        enrollment
+        enrollment,
       );
       recommendations.push(...courseRecommendations);
     }
@@ -134,7 +134,7 @@ class AdaptiveLearningEngine {
   async adaptContent(
     content: string,
     userId: string,
-    topicId: string
+    topicId: string,
   ): Promise<AdaptiveContent> {
     const profile = await this.getLearnerProfile(userId);
 
@@ -155,7 +155,7 @@ class AdaptiveLearningEngine {
       content,
       complexity,
       presentationStyle,
-      pacing
+      pacing,
     );
 
     return {
@@ -163,7 +163,7 @@ class AdaptiveLearningEngine {
       adaptedContent,
       presentationStyle,
       complexity,
-      pacing
+      pacing,
     };
   }
 
@@ -209,7 +209,7 @@ class AdaptiveLearningEngine {
    */
   async predictOptimalDifficulty(
     userId: string,
-    topicId: string
+    topicId: string,
   ): Promise<'beginner' | 'intermediate' | 'advanced'> {
     const profile = await this.getLearnerProfile(userId);
     const masteryScore = profile.knowledgeMap[topicId] || 0;
@@ -246,10 +246,10 @@ class AdaptiveLearningEngine {
         include: {
           progress: true,
           // Add other related data as needed
-        }
+        },
       });
 
-      if (!user) return null;
+      if (!user) {return null;}
 
       // Convert database data to learner profile
       // This is a simplified version
@@ -261,7 +261,7 @@ class AdaptiveLearningEngine {
         learningPace: 'normal',
         knowledgeMap: {},
         performanceHistory: [],
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('Error loading learner profile:', error);
@@ -278,7 +278,7 @@ class AdaptiveLearningEngine {
       learningPace: 'normal',
       knowledgeMap: {},
       performanceHistory: [],
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
 
     await this.saveLearnerProfile(profile);
@@ -293,7 +293,7 @@ class AdaptiveLearningEngine {
 
   private updateKnowledgeMap(
     profile: LearnerProfile,
-    record: PerformanceRecord
+    record: PerformanceRecord,
   ): void {
     const currentScore = profile.knowledgeMap[record.topicId] || 0;
 
@@ -306,7 +306,7 @@ class AdaptiveLearningEngine {
 
   private updateLearningPace(
     profile: LearnerProfile,
-    record: PerformanceRecord
+    record: PerformanceRecord,
   ): void {
     // Analyze time spent vs. expected time to adjust learning pace
     const expectedTime = this.getExpectedTimeForLesson(record.lessonId);
@@ -323,7 +323,7 @@ class AdaptiveLearningEngine {
 
   private async generateCourseRecommendations(
     profile: LearnerProfile,
-    enrollment: any
+    enrollment: any,
   ): Promise<LearningRecommendation[]> {
     const recommendations: LearningRecommendation[] = [];
 
@@ -337,7 +337,7 @@ class AdaptiveLearningEngine {
         reason: 'Continue your learning progression',
         confidence: 0.9,
         estimatedDuration: nextLesson.estimatedDuration,
-        difficulty: nextLesson.difficulty
+        difficulty: nextLesson.difficulty,
       });
     }
 
@@ -351,7 +351,7 @@ class AdaptiveLearningEngine {
         reason: `Review to strengthen understanding (current mastery: ${Math.round((profile.knowledgeMap[lesson.id] || 0) * 100)}%)`,
         confidence: 0.7,
         estimatedDuration: lesson.estimatedDuration * 0.5, // Review takes less time
-        difficulty: lesson.difficulty
+        difficulty: lesson.difficulty,
       });
     }
 
@@ -360,7 +360,7 @@ class AdaptiveLearningEngine {
 
   private determineComplexity(
     masteryLevel: number,
-    preferredDifficulty: string
+    preferredDifficulty: string,
   ): 'simplified' | 'standard' | 'detailed' {
     if (masteryLevel < 0.5 || preferredDifficulty === 'beginner') {
       return 'simplified';
@@ -372,7 +372,7 @@ class AdaptiveLearningEngine {
   }
 
   private determinePresentationStyle(
-    learningStyle: string
+    learningStyle: string,
   ): 'text' | 'visual' | 'interactive' | 'video' {
     switch (learningStyle) {
       case 'visual':
@@ -390,7 +390,7 @@ class AdaptiveLearningEngine {
     content: string,
     complexity: string,
     presentationStyle: string,
-    pacing: string
+    pacing: string,
   ): Promise<string> {
     // This would use AI (like Gemini) to transform content
     // For now, return a simple transformation

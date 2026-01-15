@@ -4,11 +4,12 @@
  */
 
 import { useState, useCallback } from 'react';
-import {
+import type {
   CourseContentSuggestion,
   LessonContent,
-  ContentAnalysis,
-  AssessmentGeneration
+  ContentAnalysis} from '@/lib/ai/gemini-service';
+import {
+  AssessmentGeneration,
 } from '@/lib/ai/gemini-service';
 
 interface UseAIReturn {
@@ -49,7 +50,7 @@ export function useAI(): UseAIReturn {
 
   const handleApiCall = useCallback(async <T>(
     apiCall: () => Promise<Response>,
-    setLoading: (loading: boolean) => void
+    setLoading: (loading: boolean) => void,
   ): Promise<T> => {
     setLoading(true);
     setError(null);
@@ -74,19 +75,17 @@ export function useAI(): UseAIReturn {
   }, []);
 
   const generateCourseSuggestions = useCallback(
-    async (topic: string, targetAudience?: string): Promise<CourseContentSuggestion[]> => {
-      return handleApiCall<CourseContentSuggestion[]>(
-        () => fetch('/api/ai/course-suggestions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ topic, targetAudience }),
-        }),
-        setCourseSuggestionsLoading
-      );
-    },
-    [handleApiCall]
+    async (topic: string, targetAudience?: string): Promise<CourseContentSuggestion[]> => handleApiCall<CourseContentSuggestion[]>(
+      () => fetch('/api/ai/course-suggestions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ topic, targetAudience }),
+      }),
+      setCourseSuggestionsLoading,
+    ),
+    [handleApiCall],
   );
 
   const generateLessonContent = useCallback(
@@ -94,52 +93,46 @@ export function useAI(): UseAIReturn {
       courseTitle: string,
       lessonTopic: string,
       difficulty: string,
-      duration: number
-    ): Promise<LessonContent> => {
-      return handleApiCall<LessonContent>(
-        () => fetch('/api/ai/lesson-content', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ courseTitle, lessonTopic, difficulty, duration }),
-        }),
-        setLessonContentLoading
-      );
-    },
-    [handleApiCall]
+      duration: number,
+    ): Promise<LessonContent> => handleApiCall<LessonContent>(
+      () => fetch('/api/ai/lesson-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ courseTitle, lessonTopic, difficulty, duration }),
+      }),
+      setLessonContentLoading,
+    ),
+    [handleApiCall],
   );
 
   const analyzeContent = useCallback(
-    async (content: string, targetLevel: string): Promise<ContentAnalysis> => {
-      return handleApiCall<ContentAnalysis>(
-        () => fetch('/api/ai/content-analysis', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ content, targetLevel }),
-        }),
-        setContentAnalysisLoading
-      );
-    },
-    [handleApiCall]
+    async (content: string, targetLevel: string): Promise<ContentAnalysis> => handleApiCall<ContentAnalysis>(
+      () => fetch('/api/ai/content-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content, targetLevel }),
+      }),
+      setContentAnalysisLoading,
+    ),
+    [handleApiCall],
   );
 
   const chatWithAssistant = useCallback(
-    async (messages: any[]): Promise<string> => {
-      return handleApiCall<{ response: string }>(
-        () => fetch('/api/ai/chat-assistant', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ messages }),
-        }),
-        setChatLoading
-      ).then(data => data.response);
-    },
-    [handleApiCall]
+    async (messages: any[]): Promise<string> => handleApiCall<{ response: string }>(
+      () => fetch('/api/ai/chat-assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages }),
+      }),
+      setChatLoading,
+    ).then(data => data.response),
+    [handleApiCall],
   );
 
   return {

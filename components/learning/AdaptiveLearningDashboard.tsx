@@ -7,10 +7,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useUser } from '@/lib/hooks/useAuth';
+import type {
+  LearningRecommendation} from '@/lib/learning/adaptive-engine';
 import {
-  LearningRecommendation,
   LearnerProfile,
-  AdaptiveContent
+  AdaptiveContent,
 } from '@/lib/learning/adaptive-engine';
 
 interface AdaptiveLearningDashboardProps {
@@ -23,7 +24,7 @@ interface KnowledgeGaps {
 }
 
 export default function AdaptiveLearningDashboard({
-  className = ''
+  className = '',
 }: AdaptiveLearningDashboardProps) {
   const { user } = useUser();
   const [recommendations, setRecommendations] = useState<LearningRecommendation[]>([]);
@@ -39,7 +40,7 @@ export default function AdaptiveLearningDashboard({
 
   // Fetch learning data
   const fetchLearningData = useCallback(async () => {
-    if (!user) return;
+    if (!user) {return;}
 
     setLoading(true);
     setError(null);
@@ -119,8 +120,8 @@ export default function AdaptiveLearningDashboard({
 
   // Get confidence color
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-600';
-    if (confidence >= 0.6) return 'text-yellow-600';
+    if (confidence >= 0.8) {return 'text-green-600';}
+    if (confidence >= 0.6) {return 'text-yellow-600';}
     return 'text-orange-600';
   };
 

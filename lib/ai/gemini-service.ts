@@ -3,7 +3,11 @@
  * Provides AI-powered content generation, analysis, and assistance
  */
 
-import { GoogleGenerativeAI, GenerativeModel, Content } from '@google/generative-ai';
+import type {
+  Content,
+  GenerativeModel,
+  GoogleGenerativeAI as GoogleGenerativeAIType,
+} from '@google/generative-ai';
 
 // Types for course-related AI operations
 export interface CourseContentSuggestion {
@@ -43,17 +47,39 @@ export interface AssessmentGeneration {
 }
 
 class GeminiService {
-  private client: GoogleGenerativeAI;
-  private model: GenerativeModel;
+  private client: GoogleGenerativeAIType | null = null;
+  private model: GenerativeModel | null = null;
+  private initialized = false;
 
   constructor() {
+    // Delay initialization until first use to avoid build-time side effects.
+  }
+
+  private ensureInitialized(): void {
+    if (this.initialized) {
+      return;
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY environment variable is required');
     }
 
+    const { GoogleGenerativeAI } = require('@google/generative-ai') as {
+      GoogleGenerativeAI: new (key: string) => GoogleGenerativeAIType;
+    };
+
     this.client = new GoogleGenerativeAI(apiKey);
     this.model = this.client.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    this.initialized = true;
+  }
+
+  private getModel(): GenerativeModel {
+    this.ensureInitialized();
+    if (!this.model) {
+      throw new Error('Gemini model initialization failed');
+    }
+    return this.model;
   }
 
   /**
@@ -84,7 +110,7 @@ class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.getModel().generateContent(prompt);
       const response = result.response;
       const text = response.text();
 
@@ -108,7 +134,7 @@ class GeminiService {
     courseTitle: string,
     lessonTopic: string,
     difficulty: string,
-    duration: number
+    duration: number,
   ): Promise<LessonContent> {
     const prompt = `
       Create detailed lesson content for:
@@ -135,7 +161,7 @@ class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.getModel().generateContent(prompt);
       const response = result.response;
       const text = response.text();
 
@@ -179,7 +205,7 @@ class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.getModel().generateContent(prompt);
       const response = result.response;
       const text = response.text();
 
@@ -201,7 +227,7 @@ class GeminiService {
   async generateAssessment(
     content: string,
     questionCount: number = 5,
-    questionTypes: string[] = ['multiple_choice', 'short_answer']
+    questionTypes: string[] = ['multiple_choice', 'short_answer'],
   ): Promise<AssessmentGeneration> {
     const prompt = `
       Generate ${questionCount} assessment questions based on this content:
@@ -234,7 +260,7 @@ class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.getModel().generateContent(prompt);
       const response = result.response;
       const text = response.text();
 
@@ -256,7 +282,7 @@ class GeminiService {
   async getContentSuggestions(
     userProgress: any,
     currentCourse: string,
-    learningGoals: string[]
+    learningGoals: string[],
   ): Promise<string[]> {
     const prompt = `
       Based on the user's learning context, suggest 3-5 relevant next steps:
@@ -276,7 +302,7 @@ class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.getModel().generateContent(prompt);
       const response = result.response;
       const text = response.text();
 
@@ -297,7 +323,7 @@ class GeminiService {
    */
   async chatAssistant(messages: Content[]): Promise<string> {
     try {
-      const chat = this.model.startChat({
+      const chat = this.getModel().startChat({
         history: messages.slice(0, -1), // All messages except the last one
       });
 

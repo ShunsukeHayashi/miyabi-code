@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
 
-import type { TmuxPane, TmuxSession, TmuxWindow } from '@/components/dashboardData'
+import type { TmuxPane, TmuxSession, TmuxWindow } from '@/components/dashboardData';
 
 interface TMAXLViewProps {
   session: TmuxSession
@@ -18,10 +18,10 @@ const paneStateStyles: Record<TmuxPane['state'], string> = {
   focused: 'border-miyabi-purple text-miyabi-purple',
   active: 'border-miyabi-blue text-miyabi-blue',
   idle: 'border-gray-700 text-gray-400',
-}
+};
 
 const formatTime = (value: string) =>
-  new Date(value).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  new Date(value).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
 export default function TMAXLView({
   session,
@@ -30,27 +30,27 @@ export default function TMAXLView({
   onSendCommand,
   onRefresh,
 }: TMAXLViewProps) {
-  const [windowId, setWindowId] = useState<string>(session.windows[0]?.id ?? '')
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid')
-  const [commandDraft, setCommandDraft] = useState('tmux capture-pane -p')
+  const [windowId, setWindowId] = useState<string>(session.windows[0]?.id ?? '');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
+  const [commandDraft, setCommandDraft] = useState('tmux capture-pane -p');
 
   const activeWindow = useMemo<TmuxWindow | undefined>(
     () => session.windows.find((window) => window.id === windowId) ?? session.windows[0],
     [session.windows, windowId],
-  )
+  );
 
-  const panes = activeWindow?.panes ?? []
+  const panes = activeWindow?.panes ?? [];
 
   const handlePaneSelect = (pane: TmuxPane) => {
-    onPaneSelect?.(pane)
-  }
+    onPaneSelect?.(pane);
+  };
 
   const handleCommandSend = (pane: TmuxPane) => {
-    if (!commandDraft.trim()) return
+    if (!commandDraft.trim()) {return;}
 
-    onSendCommand?.(pane, commandDraft.trim())
-    setCommandDraft('')
-  }
+    onSendCommand?.(pane, commandDraft.trim());
+    setCommandDraft('');
+  };
 
   return (
     <section className="space-y-6">
@@ -118,8 +118,8 @@ export default function TMAXLView({
           ) : layoutMode === 'grid' ? (
             <div className="grid gap-4 sm:grid-cols-2">
               {panes.map((pane) => {
-                const isSelected = pane.id === selectedPaneId
-                const style = paneStateStyles[pane.state]
+                const isSelected = pane.id === selectedPaneId;
+                const style = paneStateStyles[pane.state];
 
                 return (
                   <button
@@ -150,14 +150,14 @@ export default function TMAXLView({
                       </ul>
                     </div>
                   </button>
-                )
+                );
               })}
             </div>
           ) : (
             <div className="space-y-3">
               {panes.map((pane) => {
-                const isSelected = pane.id === selectedPaneId
-                const style = paneStateStyles[pane.state]
+                const isSelected = pane.id === selectedPaneId;
+                const style = paneStateStyles[pane.state];
 
                 return (
                   <button
@@ -182,7 +182,7 @@ export default function TMAXLView({
                       {pane.recentLogs[0]?.message ?? 'ログはありません'}
                     </div>
                   </button>
-                )
+                );
               })}
             </div>
           )}
@@ -224,7 +224,7 @@ export default function TMAXLView({
         </aside>
       </div>
     </section>
-  )
+  );
 }
 
 interface PaneDetailProps {
@@ -236,7 +236,7 @@ interface PaneDetailProps {
 
 function PaneDetail({ pane, commandDraft, onCommandDraftChange, onSendCommand }: PaneDetailProps) {
   if (!pane) {
-    return <div className="text-sm text-gray-400">No pane selected.</div>
+    return <div className="text-sm text-gray-400">No pane selected.</div>;
   }
 
   return (
@@ -266,8 +266,8 @@ function PaneDetail({ pane, commandDraft, onCommandDraftChange, onSendCommand }:
 
       <form
         onSubmit={(event) => {
-          event.preventDefault()
-          onSendCommand(pane)
+          event.preventDefault();
+          onSendCommand(pane);
         }}
         className="space-y-3"
       >
@@ -287,5 +287,5 @@ function PaneDetail({ pane, commandDraft, onCommandDraftChange, onSendCommand }:
         </button>
       </form>
     </div>
-  )
+  );
 }

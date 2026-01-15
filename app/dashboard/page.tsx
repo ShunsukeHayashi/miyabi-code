@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { AgentCard } from '@/components/dashboard/AgentCard';
@@ -163,8 +163,8 @@ export default function DashboardPage() {
   const handleStatusChange = (agentId: string, status: AgentStatus) => {
     setAgents((prev) =>
       prev.map((agent) =>
-        agent.id === agentId ? { ...agent, status, updatedAt: new Date() } : agent
-      )
+        agent.id === agentId ? { ...agent, status, updatedAt: new Date() } : agent,
+      ),
     );
   };
 

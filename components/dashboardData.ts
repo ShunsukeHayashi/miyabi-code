@@ -171,7 +171,7 @@ export const mockAgents: Agent[] = [
     capabilities: ['Knowledge sync', 'Documentation refresh'],
     lastUpdated: '2025-11-05T07:58:00Z',
   },
-]
+];
 
 export const mockTmuxSession: TmuxSession = {
   id: 'session-0',
@@ -287,7 +287,7 @@ export const mockTmuxSession: TmuxSession = {
       ],
     },
   ],
-}
+};
 
 export interface IssueSummary {
   number: number
@@ -312,4 +312,4 @@ export const mockIssues: IssueSummary[] = [
     labels: ['🧪 phase:integration'],
     url: 'https://github.com/ShunsukeHayashi/Miyabi/issues/741',
   },
-]
+];

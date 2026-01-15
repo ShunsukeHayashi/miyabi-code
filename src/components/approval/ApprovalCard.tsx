@@ -37,7 +37,7 @@ export function ApprovalCard({ approval, onApprove, onReject, currentUser }: App
   const [isLoading, setIsLoading] = useState(false);
 
   const handleApprove = async () => {
-    if (!onApprove || !currentUser) return;
+    if (!onApprove || !currentUser) {return;}
     setIsLoading(true);
     try {
       await onApprove(approval.approval_id, currentUser, comment || undefined);
@@ -51,7 +51,7 @@ export function ApprovalCard({ approval, onApprove, onReject, currentUser }: App
   };
 
   const handleReject = async () => {
-    if (!onReject || !currentUser) return;
+    if (!onReject || !currentUser) {return;}
     const reason = comment || 'No reason provided';
     setIsLoading(true);
     try {
@@ -72,8 +72,8 @@ export function ApprovalCard({ approval, onApprove, onReject, currentUser }: App
 
   const statusColor = approval.status === 'Pending' ? 'text-yellow-600'
     : approval.status === 'Approved' ? 'text-green-600'
-    : approval.status === 'Rejected' ? 'text-red-600'
-    : 'text-gray-600';
+      : approval.status === 'Rejected' ? 'text-red-600'
+        : 'text-gray-600';
 
   return (
     <div className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -110,8 +110,8 @@ export function ApprovalCard({ approval, onApprove, onReject, currentUser }: App
                 key={approver}
                 className={`px-2 py-1 rounded text-xs ${
                   response?.approved ? 'bg-green-100 text-green-800'
-                  : response ? 'bg-red-100 text-red-800'
-                  : 'bg-gray-100 text-gray-800'
+                    : response ? 'bg-red-100 text-red-800'
+                      : 'bg-gray-100 text-gray-800'
                 }`}
               >
                 {approver} {response?.approved ? '✓' : response ? '✗' : '○'}

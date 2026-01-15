@@ -1,55 +1,53 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import { alerts } from './mock-data'
-import type { Alert, AlertSeverity } from './types'
+import { useMemo, useState } from 'react';
+import { alerts } from './mock-data';
+import type { AlertSeverity } from './types';
 
 const severityLabels: Record<AlertSeverity, string> = {
   info: 'Info',
   warning: 'Warning',
-  critical: 'Critical'
-}
+  critical: 'Critical',
+};
 
 const severityStyles: Record<AlertSeverity, string> = {
   info: 'bg-miyabi-blue/10 text-miyabi-blue border-miyabi-blue/40',
   warning: 'bg-yellow-500/10 text-yellow-300 border-yellow-400/40',
-  critical: 'bg-miyabi-red/10 text-miyabi-red border-miyabi-red/40'
-}
+  critical: 'bg-miyabi-red/10 text-miyabi-red border-miyabi-red/40',
+};
 
 export function AlertsPanel() {
-  const [activeSeverities, setActiveSeverities] = useState<AlertSeverity[]>(['critical', 'warning', 'info'])
-  const [showAcknowledged, setShowAcknowledged] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [activeSeverities, setActiveSeverities] = useState<AlertSeverity[]>(['critical', 'warning', 'info']);
+  const [showAcknowledged, setShowAcknowledged] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleSeverity = (severity: AlertSeverity) => {
     setActiveSeverities((current) =>
       current.includes(severity)
         ? current.filter((item) => item !== severity)
-        : [...current, severity]
-    )
-  }
+        : [...current, severity],
+    );
+  };
 
-  const filteredAlerts = useMemo(() => {
-    return alerts
-      .filter((alert) => {
-        if (activeSeverities.length && !activeSeverities.includes(alert.severity)) {
-          return false
-        }
-        if (!showAcknowledged && alert.acknowledged) {
-          return false
-        }
-        if (searchTerm.trim().length === 0) {
-          return true
-        }
-        const query = searchTerm.toLowerCase()
-        return (
-          alert.title.toLowerCase().includes(query) ||
+  const filteredAlerts = useMemo(() => alerts
+    .filter((alert) => {
+      if (activeSeverities.length && !activeSeverities.includes(alert.severity)) {
+        return false;
+      }
+      if (!showAcknowledged && alert.acknowledged) {
+        return false;
+      }
+      if (searchTerm.trim().length === 0) {
+        return true;
+      }
+      const query = searchTerm.toLowerCase();
+      return (
+        alert.title.toLowerCase().includes(query) ||
           alert.message.toLowerCase().includes(query) ||
           alert.relatedAgent?.toLowerCase().includes(query)
-        )
-      })
-      .sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1))
-  }, [activeSeverities, showAcknowledged, searchTerm])
+      );
+    })
+    .sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1)), [activeSeverities, showAcknowledged, searchTerm]);
 
   return (
     <section className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
@@ -61,7 +59,7 @@ export function AlertsPanel() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex flex-wrap items-center gap-2">
             {(Object.keys(severityLabels) as AlertSeverity[]).map((severity) => {
-              const active = activeSeverities.includes(severity)
+              const active = activeSeverities.includes(severity);
               return (
                 <button
                   key={severity}
@@ -75,7 +73,7 @@ export function AlertsPanel() {
                 >
                   {severityLabels[severity]}
                 </button>
-              )
+              );
             })}
           </div>
 
@@ -140,7 +138,7 @@ export function AlertsPanel() {
                   month: '2-digit',
                   day: '2-digit',
                   hour: '2-digit',
-                  minute: '2-digit'
+                  minute: '2-digit',
                 })}
               </time>
             </div>
@@ -168,5 +166,5 @@ export function AlertsPanel() {
         ) : null}
       </div>
     </section>
-  )
+  );
 }

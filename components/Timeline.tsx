@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import { timelineEvents } from './mock-data'
+import { useMemo, useState } from 'react';
+import { timelineEvents } from './mock-data';
 import type {
   AgentIdentifier,
   TimelineEvent,
-  TimelineEventCategory
-} from './types'
+  TimelineEventCategory,
+} from './types';
 
 const getUniqueValues = <T extends string>(items: TimelineEvent[], key: keyof TimelineEvent) =>
-  Array.from(new Set(items.map((item) => item[key] as T)))
+  Array.from(new Set(items.map((item) => item[key] as T)));
 
 const categoryLabels: Record<TimelineEventCategory, string> = {
   issue: 'Issue',
@@ -17,8 +17,8 @@ const categoryLabels: Record<TimelineEventCategory, string> = {
   review: 'Review',
   deployment: 'Deployment',
   knowledge: 'Knowledge',
-  system: 'System'
-}
+  system: 'System',
+};
 
 const agentLabels: Partial<Record<AgentIdentifier, string>> = {
   CoordinatorAgent: 'Coordinator',
@@ -28,51 +28,49 @@ const agentLabels: Partial<Record<AgentIdentifier, string>> = {
   PRAgent: 'PR',
   IssueAgent: 'Issue',
   RefresherAgent: 'Refresher',
-  KnowledgeAgent: 'Knowledge'
-}
+  KnowledgeAgent: 'Knowledge',
+};
 
 export function Timeline() {
   const categories = useMemo(
     () => getUniqueValues<TimelineEventCategory>(timelineEvents, 'category'),
-    []
-  )
+    [],
+  );
 
   const agents = useMemo(
     () => getUniqueValues<AgentIdentifier>(timelineEvents, 'agent'),
-    []
-  )
+    [],
+  );
 
-  const [activeCategories, setActiveCategories] = useState<TimelineEventCategory[]>(categories)
-  const [selectedAgent, setSelectedAgent] = useState<'all' | AgentIdentifier>('all')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [activeCategories, setActiveCategories] = useState<TimelineEventCategory[]>(categories);
+  const [selectedAgent, setSelectedAgent] = useState<'all' | AgentIdentifier>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleCategory = (category: TimelineEventCategory) => {
     setActiveCategories((current) =>
-      current.includes(category) ? current.filter((item) => item !== category) : [...current, category]
-    )
-  }
+      current.includes(category) ? current.filter((item) => item !== category) : [...current, category],
+    );
+  };
 
-  const filteredEvents = useMemo(() => {
-    return timelineEvents
-      .filter((event) => {
-        if (activeCategories.length && !activeCategories.includes(event.category)) {
-          return false
-        }
-        if (selectedAgent !== 'all' && event.agent !== selectedAgent) {
-          return false
-        }
-        if (searchTerm.trim().length === 0) {
-          return true
-        }
-        const query = searchTerm.toLowerCase()
-        return (
-          event.title.toLowerCase().includes(query) ||
+  const filteredEvents = useMemo(() => timelineEvents
+    .filter((event) => {
+      if (activeCategories.length && !activeCategories.includes(event.category)) {
+        return false;
+      }
+      if (selectedAgent !== 'all' && event.agent !== selectedAgent) {
+        return false;
+      }
+      if (searchTerm.trim().length === 0) {
+        return true;
+      }
+      const query = searchTerm.toLowerCase();
+      return (
+        event.title.toLowerCase().includes(query) ||
           event.description.toLowerCase().includes(query) ||
           event.tags?.some((tag) => tag.toLowerCase().includes(query))
-        )
-      })
-      .sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
-  }, [activeCategories, selectedAgent, searchTerm])
+      );
+    })
+    .sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1)), [activeCategories, selectedAgent, searchTerm]);
 
   return (
     <section className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
@@ -87,7 +85,7 @@ export function Timeline() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex flex-wrap items-center gap-2">
             {categories.map((category) => {
-              const isActive = activeCategories.includes(category)
+              const isActive = activeCategories.includes(category);
               return (
                 <button
                   key={category}
@@ -101,7 +99,7 @@ export function Timeline() {
                 >
                   {categoryLabels[category]}
                 </button>
-              )
+              );
             })}
           </div>
 
@@ -161,7 +159,7 @@ export function Timeline() {
                     month: '2-digit',
                     day: '2-digit',
                     hour: '2-digit',
-                    minute: '2-digit'
+                    minute: '2-digit',
                   })}
                 </time>
               </div>
@@ -201,5 +199,5 @@ export function Timeline() {
         ) : null}
       </ol>
     </section>
-  )
+  );
 }

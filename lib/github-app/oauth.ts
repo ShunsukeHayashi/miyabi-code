@@ -12,7 +12,7 @@ import {
   GITHUB_API_BASE_URL,
   GITHUB_APP_SCOPES,
 } from './config';
-import {
+import type {
   GitHubOAuthTokenResponse,
   GitHubUserResponse,
   GitHubInstallationToken,
@@ -86,7 +86,7 @@ export function buildOAuthAuthorizeUrl(state: string, redirectUri?: string): str
 
 export async function exchangeCodeForToken(
   code: string,
-  redirectUri?: string
+  redirectUri?: string,
 ): Promise<GitHubOAuthTokenResponse> {
   const config = getGitHubAppConfig();
 
@@ -162,7 +162,7 @@ export async function revokeAccessToken(accessToken: string): Promise<void> {
         'X-GitHub-Api-Version': '2022-11-28',
       },
       body: JSON.stringify({ access_token: accessToken }),
-    }
+    },
   );
 
   if (!response.ok && response.status !== 204) {
@@ -188,7 +188,7 @@ export async function getGitHubUser(accessToken: string): Promise<GitHubUserResp
 }
 
 export async function getGitHubUserEmails(
-  accessToken: string
+  accessToken: string,
 ): Promise<Array<{ email: string; primary: boolean; verified: boolean }>> {
   const response = await fetch(`${GITHUB_API_BASE_URL}/user/emails`, {
     headers: {
@@ -207,7 +207,7 @@ export async function getGitHubUserEmails(
 }
 
 export async function getUserInstallations(
-  accessToken: string
+  accessToken: string,
 ): Promise<{ installations: GitHubAppInstallation[] }> {
   const response = await fetch(`${GITHUB_API_BASE_URL}/user/installations`, {
     headers: {
@@ -243,7 +243,7 @@ export function generateAppJWT(): string {
 }
 
 export async function getInstallationAccessToken(
-  installationId: number
+  installationId: number,
 ): Promise<GitHubInstallationToken> {
   const appJwt = generateAppJWT();
 
@@ -256,7 +256,7 @@ export async function getInstallationAccessToken(
         Authorization: `Bearer ${appJwt}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
-    }
+    },
   );
 
   if (!response.ok) {
@@ -278,7 +278,7 @@ export async function getInstallation(installationId: number): Promise<GitHubApp
         Authorization: `Bearer ${appJwt}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
-    }
+    },
   );
 
   if (!response.ok) {
@@ -308,7 +308,7 @@ export function generateMiyabiSessionToken(user: MiyabiGitHubUser): string {
       expiresIn: '7d',
       issuer: 'miyabi-ai-agent-framework',
       audience: 'miyabi-users',
-    }
+    },
   );
 }
 

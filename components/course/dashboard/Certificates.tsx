@@ -10,19 +10,11 @@ import {
   Award,
   Download,
   Share2,
-  Calendar,
   ExternalLink,
-  Star,
-  Trophy,
   Medal,
-  CheckCircle,
-  Lock,
   Eye,
-  Filter,
-  Search
+  Search,
 } from 'lucide-react';
-import { useCertificates } from '../shared/hooks';
-import { LoadingSpinner } from '../shared/LoadingComponents';
 
 interface CertificatesProps {
   userId: string;
@@ -94,8 +86,8 @@ export function Certificates({ userId, className = '' }: CertificatesProps) {
         completionRate: 100,
         finalScore: 95,
         timeSpent: 2400,
-        issuer: 'Miyabi Academy'
-      }
+        issuer: 'Miyabi Academy',
+      },
     },
     {
       id: 'cert-2',
@@ -118,8 +110,8 @@ export function Certificates({ userId, className = '' }: CertificatesProps) {
         completionRate: 100,
         finalScore: 92,
         timeSpent: 1800,
-        issuer: 'Miyabi Academy'
-      }
+        issuer: 'Miyabi Academy',
+      },
     },
     {
       id: 'cert-3',
@@ -142,8 +134,8 @@ export function Certificates({ userId, className = '' }: CertificatesProps) {
         completionRate: 100,
         finalScore: 88,
         timeSpent: 4800,
-        issuer: 'Miyabi Academy'
-      }
+        issuer: 'Miyabi Academy',
+      },
     },
     {
       id: 'cert-4',
@@ -166,9 +158,9 @@ export function Certificates({ userId, className = '' }: CertificatesProps) {
         completionRate: 100,
         finalScore: 85,
         timeSpent: 2200,
-        issuer: 'Miyabi Academy'
-      }
-    }
+        issuer: 'Miyabi Academy',
+      },
+    },
   ];
 
   // Extract unique skills and their levels
@@ -178,50 +170,48 @@ export function Certificates({ userId, className = '' }: CertificatesProps) {
       name: 'React',
       level: 'Advanced',
       certificateCount: 2,
-      color: 'miyabi-blue'
+      color: 'miyabi-blue',
     },
     {
       id: 'javascript',
       name: 'JavaScript',
       level: 'Advanced',
       certificateCount: 4,
-      color: 'yellow-500'
+      color: 'yellow-500',
     },
     {
       id: 'typescript',
       name: 'TypeScript',
       level: 'Intermediate',
       certificateCount: 1,
-      color: 'miyabi-purple'
+      color: 'miyabi-purple',
     },
     {
       id: 'nodejs',
       name: 'Node.js',
       level: 'Intermediate',
       certificateCount: 1,
-      color: 'miyabi-green'
+      color: 'miyabi-green',
     },
     {
       id: 'fullstack',
       name: 'Full Stack Development',
       level: 'Intermediate',
       certificateCount: 1,
-      color: 'orange-500'
-    }
+      color: 'orange-500',
+    },
   ];
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
 
   const getGradeColor = (grade: number) => {
-    if (grade >= 90) return 'text-miyabi-green';
-    if (grade >= 80) return 'text-miyabi-blue';
-    if (grade >= 70) return 'text-orange-500';
+    if (grade >= 90) {return 'text-miyabi-green';}
+    if (grade >= 80) {return 'text-miyabi-blue';}
+    if (grade >= 70) {return 'text-orange-500';}
     return 'text-red-500';
   };
 
@@ -240,7 +230,7 @@ export function Certificates({ userId, className = '' }: CertificatesProps) {
 
   const filteredCertificates = mockCertificates
     .filter((cert) => {
-      if (filter !== 'all' && cert.status !== filter) return false;
+      if (filter !== 'all' && cert.status !== filter) {return false;}
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (

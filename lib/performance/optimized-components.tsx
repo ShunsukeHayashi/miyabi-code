@@ -14,7 +14,7 @@ import React, {
   useRef,
   Suspense,
   forwardRef,
-  lazy
+  lazy,
 } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
@@ -49,7 +49,7 @@ export function usePerformanceMonitor(componentName: string) {
           window.gtag('event', 'component_render', {
             component_name: componentName,
             render_time: renderTime,
-            render_count: renderCount
+            render_count: renderCount,
           });
         }
       }
@@ -89,7 +89,7 @@ export const OptimizedCourseList = memo<OptimizedCourseListProps>(({
   courses,
   onCourseClick,
   filters,
-  loading = false
+  loading = false,
 }) => {
   usePerformanceMonitor('OptimizedCourseList');
 
@@ -98,7 +98,7 @@ export const OptimizedCourseList = memo<OptimizedCourseListProps>(({
 
   // Memoized filtered courses
   const filteredCourses = useMemo(() => {
-    if (!courses) return [];
+    if (!courses) {return [];}
 
     return courses.filter(course => {
       const matchesSearch = !debouncedSearch ||
@@ -125,7 +125,7 @@ export const OptimizedCourseList = memo<OptimizedCourseListProps>(({
     count: filteredCourses.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 300, // Estimated height of each course card
-    overscan: 5 // Render 5 extra items for smooth scrolling
+    overscan: 5, // Render 5 extra items for smooth scrolling
   });
 
   const handleCourseClick = useCallback((course: Course) => {
@@ -146,7 +146,7 @@ export const OptimizedCourseList = memo<OptimizedCourseListProps>(({
         style={{
           height: `${virtualizer.getTotalSize()}px`,
           width: '100%',
-          position: 'relative'
+          position: 'relative',
         }}
       >
         {virtualizer.getVirtualItems().map((virtualItem) => {
@@ -160,7 +160,7 @@ export const OptimizedCourseList = memo<OptimizedCourseListProps>(({
                 left: 0,
                 width: '100%',
                 height: `${virtualItem.size}px`,
-                transform: `translateY(${virtualItem.start}px)`
+                transform: `translateY(${virtualItem.start}px)`,
               }}
             >
               <CourseCard
@@ -282,23 +282,21 @@ LazyImage.displayName = 'LazyImage';
 
 // Star Rating component (memoized for performance)
 const StarRating = memo<{ rating: number }>(({ rating }) => {
-  const stars = useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => {
-      const isFilled = i < Math.floor(rating);
-      const isHalf = i === Math.floor(rating) && rating % 1 >= 0.5;
+  const stars = useMemo(() => Array.from({ length: 5 }, (_, i) => {
+    const isFilled = i < Math.floor(rating);
+    const isHalf = i === Math.floor(rating) && rating % 1 >= 0.5;
 
-      return (
-        <span
-          key={i}
-          className={`text-sm ${
-            isFilled ? 'text-yellow-400' : isHalf ? 'text-yellow-300' : 'text-gray-300'
-          }`}
-        >
+    return (
+      <span
+        key={i}
+        className={`text-sm ${
+          isFilled ? 'text-yellow-400' : isHalf ? 'text-yellow-300' : 'text-gray-300'
+        }`}
+      >
           ★
-        </span>
-      );
-    });
-  }, [rating]);
+      </span>
+    );
+  }), [rating]);
 
   return <div className="flex">{stars}</div>;
 });
@@ -318,7 +316,7 @@ const CourseListSkeleton = memo<{ count: number }>(({ count }) => {
         </div>
       </div>
     )),
-    [count]
+    [count],
   );
 
   return (
@@ -342,7 +340,7 @@ export const OptimizedVideoPlayer = memo<OptimizedVideoPlayerProps>(({
   videoId,
   autoplay = false,
   onProgress,
-  onComplete
+  onComplete,
 }) => {
   usePerformanceMonitor('OptimizedVideoPlayer');
 
@@ -447,7 +445,7 @@ export function OptimizedTable<T extends { id: string }>({
   data,
   columns,
   pageSize = 50,
-  loading = false
+  loading = false,
 }: OptimizedTableProps<T>) {
   usePerformanceMonitor('OptimizedTable');
 
@@ -457,14 +455,14 @@ export function OptimizedTable<T extends { id: string }>({
   } | null>(null);
 
   const sortedData = useMemo(() => {
-    if (!sortConfig) return data;
+    if (!sortConfig) {return data;}
 
     return [...data].sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      if (aValue < bValue) {return sortConfig.direction === 'asc' ? -1 : 1;}
+      if (aValue > bValue) {return sortConfig.direction === 'asc' ? 1 : -1;}
       return 0;
     });
   }, [data, sortConfig]);
@@ -472,7 +470,7 @@ export function OptimizedTable<T extends { id: string }>({
   const handleSort = useCallback((key: keyof T) => {
     setSortConfig(current => ({
       key,
-      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc',
     }));
   }, []);
 

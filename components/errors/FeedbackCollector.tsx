@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useState, useCallback } from 'react'
-import * as Sentry from '@sentry/nextjs'
+import { useState, useCallback } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 interface FeedbackData {
   type: 'bug' | 'feature' | 'improvement' | 'other'
@@ -33,17 +33,17 @@ export function FeedbackCollector({
     email: '',
     severity: 'medium',
     context,
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
       // Sentryにフィードバックを送信
-      const feedbackEventId = eventId || Sentry.captureMessage('User Feedback', 'info')
+      const feedbackEventId = eventId || Sentry.captureMessage('User Feedback', 'info');
 
       // カスタムフィードバックイベントも送信
       Sentry.captureEvent({
@@ -65,34 +65,34 @@ export function FeedbackCollector({
             severity: feedback.severity,
             message: feedback.message,
             timestamp: new Date().toISOString(),
-          }
-        }
-      })
+          },
+        },
+      });
 
-      setSubmitStatus('success')
+      setSubmitStatus('success');
 
       // 成功したら3秒後に閉じる
       setTimeout(() => {
-        onClose()
-        setSubmitStatus('idle')
+        onClose();
+        setSubmitStatus('idle');
         setFeedback({
           type: defaultType,
           message: '',
           email: '',
           severity: 'medium',
           context,
-        })
-      }, 3000)
+        });
+      }, 3000);
 
     } catch (error) {
-      console.error('Failed to submit feedback:', error)
-      setSubmitStatus('error')
+      console.error('Failed to submit feedback:', error);
+      setSubmitStatus('error');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }, [feedback, eventId, onClose, defaultType, context])
+  }, [feedback, eventId, onClose, defaultType, context]);
 
-  if (!isOpen) return null
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -219,17 +219,17 @@ export function FeedbackCollector({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // フィードバック収集フック
 export function useFeedbackCollector() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [context, setContext] = useState<Record<string, any>>({})
+  const [isOpen, setIsOpen] = useState(false);
+  const [context, setContext] = useState<Record<string, any>>({});
 
   const openFeedback = useCallback((
     initialContext: Record<string, any> = {},
-    eventId?: string
+    eventId?: string,
   ) => {
     setContext({
       ...initialContext,
@@ -237,26 +237,26 @@ export function useFeedbackCollector() {
       userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
       eventId,
-    })
-    setIsOpen(true)
-  }, [])
+    });
+    setIsOpen(true);
+  }, []);
 
   const closeFeedback = useCallback(() => {
-    setIsOpen(false)
-    setContext({})
-  }, [])
+    setIsOpen(false);
+    setContext({});
+  }, []);
 
   return {
     isOpen,
     openFeedback,
     closeFeedback,
     context,
-  }
+  };
 }
 
 // フローティングフィードバックボタン
 export function FloatingFeedbackButton() {
-  const { isOpen, openFeedback, closeFeedback, context } = useFeedbackCollector()
+  const { isOpen, openFeedback, closeFeedback, context } = useFeedbackCollector();
 
   return (
     <>
@@ -276,7 +276,7 @@ export function FloatingFeedbackButton() {
         context={context}
       />
     </>
-  )
+  );
 }
 
-export default FeedbackCollector
+export default FeedbackCollector;

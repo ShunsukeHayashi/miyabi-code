@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/Progress';
-import type { AgentTemplate, AgentTrigger, AgentRole, AGENT_TEMPLATES } from '@/lib/github-app/agent-types';
+import type { AgentTemplate, AgentTrigger } from '@/lib/github-app/agent-types';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -174,7 +173,7 @@ export default function NewAgentPage() {
     setSelectedTriggers((prev) =>
       prev.includes(trigger)
         ? prev.filter((t) => t !== trigger)
-        : [...prev, trigger]
+        : [...prev, trigger],
     );
   };
 
@@ -182,7 +181,7 @@ export default function NewAgentPage() {
     setSelectedRepositories((prev) =>
       prev.includes(repo)
         ? prev.filter((r) => r !== repo)
-        : [...prev, repo]
+        : [...prev, repo],
     );
   };
 
@@ -243,7 +242,7 @@ export default function NewAgentPage() {
                 key={s}
                 className={cn(
                   'flex items-center gap-2 text-sm',
-                  i <= currentStepIndex ? 'text-white' : 'text-gray-500'
+                  i <= currentStepIndex ? 'text-white' : 'text-gray-500',
                 )}
               >
                 <div className={cn(
@@ -252,7 +251,7 @@ export default function NewAgentPage() {
                     ? 'bg-miyabi-green text-white'
                     : i === currentStepIndex
                       ? 'bg-miyabi-blue text-white'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-gray-700 text-gray-400',
                 )}>
                   {i < currentStepIndex ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -289,7 +288,7 @@ export default function NewAgentPage() {
                         'relative p-5 rounded-xl border text-left transition-all',
                         isSelected
                           ? 'bg-gradient-to-br from-miyabi-blue/20 to-miyabi-purple/20 border-miyabi-blue/50 ring-2 ring-miyabi-blue/30'
-                          : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800'
+                          : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800',
                       )}
                     >
                       {template.recommended && (
@@ -302,7 +301,7 @@ export default function NewAgentPage() {
                           'p-3 rounded-xl shrink-0',
                           isSelected
                             ? 'bg-miyabi-blue/30 text-miyabi-blue'
-                            : 'bg-gray-700 text-gray-400'
+                            : 'bg-gray-700 text-gray-400',
                         )}>
                           {templateIcons[template.id]}
                         </div>
@@ -371,7 +370,7 @@ export default function NewAgentPage() {
                           'px-3 py-2 rounded-lg text-sm font-medium transition-all',
                           isSelected
                             ? 'bg-miyabi-blue/20 text-miyabi-blue border border-miyabi-blue/50'
-                            : 'bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600'
+                            : 'bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600',
                         )}
                       >
                         {trigger.label}
@@ -404,12 +403,12 @@ export default function NewAgentPage() {
                     onClick={() => setAutoApprove(!autoApprove)}
                     className={cn(
                       'relative w-12 h-6 rounded-full transition-colors',
-                      autoApprove ? 'bg-miyabi-blue' : 'bg-gray-600'
+                      autoApprove ? 'bg-miyabi-blue' : 'bg-gray-600',
                     )}
                   >
                     <div className={cn(
                       'absolute top-1 w-4 h-4 rounded-full bg-white transition-transform',
-                      autoApprove ? 'translate-x-7' : 'translate-x-1'
+                      autoApprove ? 'translate-x-7' : 'translate-x-1',
                     )} />
                   </button>
                 </div>
@@ -439,14 +438,14 @@ export default function NewAgentPage() {
                         'w-full flex items-center gap-3 p-4 rounded-xl border transition-all',
                         isSelected
                           ? 'bg-miyabi-blue/10 border-miyabi-blue/50 ring-1 ring-miyabi-blue/30'
-                          : 'bg-gray-800/50 border-gray-700 hover:border-gray-600'
+                          : 'bg-gray-800/50 border-gray-700 hover:border-gray-600',
                       )}
                     >
                       <div className={cn(
                         'w-5 h-5 rounded border-2 flex items-center justify-center transition-all',
                         isSelected
                           ? 'bg-miyabi-blue border-miyabi-blue'
-                          : 'border-gray-600'
+                          : 'border-gray-600',
                       )}>
                         {isSelected && (
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">

@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import * as Sentry from '@sentry/nextjs'
+import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 interface ErrorContext {
   userId?: string
@@ -18,28 +18,28 @@ export interface ErrorHandlerConfig {
 }
 
 class AppError extends Error {
-  public readonly code: string
-  public readonly severity: 'low' | 'medium' | 'high' | 'critical'
-  public readonly context?: ErrorContext
-  public readonly timestamp: string
+  public readonly code: string;
+  public readonly severity: 'low' | 'medium' | 'high' | 'critical';
+  public readonly context?: ErrorContext;
+  public readonly timestamp: string;
 
   constructor(
     message: string,
     code: string = 'UNKNOWN_ERROR',
     severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
-    context?: ErrorContext
+    context?: ErrorContext,
   ) {
-    super(message)
-    this.name = 'AppError'
-    this.code = code
-    this.severity = severity
-    this.context = context
-    this.timestamp = new Date().toISOString()
+    super(message);
+    this.name = 'AppError';
+    this.code = code;
+    this.severity = severity;
+    this.context = context;
+    this.timestamp = new Date().toISOString();
   }
 }
 
 class ErrorHandler {
-  private config: ErrorHandlerConfig
+  private config: ErrorHandlerConfig;
 
   constructor(config: ErrorHandlerConfig = {}) {
     this.config = {
@@ -47,26 +47,26 @@ class ErrorHandler {
       enableSentryReporting: true,
       enableUserFeedback: false,
       ...config,
-    }
+    };
   }
 
   // 一般的なエラーハンドリング
   handle(error: Error | AppError, context?: ErrorContext): string | undefined {
-    const errorId = this.generateErrorId()
+    const errorId = this.generateErrorId();
 
     if (this.config.enableConsoleLogging) {
-      console.group(`[ErrorHandler] ${error.name || 'Error'} (${errorId})`)
-      console.error('Message:', error.message)
-      console.error('Stack:', error.stack)
-      if (context) console.error('Context:', context)
-      console.groupEnd()
+      console.group(`[ErrorHandler] ${error.name || 'Error'} (${errorId})`);
+      console.error('Message:', error.message);
+      console.error('Stack:', error.stack);
+      if (context) {console.error('Context:', context);}
+      console.groupEnd();
     }
 
     if (this.config.enableSentryReporting) {
-      return this.reportToSentry(error, context, errorId)
+      return this.reportToSentry(error, context, errorId);
     }
 
-    return errorId
+    return errorId;
   }
 
   // API エラー専用ハンドリング
@@ -80,23 +80,23 @@ class ErrorHandler {
         requestData,
         status: error.status,
         responseData: error.response?.data,
-      }
-    )
+      },
+    );
 
-    return this.handle(apiError)
+    return this.handle(apiError);
   }
 
   // 非同期エラーハンドリング
   handleAsyncError(promise: Promise<any>, context?: ErrorContext): Promise<any> {
     return promise.catch((error) => {
-      const errorId = this.handle(error, context)
+      const errorId = this.handle(error, context);
       throw new AppError(
         `Async operation failed: ${error.message}`,
         'ASYNC_ERROR',
         'medium',
-        { ...context, originalError: error.message, errorId }
-      )
-    })
+        { ...context, originalError: error.message, errorId },
+      );
+    });
   }
 
   // ユーザーアクション関連エラー
@@ -104,7 +104,7 @@ class ErrorHandler {
     action: string,
     error: Error,
     userId?: string,
-    additionalContext?: Record<string, any>
+    additionalContext?: Record<string, any>,
   ): string | undefined {
     const userError = new AppError(
       `User action "${action}" failed: ${error.message}`,
@@ -114,17 +114,17 @@ class ErrorHandler {
         action,
         userId,
         ...additionalContext,
-      }
-    )
+      },
+    );
 
-    return this.handle(userError)
+    return this.handle(userError);
   }
 
   // Sentryへの報告
   private reportToSentry(
     error: Error | AppError,
     context?: ErrorContext,
-    errorId?: string
+    errorId?: string,
   ): string {
     const eventId = Sentry.captureException(error, {
       tags: {
@@ -146,34 +146,34 @@ class ErrorHandler {
         id: context.userId,
         email: context.userEmail,
       } : undefined,
-    })
+    });
 
-    return eventId
+    return eventId;
   }
 
   // API エラーの重要度判定
   private determineApiErrorSeverity(status?: number): 'low' | 'medium' | 'high' | 'critical' {
-    if (!status) return 'medium'
-    if (status >= 500) return 'critical'
-    if (status >= 400 && status < 500) return 'medium'
-    return 'low'
+    if (!status) {return 'medium';}
+    if (status >= 500) {return 'critical';}
+    if (status >= 400 && status < 500) {return 'medium';}
+    return 'low';
   }
 
   // エラーID生成
   private generateErrorId(): string {
-    return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   // ユーザーフィードバック収集
   showFeedbackDialog(eventId: string): void {
     if (this.config.enableUserFeedback) {
-      Sentry.showReportDialog({ eventId })
+      Sentry.showReportDialog({ eventId });
     }
   }
 }
 
 // グローバルエラーハンドラーのインスタンス
-export const errorHandler = new ErrorHandler()
+export const errorHandler = new ErrorHandler();
 
 // React フック用コンポーネント
 export function useErrorHandler(context?: ErrorContext) {
@@ -185,10 +185,10 @@ export function useErrorHandler(context?: ErrorContext) {
           'Unhandled promise rejection',
           'UNHANDLED_REJECTION',
           'high',
-          context
-        )
-      )
-    }
+          context,
+        ),
+      );
+    };
 
     // グローバルエラーをキャッチ
     const handleGlobalError = (event: ErrorEvent) => {
@@ -197,19 +197,19 @@ export function useErrorHandler(context?: ErrorContext) {
           event.message,
           'GLOBAL_ERROR',
           'high',
-          { ...context, filename: event.filename, lineno: event.lineno }
-        )
-      )
-    }
+          { ...context, filename: event.filename, lineno: event.lineno },
+        ),
+      );
+    };
 
-    window.addEventListener('unhandledrejection', handleUnhandledRejection)
-    window.addEventListener('error', handleGlobalError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    window.addEventListener('error', handleGlobalError);
 
     return () => {
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-      window.removeEventListener('error', handleGlobalError)
-    }
-  }, [context])
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      window.removeEventListener('error', handleGlobalError);
+    };
+  }, [context]);
 
   return {
     handleError: (error: Error, additionalContext?: ErrorContext) =>
@@ -223,9 +223,9 @@ export function useErrorHandler(context?: ErrorContext) {
         ...context,
         ...additionalContext,
       }),
-  }
+  };
 }
 
 // エクスポート
-export { AppError, ErrorHandler }
-export default ErrorHandler
+export { AppError, ErrorHandler };
+export default ErrorHandler;

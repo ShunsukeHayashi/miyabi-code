@@ -7,11 +7,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useUser } from '@/lib/hooks/useAuth';
-import {
+import type {
   PlatformAnalytics,
   CourseAnalytics,
   UserEngagement,
-  LearningInsights
+  LearningInsights,
 } from '@/lib/analytics/analytics-engine';
 
 interface AnalyticsDashboardProps {
@@ -25,7 +25,7 @@ export default function AnalyticsDashboard({
   viewType = 'platform',
   courseId,
   userId,
-  className = ''
+  className = '',
 }: AnalyticsDashboardProps) {
   const { user } = useUser();
   const [platformData, setPlatformData] = useState<PlatformAnalytics | null>(null);
@@ -38,7 +38,7 @@ export default function AnalyticsDashboard({
 
   // Fetch analytics data based on view type
   const fetchAnalyticsData = useCallback(async () => {
-    if (!user) return;
+    if (!user) {return;}
 
     setLoading(true);
     setError(null);

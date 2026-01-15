@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/Progress';
 
-function cn(...classes: (string | undefined | null | false)[]): string {
+function cn(...classes: Array<string | undefined | null | false>): string {
   return classes.filter(Boolean).join(' ');
 }
 
@@ -104,7 +104,7 @@ export default function SettingsPage() {
                 'px-4 py-2 rounded-lg text-sm font-medium transition-all',
                 activeTab === tab
                   ? 'bg-miyabi-blue/20 text-miyabi-blue'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800',
               )}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -304,12 +304,12 @@ export default function SettingsPage() {
                   onClick={() => setNotificationsEnabled(!notificationsEnabled)}
                   className={cn(
                     'relative w-12 h-6 rounded-full transition-colors',
-                    notificationsEnabled ? 'bg-miyabi-blue' : 'bg-gray-600'
+                    notificationsEnabled ? 'bg-miyabi-blue' : 'bg-gray-600',
                   )}
                 >
                   <div className={cn(
                     'absolute top-1 w-4 h-4 rounded-full bg-white transition-transform',
-                    notificationsEnabled ? 'translate-x-7' : 'translate-x-1'
+                    notificationsEnabled ? 'translate-x-7' : 'translate-x-1',
                   )} />
                 </button>
               </div>
@@ -325,7 +325,7 @@ export default function SettingsPage() {
                         'px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize',
                         emailDigest === freq
                           ? 'bg-miyabi-blue/20 text-miyabi-blue border border-miyabi-blue/50'
-                          : 'bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600'
+                          : 'bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600',
                       )}
                     >
                       {freq}

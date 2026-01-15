@@ -1,87 +1,86 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useErrorHandler } from '@/components/errors/ErrorHandler'
-import { useFeedbackCollector } from '@/components/errors/FeedbackCollector'
-import FeedbackCollector from '@/components/errors/FeedbackCollector'
+import { useState } from 'react';
+import { useErrorHandler } from '@/components/errors/ErrorHandler';
+import FeedbackCollector, { useFeedbackCollector } from '@/components/errors/FeedbackCollector';
 
 export default function TestErrorPage() {
-  const [testState, setTestState] = useState(0)
+  const [testState, setTestState] = useState(0);
   const { handleError, handleUserActionError, handleApiError } = useErrorHandler({
     feature: 'error-testing',
     userId: 'test-user',
-  })
+  });
 
-  const { isOpen, openFeedback, closeFeedback, context } = useFeedbackCollector()
+  const { isOpen, openFeedback, closeFeedback, context } = useFeedbackCollector();
 
   // エラータイプ別テスト関数
   const testRuntimeError = () => {
     try {
       // 意図的にランタイムエラーを発生
-      const obj: any = null
-      obj.someMethod()
+      const obj: any = null;
+      obj.someMethod();
     } catch (error) {
-      handleError(error as Error, { action: 'runtime-error-test' })
+      handleError(error as Error, { action: 'runtime-error-test' });
     }
-  }
+  };
 
   const testUserActionError = () => {
     try {
       // 意図的にユーザーアクションエラーを発生
-      throw new Error('User action failed')
+      throw new Error('User action failed');
     } catch (error) {
-      handleUserActionError('button-click', error as Error, { buttonId: 'test-button' })
+      handleUserActionError('button-click', error as Error, { buttonId: 'test-button' });
     }
-  }
+  };
 
   const testApiError = () => {
     // 模擬APIエラー
     const mockApiError = {
       status: 500,
       message: 'Internal Server Error',
-      response: { data: { error: 'Database connection failed' } }
-    }
-    handleApiError(mockApiError, '/api/test', { testData: 'mock-request' })
-  }
+      response: { data: { error: 'Database connection failed' } },
+    };
+    handleApiError(mockApiError, '/api/test', { testData: 'mock-request' });
+  };
 
   const testAsyncError = async () => {
     // 非同期エラーのテスト
     const failingPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Async operation failed')), 100)
-    })
+      setTimeout(() => reject(new Error('Async operation failed')), 100);
+    });
 
     try {
-      await failingPromise
+      await failingPromise;
     } catch (error) {
-      handleError(error as Error, { action: 'async-error-test' })
+      handleError(error as Error, { action: 'async-error-test' });
     }
-  }
+  };
 
   const testComponentError = () => {
     // React エラーバウンダリをテスト
-    setTestState(-1) // これによりレンダリングエラーを発生させる
-  }
+    setTestState(-1); // これによりレンダリングエラーを発生させる
+  };
 
   const testPerformanceIssue = () => {
     // パフォーマンス問題をシミュレート
-    const start = performance.now()
+    const start = performance.now();
 
     // 重い計算をシミュレート
-    let result = 0
+    let result = 0;
     for (let i = 0; i < 10000000; i++) {
-      result += Math.random()
+      result += Math.random();
     }
 
-    const duration = performance.now() - start
-    console.log(`Heavy computation took ${duration}ms, result: ${result}`)
-  }
+    const duration = performance.now() - start;
+    console.log(`Heavy computation took ${duration}ms, result: ${result}`);
+  };
 
   const TestComponent = () => {
     if (testState === -1) {
-      throw new Error('Component render error for testing')
+      throw new Error('Component render error for testing');
     }
-    return <div>Test component rendered successfully (state: {testState})</div>
-  }
+    return <div>Test component rendered successfully (state: {testState})</div>;
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 p-8">
@@ -122,7 +121,9 @@ export default function TestErrorPage() {
               </button>
 
               <button
-                onClick={testAsyncError}
+                onClick={() => {
+                  void testAsyncError();
+                }}
                 className="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
               >
                 非同期エラー発生
@@ -220,5 +221,5 @@ export default function TestErrorPage() {
         defaultType="bug"
       />
     </div>
-  )
+  );
 }
