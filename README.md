@@ -43,6 +43,7 @@ src/
 ├── agent/          # エージェント実装
 ├── llm/            # LLMプロバイダー
 ├── mcp/            # MCP統合
+│   └── course-server.ts  # コース操作MCPサーバー
 ├── tmux/           # tmux通信
 ├── github/         # GitHub API
 ├── githubops/      # ワークフロー
@@ -50,6 +51,33 @@ src/
 ├── utils/          # ユーティリティ
 └── commands/       # CLIコマンド
 ```
+
+## MCP Servers
+
+### Course MCP Server
+
+コース・レッスン管理用のMCPサーバー実装。
+
+**使用可能なツール**:
+- `course.create` - 新しいコースを作成
+- `course.list` - コース一覧を取得
+- `course.get` - コース詳細を取得
+- `lesson.create` - 新しいレッスンを作成
+- `lesson.list` - レッスン一覧を取得
+- `lesson.update` - レッスンを更新
+
+**実行方法**:
+```bash
+# 直接実行
+node dist/mcp/course-server.js
+
+# または npm script
+npm run mcp:course
+```
+
+**スキーマ**:
+- コース: title, description, level, language, creatorId (必須)
+- レッスン: courseId, title, content, order, type (必須)
 
 ## 設定
 

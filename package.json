@@ -14,7 +14,8 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "mcp:course": "node dist/mcp/course-server.js"
   },
   "keywords": [
     "ai",
