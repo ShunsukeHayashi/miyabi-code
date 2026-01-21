@@ -1,28 +1,95 @@
 # MiyabiCode
 
-AI Coding Agent for Miyabi Agent Society - inspired by OpenCode.
+AI Coding Agent for Miyabi Agent Society - OpenCode inspired
 
-## 概要
+## 概要 (Overview)
 
-MiyabiCodeはMiyabi Agent Society向けに設計されたAIコーディングエージェントです。Anthropic Claude APIを活用し、Miyabiエコシステム（tmux、MCP Bundle、GitHub Ops）との統合を提供します。
+MiyabiCodeはMiyabi Agent SocietyのためのAIコーディングエージェントです。Anthropic Claude APIを活用し、Issue-Driven Development (IDD) ワークフローを自動化します。
 
-## 特徴
+## 特徴 (Features)
 
-- 🤖 **Anthropic Claude統合** - 最新のClaude APIを使用
-- 🎭 **Miyabi Agent Society連携** - 21+の専門エージェントとの協調
-- 🔌 **MCP Bundle統合** - 172+ツールへのアクセス
-- 📋 **Issue-Driven Development** - GitHub中心のワークフロー
-- 🇯🇵 **日本語最適化** - 日本語コメント・ドキュメント
+- 🤖 **AIコード生成**: Anthropic Claude APIによる高品質なコード生成
+- 🎭 **エージェント社会**: 6つのコアエージェント（しきるん、カエデ、サクラ、ツバキ、ボタン、ながれるん）による協調開発
+- 📋 **Issue-Driven Development**: GitHub Issue中心の開発ワークフロー
+- 🔌 **MCP統合**: 172+ツールへのアクセス（Progressive Disclosure対応）
+- 🎪 **tmux通信**: エージェント間通信プロトコル（P0.2準拠）
 
-## インストール
+## インストール (Installation)
 
 ```bash
-npm install
+npm install -g miyabi-code
 ```
 
-## 使用方法
+または
 
 ```bash
+npx miyabi-code
+```
+
+## 使い方 (Usage)
+
+### CLIコマンド
+
+```bash
+# 対話モード開始
+miyabi-code interactive
+
+# Issueを作成
+miyabi-code issue create "バグの説明"
+
+# PRを作成
+miyabi-code pr create
+
+# エージェントステータス確認
+miyabi-code agent list
+
+# ワークフロー実行
+miyabi-code workflow run idd-flow
+```
+
+### 設定ファイル
+
+プロジェクトルートに `miyabicode.json` を作成します：
+
+```json
+{
+  "name": "your-project",
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514"
+  },
+  "tmux": {
+    "session": "miyabi",
+    "target": "agents.0"
+  },
+  "github": {
+    "owner": "your-username",
+    "repo": "your-repo"
+  }
+}
+```
+
+## エージェント (Agents)
+
+| エージェント | 役割 | 概要 |
+|-----------|------|------|
+| 🎭 しきるん | Conductor | タスク分配・進捗管理 |
+| 🍁 カエデ | CodeGen | コード生成 |
+| 🌸 サクラ | Review | コードレビュー |
+| 🌺 ツバキ | PR | Pull Request管理 |
+| 🌼 ボタン | Deploy | デプロイ実行 |
+| 🌊 ながれるん | Workflow | n8nワークフロー自動化 |
+
+## 開発 (Development)
+
+```bash
+# クローン
+git clone https://github.com/ShunsukeHayashi/miyabi-code.git
+cd miyabi-code
+
+# インストール
+npm install
+
 # 開発モード
 npm run dev
 
@@ -34,72 +101,15 @@ npm test
 
 # リント
 npm run lint
+npm run lint:fix
 ```
 
-## プロジェクト構造
+## ライセンス (License)
 
-```
-src/
-├── agent/          # エージェント実装
-├── llm/            # LLMプロバイダー
-├── mcp/            # MCP統合
-│   └── course-server.ts  # コース操作MCPサーバー
-├── tmux/           # tmux通信
-├── github/         # GitHub API
-├── githubops/      # ワークフロー
-├── config/         # 設定管理
-├── utils/          # ユーティリティ
-└── commands/       # CLIコマンド
-```
+MIT License - see LICENSE file for details
 
-## MCP Servers
+## リンク (Links)
 
-### Course MCP Server
-
-コース・レッスン管理用のMCPサーバー実装。
-
-**使用可能なツール**:
-- `course.create` - 新しいコースを作成
-- `course.list` - コース一覧を取得
-- `course.get` - コース詳細を取得
-- `lesson.create` - 新しいレッスンを作成
-- `lesson.list` - レッスン一覧を取得
-- `lesson.update` - レッスンを更新
-
-**実行方法**:
-```bash
-# 直接実行
-node dist/mcp/course-server.js
-
-# または npm script
-npm run mcp:course
-```
-
-**スキーマ**:
-- コース: title, description, level, language, creatorId (必須)
-- レッスン: courseId, title, content, order, type (必須)
-
-## 設定
-
-`miyabicode.json` をプロジェクトルートに配置:
-
-```json
-{
-  "name": "my-project",
-  "llm": {
-    "provider": "anthropic",
-    "model": "claude-sonnet-4"
-  },
-  "mcp": {
-    "enabled": ["miyabi-mcp-bundle"]
-  },
-  "tmux": {
-    "session": "miyabi",
-    "target": "agents.0"
-  }
-}
-```
-
-## ライセンス
-
-MIT
+- [Repository](https://github.com/ShunsukeHayashi/miyabi-code)
+- [Issues](https://github.com/ShunsukeHayashi/miyabi-code/issues)
+- [Miyabi Agent Society](https://github.com/ShunsukeHayashi/miyabi-private)

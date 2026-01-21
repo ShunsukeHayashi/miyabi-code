@@ -7,13 +7,24 @@
   "bin": {
     "miyabi-code": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "tsx src/cli.ts",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
     "build": "tsc",
+    "postbuild": "chmod +x dist/cli.js",
+    "build:watch": "tsc --watch",
+    "build:check": "npm run type-check && npm run lint && npm run test -- --run",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "type-check": "tsc --noEmit",
     "mcp:course": "node dist/mcp/course-server.js"
   },
@@ -50,6 +61,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "eslint": "^9.18.0",
     "happy-dom": "^20.3.4",
+    "rimraf": "^6.0.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vite": "^5.4.21",
@@ -57,5 +69,16 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShunsukeHayashi/miyabi-code.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ShunsukeHayashi/miyabi-code/issues"
+  },
+  "homepage": "https://github.com/ShunsukeHayashi/miyabi-code#readme",
+  "publishConfig": {
+    "access": "public"
   }
 }
