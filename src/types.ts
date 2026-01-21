@@ -143,9 +143,6 @@ export interface GitHubIssue {
   body: string;
   state: 'open' | 'closed';
   labels: string[];
-  author?: string;
-  assignees?: string[];
-  createdAt?: Date | string;
 }
 
 export interface GitHubPR {
@@ -155,78 +152,11 @@ export interface GitHubPR {
   state: 'open' | 'closed';
   head: string;
   base: string;
-  sourceBranch?: string;
-  targetBranch?: string;
-  ciStatus?: 'pending' | 'success' | 'failure';
-  reviewers?: string[];
-}
-
-export interface GitHubClientConfig {
-  owner: string;
-  repo: string;
-  token?: string;
-}
-
-export interface GitHubClientInterface {
-  getIssue(issueNumber: number): Promise<GitHubIssue>;
-  listIssues(options?: { state?: string; labels?: string[]; limit?: number }): Promise<GitHubIssue[]>;
-  createPR(params: { title: string; body: string; sourceBranch: string; targetBranch: string; draft?: boolean }): Promise<number>;
-  listPRs(): Promise<GitHubPR[]>;
-  getRepo(): Promise<{ owner: string; repo: string; defaultBranch: string }>;
-  createIssue(title: string, body: string): Promise<number>;
-  addComment(issueNumber: number, body: string): Promise<void>;
-  getDefaultBranch(): Promise<string>;
-  mergePR(prNumber: number, method?: 'merge' | 'squash' | 'rebase'): Promise<void>;
-}
-
-export interface GitHubMetrics {
-  openIssues?: number;
-  openPRs?: number;
-  avgMergeTime?: number;
-  apiCalls?: number;
-  cacheHits?: number;
-  errors?: number;
 }
 
 // ============================================
 // Workflow Types (Issue-Driven Development)
 // ============================================
-
-export interface WorkflowDefinition {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  trigger?: 'manual' | 'issue' | 'schedule' | { type: string; config?: Record<string, unknown> };
-  steps: WorkflowStep[];
-}
-
-export interface WorkflowStep {
-  id: string;
-  name: string;
-  agentId?: AgentType;
-  type?: 'agent' | 'github' | 'delay' | 'workflow' | 'command' | 'approval';
-  continueOnError?: boolean;
-  config?: Record<string, unknown>;
-}
-
-export interface WorkflowExecution {
-  id: string;
-  workflowId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  startedAt: Date;
-  completedAt?: Date;
-  steps: WorkflowStepExecution[];
-}
-
-export interface WorkflowStepExecution {
-  id: string;
-  stepId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  startedAt?: Date;
-  completedAt?: Date;
-  error?: string;
-}
 
 export interface WorkflowConfig {
   branchNaming: 'conventional' | 'custom';
